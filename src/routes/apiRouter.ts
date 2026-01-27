@@ -95,14 +95,19 @@ async function handleAction(
 export function apiRouter(
   req: Request,
   res: Response,
-  _next: NextFunction,
+  next: NextFunction,
 ): void {
   requireAuthApi(req, res, async () => {
-    const action = getAction(req);
-    if (!action || !isValidAction(action)) {
-      res.status(400).json({ error: `Unknown action: ${action || '(empty)'}` });
-      return;
+    try {
+      const action = getAction(req);
+      if (!action || !isValidAction(action)) {
+        res.status(400).json({ error: `Unknown action: ${action || '(empty)'}` });
+        return;
+      }
+      await handleAction(action, req, res);
+    } catch (error) {
+      // Forward async errors to Express error handler
+      next(error);
     }
-    await handleAction(action, req, res);
   });
 }
