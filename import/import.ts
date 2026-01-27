@@ -166,9 +166,9 @@ function run(): void {
   output('');
   outputSuccess('Import complete.');
   output('');
-  output('Default admin credentials:');
+  output('Default admin user created.');
   output(`  Username: ${IMPORT_DEFAULT_ADMIN_USERNAME}`);
-  output(`  Password: ${IMPORT_DEFAULT_ADMIN_PASSWORD}`);
+  output('  Password: (check .env file)');
   output('');
   output('Change the password after first login!');
   output('');
