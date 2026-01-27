@@ -38,3 +38,11 @@ if (existsSync(iconsSrc)) {
   copyRecursive(iconsSrc, iconsDst);
   console.log(`Copied icons from ${iconsSrc} to ${iconsDst}`);
 }
+
+// Copy background.txt
+const backgroundSrc = 'background.txt';
+const backgroundDst = 'dist/background.txt';
+if (existsSync(backgroundSrc)) {
+  copyFileSync(backgroundSrc, backgroundDst);
+  console.log(`Copied ${backgroundSrc} to ${backgroundDst}`);
+}
