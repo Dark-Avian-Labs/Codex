@@ -1,3 +1,4 @@
+import argon2 from 'argon2';
 import bcrypt from 'bcrypt';
 import fs from 'fs';
 import path from 'path';
@@ -19,24 +20,100 @@ interface LockoutRecord {
 
 type LockoutData = Record<string, LockoutRecord>;
 
+let lockoutCache: LockoutData | null = null;
+let lockoutCacheDirty = false;
+let lockoutCacheLastLoad = 0;
+const LOCKOUT_CACHE_TTL = 5000;
+
+/**
+ * Check if a hash is a bcrypt hash (starts with $2a$, $2b$, or $2y$)
+ */
+function isBcryptHash(hash: string): boolean {
+  return /^\$2[ayb]\$/.test(hash);
+}
+
+/**
+ * Hash a password using argon2id (OWASP recommended)
+ * Uses OWASP recommended parameters: 19 MiB memory, 2 iterations, 1 parallelism
+ */
+async function hashPassword(password: string): Promise<string> {
+  return await argon2.hash(password, {
+    type: argon2.argon2id,
+    memoryCost: 19 * 1024,
+    timeCost: 2,
+    parallelism: 1,
+  });
+}
+
+/**
+ * Verify a password against a hash (supports both argon2 and bcrypt for migration)
+ */
+async function verifyPassword(
+  password: string,
+  hash: string,
+): Promise<boolean> {
+  if (isBcryptHash(hash)) {
+    return bcrypt.compareSync(password, hash);
+  }
+  try {
+    return await argon2.verify(hash, password);
+  } catch {
+    return false;
+  }
+}
+
 function ensureLockoutDir(): void {
   const dir = path.dirname(AUTH_LOCKOUT_FILE);
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 }
 
 function getLockoutData(): LockoutData {
-  if (!fs.existsSync(AUTH_LOCKOUT_FILE)) return {};
-  try {
-    const data = fs.readFileSync(AUTH_LOCKOUT_FILE, 'utf-8');
-    return JSON.parse(data) as LockoutData;
-  } catch {
-    return {};
+  const now = Date.now();
+
+  if (
+    lockoutCache === null ||
+    (lockoutCacheDirty && now - lockoutCacheLastLoad > LOCKOUT_CACHE_TTL)
+  ) {
+    if (!fs.existsSync(AUTH_LOCKOUT_FILE)) {
+      lockoutCache = {};
+      lockoutCacheDirty = false;
+      lockoutCacheLastLoad = now;
+      return lockoutCache;
+    }
+    try {
+      const data = fs.readFileSync(AUTH_LOCKOUT_FILE, 'utf-8');
+      lockoutCache = JSON.parse(data) as LockoutData;
+      lockoutCacheDirty = false;
+      lockoutCacheLastLoad = now;
+    } catch {
+      lockoutCache = {};
+      lockoutCacheDirty = false;
+      lockoutCacheLastLoad = now;
+    }
   }
+
+  return lockoutCache ?? {};
 }
 
 function saveLockoutData(data: LockoutData): void {
-  ensureLockoutDir();
-  fs.writeFileSync(AUTH_LOCKOUT_FILE, JSON.stringify(data, null, 0));
+  lockoutCache = data;
+  lockoutCacheDirty = true;
+  lockoutCacheLastLoad = Date.now();
+
+  setImmediate(() => {
+    if (lockoutCacheDirty && lockoutCache) {
+      ensureLockoutDir();
+      try {
+        fs.writeFileSync(
+          AUTH_LOCKOUT_FILE,
+          JSON.stringify(lockoutCache, null, 0),
+        );
+        lockoutCacheDirty = false;
+      } catch {
+        // Ignore write errors - will retry on next save
+      }
+    }
+  });
 }
 
 export function getClientIP(req: {
@@ -96,11 +173,11 @@ function clearFailedAttempts(ip: string): void {
   }
 }
 
-export function attemptLogin(
+export async function attemptLogin(
   username: string,
   password: string,
   ip: string,
-): { success: true } | { success: false; error: string } {
+): Promise<{ success: true } | { success: false; error: string }> {
   if (isLockedOut(ip)) {
     return {
       success: false,
@@ -125,7 +202,7 @@ export function attemptLogin(
       };
     }
 
-    const ok = bcrypt.compareSync(password, user.password_hash);
+    const ok = await verifyPassword(password, user.password_hash);
     if (!ok) {
       const remaining = recordFailedAttempt(ip);
       if (remaining <= 0) {
@@ -138,6 +215,15 @@ export function attemptLogin(
         success: false,
         error: `Invalid username or password. ${remaining} attempt(s) remaining.`,
       };
+    }
+
+    if (isBcryptHash(user.password_hash)) {
+      try {
+        const newHash = await hashPassword(password);
+        q.updateUserPassword(db, user.id, newHash);
+      } catch (error) {
+        console.error('Failed to upgrade password hash:', error);
+      }
     }
 
     clearFailedAttempts(ip);
@@ -230,11 +316,13 @@ export function deleteGameAccount(
   }
 }
 
-export function createUser(
+export async function createUser(
   username: string,
   password: string,
   isAdminUser: boolean,
-): { success: true; user_id: number } | { success: false; error: string } {
+): Promise<
+  { success: true; user_id: number } | { success: false; error: string }
+> {
   const db = getDb();
   try {
     const u = username.trim();
@@ -250,7 +338,7 @@ export function createUser(
     if (q.userExists(db, u)) {
       return { success: false, error: 'Username already exists' };
     }
-    const hash = bcrypt.hashSync(password, 10);
+    const hash = await hashPassword(password);
     const userId = q.createUser(db, u, hash, isAdminUser);
     return { success: true, user_id: userId };
   } finally {
@@ -276,16 +364,16 @@ export function deleteUser(
   }
 }
 
-export function changePassword(
+export async function changePassword(
   userId: number,
   newPassword: string,
-): { success: true } | { success: false; error: string } {
+): Promise<{ success: true } | { success: false; error: string }> {
   if (newPassword.length < 4) {
     return { success: false, error: 'Password must be at least 4 characters' };
   }
   const db = getDb();
   try {
-    const hash = bcrypt.hashSync(newPassword, 10);
+    const hash = await hashPassword(newPassword);
     if (!q.updateUserPassword(db, userId, hash)) {
       return { success: false, error: 'User not found' };
     }

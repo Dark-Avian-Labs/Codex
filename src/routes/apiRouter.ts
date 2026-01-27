@@ -40,7 +40,10 @@ const ALLOWED_ACTIONS = [
 
 type AllowedAction = (typeof ALLOWED_ACTIONS)[number];
 
-const handlers: Record<AllowedAction, (req: Request, res: Response) => void> = {
+const handlers: Record<
+  AllowedAction,
+  (req: Request, res: Response) => void | Promise<void>
+> = {
   worksheets: api.handleWorksheets,
   heroes: api.handleHeroes,
   artifacts: api.handleArtifacts,
@@ -77,90 +80,15 @@ function isValidAction(action: string): action is AllowedAction {
   );
 }
 
-function handleAction(
+async function handleAction(
   action: AllowedAction,
   req: Request,
   res: Response,
-): void {
-  switch (action) {
-    case 'worksheets':
-      handlers.worksheets(req, res);
-      break;
-    case 'heroes':
-      handlers.heroes(req, res);
-      break;
-    case 'artifacts':
-      handlers.artifacts(req, res);
-      break;
-    case 'update_hero':
-      handlers.update_hero(req, res);
-      break;
-    case 'update_artifact':
-      handlers.update_artifact(req, res);
-      break;
-    case 'add_hero':
-      handlers.add_hero(req, res);
-      break;
-    case 'add_artifact':
-      handlers.add_artifact(req, res);
-      break;
-    case 'delete_hero':
-      handlers.delete_hero(req, res);
-      break;
-    case 'delete_artifact':
-      handlers.delete_artifact(req, res);
-      break;
-    case 'update_hero_details':
-      handlers.update_hero_details(req, res);
-      break;
-    case 'update_artifact_details':
-      handlers.update_artifact_details(req, res);
-      break;
-    case 'accounts':
-      handlers.accounts(req, res);
-      break;
-    case 'switch_account':
-      handlers.switch_account(req, res);
-      break;
-    case 'add_account':
-      handlers.add_account(req, res);
-      break;
-    case 'delete_account':
-      handlers.delete_account(req, res);
-      break;
-    case 'user_info':
-      handlers.user_info(req, res);
-      break;
-    case 'admin_users':
-      handlers.admin_users(req, res);
-      break;
-    case 'admin_create_user':
-      handlers.admin_create_user(req, res);
-      break;
-    case 'admin_delete_user':
-      handlers.admin_delete_user(req, res);
-      break;
-    case 'admin_reset_password':
-      handlers.admin_reset_password(req, res);
-      break;
-    case 'admin_base_heroes':
-      handlers.admin_base_heroes(req, res);
-      break;
-    case 'admin_base_artifacts':
-      handlers.admin_base_artifacts(req, res);
-      break;
-    case 'admin_add_base_hero':
-      handlers.admin_add_base_hero(req, res);
-      break;
-    case 'admin_add_base_artifact':
-      handlers.admin_add_base_artifact(req, res);
-      break;
-    case 'admin_delete_base_hero':
-      handlers.admin_delete_base_hero(req, res);
-      break;
-    case 'admin_delete_base_artifact':
-      handlers.admin_delete_base_artifact(req, res);
-      break;
+): Promise<void> {
+  const handler = handlers[action];
+  const result = handler(req, res);
+  if (result instanceof Promise) {
+    await result;
   }
 }
 
@@ -169,12 +97,12 @@ export function apiRouter(
   res: Response,
   _next: NextFunction,
 ): void {
-  requireAuthApi(req, res, () => {
+  requireAuthApi(req, res, async () => {
     const action = getAction(req);
     if (!action || !isValidAction(action)) {
       res.status(400).json({ error: `Unknown action: ${action || '(empty)'}` });
       return;
     }
-    handleAction(action, req, res);
+    await handleAction(action, req, res);
   });
 }

@@ -1,8 +1,9 @@
 import Database from 'better-sqlite3';
 import cookieParser from 'cookie-parser';
+import { csrfSync } from 'csrf-sync';
 import express from 'express';
 import session from 'express-session';
-import lusca from 'lusca';
+import helmet from 'helmet';
 import { createRequire } from 'module';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -37,6 +38,12 @@ if (TRUST_PROXY) {
 app.set('view engine', 'ejs');
 app.set('views', viewsPath);
 
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+  }),
+);
+
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -65,7 +72,8 @@ app.use(
   }),
 );
 
-app.use(lusca.csrf());
+const { csrfSynchronisedProtection } = csrfSync();
+app.use(csrfSynchronisedProtection);
 
 app.use('/api', apiLimiter, apiRouter);
 registerPageRoutes(app);

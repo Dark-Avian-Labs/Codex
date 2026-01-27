@@ -82,7 +82,7 @@ export function registerPageRoutes(app: Application): void {
     '/login',
     loginLimiter,
     redirectIfAuthenticated,
-    (req: Request, res: Response) => {
+    async (req: Request, res: Response) => {
       const ip = getClientIP(req);
       const lockedOut = isLockedOut(ip);
       const lockoutRemaining = getLockoutRemaining(ip);
@@ -102,7 +102,7 @@ export function registerPageRoutes(app: Application): void {
       const username = String(req.body?.username ?? '').trim();
       const password = String(req.body?.password ?? '');
 
-      const result = attemptLogin(username, password, ip);
+      const result = await attemptLogin(username, password, ip);
 
       if (result.success) {
         const user = getUserForLogin(username);
@@ -223,7 +223,7 @@ export function registerPageRoutes(app: Application): void {
     '/register',
     adminLimiter,
     requireAdmin,
-    (req: Request, res: Response) => {
+    async (req: Request, res: Response) => {
       const username = String(req.body?.username ?? '').trim();
       const password = String(req.body?.password ?? '');
       const confirmPassword = String(req.body?.confirm_password ?? '');
@@ -237,7 +237,7 @@ export function registerPageRoutes(app: Application): void {
       } else if (password !== confirmPassword) {
         error = 'Passwords do not match.';
       } else {
-        const result = createUser(username, password, isAdminUser);
+        const result = await createUser(username, password, isAdminUser);
         if (result.success) {
           success = `User '${username}' created successfully!`;
         } else {

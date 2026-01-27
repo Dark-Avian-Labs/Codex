@@ -1,6 +1,6 @@
 {
   "name": "epic7-collection-tracker",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Epic7 collection tracker",
   "main": "dist/index.js",
   "scripts": {
@@ -22,15 +22,17 @@
   "license": "GPL-3.0-or-later",
   "dependencies": {
     "@dotenvx/dotenvx": "^1.52.0",
+    "argon2": "^0.41.1",
     "bcrypt": "^6.0.0",
     "better-sqlite3": "^12.6.2",
     "better-sqlite3-session-store": "^0.1.0",
     "cookie-parser": "^1.4.7",
+    "csrf-sync": "^3.1.0",
     "ejs": "^4.0.1",
     "express": "^5.2.1",
     "express-rate-limit": "^8.2.1",
     "express-session": "^1.18.1",
-    "lusca": "^1.7.0"
+    "helmet": "^8.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.20.0",
