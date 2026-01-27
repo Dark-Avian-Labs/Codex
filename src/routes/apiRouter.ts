@@ -101,7 +101,9 @@ export function apiRouter(
     try {
       const action = getAction(req);
       if (!action || !isValidAction(action)) {
-        res.status(400).json({ error: `Unknown action: ${action || '(empty)'}` });
+        res
+          .status(400)
+          .json({ error: `Unknown action: ${action || '(empty)'}` });
         return;
       }
       await handleAction(action, req, res);
