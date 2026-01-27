@@ -42,16 +42,26 @@ app.use(
   helmet({
     contentSecurityPolicy: {
       directives: {
-        defaultSrc: ['self'],
-        styleSrc: ['self', 'unsafe-inline'],
-        scriptSrc: ['self', 'unsafe-inline'],
-        imgSrc: ['self', 'data:', 'https:'],
-        fontSrc: ['self'],
-        connectSrc: ['self'],
-        frameSrc: ['none'],
-        objectSrc: ['none'],
-        baseUri: ['self'],
-        formAction: ['self'],
+        // eslint-disable-next-line quotes
+        defaultSrc: ["'self'"],
+        // eslint-disable-next-line quotes
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        // eslint-disable-next-line quotes
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        // eslint-disable-next-line quotes
+        imgSrc: ["'self'", 'data:', 'https:'],
+        // eslint-disable-next-line quotes
+        fontSrc: ["'self'"],
+        // eslint-disable-next-line quotes
+        connectSrc: ["'self'"],
+        // eslint-disable-next-line quotes
+        frameSrc: ["'none'"],
+        // eslint-disable-next-line quotes
+        objectSrc: ["'none'"],
+        // eslint-disable-next-line quotes
+        baseUri: ["'self'"],
+        // eslint-disable-next-line quotes
+        formAction: ["'self'"],
         upgradeInsecureRequests: [],
       },
     },
@@ -98,8 +108,14 @@ app.get('/favicon.ico', generalLimiter, (req, res) => {
   });
 });
 
-const { csrfSynchronisedProtection } = csrfSync({
+const { csrfSynchronisedProtection, generateToken } = csrfSync({
   ignoredMethods: ['GET', 'HEAD', 'OPTIONS'],
+});
+// Generate CSRF token for each request and make it available via req.csrfToken()
+app.use((req, res, next) => {
+  const token = generateToken(req);
+  req.csrfToken = () => token;
+  next();
 });
 app.use(csrfSynchronisedProtection);
 

@@ -53,7 +53,7 @@ async function verifyPassword(
   hash: string,
 ): Promise<boolean> {
   if (isBcryptHash(hash)) {
-    return bcrypt.compareSync(password, hash);
+    return await bcrypt.compare(password, hash);
   }
   try {
     return await argon2.verify(hash, password);
@@ -70,9 +70,11 @@ function ensureLockoutDir(): void {
 function getLockoutData(): LockoutData {
   const now = Date.now();
 
+  // Only reload from disk if cache is clean (not dirty) and TTL expired
+  // This prevents losing in-memory lockout attempts after a failed write
   if (
     lockoutCache === null ||
-    (lockoutCacheDirty && now - lockoutCacheLastLoad > LOCKOUT_CACHE_TTL)
+    (!lockoutCacheDirty && now - lockoutCacheLastLoad > LOCKOUT_CACHE_TTL)
   ) {
     if (!fs.existsSync(AUTH_LOCKOUT_FILE)) {
       lockoutCache = {};
@@ -109,8 +111,10 @@ function saveLockoutData(data: LockoutData): void {
           JSON.stringify(lockoutCache, null, 0),
         );
         lockoutCacheDirty = false;
-      } catch {
-        // Ignore write errors - will retry on next save
+      } catch (error) {
+        // Keep dirty flag true to prevent reload from overwriting in-memory data
+        // Will retry on next save operation
+        console.error('Failed to write lockout data:', error);
       }
     }
   });
