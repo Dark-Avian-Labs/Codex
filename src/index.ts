@@ -1,8 +1,9 @@
 import Database from 'better-sqlite3';
 import cookieParser from 'cookie-parser';
+import { csrfSync } from 'csrf-sync';
 import express from 'express';
 import session from 'express-session';
-import lusca from 'lusca';
+import helmet from 'helmet';
 import { createRequire } from 'module';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -37,6 +38,37 @@ if (TRUST_PROXY) {
 app.set('view engine', 'ejs');
 app.set('views', viewsPath);
 
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        // eslint-disable-next-line quotes
+        defaultSrc: ["'self'"],
+        // eslint-disable-next-line quotes
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        // eslint-disable-next-line quotes
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        // eslint-disable-next-line quotes
+        imgSrc: ["'self'", 'data:', 'https:'],
+        // eslint-disable-next-line quotes
+        fontSrc: ["'self'"],
+        // eslint-disable-next-line quotes
+        connectSrc: ["'self'"],
+        // eslint-disable-next-line quotes
+        frameSrc: ["'none'"],
+        // eslint-disable-next-line quotes
+        objectSrc: ["'none'"],
+        // eslint-disable-next-line quotes
+        baseUri: ["'self'"],
+        // eslint-disable-next-line quotes
+        formAction: ["'self'"],
+        upgradeInsecureRequests: [],
+      },
+    },
+  }),
+);
+
+// Cookie parser and body parsers (required before session middleware)
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -65,11 +97,23 @@ app.use(
   }),
 );
 
-app.use(lusca.csrf());
+// CSRF protection must come immediately after session middleware
+// All routes registered after this point are protected by CSRF
+const { csrfSynchronisedProtection, generateToken } = csrfSync({
+  ignoredMethods: ['GET', 'HEAD', 'OPTIONS'],
+});
 
-app.use('/api', apiLimiter, apiRouter);
-registerPageRoutes(app);
+// Generate CSRF token for each request and make it available via req.csrfToken()
+app.use((req, res, next) => {
+  const token = generateToken(req);
+  req.csrfToken = () => token;
+  next();
+});
 
+// Apply CSRF protection - all subsequent routes are protected
+app.use(csrfSynchronisedProtection);
+
+// Static routes (excluded from CSRF - GET only, no state changes)
 const iconsPath = __dirname.includes('dist')
   ? path.join(process.cwd(), 'dist', 'icons')
   : path.join(process.cwd(), 'icons');
@@ -81,6 +125,9 @@ app.get('/favicon.ico', generalLimiter, (req, res) => {
     if (err) res.status(404).end();
   });
 });
+
+app.use('/api', apiLimiter, apiRouter);
+registerPageRoutes(app);
 
 app.listen(PORT, () => {
   console.log(`Epic7 Collection Tracker running at http://localhost:${PORT}`);

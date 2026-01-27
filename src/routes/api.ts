@@ -599,7 +599,10 @@ export function handleAdminUsers(_req: Request, res: Response): void {
   json(res, { users });
 }
 
-export function handleAdminCreateUser(req: Request, res: Response): void {
+export async function handleAdminCreateUser(
+  req: Request,
+  res: Response,
+): Promise<void> {
   if (req.method !== 'POST') {
     err(res, 'POST method required.', 405);
     return;
@@ -612,7 +615,7 @@ export function handleAdminCreateUser(req: Request, res: Response): void {
   const username = String(body.username ?? '').trim();
   const password = String(body.password ?? '');
   const isAdminUser = Boolean(body.is_admin);
-  const result = createUser(username, password, isAdminUser);
+  const result = await createUser(username, password, isAdminUser);
   if (!result.success) {
     err(res, result.error);
     return;
@@ -648,7 +651,10 @@ export function handleAdminDeleteUser(req: Request, res: Response): void {
   json(res, { success: true });
 }
 
-export function handleAdminResetPassword(req: Request, res: Response): void {
+export async function handleAdminResetPassword(
+  req: Request,
+  res: Response,
+): Promise<void> {
   if (req.method !== 'POST') {
     err(res, 'POST method required.', 405);
     return;
@@ -664,7 +670,7 @@ export function handleAdminResetPassword(req: Request, res: Response): void {
     err(res, 'Invalid user_id.');
     return;
   }
-  const result = changePassword(targetId, newPassword);
+  const result = await changePassword(targetId, newPassword);
   if (!result.success) {
     err(res, result.error);
     return;

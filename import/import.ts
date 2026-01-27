@@ -13,7 +13,7 @@
  */
 
 import { config as loadEnv } from '@dotenvx/dotenvx';
-import bcrypt from 'bcrypt';
+import argon2 from 'argon2';
 import Database from 'better-sqlite3';
 import fs from 'fs';
 import path from 'path';
@@ -49,7 +49,7 @@ function parseLine(line: string): string[] {
   return line.split(CSV_DELIMITER).map((c) => c.replace(/^\uFEFF/, '').trim());
 }
 
-function run(): void {
+async function run(): Promise<void> {
   output('Starting import...');
   output('');
 
@@ -85,7 +85,12 @@ function run(): void {
   output('');
 
   if (!q.userExists(db, IMPORT_DEFAULT_ADMIN_USERNAME)) {
-    const hash = bcrypt.hashSync(IMPORT_DEFAULT_ADMIN_PASSWORD, 10);
+    const hash = await argon2.hash(IMPORT_DEFAULT_ADMIN_PASSWORD, {
+      type: argon2.argon2id,
+      memoryCost: 19 * 1024,
+      timeCost: 2,
+      parallelism: 1,
+    });
     q.createUser(db, IMPORT_DEFAULT_ADMIN_USERNAME, hash, true);
     outputSuccess('Default admin user created.');
   } else {
@@ -171,12 +176,10 @@ function run(): void {
   output('Run the app: npm run dev or npm start');
 }
 
-try {
-  run();
-} catch (error) {
+run().catch((error) => {
   console.error(
     'Import failed:',
     error instanceof Error ? error.message : error,
   );
   process.exit(1);
-}
+});

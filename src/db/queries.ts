@@ -104,12 +104,16 @@ export function setActiveAccount(
   userId: number,
   accountId: number,
 ): void {
-  db.prepare('UPDATE game_accounts SET is_active = 0 WHERE user_id = ?').run(
-    userId,
-  );
-  db.prepare('UPDATE game_accounts SET is_active = 1 WHERE id = ?').run(
-    accountId,
-  );
+  const transaction = db.transaction(() => {
+    db.prepare('UPDATE game_accounts SET is_active = 0 WHERE user_id = ?').run(
+      userId,
+    );
+    // Add authorization check: ensure account belongs to user
+    db.prepare(
+      'UPDATE game_accounts SET is_active = 1 WHERE id = ? AND user_id = ?',
+    ).run(accountId, userId);
+  });
+  transaction();
 }
 
 export function createGameAccount(
@@ -143,12 +147,10 @@ export function deleteGameAccount(
   accountId: number,
   userId: number,
 ): boolean {
-  const exists = db
-    .prepare('SELECT id FROM game_accounts WHERE id = ? AND user_id = ?')
-    .get(accountId, userId);
-  if (!exists) return false;
-  db.prepare('DELETE FROM game_accounts WHERE id = ?').run(accountId);
-  return true;
+  const r = db
+    .prepare('DELETE FROM game_accounts WHERE id = ? AND user_id = ?')
+    .run(accountId, userId);
+  return r.changes > 0;
 }
 
 export function createUser(
@@ -560,24 +562,12 @@ export function addBaseHeroToAllAccounts(
   starRating: number,
   displayOrder: number,
 ): void {
-  const accounts = db.prepare('SELECT id FROM game_accounts').all() as {
-    id: number;
-  }[];
-  const ins = db.prepare(
-    'INSERT INTO account_heroes (account_id, base_hero_id, name, class, element, star_rating, rating, display_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-  );
-  for (const a of accounts) {
-    ins.run(
-      a.id,
-      baseHeroId,
-      name,
-      cls,
-      element,
-      starRating,
-      '-',
-      displayOrder,
-    );
-  }
+  db.prepare(
+    `
+    INSERT INTO account_heroes (account_id, base_hero_id, name, class, element, star_rating, rating, display_order)
+    SELECT id, ?, ?, ?, ?, ?, ?, ? FROM game_accounts
+  `,
+  ).run(baseHeroId, name, cls, element, starRating, '-', displayOrder);
 }
 
 export function addBaseArtifactToAllAccounts(
@@ -588,15 +578,12 @@ export function addBaseArtifactToAllAccounts(
   starRating: number,
   displayOrder: number,
 ): void {
-  const accounts = db.prepare('SELECT id FROM game_accounts').all() as {
-    id: number;
-  }[];
-  const ins = db.prepare(
-    'INSERT INTO account_artifacts (account_id, base_artifact_id, name, class, star_rating, gauge_level, display_order) VALUES (?, ?, ?, ?, ?, 0, ?)',
-  );
-  for (const a of accounts) {
-    ins.run(a.id, baseArtifactId, name, cls, starRating, displayOrder);
-  }
+  db.prepare(
+    `
+    INSERT INTO account_artifacts (account_id, base_artifact_id, name, class, star_rating, gauge_level, display_order)
+    SELECT id, ?, ?, ?, ?, 0, ? FROM game_accounts
+  `,
+  ).run(baseArtifactId, name, cls, starRating, displayOrder);
 }
 
 export function getBaseHeroMaxOrder(db: Database.Database): number {
