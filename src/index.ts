@@ -1,5 +1,6 @@
 import Database from 'better-sqlite3';
 import cookieParser from 'cookie-parser';
+import crypto from 'crypto';
 import { csrfSync } from 'csrf-sync';
 import express from 'express';
 import session from 'express-session';
@@ -38,30 +39,41 @@ if (TRUST_PROXY) {
 app.set('view engine', 'ejs');
 app.set('views', viewsPath);
 
+app.use((req, res, next) => {
+  res.locals.nonce = crypto.randomBytes(16).toString('base64');
+  next();
+});
+
 app.use(
   helmet({
     contentSecurityPolicy: {
       directives: {
-        // eslint-disable-next-line quotes
-        defaultSrc: ["'self'"],
-        // eslint-disable-next-line quotes
-        styleSrc: ["'self'", "'unsafe-inline'"],
-        // eslint-disable-next-line quotes
-        scriptSrc: ["'self'", "'unsafe-inline'"],
-        // eslint-disable-next-line quotes
-        imgSrc: ["'self'", 'data:', 'https:'],
-        // eslint-disable-next-line quotes
-        fontSrc: ["'self'"],
-        // eslint-disable-next-line quotes
-        connectSrc: ["'self'"],
-        // eslint-disable-next-line quotes
-        frameSrc: ["'none'"],
-        // eslint-disable-next-line quotes
-        objectSrc: ["'none'"],
-        // eslint-disable-next-line quotes
-        baseUri: ["'self'"],
-        // eslint-disable-next-line quotes
-        formAction: ["'self'"],
+        // prettier-ignore
+        defaultSrc: ['\'self\''],
+        // prettier-ignore
+        styleSrc: [
+          '\'self\'',
+          (req, res) => `'nonce-${(res as express.Response).locals.nonce}'`,
+        ],
+        // prettier-ignore
+        scriptSrc: [
+          '\'self\'',
+          (req, res) => `'nonce-${(res as express.Response).locals.nonce}'`,
+        ],
+        // prettier-ignore
+        imgSrc: ['\'self\'', '\'data:\'', '\'https:\''],
+        // prettier-ignore
+        fontSrc: ['\'self\''],
+        // prettier-ignore
+        connectSrc: ['\'self\''],
+        // prettier-ignore
+        frameSrc: ['\'none\''],
+        // prettier-ignore
+        objectSrc: ['\'none\''],
+        // prettier-ignore
+        baseUri: ['\'self\''],
+        // prettier-ignore
+        formAction: ['\'self\''],
         upgradeInsecureRequests: [],
       },
     },
