@@ -134,5 +134,5 @@ app.use('/api', apiLimiter, apiRouter);
 registerPageRoutes(app);
 
 app.listen(PORT, HOST, () => {
-  console.log(`Epic7 Collection Tracker running at http://localhost:${PORT}`);
+  console.log(`Epic7 Collection Tracker running at http://${HOST}:${PORT}`);
 });
