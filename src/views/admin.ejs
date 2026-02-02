@@ -292,6 +292,7 @@
     const API_URL = '/api';
     const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     const VALID_STATUSES = ['', 'Obtained', 'Complete', 'Unavailable'];
+    const HELMINTH_VALUES = ['', 'Yes'];
     const tabOrder = ['Warframes', 'Primary Weapons', 'Secondary Weapons', 'Melee Weapons', 'Modular Weapons', 'Archwing Weapons', 'Accessories'];
     let worksheets = [];
     let currentWorksheet = null;
@@ -387,10 +388,13 @@
                 <td class="item-name">${escapeHtml(row.name)}</td>
                 ${currentData.columns.map(col => {
                     const value = row.values[col.id] || '';
+                    const isHelminth = col.name === 'Helminth';
+                    const options = isHelminth ? HELMINTH_VALUES : VALID_STATUSES;
+                    const optionLabel = (v) => isHelminth ? (v === 'Yes' ? 'Yes' : 'No') : (v || '(none)');
                     return `<td>
                         <select class="status-select" data-row-id="${row.id}" data-column-id="${col.id}">
-                            ${VALID_STATUSES.map(status =>
-                                `<option value="${status}" ${value === status ? 'selected' : ''}>${status || '(none)'}</option>`
+                            ${options.map(opt =>
+                                `<option value="${opt}" ${value === opt ? 'selected' : ''}>${optionLabel(opt)}</option>`
                             ).join('')}
                         </select>
                     </td>`;
@@ -444,14 +448,17 @@
         document.getElementById('form-row-id').value = '';
         document.getElementById('form-name').value = '';
         const columnsDiv = document.getElementById('form-columns');
-        columnsDiv.innerHTML = currentData.columns.map(col => `
-            <div class="form-group">
+        columnsDiv.innerHTML = currentData.columns.map(col => {
+            const isHelminth = col.name === 'Helminth';
+            const options = isHelminth ? HELMINTH_VALUES : VALID_STATUSES;
+            const label = (v) => isHelminth ? (v === 'Yes' ? 'Yes' : 'No') : (v || '(none)');
+            return `<div class="form-group">
                 <label for="form-col-${col.id}">${escapeHtml(col.name)}</label>
                 <select id="form-col-${col.id}">
-                    ${VALID_STATUSES.map(status => `<option value="${status}">${status || '(none)'}</option>`).join('')}
+                    ${options.map(opt => `<option value="${opt}">${label(opt)}</option>`).join('')}
                 </select>
-            </div>
-        `).join('');
+            </div>`;
+        }).join('');
         document.getElementById('modal').classList.add('active');
         document.getElementById('form-name').focus();
     }
@@ -465,11 +472,14 @@
         const columnsDiv = document.getElementById('form-columns');
         columnsDiv.innerHTML = currentData.columns.map(col => {
             const value = row.values[col.id] || '';
+            const isHelminth = col.name === 'Helminth';
+            const options = isHelminth ? HELMINTH_VALUES : VALID_STATUSES;
+            const label = (v) => isHelminth ? (v === 'Yes' ? 'Yes' : 'No') : (v || '(none)');
             return `<div class="form-group">
                 <label for="form-col-${col.id}">${escapeHtml(col.name)}</label>
                 <select id="form-col-${col.id}">
-                    ${VALID_STATUSES.map(status =>
-                        `<option value="${status}" ${value === status ? 'selected' : ''}>${status || '(none)'}</option>`
+                    ${options.map(opt =>
+                        `<option value="${opt}" ${value === opt ? 'selected' : ''}>${label(opt)}</option>`
                     ).join('')}
                 </select>
             </div>`;
