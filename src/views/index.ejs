@@ -341,7 +341,7 @@
                 }).join('')}
             </tr>
         `).join('');
-        tbody.querySelectorAll('.status-btn:not([disabled]), .helminth-btn').forEach(btn => {
+        tbody.querySelectorAll('.status-btn:not([disabled])').forEach(btn => {
             btn.addEventListener('click', () => toggleStatus(btn));
         });
     }

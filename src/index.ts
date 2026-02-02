@@ -11,6 +11,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 import { SQLITE_DB_PATH } from './config.js';
+import { ensureHelminthColumn, getWorksheets } from './db/queries.js';
+import { getDb } from './db/schema.js';
 import { apiLimiter, generalLimiter } from './middleware/rateLimit.js';
 import { apiRouter } from './routes/apiRouter.js';
 import { registerPageRoutes } from './routes/pages.js';
@@ -150,6 +152,21 @@ app.use((req, res, next) => {
 
 app.use('/api', apiLimiter, apiRouter);
 registerPageRoutes(app);
+
+// Ensure Warframes worksheet has Helminth column (migration at startup, not inside read paths)
+if (fs.existsSync(SQLITE_DB_PATH)) {
+  try {
+    const db = getDb();
+    const worksheets = getWorksheets(db);
+    const warframes = worksheets.find((w) => w.name === 'Warframes');
+    if (warframes) {
+      ensureHelminthColumn(db, warframes.id, warframes.name);
+    }
+    db.close();
+  } catch (err) {
+    console.error('Helminth column migration at startup failed:', err);
+  }
+}
 
 const server = app.listen(PORT, HOST, () => {
   console.log(`Warframe Collection Tracker running at http://${HOST}:${PORT}`);

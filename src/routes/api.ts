@@ -194,15 +194,26 @@ export function handleEditRow(req: Request, res: Response): void {
     return;
   }
 
-  const values: Record<number, string> = {};
-  for (const [k, v] of Object.entries(valuesRaw)) {
-    const id = parseInt(k, 10);
-    if (!isNaN(id)) values[id] = v;
-  }
-
   const db = getDbOrFail(res);
   if (!db) return;
   try {
+    const worksheetId = q.getRowWorksheetId(db, rowId);
+    if (worksheetId === null) {
+      jsonError(res, 'Row not found.', 404);
+      return;
+    }
+    const columns = q.getWorksheetColumns(db, worksheetId);
+    const values: Record<number, string> = {};
+    for (const [k, v] of Object.entries(valuesRaw)) {
+      const id = parseInt(k, 10);
+      if (isNaN(id)) continue;
+      const col = columns.find((c) => c.id === id);
+      const valid =
+        col?.name === 'Helminth'
+          ? HELMINTH_VALUES.includes(v as (typeof HELMINTH_VALUES)[number])
+          : VALID_STATUSES.includes(v as never);
+      values[id] = valid ? v : '';
+    }
     const ok = q.editRow(db, rowId, itemName, values);
     if (!ok) {
       jsonError(res, 'Row not found.', 404);

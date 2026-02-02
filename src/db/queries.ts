@@ -178,6 +178,16 @@ export function getWorksheetColumns(
     .all(worksheetId) as { id: number; name: string }[];
 }
 
+export function getRowWorksheetId(
+  db: Database.Database,
+  rowId: number,
+): number | null {
+  const row = db
+    .prepare('SELECT worksheet_id FROM rows WHERE id = ?')
+    .get(rowId) as { worksheet_id: number } | undefined;
+  return row?.worksheet_id ?? null;
+}
+
 const HELMINTH_COLUMN_NAME = 'Helminth';
 const WARFRAMES_WORKSHEET_NAME = 'Warframes';
 
@@ -188,35 +198,46 @@ export function ensureHelminthColumn(
   worksheetName: string,
 ): void {
   if (worksheetName !== WARFRAMES_WORKSHEET_NAME) return;
-  const existing = db
-    .prepare('SELECT id FROM columns WHERE worksheet_id = ? AND name = ?')
-    .get(worksheetId, HELMINTH_COLUMN_NAME);
-  if (existing) return;
 
-  const maxOrder = db
-    .prepare(
-      'SELECT MAX(display_order) as max_order FROM columns WHERE worksheet_id = ?',
-    )
-    .get(worksheetId) as { max_order: number | null };
-  const displayOrder = (maxOrder?.max_order ?? -1) + 1;
-  const insertCol = db.prepare(
-    'INSERT INTO columns (worksheet_id, name, display_order) VALUES (?, ?, ?)',
-  );
-  const colResult = insertCol.run(
-    worksheetId,
-    HELMINTH_COLUMN_NAME,
-    displayOrder,
-  );
-  const columnId = Number(colResult.lastInsertRowid);
+  db.exec('BEGIN');
+  try {
+    const existing = db
+      .prepare('SELECT id FROM columns WHERE worksheet_id = ? AND name = ?')
+      .get(worksheetId, HELMINTH_COLUMN_NAME);
+    if (existing) {
+      db.exec('COMMIT');
+      return;
+    }
 
-  const rows = db
-    .prepare('SELECT id FROM rows WHERE worksheet_id = ?')
-    .all(worksheetId) as { id: number }[];
-  const insertCell = db.prepare(
-    'INSERT INTO cell_values (row_id, column_id, value) VALUES (?, ?, ?)',
-  );
-  for (const row of rows) {
-    insertCell.run(row.id, columnId, '');
+    const maxOrder = db
+      .prepare(
+        'SELECT MAX(display_order) as max_order FROM columns WHERE worksheet_id = ?',
+      )
+      .get(worksheetId) as { max_order: number | null };
+    const displayOrder = (maxOrder?.max_order ?? -1) + 1;
+    const insertCol = db.prepare(
+      'INSERT INTO columns (worksheet_id, name, display_order) VALUES (?, ?, ?)',
+    );
+    const colResult = insertCol.run(
+      worksheetId,
+      HELMINTH_COLUMN_NAME,
+      displayOrder,
+    );
+    const columnId = Number(colResult.lastInsertRowid);
+
+    const rows = db
+      .prepare('SELECT id FROM rows WHERE worksheet_id = ?')
+      .all(worksheetId) as { id: number }[];
+    const insertCell = db.prepare(
+      'INSERT INTO cell_values (row_id, column_id, value) VALUES (?, ?, ?)',
+    );
+    for (const row of rows) {
+      insertCell.run(row.id, columnId, '');
+    }
+    db.exec('COMMIT');
+  } catch (err) {
+    db.exec('ROLLBACK');
+    throw err;
   }
 }
 
@@ -226,8 +247,6 @@ export function getWorksheetData(
 ): WorksheetData | null {
   const worksheet = getWorksheetById(db, worksheetId);
   if (!worksheet) return null;
-
-  ensureHelminthColumn(db, worksheetId, worksheet.name);
 
   const columns = db
     .prepare(
