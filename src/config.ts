@@ -41,3 +41,11 @@ export type ValidStatus = (typeof VALID_STATUSES)[number];
 export function isValidStatus(value: string): value is ValidStatus {
   return (VALID_STATUSES as readonly string[]).includes(value);
 }
+
+/** Allowed values for the Helminth (yes/no) column on Warframes. */
+export const HELMINTH_VALUES = ['', 'Yes'] as const;
+export type HelminthValue = (typeof HELMINTH_VALUES)[number];
+
+export function isHelminthValue(value: string): value is HelminthValue {
+  return (HELMINTH_VALUES as readonly string[]).includes(value);
+}

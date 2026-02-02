@@ -1,7 +1,12 @@
 import { Request, Response } from 'express';
 import fs from 'fs';
 
-import { DEBUG_MODE, SQLITE_DB_PATH, VALID_STATUSES } from '../config.js';
+import {
+  DEBUG_MODE,
+  HELMINTH_VALUES,
+  SQLITE_DB_PATH,
+  VALID_STATUSES,
+} from '../config.js';
 import * as q from '../db/queries.js';
 import { getDb } from '../db/schema.js';
 
@@ -93,18 +98,29 @@ export function handleUpdate(req: Request, res: Response): void {
     jsonError(res, 'Invalid row_id or column_id.');
     return;
   }
-  if (!ALLOWED_UPDATE_VALUES.includes(value)) {
-    jsonError(res, 'Invalid status value.');
-    return;
-  }
 
   const db = getDbOrFail(res);
   if (!db) return;
   try {
-    const current = q.getCellValue(db, rowId, columnId);
-    if (current === 'Unavailable') {
-      jsonError(res, 'Cannot modify unavailable items.');
-      return;
+    const col = q.getColumnById(db, columnId);
+    const isHelminth = col?.name === 'Helminth';
+    if (isHelminth) {
+      if (
+        !HELMINTH_VALUES.includes(value as (typeof HELMINTH_VALUES)[number])
+      ) {
+        jsonError(res, 'Invalid value for Helminth (use Yes or leave empty).');
+        return;
+      }
+    } else {
+      if (!ALLOWED_UPDATE_VALUES.includes(value)) {
+        jsonError(res, 'Invalid status value.');
+        return;
+      }
+      const current = q.getCellValue(db, rowId, columnId);
+      if (current === 'Unavailable') {
+        jsonError(res, 'Cannot modify unavailable items.');
+        return;
+      }
     }
     q.updateCell(db, rowId, columnId, value);
     jsonResponse(res)({ success: true, value });
@@ -136,15 +152,21 @@ export function handleAddRow(req: Request, res: Response): void {
     return;
   }
 
-  const values: Record<number, string> = {};
-  for (const [k, v] of Object.entries(valuesRaw)) {
-    const id = parseInt(k, 10);
-    if (!isNaN(id) && VALID_STATUSES.includes(v as never)) values[id] = v;
-  }
-
   const db = getDbOrFail(res);
   if (!db) return;
   try {
+    const columns = q.getWorksheetColumns(db, worksheetId);
+    const values: Record<number, string> = {};
+    for (const [k, v] of Object.entries(valuesRaw)) {
+      const id = parseInt(k, 10);
+      if (isNaN(id)) continue;
+      const col = columns.find((c) => c.id === id);
+      const valid =
+        col?.name === 'Helminth'
+          ? HELMINTH_VALUES.includes(v as (typeof HELMINTH_VALUES)[number])
+          : VALID_STATUSES.includes(v as never);
+      if (valid) values[id] = v;
+    }
     const rowId = q.addRow(db, worksheetId, itemName, values);
     jsonResponse(res)({ success: true, row_id: rowId });
   } finally {
@@ -172,15 +194,26 @@ export function handleEditRow(req: Request, res: Response): void {
     return;
   }
 
-  const values: Record<number, string> = {};
-  for (const [k, v] of Object.entries(valuesRaw)) {
-    const id = parseInt(k, 10);
-    if (!isNaN(id) && VALID_STATUSES.includes(v as never)) values[id] = v;
-  }
-
   const db = getDbOrFail(res);
   if (!db) return;
   try {
+    const worksheetId = q.getRowWorksheetId(db, rowId);
+    if (worksheetId === null) {
+      jsonError(res, 'Row not found.', 404);
+      return;
+    }
+    const columns = q.getWorksheetColumns(db, worksheetId);
+    const values: Record<number, string> = {};
+    for (const [k, v] of Object.entries(valuesRaw)) {
+      const id = parseInt(k, 10);
+      if (isNaN(id)) continue;
+      const col = columns.find((c) => c.id === id);
+      const valid =
+        col?.name === 'Helminth'
+          ? HELMINTH_VALUES.includes(v as (typeof HELMINTH_VALUES)[number])
+          : VALID_STATUSES.includes(v as never);
+      values[id] = valid ? v : '';
+    }
     const ok = q.editRow(db, rowId, itemName, values);
     if (!ok) {
       jsonError(res, 'Row not found.', 404);
@@ -234,10 +267,6 @@ export function handleAdminUpdate(req: Request, res: Response): void {
 
   if (rowId <= 0 || columnId <= 0) {
     jsonError(res, 'Invalid row_id or column_id.');
-    return;
-  }
-  if (!VALID_STATUSES.includes(value as never)) {
-    jsonError(res, 'Invalid status value.');
     return;
   }
 

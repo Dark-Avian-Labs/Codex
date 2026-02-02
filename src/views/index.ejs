@@ -180,6 +180,9 @@
         cursor: not-allowed;
         opacity: 0.6;
     }
+    .helminth-btn { min-width: 48px; }
+    .helminth-btn.yes { color: #4ade80; background: rgba(74, 222, 128, 0.1); border-color: rgba(74, 222, 128, 0.3); }
+    .helminth-btn.yes:hover { background: rgba(74, 222, 128, 0.15); }
     .loading { text-align: center; padding: 40px; color: var(--muted); }
     .error { text-align: center; padding: 40px; color: var(--danger); }
     .stats-bar { display: flex; gap: 20px; margin-bottom: 16px; flex-wrap: wrap; }
@@ -236,6 +239,7 @@
     let currentData = null;
     let searchTerm = '';
     const statusCycle = ['', 'Obtained', 'Complete'];
+    const helminthCycle = ['', 'Yes'];
     const tabOrder = ['Warframes', 'Primary Weapons', 'Secondary Weapons', 'Melee Weapons', 'Modular Weapons', 'Archwing Weapons', 'Accessories'];
 
     document.addEventListener('DOMContentLoaded', init);
@@ -321,11 +325,18 @@
                 <td class="item-name">${escapeHtml(row.name)}</td>
                 ${currentData.columns.map(col => {
                     const value = row.values[col.id] || '';
+                    const isHelminth = col.name === 'Helminth';
+                    if (isHelminth) {
+                        const displayText = value === 'Yes' ? '✓' : '—';
+                        return `<td class="status-cell helminth-cell">
+                            <button type="button" class="status-btn helminth-btn ${value === 'Yes' ? 'yes' : 'empty'}" data-row-id="${row.id}" data-column-id="${col.id}" data-column-name="Helminth" data-value="${escapeHtml(value)}">${displayText}</button>
+                        </td>`;
+                    }
                     const statusClass = value.toLowerCase() || 'empty';
                     const isUnavailable = value === 'Unavailable';
                     const displayText = value || '—';
                     return `<td class="status-cell">
-                        <button class="status-btn ${statusClass}" data-row-id="${row.id}" data-column-id="${col.id}" data-value="${escapeHtml(value)}" ${isUnavailable ? 'disabled' : ''}>${displayText}</button>
+                        <button type="button" class="status-btn ${statusClass}" data-row-id="${row.id}" data-column-id="${col.id}" data-column-name="${escapeHtml(col.name)}" data-value="${escapeHtml(value)}" ${isUnavailable ? 'disabled' : ''}>${displayText}</button>
                     </td>`;
                 }).join('')}
             </tr>
@@ -339,9 +350,13 @@
         if (!currentData) return;
         const statsContainer = document.getElementById('stats');
         const stats = {};
-        currentData.columns.forEach(col => { stats[col.id] = { name: col.name, total: 0, complete: 0, obtained: 0, unavailable: 0 }; });
+        currentData.columns.forEach(col => {
+            if (col.name === 'Helminth') return;
+            stats[col.id] = { name: col.name, total: 0, complete: 0, obtained: 0, unavailable: 0 };
+        });
         currentData.rows.forEach(row => {
             currentData.columns.forEach(col => {
+                if (col.name === 'Helminth') return;
                 const value = row.values[col.id] || '';
                 stats[col.id].total++;
                 if (value === 'Complete') stats[col.id].complete++;
@@ -349,7 +364,13 @@
                 else if (value === 'Unavailable') stats[col.id].unavailable++;
             });
         });
-        statsContainer.innerHTML = currentData.columns.map(col => {
+        const totalRows = currentData.rows.length;
+        const helminthCol = currentData.columns.find(col => col.name === 'Helminth');
+        const helminthYes = helminthCol
+            ? currentData.rows.filter(row => (row.values[helminthCol.id] || '') === 'Yes').length
+            : 0;
+
+        let html = currentData.columns.filter(col => col.name !== 'Helminth').map(col => {
             const s = stats[col.id];
             const available = s.total - s.unavailable;
             const pct = available > 0 ? Math.round((s.complete / available) * 100) : 0;
@@ -360,18 +381,35 @@
                 ${s.obtained > 0 ? `<span class="stat-obtained">+${s.obtained} in progress</span>` : ''}
             </div>`;
         }).join('');
+
+        if (helminthCol) {
+            const helminthPct = totalRows > 0 ? Math.round((helminthYes / totalRows) * 100) : 0;
+            html += `<div class="stat">
+                <span>Helminth:</span>
+                <span class="stat-value stat-complete">${helminthYes}</span>/<span class="stat-value">${totalRows}</span>
+                <span>(${helminthPct}%)</span>
+            </div>`;
+        }
+        statsContainer.innerHTML = html;
     }
 
     async function toggleStatus(btn) {
         const rowId = parseInt(btn.dataset.rowId);
         const columnId = parseInt(btn.dataset.columnId);
+        const isHelminth = btn.dataset.columnName === 'Helminth';
+        const cycle = isHelminth ? helminthCycle : statusCycle;
         const currentValue = btn.dataset.value;
-        const currentIndex = statusCycle.indexOf(currentValue);
-        const nextIndex = (currentIndex + 1) % statusCycle.length;
-        const newValue = statusCycle[nextIndex];
+        const currentIndex = cycle.indexOf(currentValue);
+        const nextIndex = (currentIndex + 1) % cycle.length;
+        const newValue = cycle[nextIndex];
         btn.dataset.value = newValue;
-        btn.className = 'status-btn ' + (newValue.toLowerCase() || 'empty');
-        btn.textContent = newValue || '—';
+        if (isHelminth) {
+            btn.className = 'status-btn helminth-btn ' + (newValue === 'Yes' ? 'yes' : 'empty');
+            btn.textContent = newValue === 'Yes' ? '✓' : '—';
+        } else {
+            btn.className = 'status-btn ' + (newValue.toLowerCase() || 'empty');
+            btn.textContent = newValue || '—';
+        }
         const row = currentData.rows.find(r => r.id === rowId);
         if (row) row.values[columnId] = newValue;
         renderStats();
@@ -387,16 +425,26 @@
             const result = await response.json();
             if (result.error) {
                 btn.dataset.value = currentValue;
-                btn.className = 'status-btn ' + (currentValue.toLowerCase() || 'empty');
-                btn.textContent = currentValue || '—';
+                if (isHelminth) {
+                    btn.className = 'status-btn helminth-btn ' + (currentValue === 'Yes' ? 'yes' : 'empty');
+                    btn.textContent = currentValue === 'Yes' ? '✓' : '—';
+                } else {
+                    btn.className = 'status-btn ' + (currentValue.toLowerCase() || 'empty');
+                    btn.textContent = currentValue || '—';
+                }
                 if (row) row.values[columnId] = currentValue;
                 renderStats();
                 alert('Error: ' + result.error);
             }
         } catch (err) {
             btn.dataset.value = currentValue;
-            btn.className = 'status-btn ' + (currentValue.toLowerCase() || 'empty');
-            btn.textContent = currentValue || '—';
+            if (isHelminth) {
+                btn.className = 'status-btn helminth-btn ' + (currentValue === 'Yes' ? 'yes' : 'empty');
+                btn.textContent = currentValue === 'Yes' ? '✓' : '—';
+            } else {
+                btn.className = 'status-btn ' + (currentValue.toLowerCase() || 'empty');
+                btn.textContent = currentValue || '—';
+            }
             if (row) row.values[columnId] = currentValue;
             renderStats();
             alert('Failed to save: ' + err.message);

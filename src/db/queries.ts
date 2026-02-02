@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3';
 
-import { isValidStatus, VALID_STATUSES } from '../config.js';
+import { isHelminthValue, isValidStatus, VALID_STATUSES } from '../config.js';
 
 export interface Worksheet {
   id: number;
@@ -156,6 +156,91 @@ export function getFirstWorksheetId(db: Database.Database): number | null {
   return row?.id ?? null;
 }
 
+export function getColumnById(
+  db: Database.Database,
+  columnId: number,
+): { id: number; name: string; worksheet_id: number } | undefined {
+  return db
+    .prepare('SELECT id, name, worksheet_id FROM columns WHERE id = ?')
+    .get(columnId) as
+    | { id: number; name: string; worksheet_id: number }
+    | undefined;
+}
+
+export function getWorksheetColumns(
+  db: Database.Database,
+  worksheetId: number,
+): { id: number; name: string }[] {
+  return db
+    .prepare(
+      'SELECT id, name FROM columns WHERE worksheet_id = ? ORDER BY display_order',
+    )
+    .all(worksheetId) as { id: number; name: string }[];
+}
+
+export function getRowWorksheetId(
+  db: Database.Database,
+  rowId: number,
+): number | null {
+  const row = db
+    .prepare('SELECT worksheet_id FROM rows WHERE id = ?')
+    .get(rowId) as { worksheet_id: number } | undefined;
+  return row?.worksheet_id ?? null;
+}
+
+const HELMINTH_COLUMN_NAME = 'Helminth';
+const WARFRAMES_WORKSHEET_NAME = 'Warframes';
+
+/** Ensures the Warframes worksheet has a "Helminth" column; creates it and backfills '' if missing. */
+export function ensureHelminthColumn(
+  db: Database.Database,
+  worksheetId: number,
+  worksheetName: string,
+): void {
+  if (worksheetName !== WARFRAMES_WORKSHEET_NAME) return;
+
+  db.exec('BEGIN');
+  try {
+    const existing = db
+      .prepare('SELECT id FROM columns WHERE worksheet_id = ? AND name = ?')
+      .get(worksheetId, HELMINTH_COLUMN_NAME);
+    if (existing) {
+      db.exec('COMMIT');
+      return;
+    }
+
+    const maxOrder = db
+      .prepare(
+        'SELECT MAX(display_order) as max_order FROM columns WHERE worksheet_id = ?',
+      )
+      .get(worksheetId) as { max_order: number | null };
+    const displayOrder = (maxOrder?.max_order ?? -1) + 1;
+    const insertCol = db.prepare(
+      'INSERT INTO columns (worksheet_id, name, display_order) VALUES (?, ?, ?)',
+    );
+    const colResult = insertCol.run(
+      worksheetId,
+      HELMINTH_COLUMN_NAME,
+      displayOrder,
+    );
+    const columnId = Number(colResult.lastInsertRowid);
+
+    const rows = db
+      .prepare('SELECT id FROM rows WHERE worksheet_id = ?')
+      .all(worksheetId) as { id: number }[];
+    const insertCell = db.prepare(
+      'INSERT INTO cell_values (row_id, column_id, value) VALUES (?, ?, ?)',
+    );
+    for (const row of rows) {
+      insertCell.run(row.id, columnId, '');
+    }
+    db.exec('COMMIT');
+  } catch (err) {
+    db.exec('ROLLBACK');
+    throw err;
+  }
+}
+
 export function getWorksheetData(
   db: Database.Database,
   worksheetId: number,
@@ -257,16 +342,18 @@ export function addRow(
   const result = insertRow.run(worksheetId, itemName, displayOrder);
   const rowId = result.lastInsertRowid as number;
 
-  const columns = db
-    .prepare('SELECT id FROM columns WHERE worksheet_id = ?')
-    .all(worksheetId) as { id: number }[];
+  const worksheetColumns = getWorksheetColumns(db, worksheetId);
   const insertCell = db.prepare(
     'INSERT INTO cell_values (row_id, column_id, value) VALUES (?, ?, ?)',
   );
 
-  for (const col of columns) {
+  for (const col of worksheetColumns) {
     let v = values[col.id] ?? '';
-    if (!isValidStatus(v)) v = '';
+    if (col.name === HELMINTH_COLUMN_NAME) {
+      if (!isHelminthValue(v)) v = '';
+    } else if (!isValidStatus(v)) {
+      v = '';
+    }
     insertCell.run(rowId, col.id, v);
   }
 
@@ -297,7 +384,15 @@ export function editRow(
 
   for (const [colIdStr, value] of Object.entries(values)) {
     const colId = parseInt(colIdStr, 10);
-    const v = isValidStatus(value) ? value : '';
+    const col = getColumnById(db, colId);
+    const v =
+      col?.name === HELMINTH_COLUMN_NAME
+        ? isHelminthValue(value)
+          ? value
+          : ''
+        : isValidStatus(value)
+          ? value
+          : '';
     upsert.run(rowId, colId, v);
   }
 
@@ -316,7 +411,12 @@ export function adminUpdateCell(
   columnId: number,
   value: string,
 ): void {
-  if (!isValidStatus(value)) throw new Error('Invalid status value');
+  const col = getColumnById(db, columnId);
+  const valid =
+    col?.name === HELMINTH_COLUMN_NAME
+      ? isHelminthValue(value)
+      : isValidStatus(value);
+  if (!valid) throw new Error('Invalid status value');
   const stmt = db.prepare(`
     INSERT INTO cell_values (row_id, column_id, value)
     VALUES (?, ?, ?)
