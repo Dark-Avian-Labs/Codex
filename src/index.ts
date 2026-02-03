@@ -307,13 +307,18 @@ app.post('/login', loginLimiter, redirectIfAuthenticated, async (req, res) => {
     (req.session as { is_admin?: boolean }).is_admin = Boolean(user.is_admin);
     req.session.save((saveErr) => {
       if (saveErr) return res.redirect('/login');
-      const nextPath = typeof req.body?.next === 'string' ? req.body.next : '';
+      const rawNext = typeof req.body?.next === 'string' ? req.body.next : '';
       const allowedPaths = new Set([
         '/',
         ...Object.keys(GAME_REGISTRY).map((id) => `/games/${id}`),
       ]);
+      const nextPathOnly = rawNext.split('?')[0];
+      const isRelativePath =
+        nextPathOnly.startsWith('/') &&
+        !nextPathOnly.startsWith('//') &&
+        !nextPathOnly.includes('://');
       const safeNext =
-        nextPath && allowedPaths.has(nextPath.split('?')[0]) ? nextPath : '';
+        rawNext && isRelativePath && allowedPaths.has(nextPathOnly) ? rawNext : '';
       if (safeNext) return res.redirect(safeNext);
       const games = getGamesForUser(user.id);
       if (games.length === 1) return res.redirect(`/games/${games[0]}`);
