@@ -52,6 +52,7 @@ jobs:
         run: |
           mkdir -p /tmp/deploy
           cp -r dist/ /tmp/deploy/
+          cp -r packages/ /tmp/deploy/
           cp package*.json /tmp/deploy/
           cp -r node_modules/ /tmp/deploy/
           cp ecosystem.config.cjs /tmp/deploy/
