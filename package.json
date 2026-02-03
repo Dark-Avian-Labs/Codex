@@ -17,9 +17,9 @@
     "packages/games/epic7"
   ],
   "dependencies": {
-    "@corpus/core": "workspace:*",
-    "@corpus/game-epic7": "workspace:*",
-    "@corpus/game-warframe": "workspace:*",
+    "@corpus/core": "2.0.0",
+    "@corpus/game-epic7": "2.0.0",
+    "@corpus/game-warframe": "2.0.0",
     "cookie-parser": "^1.4.7",
     "csrf-sync": "^4.2.1",
     "express": "^5.2.1",
