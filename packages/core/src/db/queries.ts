@@ -14,7 +14,7 @@ export function getUserByUsername(
 ): CentralUser | undefined {
   return db
     .prepare(
-      'SELECT id, username, password_hash, is_admin, created_at FROM users WHERE username = ?',
+      'SELECT id, username, password_hash, is_admin, created_at FROM users WHERE LOWER(username) = LOWER(?)',
     )
     .get(username.trim()) as CentralUser | undefined;
 }
@@ -36,19 +36,17 @@ export function createUser(
   passwordHash: string,
   isAdmin: boolean,
 ): { id: number; inserted: boolean } {
+  const trimmed = username.trim();
+  const existing = db
+    .prepare('SELECT id FROM users WHERE LOWER(username) = LOWER(?)')
+    .get(trimmed) as { id: number } | undefined;
+  if (existing) return { id: existing.id, inserted: false };
   const r = db
     .prepare(
-      'INSERT OR IGNORE INTO users (username, password_hash, is_admin) VALUES (?, ?, ?)',
+      'INSERT INTO users (username, password_hash, is_admin) VALUES (?, ?, ?)',
     )
-    .run(username.trim(), passwordHash, isAdmin ? 1 : 0);
-  if (r.changes > 0) {
-    return { id: Number(r.lastInsertRowid), inserted: true };
-  }
-  const row = db
-    .prepare('SELECT id FROM users WHERE username = ?')
-    .get(username.trim()) as { id: number } | undefined;
-  if (!row) throw new Error('createUser: inconsistent state');
-  return { id: row.id, inserted: false };
+    .run(trimmed, passwordHash, isAdmin ? 1 : 0);
+  return { id: Number(r.lastInsertRowid), inserted: true };
 }
 
 export function deleteUser(db: Database.Database, userId: number): boolean {
