@@ -6,6 +6,7 @@ import {
   isAdmin,
   hasAccess,
 } from '../auth.js';
+import { BASE_HOST, GAME_HOSTS } from '../config.js';
 
 function getSession(req: Request): AuthSession {
   return req.session as AuthSession;
@@ -13,6 +14,16 @@ function getSession(req: Request): AuthSession {
 
 function wantsJson(req: Request): boolean {
   return req.accepts('json') !== false;
+}
+
+function getLoginRedirectUrl(req: Request, gameId?: string): string {
+  const host = req.hostname;
+  if (GAME_HOSTS[host] && BASE_HOST && BASE_HOST !== 'localhost') {
+    const proto = req.protocol === 'https' ? 'https' : 'http';
+    const next = gameId ? `?next=/games/${gameId}` : '';
+    return `${proto}://${BASE_HOST}/login${next}`;
+  }
+  return gameId ? `/login?next=/games/${gameId}` : '/login';
 }
 
 export function requireAuth(
@@ -24,7 +35,7 @@ export function requireAuth(
     next();
     return;
   }
-  res.redirect('/login');
+  res.redirect(getLoginRedirectUrl(req));
 }
 
 export function requireAdmin(
@@ -34,7 +45,7 @@ export function requireAdmin(
 ): void {
   const session = getSession(req);
   if (!isAuthenticated(session)) {
-    res.redirect('/login');
+    res.redirect(getLoginRedirectUrl(req));
     return;
   }
   if (!isAdmin(session)) {
@@ -52,12 +63,12 @@ export function requireGameAccess(gameId: string) {
   return (req: Request, res: Response, next: NextFunction): void => {
     const session = getSession(req);
     if (!isAuthenticated(session)) {
-      res.redirect('/login');
+      res.redirect(getLoginRedirectUrl(req, gameId));
       return;
     }
     const userId = session?.user_id;
     if (typeof userId !== 'number') {
-      res.redirect('/login');
+      res.redirect(getLoginRedirectUrl(req, gameId));
       return;
     }
     if (!hasAccess(userId, gameId)) {

@@ -437,7 +437,6 @@ export function handleAccounts(req: Request, res: Response): void {
   if (!db) return;
   const accounts = q.getUserAccountsForApi(db, userId);
   let currentId = session(req).account_id ?? null;
-  // If session has no Epic7 account but user has accounts, set to first active or first account
   if (currentId == null && accounts.length > 0) {
     const firstActive = accounts.find((a) => a.is_active === 1);
     const first = firstActive ?? accounts[0];

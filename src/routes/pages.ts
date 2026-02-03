@@ -9,6 +9,7 @@ import {
   createUser,
 } from '../auth.js';
 import { APP_NAME, SQLITE_DB_PATH } from '../config.js';
+import { escapeHtml } from '../escapeHtml.js';
 import {
   requireAuth,
   requireAdmin,
@@ -19,7 +20,6 @@ import {
   loginLimiter,
   adminLimiter,
 } from '../middleware/rateLimit.js';
-import { escapeHtml } from '../escapeHtml.js';
 
 function dbExists(): boolean {
   return fs.existsSync(SQLITE_DB_PATH);
@@ -116,7 +116,6 @@ export function registerPageRoutes(app: Application): void {
         return;
       }
 
-      // Any non-success: !result.success or result.success but missing result.user
       const errorMessage = !result.success
         ? result.error
         : 'Invalid login response. Please try again.';

@@ -2,7 +2,7 @@
 <html lang="en" data-game="warframe">
 <head>
     <meta charset="utf-8">
-    <title><%= appName %> – Warframe</title>
+    <title><%= appName %> - Warframe</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
     <link rel="icon" type="image/x-icon" href="<%= typeof basePath !== 'undefined' && basePath ? basePath + '/favicon.ico' : '/favicon.ico' %>">
@@ -226,7 +226,7 @@
 <body>
     <% if (typeof art !== 'undefined' && art) { %><div class="bg-art"><%- art %></div><% } %>
     <div class="container">
-        <%- include('../partials/game-header', { pageTitle: appName + ' – Warframe', basePath: typeof basePath !== 'undefined' ? basePath : '', isAdmin: typeof isAdmin !== 'undefined' ? isAdmin : false, csrfToken: typeof csrfToken !== 'undefined' ? csrfToken : '', showAccountSelector: false, searchPlaceholder: 'Search...' }) %>
+        <%- include('../partials/game-header', { pageTitle: appName + ' - Warframe', basePath: typeof basePath !== 'undefined' ? basePath : '', isAdmin: typeof isAdmin !== 'undefined' ? isAdmin : false, csrfToken: typeof csrfToken !== 'undefined' ? csrfToken : '', showAccountSelector: false, searchPlaceholder: 'Search...' }) %>
         <div class="tabs" id="tabs"><div class="loading">Loading tabs...</div></div>
         <div class="stats-bar" id="stats"></div>
         <div class="table-container">

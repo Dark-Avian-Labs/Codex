@@ -19,7 +19,6 @@ if (!existsSync(src)) {
 function copyRecursive(srcDir, dstDir) {
   if (!existsSync(dstDir)) mkdirSync(dstDir, { recursive: true });
 
-  // Remove entries in dstDir that no longer exist in srcDir (stale files)
   for (const entry of readdirSync(dstDir)) {
     const srcPath = join(srcDir, entry);
     if (!existsSync(srcPath)) {
@@ -31,7 +30,6 @@ function copyRecursive(srcDir, dstDir) {
     const srcPath = join(srcDir, entry);
     const dstPath = join(dstDir, entry);
     const stat = lstatSync(srcPath);
-    // Skip symlinks to avoid infinite recursion
     if (stat.isSymbolicLink()) continue;
     if (stat.isDirectory()) copyRecursive(srcPath, dstPath);
     else copyFileSync(srcPath, dstPath);

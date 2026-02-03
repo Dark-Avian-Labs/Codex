@@ -22,9 +22,9 @@ export const warframeGame: GameModule = {
   getDb,
 
   theme: {
-    primary: '#0ea5e9',
+    primary: '#ea580c',
     background: '#0b0f14',
-    accent: '#0ea5e9',
+    accent: '#ea580c',
   },
 
   mount(app: Application, basePath: string, options?: GameMountOptions) {

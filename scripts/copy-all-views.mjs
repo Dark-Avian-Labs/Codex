@@ -20,7 +20,6 @@ function copyRecursive(srcDir, dstDir) {
     const dstPath = join(dstDir, entry);
     const stat = lstatSync(srcPath);
     if (stat.isSymbolicLink()) {
-      // Skip symlinks to avoid following circular or external links
       continue;
     }
     if (stat.isDirectory()) {

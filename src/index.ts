@@ -252,6 +252,8 @@ app.get('/favicon.ico', generalLimiter, (req, res) => {
 
 app.get('/login', generalLimiter, redirectIfAuthenticated, (req, res) => {
   const ip = getClientIP(req);
+  const nextUrl =
+    typeof req.query?.next === 'string' && req.query.next ? req.query.next : '';
   res.render('login', {
     appName: APP_NAME,
     error: '',
@@ -259,6 +261,7 @@ app.get('/login', generalLimiter, redirectIfAuthenticated, (req, res) => {
     lockoutRemaining: getLockoutRemaining(ip),
     dbExists: fs.existsSync(CENTRAL_DB_PATH),
     csrfToken: (res.locals as { csrfToken?: string }).csrfToken ?? '',
+    next: nextUrl,
     esc: escapeHtml,
   });
 });
@@ -266,6 +269,7 @@ app.get('/login', generalLimiter, redirectIfAuthenticated, (req, res) => {
 app.post('/login', loginLimiter, redirectIfAuthenticated, async (req, res) => {
   const ip = getClientIP(req);
   if (isLockedOut(ip)) {
+    const nextUrl = typeof req.body?.next === 'string' ? req.body.next : '';
     return res.render('login', {
       appName: APP_NAME,
       error: 'Too many failed attempts. Try again later.',
@@ -273,6 +277,7 @@ app.post('/login', loginLimiter, redirectIfAuthenticated, async (req, res) => {
       lockoutRemaining: getLockoutRemaining(ip),
       dbExists: fs.existsSync(CENTRAL_DB_PATH),
       csrfToken: (res.locals as { csrfToken?: string }).csrfToken ?? '',
+      next: nextUrl,
       esc: escapeHtml,
     });
   }
@@ -280,6 +285,7 @@ app.post('/login', loginLimiter, redirectIfAuthenticated, async (req, res) => {
   const password = String(req.body?.password ?? '');
   const result = await attemptLogin(username, password, ip);
   if (!result.success || !result.user) {
+    const nextUrl = typeof req.body?.next === 'string' ? req.body.next : '';
     return res.render('login', {
       appName: APP_NAME,
       error: result.success ? 'Invalid login.' : result.error,
@@ -287,6 +293,7 @@ app.post('/login', loginLimiter, redirectIfAuthenticated, async (req, res) => {
       lockoutRemaining: getLockoutRemaining(ip),
       dbExists: fs.existsSync(CENTRAL_DB_PATH),
       csrfToken: (res.locals as { csrfToken?: string }).csrfToken ?? '',
+      next: nextUrl,
       esc: escapeHtml,
     });
   }
@@ -300,6 +307,15 @@ app.post('/login', loginLimiter, redirectIfAuthenticated, async (req, res) => {
     (req.session as { is_admin?: boolean }).is_admin = Boolean(user.is_admin);
     req.session.save((saveErr) => {
       if (saveErr) return res.redirect('/login');
+      const nextPath = typeof req.body?.next === 'string' ? req.body.next : '';
+      const safeNext =
+        nextPath &&
+        nextPath.startsWith('/') &&
+        !nextPath.startsWith('//') &&
+        !nextPath.includes('\\')
+          ? nextPath
+          : '';
+      if (safeNext) return res.redirect(safeNext);
       const games = getGamesForUser(user.id);
       if (games.length === 1) return res.redirect(`/games/${games[0]}`);
       res.redirect('/');

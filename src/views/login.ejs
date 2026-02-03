@@ -117,6 +117,7 @@
             <% } %>
             <form method="POST" action="/login">
                 <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <% if (typeof next === 'string' && next) { %><input type="hidden" name="next" value="<%= next %>"><% } %>
                 <div class="form-group">
                     <label for="username">Username</label>
                     <input type="text" id="username" name="username" required <%= lockedOut ? 'disabled' : '' %> autocomplete="username">
