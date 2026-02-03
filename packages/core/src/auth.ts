@@ -200,49 +200,45 @@ export async function attemptLogin(
     };
   }
   const db = getCentralDb();
-  try {
-    const user = q.getUserByUsername(db, username);
-    if (!user) {
-      const h = await getDummyHash();
-      await verifyPassword(password, h);
-      const remaining = recordFailedAttempt(ip);
-      if (remaining <= 0) {
-        return {
-          success: false,
-          error: `Too many failed attempts. Locked out for ${AUTH_LOCKOUT_MINUTES} minutes.`,
-        };
-      }
+  const user = q.getUserByUsername(db, username);
+  if (!user) {
+    const h = await getDummyHash();
+    await verifyPassword(password, h);
+    const remaining = recordFailedAttempt(ip);
+    if (remaining <= 0) {
       return {
         success: false,
-        error: `Invalid username or password. ${remaining} attempt(s) remaining.`,
+        error: `Too many failed attempts. Locked out for ${AUTH_LOCKOUT_MINUTES} minutes.`,
       };
     }
-    const ok = await verifyPassword(password, user.password_hash);
-    if (!ok) {
-      const remaining = recordFailedAttempt(ip);
-      if (remaining <= 0) {
-        return {
-          success: false,
-          error: `Too many failed attempts. Locked out for ${AUTH_LOCKOUT_MINUTES} minutes.`,
-        };
-      }
-      return {
-        success: false,
-        error: `Invalid username or password. ${remaining} attempt(s) remaining.`,
-      };
-    }
-    clearFailedAttempts(ip);
     return {
-      success: true,
-      user: {
-        id: user.id,
-        username: user.username,
-        is_admin: user.is_admin,
-      },
+      success: false,
+      error: `Invalid username or password. ${remaining} attempt(s) remaining.`,
     };
-  } finally {
-    db.close();
   }
+  const ok = await verifyPassword(password, user.password_hash);
+  if (!ok) {
+    const remaining = recordFailedAttempt(ip);
+    if (remaining <= 0) {
+      return {
+        success: false,
+        error: `Too many failed attempts. Locked out for ${AUTH_LOCKOUT_MINUTES} minutes.`,
+      };
+    }
+    return {
+      success: false,
+      error: `Invalid username or password. ${remaining} attempt(s) remaining.`,
+    };
+  }
+  clearFailedAttempts(ip);
+  return {
+    success: true,
+    user: {
+      id: user.id,
+      username: user.username,
+      is_admin: user.is_admin,
+    },
+  };
 }
 
 export async function createUser(
@@ -278,16 +274,12 @@ export async function createUser(
     };
   }
   const db = getCentralDb();
-  try {
-    const hash = await hashPassword(password);
-    const result = q.createUser(db, u, hash, isAdminUser);
-    if (!result.inserted) {
-      return { success: false, error: 'Username already exists' };
-    }
-    return { success: true, user_id: result.id };
-  } finally {
-    db.close();
+  const hash = await hashPassword(password);
+  const result = q.createUser(db, u, hash, isAdminUser);
+  if (!result.inserted) {
+    return { success: false, error: 'Username already exists' };
   }
+  return { success: true, user_id: result.id };
 }
 
 export function deleteUser(
@@ -298,14 +290,10 @@ export function deleteUser(
     return { success: false, error: 'Cannot delete your own account' };
   }
   const db = getCentralDb();
-  try {
-    if (!q.deleteUser(db, targetUserId)) {
-      return { success: false, error: 'User not found' };
-    }
-    return { success: true };
-  } finally {
-    db.close();
+  if (!q.deleteUser(db, targetUserId)) {
+    return { success: false, error: 'User not found' };
   }
+  return { success: true };
 }
 
 export async function changePassword(
@@ -316,15 +304,11 @@ export async function changePassword(
     return { success: false, error: 'Password must be at least 8 characters' };
   }
   const db = getCentralDb();
-  try {
-    const hash = await hashPassword(newPassword);
-    if (!q.updateUserPassword(db, userId, hash)) {
-      return { success: false, error: 'User not found' };
-    }
-    return { success: true };
-  } finally {
-    db.close();
+  const hash = await hashPassword(newPassword);
+  if (!q.updateUserPassword(db, userId, hash)) {
+    return { success: false, error: 'User not found' };
   }
+  return { success: true };
 }
 
 export function getAllUsers(): {
@@ -334,38 +318,22 @@ export function getAllUsers(): {
   created_at: string;
 }[] {
   const db = getCentralDb();
-  try {
-    return q.getAllUsers(db);
-  } finally {
-    db.close();
-  }
+  return q.getAllUsers(db);
 }
 
 export function getGamesForUser(userId: number): string[] {
   const db = getCentralDb();
-  try {
-    return q.getGamesForUser(db, userId);
-  } finally {
-    db.close();
-  }
+  return q.getGamesForUser(db, userId);
 }
 
 export function hasAccess(userId: number, gameId: string): boolean {
   const db = getCentralDb();
-  try {
-    return q.hasAccess(db, userId, gameId);
-  } finally {
-    db.close();
-  }
+  return q.hasAccess(db, userId, gameId);
 }
 
 export function grantGameAccess(userId: number, gameId: string): boolean {
   const db = getCentralDb();
-  try {
-    return q.grantGameAccess(db, userId, gameId);
-  } finally {
-    db.close();
-  }
+  return q.grantGameAccess(db, userId, gameId);
 }
 
 export function setUserGameAccess(
@@ -374,11 +342,7 @@ export function setUserGameAccess(
   enabled: boolean,
 ): boolean {
   const db = getCentralDb();
-  try {
-    return q.setUserGameAccess(db, userId, gameId, enabled);
-  } finally {
-    db.close();
-  }
+  return q.setUserGameAccess(db, userId, gameId, enabled);
 }
 
 export function isAuthenticated(session: AuthSession): boolean {
