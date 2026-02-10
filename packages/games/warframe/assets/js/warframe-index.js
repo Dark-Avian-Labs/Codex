@@ -337,7 +337,8 @@ function renderTable() {
     rows = rows.filter((row) => row.name.toLowerCase().includes(searchTerm));
   }
   if (rows.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="${currentData.columns.length + 2}" class="loading">No items found.</td></tr>`;
+    const colCount = thead.querySelectorAll('th:not(.hidden)').length;
+    tbody.innerHTML = `<tr><td colspan="${colCount}" class="loading">No items found.</td></tr>`;
     return;
   }
   const sharedIcons = '/shared/icons';
