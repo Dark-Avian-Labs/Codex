@@ -23,12 +23,12 @@
             <button class="tab" data-tab="artifacts">Base Artifacts</button>
         </div>
         <div class="tab-content active" id="heroes-content">
-            <%- include('../partials/game-table-open', { columns: [{ name: 'Name' }, { name: 'Class', className: 'icon-cell' }, { name: 'Element', className: 'icon-cell' }, { name: 'Stars' }, { name: 'Actions' }], tbodyId: 'heroes-table' }) %>
+            <%- include('../partials/game-table-open', { columns: [{ name: 'Name' }, { name: 'Class', className: 'icon-cell' }, { name: 'Element', className: 'icon-cell' }, { name: 'Stars' }, { name: 'Actions' }], tbodyId: 'heroes-table', headerOffset: '350px' }) %>
             <tr><td colspan="5" class="loading">Loading...</td></tr>
             <%- include('../partials/game-table-close') %>
         </div>
         <div class="tab-content" id="artifacts-content">
-            <%- include('../partials/game-table-open', { columns: [{ name: 'Name' }, { name: 'Class', className: 'icon-cell' }, { name: 'Stars' }, { name: 'Actions' }], tbodyId: 'artifacts-table' }) %>
+            <%- include('../partials/game-table-open', { columns: [{ name: 'Name' }, { name: 'Class', className: 'icon-cell' }, { name: 'Stars' }, { name: 'Actions' }], tbodyId: 'artifacts-table', headerOffset: '350px' }) %>
             <tr><td colspan="4" class="loading">Loading...</td></tr>
             <%- include('../partials/game-table-close') %>
         </div>
