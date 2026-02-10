@@ -7,7 +7,7 @@
     <% if (typeof csrfToken === 'undefined' || !csrfToken) { throw new Error('Epic7 index view requires a csrfToken value.'); } %>
     <meta name="csrf-token" content="<%= csrfToken %>">
     <link rel="icon" type="image/x-icon" href="<%= typeof basePath !== 'undefined' && basePath ? basePath + '/favicon.ico' : '/favicon.ico' %>">
-    <link rel="stylesheet" href="<%= typeof basePath !== 'undefined' && basePath ? basePath + '/static/output.css' : '/static/output.css' %>">
+    <link rel="stylesheet" href="/static/output.css">
     <style>
     /* Epic7 tracker: centre non-first header columns */
     thead th { text-align: center; }
