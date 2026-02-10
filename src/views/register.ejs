@@ -16,7 +16,7 @@
                 <span class="admin-badge">ADMIN</span>
             </div>
             <% if (error) { %><div class="error-msg"><%= error %></div><% } %>
-            <% if (success) { %><div class="success-msg"><%- success %></div><% } %>
+            <% if (success) { %><div class="success-msg"><%= success %></div><% } %>
             <form method="POST" action="/register">
                 <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                 <div class="form-group">

@@ -25,7 +25,9 @@
 
   /* Semantic */
   --color-success: #22c55e;
+  --color-success-rgb: 34, 197, 94;
   --color-warning: #f59e0b;
+  --color-warning-rgb: 245, 158, 11;
   --color-danger: #ef4444;
   --color-unavailable: #6b7280;
 
@@ -50,24 +52,19 @@
 }
 
 /* ---------- Per-game accent overrides ---------- */
+/* --color-accent-weak and --color-accent-weak-2 are derived from --color-accent
+   (via color-mix in @theme) and resolve automatically — no need to redeclare. */
 [data-game='warframe'] {
   --color-accent: #ea580c;
-  --color-accent-weak: color-mix(in srgb, var(--color-accent) 10%, transparent);
-  --color-accent-weak-2: color-mix(
-    in srgb,
-    var(--color-accent) 20%,
-    transparent
-  );
 }
 
 [data-game='epic7'] {
   --color-accent: #a855f7;
-  --color-accent-weak: color-mix(in srgb, var(--color-accent) 10%, transparent);
-  --color-accent-weak-2: color-mix(
-    in srgb,
-    var(--color-accent) 20%,
-    transparent
-  );
+}
+
+/* ---------- Layout custom properties ---------- */
+:root {
+  --header-offset: 280px;
 }
 
 /* ==========================================================================
@@ -299,6 +296,7 @@
   }
 
   .table-scroll {
+    max-height: calc(100vh - var(--header-offset));
     overflow-y: auto;
   }
 
@@ -361,7 +359,7 @@
     font-weight: 500;
   }
 
-  .actions-header {
+  .actions-header.hidden {
     display: none;
   }
 
@@ -502,6 +500,10 @@
     overflow-y: auto;
   }
 
+  .modal-sm {
+    max-width: 400px;
+  }
+
   .modal h2 {
     margin: 0 0 20px;
     font-size: 1.25rem;
@@ -550,8 +552,10 @@
 
   .form-group input:focus,
   .form-group select:focus {
-    outline: none;
     border-color: var(--color-accent);
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-accent) 25%, transparent);
   }
 
   .form-group select option {
@@ -603,23 +607,23 @@
   }
 
   .status-btn.obtained {
-    color: #fbbf24;
-    background: rgba(251, 191, 36, 0.1);
-    border-color: rgba(251, 191, 36, 0.3);
+    color: var(--color-warning);
+    background: rgba(var(--color-warning-rgb), 0.1);
+    border-color: rgba(var(--color-warning-rgb), 0.3);
   }
 
   .status-btn.obtained:hover {
-    background: rgba(251, 191, 36, 0.15);
+    background: rgba(var(--color-warning-rgb), 0.15);
   }
 
   .status-btn.complete {
-    color: #4ade80;
-    background: rgba(74, 222, 128, 0.1);
-    border-color: rgba(74, 222, 128, 0.3);
+    color: var(--color-success);
+    background: rgba(var(--color-success-rgb), 0.1);
+    border-color: rgba(var(--color-success-rgb), 0.3);
   }
 
   .status-btn.complete:hover {
-    background: rgba(74, 222, 128, 0.15);
+    background: rgba(var(--color-success-rgb), 0.15);
   }
 
   .status-btn.unavailable {
@@ -716,7 +720,7 @@
   }
 
   .edit-mode .actions-header {
-    display: table-cell !important;
+    display: table-cell;
   }
 
   #add-item-btn {

@@ -25,6 +25,11 @@
     "typescript": "^5.9.3"
   },
   "type": "module",
+  "license": "GPL-3.0-or-later",
+  "engines": {
+    "node": ">=25.0.0",
+    "npm": ">=11.0.0"
+  },
   "exports": {
     ".": {
       "import": "./dist/index.js",

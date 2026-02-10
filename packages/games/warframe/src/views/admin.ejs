@@ -6,8 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
     <link rel="icon" type="image/x-icon" href="<%= typeof basePath !== 'undefined' && basePath ? basePath + '/favicon.ico' : '/favicon.ico' %>">
-    <link rel="stylesheet" href="/static/output.css">
-    <style>
+    <link rel="stylesheet" href="<%= typeof basePath !== 'undefined' && basePath ? basePath + '/static/output.css' : '/static/output.css' %>">    <style>
     /* Warframe admin: centre non-edge columns & show row-actions as flex */
     thead th:not(:first-child):not(:last-child) { text-align: center; }
     .row-actions { display: flex; gap: 6px; white-space: nowrap; }

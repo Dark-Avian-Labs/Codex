@@ -7,7 +7,7 @@
     <% if (typeof csrfToken === 'undefined' || !csrfToken) { throw new Error('Epic7 index view requires a csrfToken value.'); } %>
     <meta name="csrf-token" content="<%= csrfToken %>">
     <link rel="icon" type="image/x-icon" href="<%= typeof basePath !== 'undefined' && basePath ? basePath + '/favicon.ico' : '/favicon.ico' %>">
-    <link rel="stylesheet" href="/static/output.css">
+    <link rel="stylesheet" href="<%= typeof basePath !== 'undefined' && basePath ? basePath + '/static/output.css' : '/static/output.css' %>">
     <style>
     /* Epic7 tracker: centre non-first header columns */
     thead th { text-align: center; }
@@ -35,7 +35,7 @@
         <div class="filter-bar" id="filter-bar"></div>
         <div class="stats-bar" id="stats"></div>
         <div class="table-container">
-            <div class="table-scroll" style="max-height: calc(100vh - 340px)">
+            <div class="table-scroll" style="--header-offset: 340px">
                 <table>
                     <thead id="table-head"><tr><th>Loading...</th></tr></thead>
                     <tbody id="table-body"><tr><td class="loading">Loading data...</td></tr></tbody>
@@ -44,7 +44,7 @@
         </div>
     </div>
     <div class="modal-overlay" id="add-account-modal">
-        <div class="modal" style="max-width: 400px">
+        <div class="modal modal-sm">
             <h2>Add Game Account</h2>
             <form id="add-account-form">
                 <div class="form-group">
@@ -59,7 +59,7 @@
         </div>
     </div>
     <div class="modal-overlay" id="manage-accounts-modal">
-        <div class="modal" style="max-width: 400px">
+        <div class="modal modal-sm">
             <h2>Manage Accounts</h2>
             <div id="manage-accounts-list"></div>
             <div class="modal-actions">
@@ -69,7 +69,7 @@
         </div>
     </div>
     <div class="modal-overlay" id="add-item-modal">
-        <div class="modal" style="max-width: 400px">
+        <div class="modal modal-sm">
             <h2 id="add-item-title">Add Hero</h2>
             <form id="add-item-form">
                 <input type="hidden" id="item-edit-id" value="">
@@ -190,7 +190,7 @@
         const btn = document.getElementById('edit-mode-btn');
         if (editMode) { btn.classList.add('active'); btn.textContent = 'Done Editing'; document.body.classList.add('edit-mode'); }
         else { btn.classList.remove('active'); btn.textContent = 'Edit Mode'; document.body.classList.remove('edit-mode'); }
-        const h = document.querySelector('.actions-header'); if (h) h.style.display = editMode ? 'table-cell' : 'none';
+        const h = document.querySelector('.actions-header'); if (h) h.classList.toggle('hidden', !editMode);
     }
 
     async function loadAccounts() {
@@ -210,7 +210,7 @@
         const nameEl = document.getElementById('current-account-name');
         if (!accounts || accounts.length === 0) {
             nameEl.textContent = 'No Account';
-            list.innerHTML = '<div class="account-dropdown-item" role="menuitem" aria-disabled="true" style="color:var(--color-muted)">No accounts yet</div>';
+            list.innerHTML = '<div class="account-dropdown-item text-muted" role="menuitem" aria-disabled="true">No accounts yet</div>';
             showNoAccountMessage();
             return;
         }
@@ -307,10 +307,10 @@
         const thead = document.getElementById('table-head');
         const tbody = document.getElementById('table-body');
         if (currentTab === 'heroes') {
-            thead.innerHTML = '<tr><th>Name</th><th class="icon-cell">Class</th><th class="icon-cell">Element</th><th>Stars</th><th>Imprint</th><th class="actions-header" style="display:none">Actions</th></tr>';
+            thead.innerHTML = '<tr><th>Name</th><th class="icon-cell">Class</th><th class="icon-cell">Element</th><th>Stars</th><th>Imprint</th><th class="actions-header hidden">Actions</th></tr>';
             let items = (currentData.heroes || []).filter(h => !searchTerm || h.name.toLowerCase().includes(searchTerm));
             if (items.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="loading">No heroes found.</td></tr>'; return; }
-            const h = thead.querySelector('.actions-header'); if (h) h.style.display = editMode ? 'table-cell' : 'none';
+            const h = thead.querySelector('.actions-header'); if (h) h.classList.toggle('hidden', !editMode);
             tbody.innerHTML = items.map(hero => {
                 const r = hero.rating; const rc = RATING_COLORS[r] || '#6b7280';
                 return `<tr data-id="${hero.id}"><td class="item-name">${escapeHtml(hero.name)}</td><td class="icon-cell"><img src="${ICONS_BASE}/${hero.class}.png" alt="${CLASS_NAMES[hero.class]}" title="${CLASS_NAMES[hero.class]}"></td><td class="icon-cell"><img src="${ICONS_BASE}/${hero.element}.png" alt="${ELEMENT_NAMES[hero.element]}" title="${ELEMENT_NAMES[hero.element]}"></td><td class="stars-cell">${renderStars(hero.star_rating)}</td><td class="rating-cell"><button class="rating-btn" data-hero-id="${hero.id}" data-rating="${r}" style="background:${rc}20;color:${rc};border-color:${rc}50">${r}</button></td><td class="row-actions"><button class="btn-icon btn-edit" data-edit-hero="${hero.id}" title="Edit"><img src="${SHARED_ICONS}/edit.png" alt="Edit"></button><button class="btn-icon btn-delete" data-del-hero="${hero.id}" data-name="${escapeHtml(hero.name)}" title="Delete"><img src="${SHARED_ICONS}/delete.png" alt="Delete"></button></td></tr>`;
@@ -319,10 +319,10 @@
             tbody.querySelectorAll('[data-edit-hero]').forEach(btn => btn.addEventListener('click', () => editHero(parseInt(btn.dataset.editHero))));
             tbody.querySelectorAll('[data-del-hero]').forEach(btn => btn.addEventListener('click', () => deleteHero(parseInt(btn.dataset.delHero), btn.dataset.name)));
         } else {
-            thead.innerHTML = '<tr><th>Name</th><th class="icon-cell">Class</th><th>Stars</th><th>Limit Break</th><th class="actions-header" style="display:none">Actions</th></tr>';
+            thead.innerHTML = '<tr><th>Name</th><th class="icon-cell">Class</th><th>Stars</th><th>Limit Break</th><th class="actions-header hidden">Actions</th></tr>';
             let items = (currentData.artifacts || []).filter(a => !searchTerm || a.name.toLowerCase().includes(searchTerm));
             if (items.length === 0) { tbody.innerHTML = '<tr><td colspan="5" class="loading">No artifacts found.</td></tr>'; return; }
-            const h = thead.querySelector('.actions-header'); if (h) h.style.display = editMode ? 'table-cell' : 'none';
+            const h = thead.querySelector('.actions-header'); if (h) h.classList.toggle('hidden', !editMode);
             tbody.innerHTML = items.map(artifact => {
                 const gl = parseInt(artifact.gauge_level); const gc = GAUGE_COLORS[gl] || GAUGE_COLORS['0'] || '#6b7280';
                 return `<tr data-id="${artifact.id}"><td class="item-name">${escapeHtml(artifact.name)}</td><td class="icon-cell"><img src="${ICONS_BASE}/${artifact.class}.png" alt="${CLASS_NAMES[artifact.class]}" title="${CLASS_NAMES[artifact.class]}"></td><td class="stars-cell">${renderStars(artifact.star_rating)}</td><td class="level-cell"><button class="gauge-btn" data-artifact-id="${artifact.id}" data-gauge="${gl}" style="color:${gc}">${renderGauge(gl)}</button></td><td class="row-actions"><button class="btn-icon btn-edit" data-edit-artifact="${artifact.id}" title="Edit"><img src="${SHARED_ICONS}/edit.png" alt="Edit"></button><button class="btn-icon btn-delete" data-del-artifact="${artifact.id}" data-name="${escapeHtml(artifact.name)}" title="Delete"><img src="${SHARED_ICONS}/delete.png" alt="Delete"></button></td></tr>`;
@@ -392,7 +392,10 @@
         document.getElementById('filter-bar').innerHTML = '';
         document.getElementById('stats').innerHTML = '';
         document.getElementById('table-head').innerHTML = '';
-        document.getElementById('table-body').innerHTML = '<tr><td class="no-account-msg"><h2>No Game Account</h2><p>Create a game account to start tracking your collection.</p><button class="btn" onclick="openAddAccountModal()">+ Create Account</button></td></tr>';
+        const tableBody = document.getElementById('table-body');
+        tableBody.innerHTML = '<tr><td class="no-account-msg"><h2>No Game Account</h2><p>Create a game account to start tracking your collection.</p><button class="btn" data-action="open-add-account">+ Create Account</button></td></tr>';
+        const createBtn = tableBody.querySelector('[data-action="open-add-account"]');
+        if (createBtn) createBtn.addEventListener('click', openAddAccountModal);
     }
 
     function showError(msg) {
