@@ -350,8 +350,8 @@ function renderTable() {
       (h) => !searchTerm || h.name.toLowerCase().includes(searchTerm),
     );
     if (items.length === 0) {
-      tbody.innerHTML =
-        '<tr><td colspan="6" class="loading">No heroes found.</td></tr>';
+      const colCount = thead.querySelectorAll('th:not(.hidden)').length;
+      tbody.innerHTML = `<tr><td colspan="${colCount}" class="loading">No heroes found.</td></tr>`;
       return;
     }
     const h = thead.querySelector('.actions-header');
@@ -387,8 +387,8 @@ function renderTable() {
       (a) => !searchTerm || a.name.toLowerCase().includes(searchTerm),
     );
     if (items.length === 0) {
-      tbody.innerHTML =
-        '<tr><td colspan="5" class="loading">No artifacts found.</td></tr>';
+      const colCount = thead.querySelectorAll('th:not(.hidden)').length;
+      tbody.innerHTML = `<tr><td colspan="${colCount}" class="loading">No artifacts found.</td></tr>`;
       return;
     }
     const h = thead.querySelector('.actions-header');
