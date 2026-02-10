@@ -29,7 +29,9 @@
   --color-warning: #f59e0b;
   --color-warning-rgb: 245, 158, 11;
   --color-danger: #ef4444;
+  --color-danger-rgb: 239, 68, 68;
   --color-unavailable: #6b7280;
+  --color-unavailable-rgb: 107, 114, 128;
 
   /* Glass-morphism palette */
   --color-glass: rgba(255, 255, 255, 0.02);
@@ -63,6 +65,26 @@
 }
 
 /* ---------- Layout custom properties ---------- */
+/* --header-offset is the total vertical space consumed above the scrollable
+   table area. It is used in `.table-scroll { max-height: calc(100vh - var(--header-offset)) }`
+   to keep the table viewport-contained.
+
+   Approximate breakdown of the default 280px (at md breakpoint, p-6):
+     ~24px  body padding-top          (p-6 = 1.5rem)
+     ~56px  <header> row              (h1 line-height + flex gap)
+      20px  header margin-bottom      (mb-5)
+     ~48px  .tabs                     (padding 6+6 + tab 10+10 + text)
+      16px  .tabs margin-bottom
+     ~48px  .stats-bar                (content-dependent)
+      16px  .stats-bar margin-bottom
+     ~52px  table-container chrome    (border, border-radius, thead)
+    ≈280px  total
+
+   Games that add extra bars (e.g. Epic7's .filter-bar) should override
+   --header-offset inline on .table-scroll (Epic7 uses 340px ≈ 280 + 60
+   for the filter bar + its 16px margin).
+
+   If you add/remove UI above the table, bump this value accordingly. */
 :root {
   --header-offset: 280px;
 }
@@ -555,7 +577,8 @@
     border-color: var(--color-accent);
     outline: 2px solid var(--color-accent);
     outline-offset: 2px;
-    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-accent) 25%, transparent);
+    box-shadow: 0 0 0 4px
+      color-mix(in srgb, var(--color-accent) 25%, transparent);
   }
 
   .form-group select option {
@@ -628,7 +651,7 @@
 
   .status-btn.unavailable {
     color: var(--color-unavailable);
-    background: rgba(107, 114, 128, 0.1);
+    background: rgba(var(--color-unavailable-rgb), 0.1);
     border-color: transparent;
     cursor: not-allowed;
     opacity: 0.6;

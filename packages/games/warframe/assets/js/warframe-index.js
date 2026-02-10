@@ -53,35 +53,47 @@ async function init() {
   if (addItemBtn) addItemBtn.addEventListener('click', () => openAddModal());
   document
     .getElementById('item-modal-cancel')
-    .addEventListener('click', closeItemModal);
+    ?.addEventListener('click', closeItemModal);
   document
     .getElementById('item-form')
-    .addEventListener('submit', handleItemFormSubmit);
-  document.getElementById('item-modal').addEventListener('click', (e) => {
+    ?.addEventListener('submit', handleItemFormSubmit);
+  document.getElementById('item-modal')?.addEventListener('click', (e) => {
     if (e.target.id === 'item-modal') closeItemModal();
   });
   document
     .getElementById('delete-cancel')
-    .addEventListener('click', closeDeleteModal);
+    ?.addEventListener('click', closeDeleteModal);
   document
     .getElementById('delete-confirm')
-    .addEventListener('click', handleDeleteConfirm);
-  document.getElementById('delete-modal').addEventListener('click', (e) => {
+    ?.addEventListener('click', handleDeleteConfirm);
+  document.getElementById('delete-modal')?.addEventListener('click', (e) => {
     if (e.target.id === 'delete-modal') closeDeleteModal();
   });
   document.getElementById('table-body').addEventListener('click', (e) => {
     const statusBtn = e.target.closest('.status-btn:not([disabled])');
-    if (statusBtn) return toggleStatus(statusBtn);
+    if (statusBtn) {
+      toggleStatus(statusBtn);
+      return;
+    }
     const editBtn = e.target.closest('[data-edit-row]');
-    if (editBtn)
-      return openEditModal(parseInt(editBtn.dataset.editRow));
+    if (editBtn) {
+      openEditModal(parseInt(editBtn.dataset.editRow));
+      return;
+    }
     const deleteBtn = e.target.closest('[data-delete-row]');
-    if (deleteBtn)
-      return openDeleteModal(
+    if (deleteBtn) {
+      openDeleteModal(
         parseInt(deleteBtn.dataset.deleteRow),
         deleteBtn.dataset.rowName,
       );
+    }
   });
+}
+
+function safeColId(id) {
+  const str = String(id);
+  if (/^[A-Za-z0-9\-_]+$/.test(str)) return str;
+  return str.replace(/[^A-Za-z0-9\-_]/g, '_');
 }
 
 function getColumnOptions(col) {
@@ -99,10 +111,11 @@ function openAddModal() {
   const colsDiv = document.getElementById('form-columns');
   colsDiv.innerHTML = currentData.columns
     .map((col) => {
+      const sid = safeColId(col.id);
       const { options, getLabel } = getColumnOptions(col);
       return `<div class="form-group">
-                <label for="form-col-${col.id}">${escapeHtml(col.name)}</label>
-                <select id="form-col-${col.id}">${options.map((opt) => `<option value="${opt}">${getLabel(opt)}</option>`).join('')}</select>
+                <label for="form-col-${sid}">${escapeHtml(col.name)}</label>
+                <select id="form-col-${sid}">${options.map((opt) => `<option value="${opt}">${getLabel(opt)}</option>`).join('')}</select>
             </div>`;
     })
     .join('');
@@ -120,11 +133,12 @@ function openEditModal(rowId) {
   const colsDiv = document.getElementById('form-columns');
   colsDiv.innerHTML = currentData.columns
     .map((col) => {
+      const sid = safeColId(col.id);
       const value = row.values[col.id] || '';
       const { options, getLabel } = getColumnOptions(col);
       return `<div class="form-group">
-                <label for="form-col-${col.id}">${escapeHtml(col.name)}</label>
-                <select id="form-col-${col.id}">${options.map((opt) => `<option value="${opt}" ${value === opt ? 'selected' : ''}>${getLabel(opt)}</option>`).join('')}</select>
+                <label for="form-col-${sid}">${escapeHtml(col.name)}</label>
+                <select id="form-col-${sid}">${options.map((opt) => `<option value="${opt}" ${value === opt ? 'selected' : ''}>${getLabel(opt)}</option>`).join('')}</select>
             </div>`;
     })
     .join('');
@@ -133,7 +147,7 @@ function openEditModal(rowId) {
 }
 
 function closeItemModal() {
-  document.getElementById('item-modal').classList.remove('active');
+  document.getElementById('item-modal')?.classList.remove('active');
 }
 
 function openDeleteModal(rowId, name) {
@@ -143,7 +157,7 @@ function openDeleteModal(rowId, name) {
 }
 
 function closeDeleteModal() {
-  document.getElementById('delete-modal').classList.remove('active');
+  document.getElementById('delete-modal')?.classList.remove('active');
 }
 
 async function handleItemFormSubmit(e) {
@@ -156,7 +170,7 @@ async function handleItemFormSubmit(e) {
   }
   const values = {};
   currentData.columns.forEach((col) => {
-    const el = document.getElementById(`form-col-${col.id}`);
+    const el = document.getElementById(`form-col-${safeColId(col.id)}`);
     values[col.id] = el?.value ?? '';
   });
   try {
@@ -172,14 +186,22 @@ async function handleItemFormSubmit(e) {
       },
       body: JSON.stringify(body),
     });
+    if (!response.ok) {
+      const errorText = await response.text();
+      alert(
+        `Error ${response.status} ${response.statusText}: ${errorText || 'Request failed'}`,
+      );
+      return;
+    }
     const result = await response.json();
-    if (result.error) alert('Error: ' + result.error);
-    else {
+    if (result.error) {
+      alert(`Error: ${result.error}`);
+    } else {
       closeItemModal();
       await loadData(currentWorksheet);
     }
   } catch (err) {
-    alert('Failed to save: ' + err.message);
+    alert(`Failed to save: ${err.message}`);
   }
 }
 
@@ -194,20 +216,35 @@ async function handleDeleteConfirm() {
       },
       body: JSON.stringify({ row_id: rowId }),
     });
+    if (!response.ok) {
+      const errorText = await response.text();
+      alert(
+        `Error ${response.status} ${response.statusText}: ${errorText || 'Delete failed'}`,
+      );
+      return;
+    }
     const result = await response.json();
-    if (result.error) alert('Error: ' + result.error);
-    else {
+    if (result.error) {
+      alert(`Error: ${result.error}`);
+    } else {
       closeDeleteModal();
       await loadData(currentWorksheet);
     }
   } catch (err) {
-    alert('Failed to delete: ' + err.message);
+    alert(`Failed to delete: ${err.message}`);
   }
 }
 
 async function loadWorksheets() {
   try {
     const response = await fetch(`${API_URL}?action=worksheets`);
+    if (!response.ok) {
+      const errorBody = await response.text();
+      showError(
+        `Failed to load worksheets (${response.status}): ${errorBody || response.statusText}`,
+      );
+      return;
+    }
     const data = await response.json();
     if (data.error) {
       showError(data.error);
@@ -227,7 +264,7 @@ async function loadWorksheets() {
     renderTabs();
     if (worksheets.length > 0) selectWorksheet(worksheets[0].id);
   } catch (err) {
-    showError('Failed to load worksheets: ' + err.message);
+    showError(`Failed to load worksheets: ${err.message}`);
   }
 }
 
@@ -261,6 +298,13 @@ async function loadData(worksheetId) {
     const response = await fetch(
       `${API_URL}?action=data&worksheet=${worksheetId}`,
     );
+    if (!response.ok) {
+      const errorBody = await response.text();
+      showError(
+        `Failed to load data (${response.status}): ${errorBody || response.statusText}`,
+      );
+      return;
+    }
     const data = await response.json();
     if (data.error) {
       showError(data.error);
@@ -270,7 +314,7 @@ async function loadData(worksheetId) {
     renderTable();
     renderStats();
   } catch (err) {
-    showError('Failed to load data: ' + err.message);
+    showError(`Failed to load data: ${err.message}`);
   }
 }
 
@@ -289,8 +333,9 @@ function renderTable() {
 
   thead.innerHTML = `<tr><th>Name</th>${currentData.columns.map((col) => `<th>${escapeHtml(col.name)}</th>`).join('')}<th class="actions-header${document.body.classList.contains('edit-mode') ? '' : ' hidden'}">Actions</th></tr>`;
   let rows = currentData.rows;
-  if (searchTerm)
+  if (searchTerm) {
     rows = rows.filter((row) => row.name.toLowerCase().includes(searchTerm));
+  }
   if (rows.length === 0) {
     tbody.innerHTML = `<tr><td colspan="${currentData.columns.length + 2}" class="loading">No items found.</td></tr>`;
     return;
@@ -303,19 +348,20 @@ function renderTable() {
                 <td class="item-name">${escapeHtml(row.name)}</td>
                 ${currentData.columns
                   .map((col) => {
+                    const sid = safeColId(col.id);
                     const value = row.values[col.id] || '';
                     const isHelminth = col.name === 'Helminth';
                     if (isHelminth) {
                       const displayText = value === 'Yes' ? '✓' : '—';
                       return `<td class="status-cell helminth-cell">
-                            <button type="button" class="status-btn helminth-btn ${value === 'Yes' ? 'yes' : 'empty'}" data-row-id="${row.id}" data-column-id="${col.id}" data-column-name="Helminth" data-value="${escapeHtml(value)}">${displayText}</button>
+                            <button type="button" class="status-btn helminth-btn ${value === 'Yes' ? 'yes' : 'empty'}" data-row-id="${row.id}" data-column-id="${sid}" data-column-name="Helminth" data-value="${escapeHtml(value)}">${displayText}</button>
                         </td>`;
                     }
                     const statusClass = value.toLowerCase() || 'empty';
                     const isUnavailable = value === 'Unavailable';
                     const displayText = value || '—';
                     return `<td class="status-cell">
-                        <button type="button" class="status-btn ${statusClass}" data-row-id="${row.id}" data-column-id="${col.id}" data-column-name="${escapeHtml(col.name)}" data-value="${escapeHtml(value)}" ${isUnavailable ? 'disabled' : ''}>${displayText}</button>
+                        <button type="button" class="status-btn ${statusClass}" data-row-id="${row.id}" data-column-id="${sid}" data-column-name="${escapeHtml(col.name)}" data-value="${escapeHtml(value)}" ${isUnavailable ? 'disabled' : ''}>${displayText}</button>
                     </td>`;
                   })
                   .join('')}
@@ -394,11 +440,10 @@ function renderStats() {
 function updateStatusButton(btn, value, isHelminth) {
   btn.dataset.value = value;
   if (isHelminth) {
-    btn.className =
-      'status-btn helminth-btn ' + (value === 'Yes' ? 'yes' : 'empty');
+    btn.className = `status-btn helminth-btn ${value === 'Yes' ? 'yes' : 'empty'}`;
     btn.textContent = value === 'Yes' ? '✓' : '—';
   } else {
-    btn.className = 'status-btn ' + (value.toLowerCase() || 'empty');
+    btn.className = `status-btn ${value.toLowerCase() || 'empty'}`;
     btn.textContent = value || '—';
   }
 }
@@ -432,18 +477,28 @@ async function toggleStatus(btn) {
         value: newValue,
       }),
     });
+    if (!response.ok) {
+      updateStatusButton(btn, currentValue, isHelminth);
+      if (row) row.values[columnId] = currentValue;
+      renderStats();
+      const errorText = await response.text();
+      alert(
+        `Error ${response.status} ${response.statusText}: ${errorText || 'Update failed'}`,
+      );
+      return;
+    }
     const result = await response.json();
     if (result.error) {
       updateStatusButton(btn, currentValue, isHelminth);
       if (row) row.values[columnId] = currentValue;
       renderStats();
-      alert('Error: ' + result.error);
+      alert(`Error: ${result.error}`);
     }
   } catch (err) {
     updateStatusButton(btn, currentValue, isHelminth);
     if (row) row.values[columnId] = currentValue;
     renderStats();
-    alert('Failed to save: ' + err.message);
+    alert(`Failed to save: ${err.message}`);
   } finally {
     btn.disabled = false;
     delete btn.dataset.pending;
