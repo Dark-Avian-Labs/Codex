@@ -303,7 +303,7 @@ export async function handleDeleteRow(
   }
   const data = validateBody(deleteRowSchema, req.body, res);
   if (!data) return;
-  const rowId = data.row_id;
+  const { row_id: rowId } = data;
   const db = await getDbOrFail(res);
   if (!db) return;
   try {

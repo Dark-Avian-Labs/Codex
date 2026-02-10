@@ -1,15 +1,15 @@
 // Epic Seven admin page logic
 // Reads configuration from window.EPIC7_ADMIN_CONFIG set by a small inline bootstrap in the template.
 
-const cfg = window.EPIC7_ADMIN_CONFIG;
-const BASE_PATH = cfg.basePath;
+const cfg = window.EPIC7_ADMIN_CONFIG || {};
+const BASE_PATH = cfg.basePath || '';
 const API_URL = `${BASE_PATH}/api`;
 const ICONS_BASE = `${BASE_PATH}/assets/icons`;
 const CSRF_TOKEN =
   document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
   '';
-const CLASS_NAMES = cfg.classNames;
-const ELEMENT_NAMES = cfg.elementNames;
+const CLASS_NAMES = cfg.classNames || {};
+const ELEMENT_NAMES = cfg.elementNames || {};
 const CLASS_WHITELIST = Object.keys(CLASS_NAMES);
 const ELEMENT_WHITELIST = Object.keys(ELEMENT_NAMES);
 let heroes = [],
@@ -58,30 +58,32 @@ async function init() {
       if (currentTab === 'heroes') openHeroModal();
       else openArtifactModal();
     });
-  document
-    .getElementById('hero-cancel')
-    .addEventListener('click', () =>
-      document.getElementById('hero-modal').classList.remove('active'),
-    );
-  document
-    .getElementById('hero-form')
-    .addEventListener('submit', handleAddHero);
-  document.getElementById('hero-modal').addEventListener('click', (e) => {
-    if (e.target.id === 'hero-modal')
-      document.getElementById('hero-modal').classList.remove('active');
-  });
-  document
-    .getElementById('artifact-cancel')
-    .addEventListener('click', () =>
-      document.getElementById('artifact-modal').classList.remove('active'),
-    );
-  document
-    .getElementById('artifact-form')
-    .addEventListener('submit', handleAddArtifact);
-  document.getElementById('artifact-modal').addEventListener('click', (e) => {
-    if (e.target.id === 'artifact-modal')
-      document.getElementById('artifact-modal').classList.remove('active');
-  });
+  const heroCancel = document.getElementById('hero-cancel');
+  const heroForm = document.getElementById('hero-form');
+  const heroModal = document.getElementById('hero-modal');
+  const artifactCancel = document.getElementById('artifact-cancel');
+  const artifactForm = document.getElementById('artifact-form');
+  const artifactModal = document.getElementById('artifact-modal');
+  if (heroCancel)
+    heroCancel.addEventListener('click', () => {
+      if (heroModal) heroModal.classList.remove('active');
+    });
+  if (heroForm) heroForm.addEventListener('submit', handleAddHero);
+  if (heroModal)
+    heroModal.addEventListener('click', (e) => {
+      if (e.target.id === 'hero-modal') heroModal.classList.remove('active');
+    });
+  if (artifactCancel)
+    artifactCancel.addEventListener('click', () => {
+      if (artifactModal) artifactModal.classList.remove('active');
+    });
+  if (artifactForm)
+    artifactForm.addEventListener('submit', handleAddArtifact);
+  if (artifactModal)
+    artifactModal.addEventListener('click', (e) => {
+      if (e.target.id === 'artifact-modal')
+        artifactModal.classList.remove('active');
+    });
   const searchInput = document.getElementById('search');
   const searchClear = document.getElementById('search-clear');
   if (searchInput) {
@@ -128,6 +130,11 @@ async function loadHeroes() {
   tbody.innerHTML = '<tr><td colspan="5" class="loading">Loading...</td></tr>';
   try {
     const r = await fetch(`${API_URL}?action=admin_base_heroes`);
+    if (!r.ok) {
+      const text = await r.text();
+      tbody.innerHTML = `<tr><td colspan="5" class="loading text-danger">${escapeHtml(`Error ${r.status} ${r.statusText}: ${text}`)}</td></tr>`;
+      return;
+    }
     const d = await r.json();
     if (d.error) {
       tbody.innerHTML = `<tr><td colspan="5" class="loading text-danger">${escapeHtml(d.error)}</td></tr>`;
@@ -238,6 +245,11 @@ async function deleteHero(heroId, heroName) {
       },
       body: JSON.stringify({ hero_id: heroId }),
     });
+    if (!r.ok) {
+      const text = await r.text();
+      alert(`Error ${r.status} ${r.statusText}: ${text}`);
+      return;
+    }
     const d = await r.json();
     if (d.error) {
       alert(`Error: ${d.error}`);
@@ -255,6 +267,11 @@ async function loadArtifacts() {
   tbody.innerHTML = '<tr><td colspan="4" class="loading">Loading...</td></tr>';
   try {
     const r = await fetch(`${API_URL}?action=admin_base_artifacts`);
+    if (!r.ok) {
+      const text = await r.text();
+      tbody.innerHTML = `<tr><td colspan="4" class="loading text-danger">${escapeHtml(`Error ${r.status} ${r.statusText}: ${text}`)}</td></tr>`;
+      return;
+    }
     const d = await r.json();
     if (d.error) {
       tbody.innerHTML = `<tr><td colspan="4" class="loading text-danger">${escapeHtml(d.error)}</td></tr>`;
@@ -356,6 +373,11 @@ async function deleteArtifact(artifactId, artifactName) {
       },
       body: JSON.stringify({ artifact_id: artifactId }),
     });
+    if (!r.ok) {
+      const text = await r.text();
+      alert(`Error ${r.status} ${r.statusText}: ${text}`);
+      return;
+    }
     const d = await r.json();
     if (d.error) {
       alert(`Error: ${d.error}`);

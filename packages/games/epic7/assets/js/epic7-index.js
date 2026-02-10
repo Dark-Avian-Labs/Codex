@@ -1,12 +1,12 @@
 // Epic Seven index page logic
 // Reads configuration from window.EPIC7_CONFIG set by a small inline bootstrap in the template.
 
-const cfg = window.EPIC7_CONFIG;
-const BASE_PATH = cfg.basePath;
+const cfg = window.EPIC7_CONFIG || {};
+const BASE_PATH = cfg.basePath || '';
 const API_URL = `${BASE_PATH}/api`;
 const ICONS_BASE = `${BASE_PATH}/assets/icons`;
 const SHARED_ICONS = '/shared/icons';
-const CSRF_TOKEN = cfg.csrfToken;
+const CSRF_TOKEN = cfg.csrfToken || '';
 const HERO_CLASSES = cfg.heroClasses;
 const ARTIFACT_CLASSES = cfg.artifactClasses;
 const ELEMENTS = cfg.elements;
@@ -204,6 +204,11 @@ async function switchAccount(accountId) {
       },
       body: JSON.stringify({ account_id: accountId }),
     });
+    if (!r.ok) {
+      const text = await r.text();
+      alert(`Error ${r.status} ${r.statusText}: ${text}`);
+      return;
+    }
     const d = await r.json();
     if (d.error) {
       alert(`Error: ${d.error}`);
@@ -551,6 +556,11 @@ async function handleAddAccount(e) {
       },
       body: JSON.stringify({ account_name: name }),
     });
+    if (!r.ok) {
+      const text = await r.text();
+      alert(`Error ${r.status} ${r.statusText}: ${text}`);
+      return;
+    }
     const d = await r.json();
     if (d.error) {
       alert(`Error: ${d.error}`);
@@ -590,7 +600,7 @@ function renderManageAccountsList() {
   c.innerHTML = accounts
     .map(
       (acc) =>
-        `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.1)"><span>${escapeHtml(acc.account_name)} ${acc.id == currentAccountId ? '<span class="text-accent">(active)</span>' : ''}</span><button class="btn btn-danger btn-sm" data-del-acc="${acc.id}" data-acc-name="${escapeHtml(acc.account_name)}">Delete</button></div>`,
+        `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.1)"><span>${escapeHtml(acc.account_name)} ${acc.id == currentAccountId ? '<span class="text-accent">(active)</span>' : ''}</span><button class="btn btn-danger btn-sm" data-del-acc="${acc.id}" data-acc-name="${acc.account_name}">Delete</button></div>`,
     )
     .join('');
   c.querySelectorAll('[data-del-acc]').forEach((btn) =>
@@ -790,6 +800,11 @@ async function handleAddItem(e) {
         },
         body: JSON.stringify(body),
       });
+      if (!r.ok) {
+        const text = await r.text();
+        alert(`Error ${r.status} ${r.statusText}: ${text}`);
+        return;
+      }
       const d = await r.json();
       if (d.error) {
         alert(`Error: ${d.error}`);
@@ -832,6 +847,11 @@ async function handleAddItem(e) {
       },
       body: JSON.stringify(body),
     });
+    if (!r.ok) {
+      const text = await r.text();
+      alert(`Error ${r.status} ${r.statusText}: ${text}`);
+      return;
+    }
     const d = await r.json();
     if (d.error) {
       alert(`Error: ${d.error}`);
@@ -880,6 +900,11 @@ async function deleteHero(heroId, heroName) {
       },
       body: JSON.stringify({ hero_id: heroId }),
     });
+    if (!r.ok) {
+      const text = await r.text();
+      alert(`Error ${r.status} ${r.statusText}: ${text}`);
+      return;
+    }
     const d = await r.json();
     if (d.error) {
       alert(`Error: ${d.error}`);
@@ -904,6 +929,11 @@ async function deleteArtifact(artifactId, artifactName) {
       },
       body: JSON.stringify({ artifact_id: artifactId }),
     });
+    if (!r.ok) {
+      const text = await r.text();
+      alert(`Error ${r.status} ${r.statusText}: ${text}`);
+      return;
+    }
     const d = await r.json();
     if (d.error) {
       alert(`Error: ${d.error}`);

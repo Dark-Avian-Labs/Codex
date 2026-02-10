@@ -18,7 +18,7 @@ export const addRowSchema = z.object({
 
 export const editRowSchema = z.object({
   row_id: positiveInt,
-  item_name: z.string().trim().nullable().optional().default(null),
+  item_name: z.string().trim().nullable().default(null),
   values: z.record(z.string(), z.string()).optional().default({}),
 });
 
@@ -26,8 +26,6 @@ export const deleteRowSchema = z.object({
   row_id: positiveInt,
 });
 
-export const adminUpdateSchema = z.object({
-  row_id: positiveInt,
-  column_id: positiveInt,
-  value: z.string().trim().default(''),
-});
+// Currently identical to updateSchema; split into its own z.object() if
+// admin-specific fields are ever needed.
+export const adminUpdateSchema = updateSchema;

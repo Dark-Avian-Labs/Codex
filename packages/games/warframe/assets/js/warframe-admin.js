@@ -1,8 +1,8 @@
 // Warframe admin page logic
 // Reads configuration from window.WARFRAME_ADMIN_CONFIG set by a small inline bootstrap in the template.
 
-const cfg = window.WARFRAME_ADMIN_CONFIG;
-const API_URL = cfg.apiUrl;
+const cfg = window.WARFRAME_ADMIN_CONFIG || {};
+const API_URL = cfg.apiUrl || '/api';
 const CSRF_TOKEN =
   document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
   '';
@@ -409,7 +409,11 @@ function showError(message) {
 }
 
 function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str == null ? '' : String(str);
-  return div.innerHTML;
+  const s = str == null ? '' : String(str);
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
