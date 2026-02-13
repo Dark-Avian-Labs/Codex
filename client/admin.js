@@ -1,6 +1,3 @@
-// Root admin page logic
-// Handles game access toggles and user deletion.
-
 (function () {
   const csrfMeta = document.querySelector('meta[name="csrf-token"]');
   if (!csrfMeta) {
@@ -8,7 +5,6 @@
   }
   const csrf = csrfMeta?.getAttribute('content') || '';
 
-  /** Show a brief toast notification for admin feedback. */
   function showAdminToast(message, isError) {
     const toast = document.createElement('div');
     toast.textContent = message;
@@ -73,33 +69,46 @@
       });
     });
   document.querySelectorAll('.btn-delete-user').forEach(function (btn) {
-    btn.addEventListener('click', function () {
+    btn.addEventListener('click', async function () {
       const userId = this.dataset.userId;
       const username = this.dataset.username;
       if (
         !userId ||
-        !confirm('Delete user "' + username + '"? This cannot be undone.')
+        !confirm(`Delete user "${username}"? This cannot be undone.`)
       )
         return;
-      fetch('/admin/delete-user', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf },
-        body: JSON.stringify({ user_id: parseInt(userId, 10) }),
-      })
-        .then(function (r) {
-          if (!r.ok) {
-            return r.text().then(function (text) {
-              alert('Error ' + r.status + ': ' + (text || r.statusText));
-            });
-          }
-          return r.json().then(function (data) {
-            if (data.success) window.location.reload();
-            else alert(data.error || 'Failed to delete user');
-          });
-        })
-        .catch(function () {
-          alert('Request failed');
+      try {
+        const r = await fetch('/admin/delete-user', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': csrf,
+          },
+          body: JSON.stringify({ user_id: parseInt(userId, 10) }),
         });
+        if (!r.ok) {
+          const text = await r.text();
+          showAdminToast(`Error ${r.status}: ${text || r.statusText}`, true);
+          return;
+        }
+        let data;
+        try {
+          data = await r.json();
+        } catch (err) {
+          console.error('Failed to parse JSON response:', err);
+          showAdminToast('Invalid JSON response from server', true);
+          return;
+        }
+        if (data.success) {
+          showAdminToast('User deleted', false);
+          window.location.reload();
+        } else {
+          showAdminToast(data.error || 'Failed to delete user', true);
+        }
+      } catch (err) {
+        console.error('Delete-user request failed:', err);
+        showAdminToast(`Request failed: ${err.message || err}`, true);
+      }
     });
   });
 })();

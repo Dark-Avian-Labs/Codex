@@ -1,6 +1,6 @@
 {
   "name": "corpus",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "Corpus - game collection tracker",
   "private": true,
   "scripts": {
@@ -10,7 +10,7 @@
     "start": "node dist/index.js",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "npm run lint --workspaces --if-present",
+    "lint": "eslint . && npm run lint --workspaces --if-present",
     "format": "prettier --write .",
     "check-format": "prettier --check ."
   },
@@ -20,9 +20,10 @@
     "packages/games/epic7"
   ],
   "dependencies": {
-    "@corpus/core": "2.2.0",
-    "@corpus/game-epic7": "2.2.0",
-    "@corpus/game-warframe": "2.2.0",
+    "@corpus/core": "2.3.0",
+    "@corpus/game-epic7": "2.3.0",
+    "@corpus/game-warframe": "2.3.0",
+    "better-sqlite3": "^12.6.2",
     "cookie-parser": "^1.4.7",
     "csrf-sync": "^4.2.1",
     "express": "^5.2.1",
@@ -48,7 +49,6 @@
     "eslint-plugin-n": "^17.23.2",
     "eslint-plugin-promise": "^7.2.1",
     "prettier": "^3.8.1",
-    "tsx": "^4.21.0",
     "typescript-eslint": "^8.54.0"
   },
   "type": "module",

@@ -1,5 +1,6 @@
 import {
   type GameModule,
+  type GameTheme,
   APP_NAME,
   CENTRAL_DB_PATH,
   COOKIE_DOMAIN,
@@ -18,6 +19,7 @@ import {
   requireAdmin,
   redirectIfAuthenticated,
 } from '@corpus/core';
+import { validateBody } from '@corpus/core/validation';
 import { epic7Game } from '@corpus/game-epic7';
 import { warframeGame } from '@corpus/game-warframe';
 import Database from 'better-sqlite3';
@@ -30,9 +32,6 @@ import fs from 'fs';
 import helmet from 'helmet';
 import { createRequire } from 'module';
 import path from 'path';
-import { fileURLToPath } from 'url';
-
-import { validateBody } from '@corpus/core/validation';
 
 import { escapeHtml } from './escapeHtml.js';
 import {
@@ -40,6 +39,7 @@ import {
   loginLimiter,
   adminLimiter,
 } from './middleware/rateLimit.js';
+import { sanitizeGamePath } from './sanitizeGamePath.js';
 import {
   gameAccessSchema,
   deleteUserSchema,
@@ -50,14 +50,12 @@ import {
 const require = createRequire(import.meta.url);
 const SQLiteStore = require('better-sqlite3-session-store')(session);
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
 /** Descriptor for a game used in UI (id, name, path, optional theme). */
 export type GameDescriptor = {
   id: string;
   name: string;
   path: string;
-  theme?: { primary?: string };
+  theme?: GameTheme;
 };
 
 /** Type for index view: game with server-validated safe path for href. */
@@ -73,20 +71,7 @@ export const GAME_REGISTRY: Record<string, GameDescriptor> = Object.fromEntries(
   ]),
 );
 
-/**
- * Returns a safe URL for use in href. Allows relative paths (/, ./) and http(s) only.
- * Prevents protocol-based XSS (e.g. javascript:, data:). Invalid values return '#'.
- */
-export function sanitizeGamePath(raw: string | null | undefined): string {
-  if (raw == null || typeof raw !== 'string') return '#';
-  const s = raw.trim();
-  if (s === '') return '#';
-  if (s.startsWith('/') && !s.startsWith('//')) return s;
-  if (s.startsWith('./')) return s;
-  const lower = s.toLowerCase();
-  if (lower.startsWith('https://') || lower.startsWith('http://')) return s;
-  return '#';
-}
+export { sanitizeGamePath } from './sanitizeGamePath.js';
 
 function gamesForUser(userId: number): GameDescriptor[] {
   return getGamesForUser(userId)
@@ -289,36 +274,45 @@ app.post('/login', loginLimiter, redirectIfAuthenticated, async (req, res) => {
     });
 
   if (isLockedOut(ip)) {
-    return renderLogin(
+    renderLogin(
       'Too many failed attempts. Try again later.',
       typeof req.body?.next === 'string' ? req.body.next : '',
     );
+    return;
   }
 
   const parsed = loginSchema.safeParse(req.body);
   if (!parsed.success) {
-    return renderLogin('Username and password are required.');
+    renderLogin('Username and password are required.');
+    return;
   }
 
   const { username, password, next: nextUrl } = parsed.data;
   const result = await attemptLogin(username, password, ip);
   if (!result.success || !result.user) {
-    return renderLogin(
+    renderLogin(
       result.success ? 'Invalid login.' : (result.error ?? ''),
       nextUrl,
     );
+    return;
   }
 
   const user = result.user;
   req.session.regenerate((err) => {
-    if (err) return res.redirect('/login');
+    if (err) {
+      res.redirect('/login');
+      return;
+    }
     (
       req.session as { user_id?: number; username?: string; is_admin?: boolean }
     ).user_id = user.id;
     (req.session as { username?: string }).username = user.username;
     (req.session as { is_admin?: boolean }).is_admin = Boolean(user.is_admin);
     req.session.save((saveErr) => {
-      if (saveErr) return res.redirect('/login');
+      if (saveErr) {
+        res.redirect('/login');
+        return;
+      }
       const allowedPaths = new Set([
         '/',
         ...Object.keys(GAME_REGISTRY).map((id) => `/games/${id}`),
@@ -330,9 +324,15 @@ app.post('/login', loginLimiter, redirectIfAuthenticated, async (req, res) => {
         !nextPathOnly.includes('://');
       const safeNext =
         isRelativePath && allowedPaths.has(nextPathOnly) ? nextPathOnly : '';
-      if (safeNext) return res.redirect(safeNext);
+      if (safeNext) {
+        res.redirect(safeNext);
+        return;
+      }
       const games = getGamesForUser(user.id);
-      if (games.length === 1) return res.redirect(`/games/${games[0]}`);
+      if (games.length === 1) {
+        res.redirect(`/games/${games[0]}`);
+        return;
+      }
       res.redirect('/');
     });
   });
@@ -388,7 +388,8 @@ app.post('/admin/game-access', adminLimiter, requireAdmin, (req, res) => {
   const data = validateBody(gameAccessSchema, req.body, res);
   if (!data) return;
   if (!(data.game_id in GAME_REGISTRY)) {
-    return res.status(400).json({ error: 'Invalid game_id' });
+    res.status(400).json({ error: 'Invalid game_id' });
+    return;
   }
   const changed = setUserGameAccess(data.user_id, data.game_id, data.enabled);
   res.json({ success: true, changed });
@@ -397,15 +398,17 @@ app.post('/admin/game-access', adminLimiter, requireAdmin, (req, res) => {
 app.post('/admin/delete-user', adminLimiter, requireAdmin, (req, res) => {
   const currentUserId = (req.session as { user_id?: number }).user_id;
   if (typeof currentUserId !== 'number' || currentUserId <= 0) {
-    return res.status(401).json({ error: 'Not authenticated' });
+    res.status(401).json({ error: 'Not authenticated' });
+    return;
   }
   const data = validateBody(deleteUserSchema, req.body, res);
   if (!data) return;
   const result = deleteUser(currentUserId, data.user_id);
   if (result.success) {
-    return res.json({ success: true });
+    res.json({ success: true });
+    return;
   }
-  return res.status(400).json({ error: result.error });
+  res.status(400).json({ error: result.error });
 });
 
 app.get('/register', adminLimiter, requireAdmin, (req, res) => {
@@ -422,13 +425,14 @@ app.post('/register', adminLimiter, requireAdmin, async (req, res) => {
   if (!parsed.success) {
     const firstError =
       parsed.error.issues[0]?.message || 'All fields are required.';
-    return res.render('register', {
+    res.render('register', {
       appName: APP_NAME,
       error: firstError,
       success: '',
       username: String(req.body?.username ?? ''),
       csrfToken: (res.locals as { csrfToken?: string }).csrfToken ?? '',
     });
+    return;
   }
 
   const { username, password, confirm_password, is_admin } = parsed.data;
@@ -482,7 +486,7 @@ function shutdown(): void {
     } catch (e) {
       console.error(e);
     }
-    process.exit(0);
+    process.exit(0); // eslint-disable-line n/no-process-exit -- graceful shutdown requires explicit exit
   }
   const t = setTimeout(() => exit(), SHUTDOWN_TIMEOUT_MS);
   server.close(() => {

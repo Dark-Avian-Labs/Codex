@@ -21,6 +21,8 @@ function getAssetsPath(): string {
   return path.join(__dirname, '..', 'assets');
 }
 
+const ACCENT_COLOR = '#a855f7';
+
 export const epic7Game: GameModule = {
   id: 'epic7',
   name: 'Epic Seven',
@@ -28,11 +30,7 @@ export const epic7Game: GameModule = {
   getDbPath: () => EPIC7_DB_PATH,
   getDb,
 
-  theme: {
-    primary: '#6366f1',
-    background: '#0f0f23',
-    accent: '#818cf8',
-  },
+  theme: { primary: ACCENT_COLOR },
 
   mount(app: Application, basePath: string, options?: GameMountOptions) {
     const base = basePath.endsWith('/') ? basePath.slice(0, -1) : basePath;
@@ -66,6 +64,7 @@ export const epic7Game: GameModule = {
       viewPrefix: 'epic7',
       appName: options?.appName ?? 'Corpus',
       getCsrfToken: options?.csrfToken,
+      accentColor: ACCENT_COLOR,
     });
     app.use(`${base}/api`, apiRouter);
   },

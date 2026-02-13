@@ -26,10 +26,12 @@ export function registerPageRoutes(
     viewPrefix: string;
     appName: string;
     getCsrfToken?: (req: Request, res: Response) => string;
+    accentColor?: string;
   },
 ): void {
   const appName = options.appName;
   const viewPrefix = options.viewPrefix;
+  const accentColor = options.accentColor;
   const art = (res: Response) => (res.locals as { art?: string }).art ?? '';
   const csrfToken = (req: Request, res: Response) =>
     options.getCsrfToken?.(req, res) ??
@@ -57,6 +59,7 @@ export function registerPageRoutes(
       gaugeFilled: ARTIFACT_GAUGE_FILLED,
       gaugeEmpty: ARTIFACT_GAUGE_EMPTY,
       csrfToken: csrfToken(req, res),
+      accentColor,
     });
   });
 
@@ -76,6 +79,7 @@ export function registerPageRoutes(
         classNames: CLASS_DISPLAY_NAMES,
         elementNames: ELEMENT_DISPLAY_NAMES,
         csrfToken: csrfToken(req, res),
+        accentColor,
       });
     },
   );

@@ -1,5 +1,4 @@
-// Warframe admin page logic
-// Reads configuration from window.WARFRAME_ADMIN_CONFIG set by a small inline bootstrap in the template.
+import { escapeHtml, debounce } from '@lib/utils';
 
 const cfg = window.WARFRAME_ADMIN_CONFIG || {};
 const API_URL = cfg.apiUrl || '/api';
@@ -51,10 +50,11 @@ async function init() {
   const searchInput = document.getElementById('search');
   const searchClear = document.getElementById('search-clear');
   if (searchInput && searchClear) {
+    const debouncedRender = debounce(() => renderTable(), 300);
     searchInput.addEventListener('input', (e) => {
       searchTerm = e.target.value.toLowerCase();
       searchClear.classList.toggle('visible', e.target.value.length > 0);
-      renderTable();
+      debouncedRender();
     });
     searchClear.addEventListener('click', () => {
       searchInput.value = '';
@@ -83,6 +83,12 @@ async function init() {
     deleteModal.addEventListener('click', (e) => {
       if (e.target.id === 'delete-modal') closeDeleteModal();
     });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeModal();
+      closeDeleteModal();
+    }
+  });
 }
 
 async function loadWorksheets() {
@@ -120,10 +126,11 @@ async function loadWorksheets() {
 function renderTabs() {
   const tabsContainer = document.getElementById('tabs');
   if (!tabsContainer) return;
+  tabsContainer.setAttribute('role', 'tablist');
   tabsContainer.innerHTML = worksheets
     .map(
       (ws) =>
-        `<button class="tab" data-id="${ws.id}">${escapeHtml(ws.name)}</button>`,
+        `<button class="tab" role="tab" aria-selected="false" data-id="${ws.id}">${escapeHtml(ws.name)}</button>`,
     )
     .join('');
   tabsContainer.querySelectorAll('.tab').forEach((tab) => {
@@ -136,7 +143,9 @@ function renderTabs() {
 async function selectWorksheet(id) {
   currentWorksheet = id;
   document.querySelectorAll('.tab').forEach((tab) => {
-    tab.classList.toggle('active', parseInt(tab.dataset.id) === id);
+    const isActive = parseInt(tab.dataset.id) === id;
+    tab.classList.toggle('active', isActive);
+    tab.setAttribute('aria-selected', String(isActive));
   });
   await loadData(id);
 }
@@ -256,10 +265,15 @@ async function handleStatusChange(select) {
 }
 
 function openAddModal() {
-  document.getElementById('modal-title').textContent = 'Add Item';
-  document.getElementById('form-row-id').value = '';
-  document.getElementById('form-name').value = '';
+  const modalTitle = document.getElementById('modal-title');
+  const formRowId = document.getElementById('form-row-id');
+  const formName = document.getElementById('form-name');
   const columnsDiv = document.getElementById('form-columns');
+  const modal = document.getElementById('modal');
+  if (!modalTitle || !formRowId || !formName || !columnsDiv || !modal) return;
+  modalTitle.textContent = 'Add Item';
+  formRowId.value = '';
+  formName.value = '';
   if (!currentData || !Array.isArray(currentData.columns)) {
     columnsDiv.innerHTML = '<p class="loading">No columns loaded.</p>';
   } else {
@@ -275,18 +289,22 @@ function openAddModal() {
       })
       .join('');
   }
-  document.getElementById('modal').classList.add('active');
-  const formName = document.getElementById('form-name');
-  if (formName) formName.focus();
+  modal.classList.add('active');
+  formName.focus();
 }
 
 function openEditModal(rowId) {
   const row = currentData.rows.find((r) => r.id === rowId);
   if (!row) return;
-  document.getElementById('modal-title').textContent = 'Edit Item';
-  document.getElementById('form-row-id').value = rowId;
-  document.getElementById('form-name').value = row.name;
+  const modalTitle = document.getElementById('modal-title');
+  const formRowId = document.getElementById('form-row-id');
+  const formName = document.getElementById('form-name');
   const columnsDiv = document.getElementById('form-columns');
+  const modal = document.getElementById('modal');
+  if (!modalTitle || !formRowId || !formName || !columnsDiv || !modal) return;
+  modalTitle.textContent = 'Edit Item';
+  formRowId.value = rowId;
+  formName.value = row.name;
   columnsDiv.innerHTML = currentData.columns
     .map((col) => {
       const value = row.values[col.id] || '';
@@ -304,12 +322,13 @@ function openEditModal(rowId) {
         </div>`;
     })
     .join('');
-  document.getElementById('modal').classList.add('active');
-  document.getElementById('form-name').focus();
+  modal.classList.add('active');
+  formName.focus();
 }
 
 function closeModal() {
-  document.getElementById('modal').classList.remove('active');
+  const modal = document.getElementById('modal');
+  if (modal) modal.classList.remove('active');
 }
 
 async function handleFormSubmit(e) {
@@ -362,13 +381,18 @@ async function handleFormSubmit(e) {
 }
 
 function openDeleteModal(rowId, name) {
-  document.getElementById('delete-row-id').value = rowId;
-  document.getElementById('delete-item-name').textContent = name;
-  document.getElementById('delete-modal').classList.add('active');
+  const deleteRowId = document.getElementById('delete-row-id');
+  const deleteItemName = document.getElementById('delete-item-name');
+  const deleteModal = document.getElementById('delete-modal');
+  if (!deleteRowId || !deleteItemName || !deleteModal) return;
+  deleteRowId.value = rowId;
+  deleteItemName.textContent = name;
+  deleteModal.classList.add('active');
 }
 
 function closeDeleteModal() {
-  document.getElementById('delete-modal').classList.remove('active');
+  const modal = document.getElementById('delete-modal');
+  if (modal) modal.classList.remove('active');
 }
 
 async function handleDelete() {
@@ -406,14 +430,4 @@ function showError(message) {
   const tbody = getTableBody();
   if (!tbody) return;
   tbody.innerHTML = `<tr><td class="error">${escapeHtml(message)}</td></tr>`;
-}
-
-function escapeHtml(str) {
-  const s = str == null ? '' : String(str);
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
 }

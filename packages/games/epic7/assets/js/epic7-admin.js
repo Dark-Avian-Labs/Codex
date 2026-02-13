@@ -1,5 +1,4 @@
-// Epic Seven admin page logic
-// Reads configuration from window.EPIC7_ADMIN_CONFIG set by a small inline bootstrap in the template.
+import { escapeHtml, escapeAttr, debounce } from '@lib/utils';
 
 const cfg = window.EPIC7_ADMIN_CONFIG || {};
 const BASE_PATH = cfg.basePath || '';
@@ -49,9 +48,26 @@ function openArtifactModal() {
 }
 
 async function init() {
-  document.querySelectorAll('.tab').forEach((tab) => {
+  const tabs = Array.from(document.querySelectorAll('.tab'));
+  tabs.forEach((tab) => {
     tab.addEventListener('click', () => selectTab(tab.dataset.tab));
   });
+  const tablist = document.querySelector('[role="tablist"]');
+  if (tablist) {
+    tablist.addEventListener('keydown', (e) => {
+      if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return;
+      e.preventDefault();
+      const current = tabs.indexOf(document.activeElement);
+      if (current === -1) return;
+      let next;
+      if (e.key === 'ArrowRight') next = (current + 1) % tabs.length;
+      else if (e.key === 'ArrowLeft')
+        next = (current - 1 + tabs.length) % tabs.length;
+      else if (e.key === 'Home') next = 0;
+      else if (e.key === 'End') next = tabs.length - 1;
+      selectTab(tabs[next].dataset.tab, true);
+    });
+  }
   const addBtn = document.getElementById('add-btn');
   if (addBtn)
     addBtn.addEventListener('click', () => {
@@ -86,13 +102,14 @@ async function init() {
   const searchInput = document.getElementById('search');
   const searchClear = document.getElementById('search-clear');
   if (searchInput) {
-    searchInput.addEventListener('input', (e) => {
-      searchTerm = (e.target.value || '').toLowerCase();
-      if (searchClear) {
-        searchClear.classList.toggle('visible', e.target.value.length > 0);
-      }
+    const debouncedRender = debounce(() => {
       renderHeroes();
       renderArtifacts();
+    }, 300);
+    searchInput.addEventListener('input', (e) => {
+      searchTerm = e.target.value.toLowerCase();
+      searchClear?.classList.toggle('visible', e.target.value.length > 0);
+      debouncedRender();
     });
   }
   if (searchClear) {
@@ -106,6 +123,13 @@ async function init() {
       renderArtifacts();
     });
   }
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      document
+        .querySelectorAll('.modal-overlay.active')
+        .forEach((m) => m.classList.remove('active'));
+    }
+  });
   try {
     await Promise.all([loadHeroes(), loadArtifacts()]);
   } catch (e) {
@@ -113,10 +137,14 @@ async function init() {
   }
 }
 
-function selectTab(tab) {
+function selectTab(tab, focus = false) {
   currentTab = tab;
   document.querySelectorAll('.tab').forEach((t) => {
-    t.classList.toggle('active', t.dataset.tab === tab);
+    const isActive = t.dataset.tab === tab;
+    t.classList.toggle('active', isActive);
+    t.setAttribute('aria-selected', String(isActive));
+    t.setAttribute('tabindex', isActive ? '0' : '-1');
+    if (isActive && focus) t.focus();
   });
   document.querySelectorAll('.tab-content').forEach((c) => {
     c.classList.toggle('active', c.id === `${tab}-content`);
@@ -386,20 +414,4 @@ async function deleteArtifact(artifactId, artifactName) {
   } catch (err) {
     alert(`Failed to delete: ${err.message}`);
   }
-}
-
-function escapeHtml(str) {
-  const d = document.createElement('div');
-  d.textContent = str ?? '';
-  return d.innerHTML;
-}
-function escapeAttr(str) {
-  const s = String(str ?? '');
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
-    .replace(/`/g, '&#96;');
 }

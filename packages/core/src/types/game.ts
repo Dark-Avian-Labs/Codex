@@ -1,9 +1,8 @@
 import type { Application, Request, Response } from 'express';
 
 export type GameTheme = {
-  primary?: string;
-  background?: string;
-  accent?: string;
+  /** Single accent colour – every derived shade is calculated from this. */
+  primary: string;
 };
 
 export interface GameMountOptions {

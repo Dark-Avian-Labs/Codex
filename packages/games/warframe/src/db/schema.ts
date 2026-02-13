@@ -1,4 +1,5 @@
-import Database from 'better-sqlite3';
+import { createDbSingleton } from '@corpus/core';
+import type Database from 'better-sqlite3';
 
 import { WARFRAME_DB_PATH } from '../config.js';
 
@@ -61,25 +62,5 @@ export function createSchema(
   `);
 }
 
-let dbInstance: Database.Database | null = null;
-
-export function getDb(): Database.Database {
-  if (dbInstance !== null) return dbInstance;
-  const instance = new Database(WARFRAME_DB_PATH);
-  const originalClose = instance.close.bind(instance);
-  instance.close = ((...args: Parameters<typeof originalClose>) => {
-    const result = originalClose(...args);
-    dbInstance = null;
-    return result;
-  }) as typeof instance.close;
-  instance.pragma('foreign_keys = ON');
-  dbInstance = instance;
-  return instance;
-}
-
-export function closeDb(): void {
-  if (dbInstance !== null) {
-    dbInstance.close();
-    dbInstance = null;
-  }
-}
+const { getDb, closeDb } = createDbSingleton(WARFRAME_DB_PATH);
+export { getDb, closeDb };
