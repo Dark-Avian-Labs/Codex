@@ -1,5 +1,4 @@
-// Warframe index page logic
-// Reads configuration from window.WARFRAME_CONFIG set by a small inline bootstrap in the template.
+import { escapeHtml, debounce } from '@lib/utils';
 
 const API_URL = window.WARFRAME_CONFIG.apiUrl;
 const CSRF_TOKEN = window.WARFRAME_CONFIG.csrfToken;
@@ -27,10 +26,11 @@ async function init() {
   const searchInput = document.getElementById('search');
   const searchClear = document.getElementById('search-clear');
   if (searchInput && searchClear) {
+    const debouncedRender = debounce(() => renderTable(), 300);
     searchInput.addEventListener('input', (e) => {
       searchTerm = e.target.value.toLowerCase();
       searchClear.classList.toggle('visible', e.target.value.length > 0);
-      renderTable();
+      debouncedRender();
     });
     searchClear.addEventListener('click', () => {
       searchInput.value = '';
@@ -68,6 +68,12 @@ async function init() {
     ?.addEventListener('click', handleDeleteConfirm);
   document.getElementById('delete-modal')?.addEventListener('click', (e) => {
     if (e.target.id === 'delete-modal') closeDeleteModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeItemModal();
+      closeDeleteModal();
+    }
   });
   document.getElementById('table-body').addEventListener('click', (e) => {
     const statusBtn = e.target.closest('.status-btn:not([disabled])');
@@ -270,10 +276,11 @@ async function loadWorksheets() {
 
 function renderTabs() {
   const tabsContainer = document.getElementById('tabs');
+  tabsContainer.setAttribute('role', 'tablist');
   tabsContainer.innerHTML = worksheets
     .map(
       (ws) =>
-        `<button class="tab" data-id="${ws.id}">${escapeHtml(ws.name)}</button>`,
+        `<button class="tab" role="tab" aria-selected="false" data-id="${ws.id}">${escapeHtml(ws.name)}</button>`,
     )
     .join('');
   tabsContainer.querySelectorAll('.tab').forEach((tab) => {
@@ -286,7 +293,9 @@ function renderTabs() {
 async function selectWorksheet(id) {
   currentWorksheet = id;
   document.querySelectorAll('.tab').forEach((tab) => {
-    tab.classList.toggle('active', parseInt(tab.dataset.id) === id);
+    const isActive = parseInt(tab.dataset.id) === id;
+    tab.classList.toggle('active', isActive);
+    tab.setAttribute('aria-selected', String(isActive));
   });
   await loadData(id);
 }
@@ -509,10 +518,4 @@ async function toggleStatus(btn) {
 function showError(message) {
   const tbody = document.getElementById('table-body');
   tbody.innerHTML = `<tr><td class="error">${escapeHtml(message)}</td></tr>`;
-}
-
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
 }

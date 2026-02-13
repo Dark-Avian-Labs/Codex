@@ -1,23 +1,16 @@
-import { requireAuthApi, requireGameAccess } from '@corpus/core';
+import {
+  requireAuthApi,
+  requireGameAccess,
+  getActionFromRequest,
+} from '@corpus/core';
 import type { Request, Response, NextFunction } from 'express';
 
 import * as api from './api.js';
 
 const GAME_ID = 'warframe';
 
-function getAction(req: Request): string {
-  const rawQuery = req.query?.action;
-  const q = Array.isArray(rawQuery)
-    ? (rawQuery[0] ?? '')
-    : typeof rawQuery === 'string'
-      ? rawQuery
-      : '';
-  const b = (req.body as { action?: string })?.action ?? '';
-  return String(q || b || '').trim();
-}
-
 async function processApiAction(req: Request, res: Response): Promise<void> {
-  const action = getAction(req);
+  const action = getActionFromRequest(req);
   switch (action) {
     case 'worksheets':
       await api.handleWorksheets(req, res);

@@ -14,6 +14,8 @@ function getAssetsPath(): string {
   return path.join(__dirname, '..', 'assets');
 }
 
+const ACCENT_COLOR = '#ea580c';
+
 export const warframeGame: GameModule = {
   id: 'warframe',
   name: 'Warframe',
@@ -21,11 +23,7 @@ export const warframeGame: GameModule = {
   getDbPath: () => WARFRAME_DB_PATH,
   getDb,
 
-  theme: {
-    primary: '#ea580c',
-    background: '#0b0f14',
-    accent: '#ea580c',
-  },
+  theme: { primary: ACCENT_COLOR },
 
   mount(app: Application, basePath: string, options?: GameMountOptions) {
     const base = basePath.endsWith('/') ? basePath.slice(0, -1) : basePath;
@@ -44,6 +42,7 @@ export const warframeGame: GameModule = {
       viewPrefix: 'warframe',
       appName: options?.appName ?? 'Corpus',
       getCsrfToken: options?.csrfToken,
+      accentColor: ACCENT_COLOR,
     });
     app.use(`${base}/api`, apiRouter);
   },

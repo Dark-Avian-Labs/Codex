@@ -10,6 +10,7 @@ type PageRouteOptions = {
   viewPrefix: string;
   appName: string;
   getCsrfToken?: (req: Request, res: Response) => string;
+  accentColor?: string;
   logger?: {
     warn?: (message: string) => void;
   };
@@ -22,6 +23,7 @@ export function registerPageRoutes(
 ): void {
   const appName = options.appName;
   const viewPrefix = options.viewPrefix;
+  const accentColor = options.accentColor;
   const art = (res: Response) => (res.locals as { art?: string }).art ?? '';
   const csrfToken = (req: Request, res: Response): string => {
     const fromGetter = options.getCsrfToken?.(req, res);
@@ -45,6 +47,7 @@ export function registerPageRoutes(
       art: art(res),
       isAdmin: Boolean((req.session as { is_admin?: boolean })?.is_admin),
       csrfToken: csrfToken(req, res),
+      accentColor,
     });
   });
 
@@ -59,6 +62,7 @@ export function registerPageRoutes(
         basePath,
         art: art(res),
         csrfToken: csrfToken(req, res),
+        accentColor,
       });
     },
   );

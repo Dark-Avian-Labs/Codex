@@ -1,6 +1,5 @@
 @import 'tailwindcss';
 
-/* Scan all EJS / HTML / JS / TS across the monorepo */
 @source "../../../src/**/*.{ejs,html,js,ts,jsx,tsx}";
 @source "../../../client/**/*.{js,ts,jsx,tsx}";
 @source "../../games/warframe/src/**/*.{ejs,html,js,ts,jsx,tsx}";
@@ -17,7 +16,7 @@
   --color-foreground: #e5e7eb;
   --color-muted: #9ca3af;
 
-  /* Accent (overridden per game via [data-game]) */
+  /* Accent – default app colour; per-game overrides are injected inline */
   --color-accent: #0ea5e9;
   --color-accent-weak: color-mix(in srgb, var(--color-accent) 10%, transparent);
   --color-accent-weak-2: color-mix(
@@ -54,17 +53,6 @@
 
   /* Shadows */
   --shadow-panel: 0 2px 2px rgba(0, 0, 0, 0.15);
-}
-
-/* ---------- Per-game accent overrides ---------- */
-/* --color-accent-weak and --color-accent-weak-2 are derived from --color-accent
-   (via color-mix in @theme) and resolve automatically — no need to redeclare. */
-[data-game='warframe'] {
-  --color-accent: #ea580c;
-}
-
-[data-game='epic7'] {
-  --color-accent: #a855f7;
 }
 
 /* ---------- Layout custom properties ---------- */
@@ -1181,14 +1169,14 @@
     text-decoration: none;
     border: 1px solid color-mix(in srgb, var(--color-accent) 50%, transparent);
     border-radius: 12px;
-    background: var(--color-accent-weak);
+    background: color-mix(in srgb, var(--color-accent) 10%, transparent);
     transition:
       background 0.2s,
       border-color 0.2s;
   }
 
   .game-card:hover {
-    background: var(--color-accent-weak-2);
+    background: color-mix(in srgb, var(--color-accent) 20%, transparent);
     border-color: var(--color-accent);
   }
 

@@ -1,5 +1,4 @@
-// Epic Seven index page logic
-// Reads configuration from window.EPIC7_CONFIG set by a small inline bootstrap in the template.
+import { escapeHtml, debounce } from '@lib/utils';
 
 const cfg = window.EPIC7_CONFIG || {};
 const BASE_PATH = cfg.basePath || '';
@@ -46,10 +45,11 @@ function setupEventListeners() {
   });
   const searchInput = document.getElementById('search');
   const searchClear = document.getElementById('search-clear');
+  const debouncedRender = debounce(() => renderTable(), 300);
   searchInput.addEventListener('input', (e) => {
     searchTerm = e.target.value.toLowerCase();
     searchClear.classList.toggle('visible', e.target.value.length > 0);
-    renderTable();
+    debouncedRender();
   });
   searchClear.addEventListener('click', () => {
     searchInput.value = '';
@@ -118,6 +118,13 @@ function setupEventListeners() {
   document
     .getElementById('add-item-form')
     .addEventListener('submit', handleAddItem);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      document
+        .querySelectorAll('.modal-overlay.active')
+        .forEach((m) => m.classList.remove('active'));
+    }
+  });
 }
 
 function toggleEditMode() {
@@ -174,7 +181,7 @@ function renderAccountDropdown() {
     showNoAccountMessage();
     return;
   }
-  const cur = accounts.find((a) => a.id == currentAccountId);
+  const cur = accounts.find((a) => a.id === currentAccountId);
   nameEl.textContent = cur
     ? cur.account_name
     : accounts[0]
@@ -183,7 +190,7 @@ function renderAccountDropdown() {
   list.innerHTML = accounts
     .map(
       (acc) =>
-        `<div class="account-dropdown-item ${acc.id == currentAccountId ? 'active' : ''}" role="menuitem" data-account-id="${acc.id}">${escapeHtml(acc.account_name)}</div>`,
+        `<div class="account-dropdown-item ${acc.id === currentAccountId ? 'active' : ''}" role="menuitem" data-account-id="${acc.id}">${escapeHtml(acc.account_name)}</div>`,
     )
     .join('');
   list.querySelectorAll('.account-dropdown-item').forEach((item) => {
@@ -233,7 +240,9 @@ function selectTab(tab) {
   currentTab = tab;
   activeFilters = { class: null, element: null };
   document.querySelectorAll('.tab').forEach((t) => {
-    t.classList.toggle('active', t.dataset.tab === tab);
+    const isActive = t.dataset.tab === tab;
+    t.classList.toggle('active', isActive);
+    t.setAttribute('aria-selected', isActive ? 'true' : 'false');
   });
   loadData();
 }
@@ -600,7 +609,7 @@ function renderManageAccountsList() {
   c.innerHTML = accounts
     .map(
       (acc) =>
-        `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.1)"><span>${escapeHtml(acc.account_name)} ${acc.id == currentAccountId ? '<span class="text-accent">(active)</span>' : ''}</span><button class="btn btn-danger btn-sm" data-del-acc="${acc.id}" data-acc-name="${acc.account_name}">Delete</button></div>`,
+        `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.1)"><span>${escapeHtml(acc.account_name)} ${acc.id === currentAccountId ? '<span class="text-accent">(active)</span>' : ''}</span><button class="btn btn-danger btn-sm" data-del-acc="${acc.id}" data-acc-name="${acc.account_name}">Delete</button></div>`,
     )
     .join('');
   c.querySelectorAll('[data-del-acc]').forEach((btn) =>
@@ -679,7 +688,7 @@ function openAddItemModal(initialValues) {
         .join('')}`;
       quickAddSelect.onchange = function () {
         if (!this.value) return;
-        const h = currentData.base_heroes.find((x) => x.id == this.value);
+        const h = currentData.base_heroes.find((x) => x.id === this.value);
         if (h) {
           document.getElementById('item-name').value = h.name;
           classSelect.value = h.class;
@@ -712,7 +721,7 @@ function openAddItemModal(initialValues) {
         .join('')}`;
       quickAddSelect.onchange = function () {
         if (!this.value) return;
-        const a = currentData.base_artifacts.find((x) => x.id == this.value);
+        const a = currentData.base_artifacts.find((x) => x.id === this.value);
         if (a) {
           document.getElementById('item-name').value = a.name;
           classSelect.value = a.class;
@@ -943,10 +952,4 @@ async function deleteArtifact(artifactId, artifactName) {
   } catch (err) {
     alert(`Failed to delete: ${err.message}`);
   }
-}
-
-function escapeHtml(str) {
-  const d = document.createElement('div');
-  d.textContent = str;
-  return d.innerHTML;
 }

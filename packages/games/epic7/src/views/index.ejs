@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-game="epic7">
+<html lang="en" data-game="epic7"<% if (typeof accentColor !== 'undefined' && accentColor) { %> style="--color-accent:<%= accentColor %>"<% } %>>
 <head>
     <meta charset="utf-8">
     <title><%= typeof pageTitle !== 'undefined' ? pageTitle : appName %></title>
@@ -28,9 +28,9 @@
     <% if (typeof art !== 'undefined' && art) { %><div class="bg-art"><%= art %></div><% } %>
     <div class="w-full max-w-7xl relative z-10">
         <%- include('../partials/game-header', { pageTitle: typeof pageTitle !== 'undefined' ? pageTitle : appName, basePath: typeof basePath !== 'undefined' ? basePath : '', isAdmin: typeof isAdmin !== 'undefined' ? isAdmin : false, csrfToken: typeof csrfToken !== 'undefined' ? csrfToken : '', showAccountSelector: true, searchPlaceholder: 'Search...' }) %>
-        <div class="tabs" id="tabs">
-            <button class="tab active" data-tab="heroes">Heroes</button>
-            <button class="tab" data-tab="artifacts">Artifacts</button>
+        <div class="tabs" id="tabs" role="tablist">
+            <button class="tab active" data-tab="heroes" role="tab" aria-selected="true" aria-controls="heroes-panel">Heroes</button>
+            <button class="tab" data-tab="artifacts" role="tab" aria-selected="false" aria-controls="artifacts-panel">Artifacts</button>
         </div>
         <div class="filter-bar" id="filter-bar"></div>
         <div class="stats-bar" id="stats"></div>
@@ -43,9 +43,9 @@
             </div>
         </div>
     </div>
-    <div class="modal-overlay" id="add-account-modal">
+    <div class="modal-overlay" id="add-account-modal" role="dialog" aria-modal="true" aria-labelledby="e7-add-account-title">
         <div class="modal modal-sm">
-            <h2>Add Game Account</h2>
+            <h2 id="e7-add-account-title">Add Game Account</h2>
             <form id="add-account-form">
                 <div class="form-group">
                     <label for="new-account-name">Account Name</label>
@@ -58,9 +58,9 @@
             </form>
         </div>
     </div>
-    <div class="modal-overlay" id="manage-accounts-modal">
+    <div class="modal-overlay" id="manage-accounts-modal" role="dialog" aria-modal="true" aria-labelledby="e7-manage-accounts-title">
         <div class="modal modal-sm">
-            <h2>Manage Accounts</h2>
+            <h2 id="e7-manage-accounts-title">Manage Accounts</h2>
             <div id="manage-accounts-list"></div>
             <div class="modal-actions">
                 <button type="button" class="btn btn-primary" id="add-new-account-btn">+ Add Account</button>
@@ -68,7 +68,7 @@
             </div>
         </div>
     </div>
-    <div class="modal-overlay" id="add-item-modal">
+    <div class="modal-overlay" id="add-item-modal" role="dialog" aria-modal="true" aria-labelledby="add-item-title">
         <div class="modal modal-sm">
             <h2 id="add-item-title">Add Hero</h2>
             <form id="add-item-form">

@@ -1,8 +1,6 @@
 import type { Response } from 'express';
 import { z } from 'zod';
 
-// Re-export z so consumers can import { z } from '@corpus/core/validation'
-// instead of depending on zod directly.
 export { z };
 
 /**

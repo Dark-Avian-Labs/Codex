@@ -1,4 +1,5 @@
-import Database from 'better-sqlite3';
+import { createDbSingleton } from '@corpus/core';
+import type Database from 'better-sqlite3';
 
 import { EPIC7_DB_PATH } from '../config.js';
 
@@ -137,29 +138,8 @@ function ensureUniqueBaseNameIndexes(db: Database.Database): UniqueIndexStatus {
   return status;
 }
 
-let dbInstance: Database.Database | null = null;
-
-export function getDb(): Database.Database {
-  if (dbInstance) return dbInstance;
-  const instance = new Database(EPIC7_DB_PATH);
-  const originalClose = instance.close.bind(instance);
-  instance.close = (() => {
-    return function closeWithReset(...args: Parameters<typeof originalClose>) {
-      const result = originalClose(...args);
-      dbInstance = null;
-      return result;
-    };
-  })() as typeof instance.close;
-  instance.pragma('foreign_keys = ON');
-  instance.pragma('journal_mode = WAL');
-  ensureUniqueBaseNameIndexes(instance);
-  dbInstance = instance;
-  return instance;
-}
-
-export function closeDb(): void {
-  if (dbInstance) {
-    dbInstance.close();
-    dbInstance = null;
-  }
-}
+const { getDb, closeDb } = createDbSingleton(EPIC7_DB_PATH, {
+  pragmas: ['journal_mode = WAL'],
+  onOpen: (db) => ensureUniqueBaseNameIndexes(db),
+});
+export { getDb, closeDb };

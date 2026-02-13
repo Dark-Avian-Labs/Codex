@@ -26,6 +26,4 @@ export const deleteRowSchema = z.object({
   row_id: positiveInt,
 });
 
-// Currently identical to updateSchema; split into its own z.object() if
-// admin-specific fields are ever needed.
 export const adminUpdateSchema = updateSchema;

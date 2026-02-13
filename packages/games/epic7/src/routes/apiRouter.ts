@@ -1,21 +1,13 @@
-import { requireAuthApi, requireGameAccess } from '@corpus/core';
+import {
+  requireAuthApi,
+  requireGameAccess,
+  getActionFromRequest,
+} from '@corpus/core';
 import type { Request, Response, NextFunction } from 'express';
 
 import * as api from './api.js';
 
 const GAME_ID = 'epic7';
-
-function getAction(req: Request): string {
-  const qRaw = req.query?.action;
-  const q =
-    typeof qRaw === 'string'
-      ? qRaw
-      : Array.isArray(qRaw)
-        ? String(qRaw[0] ?? '')
-        : '';
-  const b = (req.body as { action?: string })?.action ?? '';
-  return (q || b || '').trim();
-}
 
 const ALLOWED_ACTIONS = [
   'worksheets',
@@ -94,7 +86,7 @@ export function apiRouter(
   requireGameAccess(GAME_ID)(req, res, () => {
     requireAuthApi(req, res, async () => {
       try {
-        const action = getAction(req);
+        const action = getActionFromRequest(req);
         if (!action || !isValidAction(action)) {
           res
             .status(400)

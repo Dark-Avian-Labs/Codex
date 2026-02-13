@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-game="epic7">
+<html lang="en" data-game="epic7"<% if (typeof accentColor !== 'undefined' && accentColor) { %> style="--color-accent:<%= accentColor %>"<% } %>>
 <head>
     <meta charset="utf-8">
     <title><%= appName %> - Epic Seven Admin</title>
@@ -18,24 +18,24 @@
     <% if (art) { %><div class="bg-art"><%- art %></div><% } %>
     <div class="w-full max-w-[1400px] relative z-10">
         <%- include('../partials/game-admin-header', { pageTitle: typeof pageTitle !== 'undefined' ? pageTitle : appName, basePath: typeof basePath !== 'undefined' ? basePath : '', csrfToken: typeof csrfToken !== 'undefined' ? csrfToken : '', backToLabel: 'Back to View', showExtraActions: true }) %>
-        <div class="tabs">
-            <button class="tab active" data-tab="heroes">Base Heroes</button>
-            <button class="tab" data-tab="artifacts">Base Artifacts</button>
+        <div class="tabs" role="tablist">
+            <button class="tab active" data-tab="heroes" role="tab" aria-selected="true" aria-controls="heroes-content">Base Heroes</button>
+            <button class="tab" data-tab="artifacts" role="tab" aria-selected="false" aria-controls="artifacts-content">Base Artifacts</button>
         </div>
-        <div class="tab-content active" id="heroes-content">
+        <div class="tab-content active" id="heroes-content" role="tabpanel">
             <%- include('../partials/game-table-open', { columns: [{ name: 'Name' }, { name: 'Class', className: 'icon-cell' }, { name: 'Element', className: 'icon-cell' }, { name: 'Stars' }, { name: 'Actions' }], tbodyId: 'heroes-table', headerOffset: '350px' }) %>
             <tr><td colspan="5" class="loading">Loading...</td></tr>
             <%- include('../partials/game-table-close') %>
         </div>
-        <div class="tab-content" id="artifacts-content">
+        <div class="tab-content" id="artifacts-content" role="tabpanel">
             <%- include('../partials/game-table-open', { columns: [{ name: 'Name' }, { name: 'Class', className: 'icon-cell' }, { name: 'Stars' }, { name: 'Actions' }], tbodyId: 'artifacts-table', headerOffset: '350px' }) %>
             <tr><td colspan="4" class="loading">Loading...</td></tr>
             <%- include('../partials/game-table-close') %>
         </div>
     </div>
-    <div class="modal-overlay" id="hero-modal">
+    <div class="modal-overlay" id="hero-modal" role="dialog" aria-modal="true" aria-labelledby="e7-add-hero-title">
         <div class="modal">
-            <h2>Add Base Hero</h2>
+            <h2 id="e7-add-hero-title">Add Base Hero</h2>
             <form id="hero-form">
                 <div class="form-group"><label for="hero-name">Name</label><input type="text" id="hero-name" required></div>
                 <div class="form-group"><label for="hero-class">Class</label><select id="hero-class"><% heroClasses.forEach(cls => { %><option value="<%= cls %>"><%= classNames[cls] || cls %></option><% }); %></select></div>
@@ -45,9 +45,9 @@
             </form>
         </div>
     </div>
-    <div class="modal-overlay" id="artifact-modal">
+    <div class="modal-overlay" id="artifact-modal" role="dialog" aria-modal="true" aria-labelledby="e7-add-artifact-title">
         <div class="modal">
-            <h2>Add Base Artifact</h2>
+            <h2 id="e7-add-artifact-title">Add Base Artifact</h2>
             <form id="artifact-form">
                 <div class="form-group"><label for="artifact-name">Name</label><input type="text" id="artifact-name" required></div>
                 <div class="form-group"><label for="artifact-class">Class</label><select id="artifact-class"><% artifactClasses.forEach(cls => { %><option value="<%= cls %>"><%= classNames[cls] || cls %></option><% }); %></select></div>

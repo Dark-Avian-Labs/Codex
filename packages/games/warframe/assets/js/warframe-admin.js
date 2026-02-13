@@ -1,5 +1,4 @@
-// Warframe admin page logic
-// Reads configuration from window.WARFRAME_ADMIN_CONFIG set by a small inline bootstrap in the template.
+import { escapeHtml, debounce } from '@lib/utils';
 
 const cfg = window.WARFRAME_ADMIN_CONFIG || {};
 const API_URL = cfg.apiUrl || '/api';
@@ -51,10 +50,11 @@ async function init() {
   const searchInput = document.getElementById('search');
   const searchClear = document.getElementById('search-clear');
   if (searchInput && searchClear) {
+    const debouncedRender = debounce(() => renderTable(), 300);
     searchInput.addEventListener('input', (e) => {
       searchTerm = e.target.value.toLowerCase();
       searchClear.classList.toggle('visible', e.target.value.length > 0);
-      renderTable();
+      debouncedRender();
     });
     searchClear.addEventListener('click', () => {
       searchInput.value = '';
@@ -83,6 +83,12 @@ async function init() {
     deleteModal.addEventListener('click', (e) => {
       if (e.target.id === 'delete-modal') closeDeleteModal();
     });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeModal();
+      closeDeleteModal();
+    }
+  });
 }
 
 async function loadWorksheets() {
@@ -120,10 +126,11 @@ async function loadWorksheets() {
 function renderTabs() {
   const tabsContainer = document.getElementById('tabs');
   if (!tabsContainer) return;
+  tabsContainer.setAttribute('role', 'tablist');
   tabsContainer.innerHTML = worksheets
     .map(
       (ws) =>
-        `<button class="tab" data-id="${ws.id}">${escapeHtml(ws.name)}</button>`,
+        `<button class="tab" role="tab" aria-selected="false" data-id="${ws.id}">${escapeHtml(ws.name)}</button>`,
     )
     .join('');
   tabsContainer.querySelectorAll('.tab').forEach((tab) => {
@@ -136,7 +143,9 @@ function renderTabs() {
 async function selectWorksheet(id) {
   currentWorksheet = id;
   document.querySelectorAll('.tab').forEach((tab) => {
-    tab.classList.toggle('active', parseInt(tab.dataset.id) === id);
+    const isActive = parseInt(tab.dataset.id) === id;
+    tab.classList.toggle('active', isActive);
+    tab.setAttribute('aria-selected', String(isActive));
   });
   await loadData(id);
 }
@@ -406,14 +415,4 @@ function showError(message) {
   const tbody = getTableBody();
   if (!tbody) return;
   tbody.innerHTML = `<tr><td class="error">${escapeHtml(message)}</td></tr>`;
-}
-
-function escapeHtml(str) {
-  const s = str == null ? '' : String(str);
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
 }
