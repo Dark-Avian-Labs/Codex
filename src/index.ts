@@ -3,6 +3,7 @@ import {
   type GameTheme,
   APP_NAME,
   AUTH_SERVICE_URL,
+  BASE_HOST,
   CENTRAL_DB_PATH,
   COOKIE_DOMAIN,
   GAME_HOSTS,
@@ -19,6 +20,7 @@ import cookieParser from 'cookie-parser';
 import { randomBytes } from 'crypto';
 import { csrfSync } from 'csrf-sync';
 import express from 'express';
+import { rateLimit } from 'express-rate-limit';
 import session from 'express-session';
 import fs from 'fs';
 import helmet from 'helmet';
@@ -83,6 +85,11 @@ if (!SESSION_SECRET || SESSION_SECRET.length < 32) {
 const TRUST_PROXY =
   process.env.TRUST_PROXY === '1' || process.env.TRUST_PROXY === 'true';
 const SECURE_COOKIES = true;
+if (process.env.NODE_ENV === 'production' && !TRUST_PROXY) {
+  throw new Error(
+    'TRUST_PROXY must be enabled in production for secure cross-site cookies.',
+  );
+}
 
 const app = express();
 if (TRUST_PROXY) app.set('trust proxy', 1);
@@ -93,6 +100,20 @@ app.set('views', viewsPath);
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+const baselineLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 1200,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) =>
+    req.path === '/healthz' ||
+    req.path === '/readyz' ||
+    req.path.startsWith('/static/') ||
+    req.path.startsWith('/shared/') ||
+    req.path === '/favicon.ico',
+});
+app.use(baselineLimiter);
 
 const centralDir = path.dirname(CENTRAL_DB_PATH);
 if (!fs.existsSync(centralDir)) fs.mkdirSync(centralDir, { recursive: true });
@@ -125,9 +146,6 @@ app.use(
 const { csrfSynchronisedProtection, generateToken } = csrfSync({
   getTokenFromRequest: (req: express.Request) => {
     if (req.body?._csrf) return req.body._csrf as string;
-    const q = req.query?._csrf;
-    if (Array.isArray(q)) return (q[0] as string) ?? null;
-    if (typeof q === 'string') return q;
     const header = req.headers['x-csrf-token'] || req.headers['x-xsrf-token'];
     return (Array.isArray(header) ? header[0] : header) ?? null;
   },
@@ -243,20 +261,32 @@ app.get('/favicon.ico', generalLimiter, (req, res) => {
   });
 });
 
-function getExternalBase(req: express.Request): string {
-  const forwardedProto = req.headers['x-forwarded-proto'];
-  const forwardedHost = req.headers['x-forwarded-host'];
-  const proto = Array.isArray(forwardedProto)
-    ? forwardedProto[0] || req.protocol
-    : typeof forwardedProto === 'string' && forwardedProto.length > 0
-      ? (forwardedProto.split(',')[0]?.trim() ?? req.protocol)
-      : req.protocol;
-  const host = Array.isArray(forwardedHost)
-    ? forwardedHost[0] || req.get('host') || ''
-    : typeof forwardedHost === 'string' && forwardedHost.length > 0
-      ? (forwardedHost.split(',')[0]?.trim() ?? req.get('host') ?? '')
-      : req.get('host') || '';
-  return `${proto}://${host}`;
+app.get('/healthz', (_req, res) => {
+  res.json({ status: 'ok', app: 'Corpus' });
+});
+
+app.get('/readyz', (_req, res) => {
+  try {
+    sessionDb.prepare('SELECT 1').get();
+    res.json({ status: 'ready', app: 'Corpus' });
+  } catch {
+    res.status(503).json({ status: 'not_ready', app: 'Corpus' });
+  }
+});
+
+function publicBaseUrl(): string {
+  const configured = process.env.APP_PUBLIC_BASE_URL?.trim();
+  if (configured) return configured.replace(/\/+$/, '');
+
+  if (BASE_HOST === 'localhost' || BASE_HOST.startsWith('localhost:')) {
+    return `http://${BASE_HOST}`;
+  }
+
+  if (/^https?:\/\//i.test(BASE_HOST)) {
+    return BASE_HOST.replace(/\/+$/, '');
+  }
+
+  return `https://${BASE_HOST}`;
 }
 
 function redirectToAuthLogin(
@@ -268,15 +298,18 @@ function redirectToAuthLogin(
     typeof req.query?.next === 'string' && req.query.next
       ? req.query.next
       : req.originalUrl || fallbackPath;
-  const next = `${getExternalBase(req)}${requested}`;
+  const next = new URL(requested, publicBaseUrl()).toString();
   const loginUrl = new URL(`${AUTH_SERVICE_URL}/login`);
   loginUrl.searchParams.set('next', next);
   res.redirect(loginUrl.toString());
 }
 
-function redirectToAuthLogout(req: express.Request, res: express.Response): void {
+function redirectToAuthLogout(res: express.Response): void {
   const logoutUrl = new URL(`${AUTH_SERVICE_URL}/logout`);
-  logoutUrl.searchParams.set('next', `${getExternalBase(req)}/login`);
+  logoutUrl.searchParams.set(
+    'next',
+    new URL('/login', publicBaseUrl()).toString(),
+  );
   res.redirect(logoutUrl.toString());
 }
 
@@ -288,12 +321,12 @@ app.post('/login', loginLimiter, redirectIfAuthenticated, (req, res) => {
   redirectToAuthLogin(req, res);
 });
 
-app.get('/logout', generalLimiter, (req, res) => {
-  redirectToAuthLogout(req, res);
+app.get('/logout', generalLimiter, (_req, res) => {
+  redirectToAuthLogout(res);
 });
 
-app.post('/logout', generalLimiter, (req, res) => {
-  redirectToAuthLogout(req, res);
+app.post('/logout', generalLimiter, (_req, res) => {
+  redirectToAuthLogout(res);
 });
 
 app.get(

@@ -66,14 +66,14 @@ jobs:
           --exclude='/logs/' \
           --exclude='/data/' \
           --exclude='/import/' \
-          -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no" \
+          -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes -o UserKnownHostsFile=~/.ssh/known_hosts" \
           /tmp/deploy/ \
           ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ secrets.SERVER_PATH }}/
 
       - name: Restart PM2
         run: |
           ssh -i ~/.ssh/deploy_key \
-            -o StrictHostKeyChecking=no \
+            -o StrictHostKeyChecking=yes -o UserKnownHostsFile=~/.ssh/known_hosts \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
             "cd ${{ secrets.SERVER_PATH }} && source ~/.nvm/nvm.sh && pm2 restart 'Corpus' --update-env"
 
