@@ -172,6 +172,12 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use((_req, res, next) => {
+  (res.locals as { userManagementUrl?: string }).userManagementUrl =
+    `${AUTH_SERVICE_URL}/admin`;
+  next();
+});
+
 const sharedAssetsDir = fs.existsSync(
   path.join(process.cwd(), 'dist', 'shared'),
 )

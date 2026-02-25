@@ -18,7 +18,9 @@
         <% } %>
         <% } %>
         <a href="<%= base || '/' %>" class="btn btn-secondary"><%= typeof backToLabel !== 'undefined' ? backToLabel : 'Back to View' %></a>
-        <a href="<%= base + '/admin' %>" class="btn btn-secondary">Corpus Admin</a>
+        <% if (!(typeof corpusAdmin !== 'undefined' && corpusAdmin)) { %>
+        <a href="<%= (typeof userManagementUrl !== 'undefined' && userManagementUrl) ? userManagementUrl : '/admin' %>" class="btn btn-secondary">User Management</a>
+        <% } %>
         <% if (typeof csrfToken !== 'undefined' && csrfToken) { %>
         <form method="POST" action="<%= base %>/logout" class="inline-form">
             <input type="hidden" name="_csrf" value="<%= csrfToken %>">
