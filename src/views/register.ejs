@@ -7,14 +7,21 @@
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="stylesheet" href="/static/output.css">
 </head>
-<body class="flex items-center justify-center p-4 md:p-6">
+<body class="p-4 md:p-6">
     <% if (typeof art !== 'undefined' && art) { %><div class="bg-art"><%- art %></div><% } %>
-    <div class="relative z-10 w-full max-w-sm">
-        <div class="auth-card">
-            <div class="flex justify-between items-center mb-6">
-                <h1 class="m-0 text-xl">Create User</h1>
-                <span class="admin-badge">ADMIN</span>
-            </div>
+    <div class="relative z-10 w-full max-w-5xl mx-auto">
+        <header class="mb-8">
+            <h1 class="brand-lockup">
+                <img src="/shared/feathers.png" alt="Dark Avian Labs feather mark" class="brand-lockup__icon">
+                <span class="brand-lockup__title"><%= appName %></span>
+            </h1>
+        </header>
+        <div class="w-full max-w-sm mx-auto">
+            <div class="auth-card">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="m-0 text-xl">Create User</h2>
+                    <span class="admin-badge">ADMIN</span>
+                </div>
             <% if (error) { %><div class="error-msg"><%= error %></div><% } %>
             <% if (success) { %><div class="success-msg"><%= success %></div><% } %>
             <form method="POST" action="/register">
@@ -40,6 +47,7 @@
             <div class="flex justify-center gap-4 mt-5 pt-5 border-t border-glass-border">
                 <a href="/admin" class="text-sm text-muted no-underline hover:text-foreground transition-colors">Admin Panel</a>
                 <a href="/" class="text-sm text-muted no-underline hover:text-foreground transition-colors">Back to Tracker</a>
+            </div>
             </div>
         </div>
     </div>

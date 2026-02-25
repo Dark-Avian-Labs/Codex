@@ -7,27 +7,34 @@
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="stylesheet" href="/static/output.css">
 </head>
-<body class="flex flex-col items-center justify-center p-4 md:p-6">
+<body class="p-4 md:p-6">
     <% if (typeof art !== 'undefined' && art) { %><div class="bg-art"><%= art %></div><% } %>
-    <h1 class="relative z-10 m-0 mb-8 text-3xl"><%= appName %></h1>
-    <% if (games && games.length > 0) { %>
-    <div class="relative z-10 flex gap-6 flex-wrap justify-center">
-        <% games.forEach(function(g) { %>
-        <a href="<%= g.safePath %>" class="game-card" style="--color-accent:<%= (g.theme && g.theme.primary) ? g.theme.primary : '#0ea5e9' %>">
-            <h2><%= g.name %></h2>
-            <p>Open tracker</p>
-        </a>
-        <% }); %>
-    </div>
-    <% } else { %>
-    <p class="relative z-10 text-muted my-8">No games assigned. Contact an administrator.</p>
-    <% } %>
-    <div class="relative z-10 mt-8">
-        <% if (!csrfToken || (typeof csrfToken === 'string' && csrfToken.trim() === '')) { %><% throw new Error('csrfToken is required for the logout form; do not render index without a valid CSRF token.') %><% } %>
-        <form method="POST" action="/logout">
-            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-            <button type="submit" class="btn btn-secondary">Logout</button>
-        </form>
+    <div class="relative z-10 w-full max-w-6xl mx-auto">
+        <header class="mb-8">
+            <h1 class="brand-lockup">
+                <img src="/shared/feathers.png" alt="Dark Avian Labs feather mark" class="brand-lockup__icon">
+                <span class="brand-lockup__title"><%= appName %></span>
+            </h1>
+        </header>
+        <% if (games && games.length > 0) { %>
+        <div class="flex gap-6 flex-wrap justify-center">
+            <% games.forEach(function(g) { %>
+            <a href="<%= g.safePath %>" class="game-card" style="--color-accent:<%= (g.theme && g.theme.primary) ? g.theme.primary : '#0ea5e9' %>">
+                <h2><%= g.name %></h2>
+                <p>Open tracker</p>
+            </a>
+            <% }); %>
+        </div>
+        <% } else { %>
+        <p class="text-muted my-8">No games assigned. Contact an administrator.</p>
+        <% } %>
+        <div class="mt-8 flex justify-center">
+            <% if (!csrfToken || (typeof csrfToken === 'string' && csrfToken.trim() === '')) { %><% throw new Error('csrfToken is required for the logout form; do not render index without a valid CSRF token.') %><% } %>
+            <form method="POST" action="/logout">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button type="submit" class="btn btn-secondary">Logout</button>
+            </form>
+        </div>
     </div>
 </body>
 </html>

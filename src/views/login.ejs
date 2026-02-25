@@ -7,12 +7,18 @@
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="stylesheet" href="/static/output.css">
 </head>
-<body class="flex items-center justify-center p-4 md:p-6">
+<body class="p-4 md:p-6">
     <% if (art) { %><div class="bg-art"><%- art %></div><% } %>
-    <div class="relative z-10 w-full max-w-sm">
-        <div class="auth-card">
-            <h1 class="m-0 text-2xl text-center mb-2"><%= appName %></h1>
-            <p class="subtitle">Please log in to continue</p>
+    <div class="relative z-10 w-full max-w-5xl mx-auto">
+        <header class="mb-8">
+            <h1 class="brand-lockup">
+                <img src="/shared/feathers.png" alt="Dark Avian Labs feather mark" class="brand-lockup__icon">
+                <span class="brand-lockup__title"><%= appName %></span>
+            </h1>
+        </header>
+        <div class="w-full max-w-sm mx-auto">
+            <div class="auth-card">
+                <p class="subtitle">Please log in to continue</p>
             <% if (error) { %><div class="error-msg"><%= error %></div><% } %>
             <% if (typeof dbExists !== 'undefined' && !dbExists) { %>
             <div class="info-box">
@@ -57,6 +63,7 @@
                 }, 1000);
             </script>
             <% } %>
+            </div>
         </div>
     </div>
 </body>

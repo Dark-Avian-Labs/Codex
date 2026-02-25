@@ -13,11 +13,11 @@
    ========================================================================== */
 @theme {
   /* Foreground / text */
-  --color-foreground: #e5e7eb;
-  --color-muted: #9ca3af;
+  --color-foreground: #f8fafc;
+  --color-muted: #c7c7cf;
 
   /* Accent – default app colour; per-game overrides are injected inline */
-  --color-accent: #0ea5e9;
+  --color-accent: #6363ff;
 
   /* Semantic */
   --color-success: #22c55e;
@@ -30,23 +30,24 @@
   --color-unavailable-rgb: 107, 114, 128;
 
   /* Glass-morphism palette */
-  --color-glass: rgba(255, 255, 255, 0.02);
+  --color-glass: rgba(255, 255, 255, 0.024);
   --color-glass-border: rgba(255, 255, 255, 0.08);
   --color-glass-border-hover: rgba(255, 255, 255, 0.2);
   --color-glass-hover: rgba(255, 255, 255, 0.05);
-  --color-glass-active: rgba(255, 255, 255, 0.1);
-  --color-glass-divider: rgba(255, 255, 255, 0.04);
+  --color-glass-active: rgba(255, 255, 255, 0.12);
+  --color-glass-divider: rgba(255, 255, 255, 0.06);
 
   /* Surfaces */
-  --color-surface-modal: #1f2937;
-  --color-surface-thead: rgba(30, 35, 45, 0.92);
+  --color-surface-modal: rgba(255, 255, 255, 0.024);
+  --color-surface-thead: rgba(22, 20, 33, 0.88);
 
   /* Gradient endpoints (body background) */
-  --color-bg-start: #272b36;
-  --color-bg-end: #050507;
+  --color-bg-start: #000000;
+  --color-bg-end: #0f172a;
+  --color-bg-glow: rgba(100, 116, 139, 0.2);
 
   /* Shadows */
-  --shadow-panel: 0 2px 2px rgba(0, 0, 0, 0.15);
+  --shadow-panel: 0 8px 32px rgba(0, 0, 0, 0.25);
 }
 
 /* ---------- Layout custom properties ---------- */
@@ -108,11 +109,14 @@
       sans-serif;
     margin: 0;
     color: var(--color-foreground);
-    background: linear-gradient(
-      to bottom,
-      var(--color-bg-start) 0%,
-      var(--color-bg-end) 100%
-    );
+    background:
+      radial-gradient(circle at 10% 10%, var(--color-bg-glow), transparent 40%),
+      radial-gradient(circle at 85% 15%, var(--color-bg-glow), transparent 45%),
+      linear-gradient(
+        to bottom,
+        var(--color-bg-start) 0%,
+        var(--color-bg-end) 100%
+      );
     background-size: 100% 100%;
     background-repeat: no-repeat;
     background-attachment: fixed;
@@ -164,6 +168,7 @@
     font-family: inherit;
     background: transparent;
     color: var(--color-foreground);
+    backdrop-filter: blur(12px);
   }
 
   .btn:focus-visible {
@@ -224,6 +229,29 @@
   .btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+
+  .brand-lockup {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .brand-lockup__icon {
+    width: clamp(22px, 1.9vw, 30px);
+    height: clamp(22px, 1.9vw, 30px);
+    object-fit: contain;
+    flex: 0 0 auto;
+  }
+
+  .brand-lockup__title {
+    margin: 0;
+    min-width: 0;
+    font-size: clamp(1.2rem, 1.7vw, 1.5rem);
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: 0.01em;
   }
 
   /* -----------------------------------------------------------------------
@@ -302,12 +330,36 @@
      Glass panels & table container
      ----------------------------------------------------------------------- */
   .table-container {
+    position: relative;
     background: var(--color-glass);
     border: 1px solid var(--color-glass-border);
     border-radius: 1rem;
     overflow: hidden;
     box-shadow: var(--shadow-panel);
     backdrop-filter: blur(12px);
+  }
+
+  .table-container::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background:
+      linear-gradient(
+          90deg,
+          transparent,
+          color-mix(in srgb, var(--color-foreground) 16%, transparent),
+          transparent
+        )
+        top center/80% 1px no-repeat,
+      linear-gradient(
+          transparent 0%,
+          color-mix(in srgb, var(--color-foreground) 16%, transparent) 14%,
+          color-mix(in srgb, var(--color-foreground) 8%, transparent) 60%,
+          transparent 100%
+        )
+        left center/1px 86% no-repeat;
   }
 
   .table-scroll {
