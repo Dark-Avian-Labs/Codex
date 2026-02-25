@@ -34,6 +34,7 @@ export {
   requireGameAccess,
   requireAuthApi,
   redirectIfAuthenticated,
+  getAppPublicBaseUrl,
 } from './middleware/auth.js';
 export type { GameModule, GameMountOptions, GameTheme } from './types/game.js';
 export { createDbSingleton } from './db/singleton.js';

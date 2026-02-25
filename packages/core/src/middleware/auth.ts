@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
 
 import { type AuthSession } from '../auth.js';
-import { AUTH_SERVICE_URL } from '../config.js';
+import { AUTH_SERVICE_URL, BASE_HOST } from '../config.js';
 
 function getSession(req: Request): AuthSession {
   return req.session as AuthSession;
@@ -11,30 +11,31 @@ function wantsJson(req: Request): boolean {
   return req.accepts('json') !== false;
 }
 
-function getProto(req: Request): string {
-  const forwardedProto = req.headers['x-forwarded-proto'];
-  if (Array.isArray(forwardedProto)) return forwardedProto[0] || req.protocol;
-  if (typeof forwardedProto === 'string' && forwardedProto.length > 0) {
-    return forwardedProto.split(',')[0]?.trim() || req.protocol;
-  }
-  return req.protocol;
-}
+const AUTH_FETCH_TIMEOUT_MS = Number.parseInt(
+  process.env.AUTH_FETCH_TIMEOUT_MS ?? '5000',
+  10,
+);
+const SESSION_TOUCH_INTERVAL_MS = 5 * 60 * 1000;
+const AUTH_STATE_CACHE_KEY = Symbol('authStateCache');
 
-function getHost(req: Request): string {
-  const forwardedHost = req.headers['x-forwarded-host'];
-  if (Array.isArray(forwardedHost))
-    return forwardedHost[0] || req.get('host') || '';
-  if (typeof forwardedHost === 'string' && forwardedHost.length > 0) {
-    return forwardedHost.split(',')[0]?.trim() || req.get('host') || '';
+export function getAppPublicBaseUrl(): string {
+  const configured = process.env.APP_PUBLIC_BASE_URL?.trim();
+  if (configured) return configured.replace(/\/+$/, '');
+
+  if (BASE_HOST === 'localhost' || BASE_HOST.startsWith('localhost:')) {
+    return `http://${BASE_HOST}`;
   }
-  return req.get('host') || '';
+
+  if (/^https?:\/\//i.test(BASE_HOST)) {
+    return BASE_HOST.replace(/\/+$/, '');
+  }
+
+  return `https://${BASE_HOST}`;
 }
 
 function getLoginRedirectUrl(req: Request, gameId?: string): string {
-  const proto = getProto(req);
-  const host = getHost(req);
   const nextPath = gameId ? `/games/${gameId}` : req.originalUrl || '/';
-  const next = `${proto}://${host}${nextPath}`;
+  const next = new URL(nextPath, getAppPublicBaseUrl()).toString();
   const authUrl = new URL(`${AUTH_SERVICE_URL}/login`);
   authUrl.searchParams.set('next', next);
   return authUrl.toString();
@@ -47,52 +48,81 @@ type RemoteAuthState = {
   permissions: string[];
 };
 
+type AuthStateCache = Partial<Record<string, Promise<RemoteAuthState>>>;
+
+function cacheKeyForGame(gameId?: string): string {
+  return gameId ?? '__global__';
+}
+
+function getRequestAuthCache(req: Request): AuthStateCache {
+  const reqWithCache = req as Request & {
+    [AUTH_STATE_CACHE_KEY]?: AuthStateCache;
+  };
+  if (!reqWithCache[AUTH_STATE_CACHE_KEY]) {
+    reqWithCache[AUTH_STATE_CACHE_KEY] = {};
+  }
+  return reqWithCache[AUTH_STATE_CACHE_KEY];
+}
+
 async function fetchRemoteAuthState(
   req: Request,
   gameId?: string,
 ): Promise<RemoteAuthState> {
-  const meUrl = new URL(`${AUTH_SERVICE_URL}/api/auth/me`);
-  if (gameId) meUrl.searchParams.set('app', gameId);
-  try {
-    const upstream = await fetch(meUrl, {
-      method: 'GET',
-      headers: {
-        cookie: req.headers.cookie ?? '',
-        accept: 'application/json',
-      },
-    });
-    if (!upstream.ok) {
+  const cache = getRequestAuthCache(req);
+  const cacheKey = cacheKeyForGame(gameId);
+  if (cache[cacheKey]) return await cache[cacheKey];
+
+  cache[cacheKey] = (async () => {
+    const meUrl = new URL(`${AUTH_SERVICE_URL}/api/auth/me`);
+    if (gameId) meUrl.searchParams.set('app', gameId);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), AUTH_FETCH_TIMEOUT_MS);
+    try {
+      const upstream = await fetch(meUrl, {
+        method: 'GET',
+        headers: {
+          cookie: req.headers.cookie ?? '',
+          accept: 'application/json',
+        },
+        signal: controller.signal,
+      });
+      if (!upstream.ok) {
+        return {
+          authenticated: false,
+          has_game_access: false,
+          user: null,
+          permissions: [],
+        };
+      }
+      const body = (await upstream.json()) as Partial<RemoteAuthState>;
+      const user = body.user;
+      return {
+        authenticated: body.authenticated === true,
+        has_game_access: body.has_game_access === true,
+        user:
+          user &&
+          typeof user.id === 'number' &&
+          typeof user.username === 'string' &&
+          typeof user.is_admin === 'boolean'
+            ? user
+            : null,
+        permissions: Array.isArray(body.permissions)
+          ? body.permissions.filter((p): p is string => typeof p === 'string')
+          : [],
+      };
+    } catch {
       return {
         authenticated: false,
         has_game_access: false,
         user: null,
         permissions: [],
       };
+    } finally {
+      clearTimeout(timeout);
     }
-    const body = (await upstream.json()) as Partial<RemoteAuthState>;
-    const user = body.user;
-    return {
-      authenticated: body.authenticated === true,
-      has_game_access: body.has_game_access === true,
-      user:
-        user &&
-        typeof user.id === 'number' &&
-        typeof user.username === 'string' &&
-        typeof user.is_admin === 'boolean'
-          ? user
-          : null,
-      permissions: Array.isArray(body.permissions)
-        ? body.permissions.filter((p): p is string => typeof p === 'string')
-        : [],
-    };
-  } catch {
-    return {
-      authenticated: false,
-      has_game_access: false,
-      user: null,
-      permissions: [],
-    };
-  }
+  })();
+
+  return await cache[cacheKey];
 }
 
 async function syncSessionFromAuth(
@@ -114,7 +144,12 @@ async function syncSessionFromAuth(
   session.user_id = state.user.id;
   session.username = state.user.username;
   session.is_admin = state.user.is_admin;
-  session.login_time = Date.now();
+  if (
+    typeof session.login_time !== 'number' ||
+    Date.now() - session.login_time > SESSION_TOUCH_INTERVAL_MS
+  ) {
+    session.login_time = Date.now();
+  }
   return state;
 }
 
@@ -164,7 +199,11 @@ export function requireGameAccess(gameId: string) {
   ): Promise<void> => {
     const state = await syncSessionFromAuth(req, gameId);
     if (!state.authenticated || !state.user) {
-      res.redirect(getLoginRedirectUrl(req, gameId));
+      if (wantsJson(req)) {
+        res.status(401).json({ error: 'Unauthorized' });
+      } else {
+        res.redirect(getLoginRedirectUrl(req, gameId));
+      }
       return;
     }
     if (!state.has_game_access) {
