@@ -306,7 +306,7 @@ function renderFilters() {
     bar.innerHTML =
       `<div class="filter-group"><span class="filter-label">Class:</span>${HERO_CLASSES.map(
         (cls) =>
-          `<div class="filter-icon ${activeFilters.class === cls ? 'active' : ''}" data-filter="class" data-value="${cls}" title="${CLASS_NAMES[cls] || cls}"><img src="${ICONS_BASE}/${cls}.png" alt="${CLASS_NAMES[cls] || cls}"></div>`,
+          `<div class="filter-icon ${activeFilters.class === cls ? 'active' : ''}" data-filter="class" data-value="${cls}" title="${CLASS_NAMES[cls] || cls}"><img class="invert-on-light" src="${ICONS_BASE}/${cls}.png" alt="${CLASS_NAMES[cls] || cls}"></div>`,
       ).join('')}</div>` +
       `<div class="filter-group"><span class="filter-label">Element:</span>${ELEMENTS.map(
         (elem) =>
@@ -315,7 +315,7 @@ function renderFilters() {
   } else {
     bar.innerHTML = `<div class="filter-group"><span class="filter-label">Class:</span>${ARTIFACT_CLASSES.map(
       (cls) =>
-        `<div class="filter-icon ${activeFilters.class === cls ? 'active' : ''}" data-filter="class" data-value="${cls}" title="${CLASS_NAMES[cls] || cls}"><img src="${ICONS_BASE}/${cls}.png" alt="${CLASS_NAMES[cls] || cls}"></div>`,
+        `<div class="filter-icon ${activeFilters.class === cls ? 'active' : ''}" data-filter="class" data-value="${cls}" title="${CLASS_NAMES[cls] || cls}"><img class="invert-on-light" src="${ICONS_BASE}/${cls}.png" alt="${CLASS_NAMES[cls] || cls}"></div>`,
     ).join('')}</div>`;
   }
   bar.querySelectorAll('.filter-icon').forEach((icon) => {
@@ -382,7 +382,7 @@ function renderTable() {
       .map((hero) => {
         const r = hero.rating;
         const rc = RATING_COLORS[r] || '#6b7280';
-        return `<tr data-id="${hero.id}"><td class="item-name">${escapeHtml(hero.name)}</td><td class="icon-cell"><img src="${ICONS_BASE}/${hero.class}.png" alt="${CLASS_NAMES[hero.class]}" title="${CLASS_NAMES[hero.class]}"></td><td class="icon-cell"><img src="${ICONS_BASE}/${hero.element}.png" alt="${ELEMENT_NAMES[hero.element]}" title="${ELEMENT_NAMES[hero.element]}"></td><td class="stars-cell">${renderStars(hero.star_rating)}</td><td class="rating-cell"><button class="rating-btn" data-hero-id="${hero.id}" data-rating="${r}" style="background:${rc}20;color:${rc};border-color:${rc}50">${r}</button></td><td class="row-actions"><button class="btn-icon btn-edit" data-edit-hero="${hero.id}" title="Edit"><img src="${SHARED_ICONS}/edit.png" alt="Edit"></button><button class="btn-icon btn-delete" data-del-hero="${hero.id}" data-name="${escapeHtml(hero.name)}" title="Delete"><img src="${SHARED_ICONS}/delete.png" alt="Delete"></button></td></tr>`;
+        return `<tr data-id="${hero.id}"><td class="item-name">${escapeHtml(hero.name)}</td><td class="icon-cell"><img class="invert-on-light" src="${ICONS_BASE}/${hero.class}.png" alt="${CLASS_NAMES[hero.class]}" title="${CLASS_NAMES[hero.class]}"></td><td class="icon-cell"><img src="${ICONS_BASE}/${hero.element}.png" alt="${ELEMENT_NAMES[hero.element]}" title="${ELEMENT_NAMES[hero.element]}"></td><td class="stars-cell">${renderStars(hero.star_rating)}</td><td class="rating-cell"><button class="rating-btn" data-hero-id="${hero.id}" data-rating="${r}" style="background:${rc}20;color:${rc};border-color:${rc}50">${r}</button></td><td class="row-actions"><button class="btn-icon btn-edit" data-edit-hero="${hero.id}" title="Edit"><img src="${SHARED_ICONS}/edit.png" alt="Edit"></button><button class="btn-icon btn-delete" data-del-hero="${hero.id}" data-name="${escapeHtml(hero.name)}" title="Delete"><img src="${SHARED_ICONS}/delete.png" alt="Delete"></button></td></tr>`;
       })
       .join('');
     tbody
@@ -419,7 +419,7 @@ function renderTable() {
       .map((artifact) => {
         const gl = parseInt(artifact.gauge_level);
         const gc = GAUGE_COLORS[gl] || GAUGE_COLORS['0'] || '#6b7280';
-        return `<tr data-id="${artifact.id}"><td class="item-name">${escapeHtml(artifact.name)}</td><td class="icon-cell"><img src="${ICONS_BASE}/${artifact.class}.png" alt="${CLASS_NAMES[artifact.class]}" title="${CLASS_NAMES[artifact.class]}"></td><td class="stars-cell">${renderStars(artifact.star_rating)}</td><td class="level-cell"><button class="gauge-btn" data-artifact-id="${artifact.id}" data-gauge="${gl}" style="color:${gc}">${renderGauge(gl)}</button></td><td class="row-actions"><button class="btn-icon btn-edit" data-edit-artifact="${artifact.id}" title="Edit"><img src="${SHARED_ICONS}/edit.png" alt="Edit"></button><button class="btn-icon btn-delete" data-del-artifact="${artifact.id}" data-name="${escapeHtml(artifact.name)}" title="Delete"><img src="${SHARED_ICONS}/delete.png" alt="Delete"></button></td></tr>`;
+        return `<tr data-id="${artifact.id}"><td class="item-name">${escapeHtml(artifact.name)}</td><td class="icon-cell"><img class="invert-on-light" src="${ICONS_BASE}/${artifact.class}.png" alt="${CLASS_NAMES[artifact.class]}" title="${CLASS_NAMES[artifact.class]}"></td><td class="stars-cell">${renderStars(artifact.star_rating)}</td><td class="level-cell"><button class="gauge-btn" data-artifact-id="${artifact.id}" data-gauge="${gl}" style="color:${gc}">${renderGauge(gl)}</button></td><td class="row-actions"><button class="btn-icon btn-edit" data-edit-artifact="${artifact.id}" title="Edit"><img src="${SHARED_ICONS}/edit.png" alt="Edit"></button><button class="btn-icon btn-delete" data-del-artifact="${artifact.id}" data-name="${escapeHtml(artifact.name)}" title="Delete"><img src="${SHARED_ICONS}/delete.png" alt="Delete"></button></td></tr>`;
       })
       .join('');
     tbody

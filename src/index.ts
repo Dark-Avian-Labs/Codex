@@ -274,6 +274,12 @@ function redirectToAuthLogin(
   res.redirect(loginUrl.toString());
 }
 
+function redirectToAuthLogout(req: express.Request, res: express.Response): void {
+  const logoutUrl = new URL(`${AUTH_SERVICE_URL}/logout`);
+  logoutUrl.searchParams.set('next', `${getExternalBase(req)}/login`);
+  res.redirect(logoutUrl.toString());
+}
+
 app.get('/login', generalLimiter, redirectIfAuthenticated, (req, res) => {
   redirectToAuthLogin(req, res);
 });
@@ -282,10 +288,12 @@ app.post('/login', loginLimiter, redirectIfAuthenticated, (req, res) => {
   redirectToAuthLogin(req, res);
 });
 
-app.post('/logout', generalLimiter, requireAuth, (req, res) => {
-  const logoutUrl = new URL(`${AUTH_SERVICE_URL}/logout`);
-  logoutUrl.searchParams.set('next', `${getExternalBase(req)}/login`);
-  res.redirect(logoutUrl.toString());
+app.get('/logout', generalLimiter, (req, res) => {
+  redirectToAuthLogout(req, res);
+});
+
+app.post('/logout', generalLimiter, (req, res) => {
+  redirectToAuthLogout(req, res);
 });
 
 app.get(
