@@ -48,9 +48,9 @@ export const COOKIE_DOMAIN = process.env.COOKIE_DOMAIN;
 /** Base host for login/game picker (e.g. corpus.domain.tld) */
 export const BASE_HOST = process.env.BASE_HOST ?? 'localhost';
 
-/** Central auth service host (e.g. https://auth.shark5060.net). */
+/** Central auth service host (e.g. https://auth.example.com). */
 export const AUTH_SERVICE_URL = (
-  process.env.AUTH_SERVICE_URL ?? 'https://auth.shark5060.net'
+  process.env.AUTH_SERVICE_URL ?? 'http://localhost:3010'
 ).replace(/\/+$/, '');
 
 /** Game subdomains map host -> gameId (e.g. warframe.domain.tld -> warframe) */
