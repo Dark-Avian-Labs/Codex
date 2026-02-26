@@ -1,7 +1,8 @@
 const THEME_KEY = 'dal.theme.mode';
 const LEGACY_PARAMETRIC_KEY = 'parametric.theme.mode';
 const THEME_COOKIE = 'dal.theme.mode';
-const THEME_COOKIE_DOMAIN = '.shark5060.net';
+const THEME_COOKIE_DOMAIN =
+  import.meta.env.VITE_SHARED_THEME_COOKIE_DOMAIN || '';
 const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
 
 function readCookie(name) {
@@ -37,7 +38,9 @@ function writeThemeCookie(mode) {
   const secure = window.location.protocol === 'https:' ? '; Secure' : '';
   const base = `${THEME_COOKIE}=${encodeURIComponent(mode)}; Max-Age=${ONE_YEAR_SECONDS}; Path=/; SameSite=Lax${secure}`;
   document.cookie = base;
-  document.cookie = `${base}; Domain=${THEME_COOKIE_DOMAIN}`;
+  if (THEME_COOKIE_DOMAIN) {
+    document.cookie = `${base}; Domain=${THEME_COOKIE_DOMAIN}`;
+  }
 }
 
 function syncThemeButtons(mode) {
