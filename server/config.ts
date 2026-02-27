@@ -13,8 +13,8 @@ export const DATA_DIR = path.join(PROJECT_ROOT, 'data');
 export const CENTRAL_DB_PATH =
   process.env.CENTRAL_DB_PATH || path.join(DATA_DIR, 'central.db');
 
-const _port = parseInt(process.env.PORT || '3010', 10);
-export const PORT = Number.isFinite(_port) && _port > 0 ? _port : 3010;
+const _port = parseInt(process.env.PORT || '3001', 10);
+export const PORT = Number.isFinite(_port) && _port > 0 ? _port : 3001;
 export const HOST = process.env.HOST || '0.0.0.0';
 export const APP_NAME = process.env.APP_NAME?.trim() || 'Corpus';
 export const APP_ID = process.env.APP_ID?.trim() || 'corpus';
