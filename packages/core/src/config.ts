@@ -37,23 +37,39 @@ export const AUTH_ATTEMPT_WINDOW_MINUTES =
     : 15;
 export const AUTH_ATTEMPT_WINDOW_SECONDS = AUTH_ATTEMPT_WINDOW_MINUTES * 60;
 
-/** Central DB: users, user_game_access, sessions */
 export const CENTRAL_DB_PATH = path.resolve(
   process.env.CENTRAL_DB_PATH ?? './data/central.db',
 );
 
-/** Cookie domain for session sharing across subdomains (e.g. .domain.tld). Omit on localhost. */
-export const COOKIE_DOMAIN = process.env.COOKIE_DOMAIN;
+const _COOKIE_DOMAIN = process.env.COOKIE_DOMAIN;
+if (!_COOKIE_DOMAIN) {
+  throw new Error('COOKIE_DOMAIN must be set.');
+}
+export const COOKIE_DOMAIN: string = _COOKIE_DOMAIN;
 
-/** Base host for login/game picker (e.g. corpus.domain.tld) */
-export const BASE_HOST = process.env.BASE_HOST ?? 'localhost';
+const _BASE_HOST = process.env.BASE_HOST;
+if (!_BASE_HOST) {
+  throw new Error('BASE_HOST must be set.');
+}
+export const BASE_HOST: string = _BASE_HOST;
 
-/** Central auth service host (e.g. https://auth.example.com). */
-export const AUTH_SERVICE_URL = (
-  process.env.AUTH_SERVICE_URL ?? 'http://localhost:3010'
-).replace(/\/+$/, '');
+export const AUTH_SERVICE_URL: string = (() => {
+  const value = (process.env.AUTH_SERVICE_URL ?? '').replace(/\/+$/, '');
 
-/** Game subdomains map host -> gameId (e.g. warframe.domain.tld -> warframe) */
+  try {
+    const parsed = new URL(value);
+    if (parsed.protocol !== 'https:' || !parsed.hostname) {
+      throw new Error();
+    }
+  } catch {
+    throw new Error(
+      'AUTH_SERVICE_URL must be a valid absolute https URL with a non-empty hostname.',
+    );
+  }
+
+  return value;
+})();
+
 export const GAME_HOSTS: Record<string, string> = (() => {
   const raw = process.env.GAME_HOSTS;
   if (!raw) return {};

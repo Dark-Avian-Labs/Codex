@@ -5,8 +5,6 @@ import { fileURLToPath } from 'url';
 
 import { WARFRAME_DB_PATH } from './config.js';
 import { getDb } from './db/schema.js';
-import { apiRouter } from './routes/apiRouter.js';
-import { registerPageRoutes } from './routes/pages.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -25,7 +23,7 @@ export const warframeGame: GameModule = {
 
   theme: { primary: ACCENT_COLOR },
 
-  mount(app: Application, basePath: string, options?: GameMountOptions) {
+  mount(app: Application, basePath: string, _options?: GameMountOptions) {
     const base = basePath.endsWith('/') ? basePath.slice(0, -1) : basePath;
     const assetsPath = getAssetsPath();
     const pkgRoot = path.join(__dirname, '..');
@@ -38,33 +36,27 @@ export const warframeGame: GameModule = {
       });
     });
     app.use(`${base}/assets`, express.static(assetsPath));
-    registerPageRoutes(app, base, {
-      viewPrefix: 'warframe',
-      appName: options?.appName ?? 'Corpus',
-      getCsrfToken: options?.csrfToken,
-      accentColor: ACCENT_COLOR,
-    });
-    app.use(`${base}/api`, apiRouter);
   },
 
-  async applyDefaultsForNewUser(userId: number): Promise<void> {
+  applyDefaultsForNewUser(userId: number): Promise<void> {
     let db: ReturnType<typeof getDb> | null = null;
     try {
       db = getDb();
-      await new Promise<void>((resolve) => {
-        db?.prepare(
-          'INSERT OR IGNORE INTO worksheets (user_id, name, display_order) VALUES (?, ?, ?)',
-        ).run(userId, 'Warframes', 0);
-        resolve();
-      });
+      db?.prepare(
+        'INSERT OR IGNORE INTO worksheets (user_id, name, display_order) VALUES (?, ?, ?)',
+      ).run(userId, 'Warframes', 0);
+      return Promise.resolve();
     } finally {
       if (db) {
         try {
           db.close();
         } catch {
-          // Ignore close errors
+          // ignore
         }
       }
     }
   },
 };
+
+export { getDb };
+export * as queries from './db/queries.js';

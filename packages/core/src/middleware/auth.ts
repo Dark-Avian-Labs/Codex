@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
 
 import { type AuthSession } from '../auth.js';
-import { AUTH_SERVICE_URL, BASE_HOST } from '../config.js';
+import { AUTH_SERVICE_URL } from '../config.js';
 
 function getSession(req: Request): AuthSession {
   return req.session as AuthSession;
@@ -20,17 +20,39 @@ const AUTH_STATE_CACHE_KEY = Symbol('authStateCache');
 
 export function getAppPublicBaseUrl(): string {
   const configured = process.env.APP_PUBLIC_BASE_URL?.trim();
-  if (configured) return configured.replace(/\/+$/, '');
-
-  if (BASE_HOST === 'localhost' || BASE_HOST.startsWith('localhost:')) {
-    return `http://${BASE_HOST}`;
+  if (!configured) {
+    throw new Error('APP_PUBLIC_BASE_URL must be set.');
   }
-
-  if (/^https?:\/\//i.test(BASE_HOST)) {
-    return BASE_HOST.replace(/\/+$/, '');
+  const normalized = configured.replace(/\/+$/, '');
+  let parsed: URL;
+  try {
+    parsed = new URL(normalized);
+  } catch {
+    throw new Error('APP_PUBLIC_BASE_URL must be a valid URL.');
   }
-
-  return `https://${BASE_HOST}`;
+  const isLocalHttp =
+    parsed.protocol === 'http:' &&
+    (parsed.hostname === 'localhost' ||
+      parsed.hostname === '127.0.0.1' ||
+      parsed.hostname === '::1');
+  const nodeEnv = process.env.NODE_ENV;
+  const isKnownNonProductionEnv =
+    nodeEnv === 'development' || nodeEnv === 'test';
+  if (
+    nodeEnv == null ||
+    (nodeEnv !== 'production' && !isKnownNonProductionEnv)
+  ) {
+    console.warn(
+      `Unknown or unset NODE_ENV "${nodeEnv ?? ''}" detected; defaulting APP_PUBLIC_BASE_URL protocol policy to production (https-only unless local http).`,
+    );
+  }
+  if (
+    parsed.protocol !== 'https:' &&
+    !(isLocalHttp || isKnownNonProductionEnv)
+  ) {
+    throw new Error('APP_PUBLIC_BASE_URL must use https://');
+  }
+  return normalized;
 }
 
 function getLoginRedirectUrl(req: Request, gameId?: string): string {

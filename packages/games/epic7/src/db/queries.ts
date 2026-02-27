@@ -172,7 +172,6 @@ export function getUserAccountsForApi(
   }[];
 }
 
-/** Idempotent: seeds account_heroes from base_heroes only for rows that don't already exist for this account. Safe to call multiple times. */
 export function seedAccountHeroesFromBase(
   db: Database.Database,
   accountId: number,
@@ -186,7 +185,6 @@ export function seedAccountHeroesFromBase(
   ).run(accountId, accountId);
 }
 
-/** Idempotent: seeds account_artifacts from base_artifacts only for rows that don't already exist for this account. Safe to call multiple times. */
 export function seedAccountArtifactsFromBase(
   db: Database.Database,
   accountId: number,
@@ -456,25 +454,29 @@ export function addBaseArtifact(
   return Number(r.lastInsertRowid);
 }
 
-export function deleteBaseHero(db: Database.Database, heroId: number): void {
-  const transaction = db.transaction(() => {
-    db.prepare('DELETE FROM account_heroes WHERE base_hero_id = ?').run(heroId);
-    db.prepare('DELETE FROM base_heroes WHERE id = ?').run(heroId);
+export function deleteBaseHero(db: Database.Database, heroId: number): boolean {
+  const transaction = db.transaction((id: number) => {
+    db.prepare('DELETE FROM account_heroes WHERE base_hero_id = ?').run(id);
+    const result = db.prepare('DELETE FROM base_heroes WHERE id = ?').run(id);
+    return result.changes > 0;
   });
-  transaction();
+  return transaction(heroId);
 }
 
 export function deleteBaseArtifact(
   db: Database.Database,
   artifactId: number,
-): void {
-  const transaction = db.transaction(() => {
+): boolean {
+  const transaction = db.transaction((id: number) => {
     db.prepare('DELETE FROM account_artifacts WHERE base_artifact_id = ?').run(
-      artifactId,
+      id,
     );
-    db.prepare('DELETE FROM base_artifacts WHERE id = ?').run(artifactId);
+    const result = db
+      .prepare('DELETE FROM base_artifacts WHERE id = ?')
+      .run(id);
+    return result.changes > 0;
   });
-  transaction();
+  return transaction(artifactId);
 }
 
 export function addBaseHeroToAllAccounts(

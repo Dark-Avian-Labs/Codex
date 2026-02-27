@@ -832,13 +832,9 @@ html.theme-light .invert-on-light {
      Edit mode
      ----------------------------------------------------------------------- */
   .row-actions {
-    display: none;
+    display: table-cell;
     text-align: center;
     white-space: nowrap;
-  }
-
-  .edit-mode .row-actions {
-    display: table-cell;
   }
 
   .edit-mode .actions-header {
