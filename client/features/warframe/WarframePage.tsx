@@ -603,7 +603,7 @@ export function WarframePage() {
               {(
                 column.name === 'Helminth'
                   ? HELMINTH_CYCLE
-                  : isAdmin
+                  : isAdmin && adminOverride
                     ? ADMIN_STATUS_CYCLE
                     : STATUS_CYCLE
               ).map((value) => (

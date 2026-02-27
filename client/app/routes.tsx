@@ -41,6 +41,14 @@ type ChunkErrorBoundaryState = {
   hasError: boolean;
 };
 
+function isChunkLoadError(error: Error): boolean {
+  return (
+    error.name === 'ChunkLoadError' ||
+    /Loading chunk .* failed/i.test(error.message) ||
+    /ChunkLoadError/i.test(error.message)
+  );
+}
+
 function ChunkLoadError({ onRetry }: { onRetry: () => void }) {
   return (
     <div
@@ -65,23 +73,22 @@ function ChunkLoadError({ onRetry }: { onRetry: () => void }) {
 class ChunkErrorBoundary extends Component<{ children: ReactNode }, ChunkErrorBoundaryState> {
   public state: ChunkErrorBoundaryState = { hasError: false };
 
-  private isChunkLoadError(error: Error): boolean {
-    return (
-      error.name === 'ChunkLoadError' ||
-      /Loading chunk .* failed/i.test(error.message) ||
-      /ChunkLoadError/i.test(error.message)
-    );
+  public static getDerivedStateFromError(error: Error): ChunkErrorBoundaryState | null {
+    if (isChunkLoadError(error)) {
+      return { hasError: true };
+    }
+
+    return null;
   }
 
   public componentDidCatch(error: Error, info: ErrorInfo): void {
-    if (this.isChunkLoadError(error)) {
+    if (isChunkLoadError(error)) {
       // Keep this visible in dev tools for failed lazy chunks and route imports.
       console.error('Chunk load failed in AppRoutes', error, info);
-      this.setState({ hasError: true });
       return;
     }
 
-    throw error;
+    console.error('Unhandled route error in AppRoutes', error, info);
   }
 
   private handleRetry = () => {

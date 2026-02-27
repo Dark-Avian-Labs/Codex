@@ -1,5 +1,7 @@
 import {
   useEffect,
+  useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
@@ -27,23 +29,45 @@ export function Layout() {
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const firstMenuItemRef = useRef<HTMLElement | null>(null);
   const menuItemRefs = useRef<Array<HTMLElement | null>>([]);
+  const menuItemNodeMap = useRef<Record<string, HTMLElement | null>>({});
   const prevMenuOpenRef = useRef(menuOpen);
   const currentYear = new Date().getFullYear();
-  if (menuOpen) {
-    // Rebuild menu refs in render order each time menu content is built.
-    menuItemRefs.current.length = 0;
-  }
-  let menuItemIndex = 0;
+  const menuItemIds = useMemo(() => {
+    if (!isLoggedIn) {
+      return ['login'];
+    }
+    return isAdmin ? ['profile', 'admin', 'logout'] : ['profile', 'logout'];
+  }, [isAdmin, isLoggedIn]);
+  const menuItemIndexById = useMemo(() => {
+    return new Map(menuItemIds.map((id, index) => [id, index]));
+  }, [menuItemIds]);
 
   const setMenuItemRef =
-    (index: number, isFirst = false) =>
+    (id: string) =>
     (node: HTMLElement | null) => {
-      menuItemRefs.current[index] = node;
-      if (isFirst) {
-        firstMenuItemRef.current = node;
-      }
+      menuItemNodeMap.current[id] = node;
     };
-  const nextMenuItemRef = (isFirst = false) => setMenuItemRef(menuItemIndex++, isFirst);
+  const nextMenuItemRef = (id: string) => setMenuItemRef(id);
+
+  useLayoutEffect(() => {
+    if (!menuOpen) {
+      menuItemRefs.current = [];
+      firstMenuItemRef.current = null;
+      return;
+    }
+
+    const refsInOrder = menuItemIds.map((id) => menuItemNodeMap.current[id] ?? null);
+    menuItemRefs.current = refsInOrder;
+    firstMenuItemRef.current =
+      refsInOrder.find((item): item is HTMLElement => item !== null) ?? null;
+
+    // Keep only active menu entries in the lookup map.
+    for (const id of Object.keys(menuItemNodeMap.current)) {
+      if (!menuItemIndexById.has(id)) {
+        delete menuItemNodeMap.current[id];
+      }
+    }
+  }, [menuItemIds, menuItemIndexById, menuOpen]);
 
   const onMenuKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
     const { key } = event;
@@ -197,7 +221,7 @@ export function Layout() {
                 >
                   {!isLoggedIn ? (
                     <a
-                      ref={nextMenuItemRef(true)}
+                      ref={nextMenuItemRef('login')}
                       href="/auth/login"
                       className="user-menu-item block"
                       role="menuitem"
@@ -209,7 +233,7 @@ export function Layout() {
                   ) : (
                     <>
                       <a
-                        ref={nextMenuItemRef(true)}
+                        ref={nextMenuItemRef('profile')}
                         href="/auth/profile"
                         className="user-menu-item block"
                         role="menuitem"
@@ -220,7 +244,7 @@ export function Layout() {
                       </a>
                       {isAdmin ? (
                         <NavLink
-                          ref={nextMenuItemRef()}
+                          ref={nextMenuItemRef('admin')}
                           to={APP_PATHS.admin}
                           className="user-menu-item block"
                           role="menuitem"
@@ -231,7 +255,7 @@ export function Layout() {
                         </NavLink>
                       ) : null}
                       <a
-                        ref={nextMenuItemRef()}
+                        ref={nextMenuItemRef('logout')}
                         href="/logout"
                         className="user-menu-item block"
                         role="menuitem"

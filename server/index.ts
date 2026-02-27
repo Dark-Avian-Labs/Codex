@@ -291,8 +291,9 @@ app.use(
     const error = err as Partial<Error> & {
       status?: number;
       statusCode?: number;
+      code?: string;
     };
-    const isCsrfError = error.name === 'ForbiddenError';
+    const isCsrfError = error.code === 'EBADCSRFTOKEN';
     if (isCsrfError) {
       res.setHeader('X-CSRF-Error', '1');
     }

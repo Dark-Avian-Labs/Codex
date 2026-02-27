@@ -494,8 +494,7 @@ epic7ApiRouter.post('/admin/base/artifacts', requireAdmin, (req, res) => {
   if (!data) return;
   const db = getDbOrFail(res);
   if (!db) return;
-  try {
-    db.exec('BEGIN');
+  const createBaseArtifact = db.transaction(() => {
     const artifactId = q.addBaseArtifact(
       db,
       data.name,
@@ -519,14 +518,12 @@ epic7ApiRouter.post('/admin/base/artifacts', requireAdmin, (req, res) => {
       data.star_rating,
       row.display_order,
     );
-    db.exec('COMMIT');
+    return artifactId;
+  });
+  try {
+    const artifactId = createBaseArtifact();
     json(res, { success: true, artifact_id: artifactId });
   } catch (e) {
-    try {
-      db.exec('ROLLBACK');
-    } catch (rollbackError) {
-      console.error('Failed to rollback base artifact creation:', rollbackError);
-    }
     console.error('Failed to create base artifact:', e);
     err(res, 'Failed to create base artifact.');
   }

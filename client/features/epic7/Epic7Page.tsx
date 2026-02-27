@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useReducer, useState } from 'react';
+import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 
 import { Modal } from '../../components/ui/Modal';
 import { apiFetch } from '../../utils/api';
@@ -159,6 +159,14 @@ export function Epic7Page() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [operationError, setOperationError] = useState<string | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  function beginUserActionRequest(): AbortSignal {
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    return controller.signal;
+  }
 
   async function loadAccountsAndData(signal?: AbortSignal): Promise<void> {
     setLoading(true);
@@ -234,6 +242,12 @@ export function Epic7Page() {
     };
   }, []);
 
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, []);
+
   const activeRows = useMemo(() => {
     const list = tab === 'heroes' ? heroes : artifacts;
     return list.filter((row) =>
@@ -243,11 +257,13 @@ export function Epic7Page() {
 
   async function switchAccount(accountId: number): Promise<void> {
     if (currentAccountId === accountId) return;
+    const signal = beginUserActionRequest();
     try {
       const response = await apiFetch('/api/epic7/accounts/switch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ account_id: accountId }),
+        signal,
       });
       const body = (await response.json().catch(() => null)) as
         | { error?: string }
@@ -255,8 +271,11 @@ export function Epic7Page() {
       if (!response.ok || body?.error) {
         throw new Error(body?.error || 'Failed to switch account');
       }
-      await loadAccountsAndData();
-    } catch {
+      await loadAccountsAndData(signal);
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return;
+      }
       setOperationError('Failed to switch Epic Seven account.');
     }
   }
@@ -330,11 +349,13 @@ export function Epic7Page() {
       setOperationError('Account name is required.');
       return;
     }
+    const signal = beginUserActionRequest();
     try {
       const response = await apiFetch('/api/epic7/accounts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ account_name: modalState.accountNameDraft.trim() }),
+        signal,
       });
       const body = (await response.json().catch(() => null)) as
         | { error?: string }
@@ -343,8 +364,11 @@ export function Epic7Page() {
         throw new Error(body?.error || 'Failed to add account');
       }
       dispatchModal({ type: 'CLOSE_ACCOUNT_MODAL' });
-      await loadAccountsAndData();
-    } catch {
+      await loadAccountsAndData(signal);
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return;
+      }
       setOperationError('Failed to create account.');
     }
   }
@@ -378,14 +402,14 @@ export function Epic7Page() {
       setOperationError('Name is required.');
       return;
     }
-    const isHero = modalState.modalItemType === 'heroes';
+    const isHeroItem = modalState.modalItemType === 'heroes';
     const isEdit = modalState.editingId !== null;
-    const path = isHero ? 'heroes' : 'artifacts';
+    const path = isHeroItem ? 'heroes' : 'artifacts';
     const url = isEdit
       ? `/api/epic7/${path}/${modalState.editingId}/details`
       : `/api/epic7/${path}`;
     const method = isEdit ? 'PATCH' : 'POST';
-    const body = isHero
+    const body = isHeroItem
       ? {
           name: modalState.draft.name.trim(),
           class: modalState.draft.class,
@@ -397,11 +421,13 @@ export function Epic7Page() {
           class: modalState.draft.class,
           star_rating: modalState.draft.stars,
         };
+    const signal = beginUserActionRequest();
     try {
       const response = await apiFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
+        signal,
       });
       const payload = (await response.json().catch(() => null)) as
         | { error?: string }
@@ -410,8 +436,11 @@ export function Epic7Page() {
         throw new Error(payload?.error || 'Failed to save item');
       }
       dispatchModal({ type: 'CLOSE_ITEM_MODAL' });
-      await loadAccountsAndData();
-    } catch {
+      await loadAccountsAndData(signal);
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return;
+      }
       setOperationError('Failed to save item.');
     }
   }
@@ -419,9 +448,11 @@ export function Epic7Page() {
   async function deleteItem(): Promise<void> {
     if (!modalState.deletingItem) return;
     const path = modalState.deletingItem.type === 'hero' ? 'heroes' : 'artifacts';
+    const signal = beginUserActionRequest();
     try {
       const response = await apiFetch(`/api/epic7/${path}/${modalState.deletingItem.id}`, {
         method: 'DELETE',
+        signal,
       });
       const payload = (await response.json().catch(() => null)) as
         | { error?: string }
@@ -430,8 +461,11 @@ export function Epic7Page() {
         throw new Error(payload?.error || 'Failed to delete item');
       }
       dispatchModal({ type: 'CONFIRM_DELETE' });
-      await loadAccountsAndData();
-    } catch {
+      await loadAccountsAndData(signal);
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return;
+      }
       setOperationError('Failed to delete item.');
     }
   }
