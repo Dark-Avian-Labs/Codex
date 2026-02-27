@@ -7,12 +7,14 @@ on:
   push:
     branches: [main]
     paths:
+      - 'server/**'
       - 'src/**'
       - 'packages/**'
       - 'scripts/**'
       - 'client/**'
+      - 'index.html'
       - 'package*.json'
-      - 'tsconfig.json'
+      - 'tsconfig*.json'
       - 'vite.config.ts'
       - 'favicon.ico'
       - '.github/workflows/deploy.yml'
