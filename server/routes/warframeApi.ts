@@ -1,24 +1,22 @@
 import { requireGameAccess } from '@corpus/core';
 import { validateBody } from '@corpus/core/validation';
+import {
+  HELMINTH_VALUES,
+  VALID_STATUSES,
+  WARFRAME_DB_PATH,
+  getWarframeDb,
+  isHelminthValue,
+  isValidStatus,
+  warframeAddRowSchema,
+  warframeAdminUpdateSchema,
+  warframeDeleteRowSchema,
+  warframeEditRowSchema,
+  warframeQueries as q,
+  warframeUpdateSchema,
+} from '@corpus/game-warframe';
 import { Router, type Request, type Response } from 'express';
 import fs from 'fs';
 
-import {
-  HELMINTH_VALUES,
-  isHelminthValue,
-  isValidStatus,
-  VALID_STATUSES,
-  WARFRAME_DB_PATH,
-} from '../../packages/games/warframe/src/config.js';
-import * as q from '../../packages/games/warframe/src/db/queries.js';
-import { getDb as getWarframeDb } from '../../packages/games/warframe/src/db/schema.js';
-import {
-  addRowSchema,
-  adminUpdateSchema,
-  deleteRowSchema,
-  editRowSchema,
-  updateSchema,
-} from '../../packages/games/warframe/src/routes/validation.js';
 import { requireAdmin, requireAuthApi } from '../auth/middleware.js';
 
 export const warframeApiRouter = Router();
@@ -168,7 +166,7 @@ warframeApiRouter.patch('/cells', (req, res) => {
       res.status(401).json({ error: 'Unauthorized' });
       return;
     }
-    const data = validateBody(updateSchema, req.body, res);
+    const data = validateBody(warframeUpdateSchema, req.body, res);
     if (!data) return;
     const db = await getDbOrFail(res);
     if (!db) return;
@@ -231,7 +229,7 @@ warframeApiRouter.post('/rows', (req, res) => {
       res.status(401).json({ error: 'Unauthorized' });
       return;
     }
-    const data = validateBody(addRowSchema, req.body, res);
+    const data = validateBody(warframeAddRowSchema, req.body, res);
     if (!data) return;
     const db = await getDbOrFail(res);
     if (!db) return;
@@ -277,7 +275,7 @@ warframeApiRouter.patch('/rows/:rowId', (req, res) => {
       return;
     }
     const data = validateBody(
-      editRowSchema,
+      warframeEditRowSchema,
       { ...req.body, row_id: Number(req.params.rowId) },
       res,
     );
@@ -319,7 +317,7 @@ warframeApiRouter.delete('/rows/:rowId', (req, res) => {
       return;
     }
     const data = validateBody(
-      deleteRowSchema,
+      warframeDeleteRowSchema,
       { row_id: Number(req.params.rowId) },
       res,
     );
@@ -349,7 +347,7 @@ warframeApiRouter.patch('/admin/cells', requireAdmin, (req, res) => {
       res.status(401).json({ error: 'Unauthorized' });
       return;
     }
-    const data = validateBody(adminUpdateSchema, req.body, res);
+    const data = validateBody(warframeAdminUpdateSchema, req.body, res);
     if (!data) return;
     const db = await getDbOrFail(res);
     if (!db) return;

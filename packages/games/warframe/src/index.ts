@@ -58,5 +58,19 @@ export const warframeGame: GameModule = {
   },
 };
 
-export { getDb };
-export * as queries from './db/queries.js';
+export {
+  HELMINTH_VALUES,
+  VALID_STATUSES,
+  WARFRAME_DB_PATH,
+  isHelminthValue,
+  isValidStatus,
+} from './config.js';
+export { getDb as getWarframeDb } from './db/schema.js';
+export * as warframeQueries from './db/queries.js';
+export {
+  addRowSchema as warframeAddRowSchema,
+  adminUpdateSchema as warframeAdminUpdateSchema,
+  deleteRowSchema as warframeDeleteRowSchema,
+  editRowSchema as warframeEditRowSchema,
+  updateSchema as warframeUpdateSchema,
+} from './routes/validation.js';

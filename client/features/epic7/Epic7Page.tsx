@@ -884,7 +884,25 @@ export function Epic7Page() {
       </div>
       <div className="table-container">
         <div className="table-scroll" style={tableScrollStyle}>
-          <table>
+          <table className="epic7-table" style={{ tableLayout: 'fixed' }}>
+            {tab === 'heroes' ? (
+              <colgroup>
+                <col style={{ width: 'auto' }} />
+                <col style={{ width: '150px' }} />
+                <col style={{ width: '150px' }} />
+                <col style={{ width: '200px' }} />
+                <col style={{ width: '150px' }} />
+                {editMode ? <col style={{ width: '120px' }} /> : null}
+              </colgroup>
+            ) : (
+              <colgroup>
+                <col style={{ width: 'auto' }} />
+                <col style={{ width: '150px' }} />
+                <col style={{ width: '200px' }} />
+                <col style={{ width: '150px' }} />
+                {editMode ? <col style={{ width: '120px' }} /> : null}
+              </colgroup>
+            )}
             <thead>
               {tab === 'heroes' ? (
                 <tr>

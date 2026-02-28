@@ -66,7 +66,12 @@ function getLoginRedirectUrl(req: Request, gameId?: string): string {
 type RemoteAuthState = {
   authenticated: boolean;
   has_game_access: boolean;
-  user: { id: number; username: string; is_admin: boolean } | null;
+  user: {
+    id: number;
+    username: string;
+    is_admin: boolean;
+    avatar: number;
+  } | null;
   permissions: string[];
 };
 
@@ -125,7 +130,10 @@ async function fetchRemoteAuthState(
           user &&
           typeof user.id === 'number' &&
           typeof user.username === 'string' &&
-          typeof user.is_admin === 'boolean'
+          typeof user.is_admin === 'boolean' &&
+          Number.isInteger((user as { avatar?: unknown }).avatar) &&
+          (user as { avatar: number }).avatar >= 1 &&
+          (user as { avatar: number }).avatar <= 16
             ? user
             : null,
         permissions: Array.isArray(body.permissions)
@@ -160,12 +168,14 @@ async function syncSessionFromAuth(
     delete session.user_id;
     delete session.username;
     delete session.is_admin;
+    delete session.avatar;
     delete session.login_time;
     return state;
   }
   session.user_id = state.user.id;
   session.username = state.user.username;
   session.is_admin = state.user.is_admin;
+  session.avatar = state.user.avatar;
   if (
     typeof session.login_time !== 'number' ||
     Date.now() - session.login_time > SESSION_TOUCH_INTERVAL_MS

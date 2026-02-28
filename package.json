@@ -5,10 +5,10 @@
   "private": true,
   "scripts": {
     "typecheck": "npm run typecheck:server && npm run typecheck:client",
-    "typecheck:server": "tsc -p tsconfig.server.json --noEmit",
+    "typecheck:server": "npm run build --workspaces --if-present && tsc -p tsconfig.server.json --noEmit",
     "typecheck:client": "tsc -p tsconfig.json --noEmit",
     "build": "npm run build --workspaces --if-present && npm run typecheck && tsc -p tsconfig.server.json && vite build",
-    "start": "node dist/server/server/index.js",
+    "start": "node dist/server/index.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint server client packages",

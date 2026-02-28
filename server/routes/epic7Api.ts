@@ -1,34 +1,32 @@
 import { requireGameAccess } from '@corpus/core';
 import { validateBody } from '@corpus/core/validation';
-import { Router, type Request, type Response } from 'express';
-import fs from 'fs';
-
 import {
   ARTIFACT_CLASSES,
   ARTIFACT_GAUGE_MAX,
   ELEMENTS,
   EPIC7_DB_PATH,
   HERO_CLASSES,
-} from '../../packages/games/epic7/src/config.js';
-import * as q from '../../packages/games/epic7/src/db/queries.js';
-import { getDb as getEpic7Db } from '../../packages/games/epic7/src/db/schema.js';
-import {
-  addAccountSchema,
-  addArtifactSchema,
-  addHeroSchema,
-  adminAddBaseArtifactSchema,
-  adminAddBaseHeroSchema,
-  adminDeleteBaseArtifactSchema,
-  adminDeleteBaseHeroSchema,
-  deleteAccountSchema,
-  deleteArtifactSchema,
-  deleteHeroSchema,
-  switchAccountSchema,
-  updateArtifactDetailsSchema,
-  updateArtifactSchema,
-  updateHeroDetailsSchema,
-  updateHeroSchema,
-} from '../../packages/games/epic7/src/routes/validation.js';
+  epic7AddAccountSchema,
+  epic7AddArtifactSchema,
+  epic7AddHeroSchema,
+  epic7AdminAddBaseArtifactSchema,
+  epic7AdminAddBaseHeroSchema,
+  epic7AdminDeleteBaseArtifactSchema,
+  epic7AdminDeleteBaseHeroSchema,
+  epic7DeleteAccountSchema,
+  epic7DeleteArtifactSchema,
+  epic7DeleteHeroSchema,
+  epic7Queries as q,
+  epic7SwitchAccountSchema,
+  epic7UpdateArtifactDetailsSchema,
+  epic7UpdateArtifactSchema,
+  epic7UpdateHeroDetailsSchema,
+  epic7UpdateHeroSchema,
+  getEpic7Db,
+} from '@corpus/game-epic7';
+import { Router, type Request, type Response } from 'express';
+import fs from 'fs';
+
 import { requireAdmin, requireAuthApi } from '../auth/middleware.js';
 
 export const epic7ApiRouter = Router();
@@ -124,7 +122,7 @@ epic7ApiRouter.patch('/heroes/:heroId/rating', (req, res) => {
     return;
   }
   const data = validateBody(
-    updateHeroSchema,
+    epic7UpdateHeroSchema,
     { ...req.body, hero_id: Number(req.params.heroId) },
     res,
   );
@@ -145,7 +143,7 @@ epic7ApiRouter.patch('/artifacts/:artifactId/gauge', (req, res) => {
     return;
   }
   const data = validateBody(
-    updateArtifactSchema,
+    epic7UpdateArtifactSchema,
     { ...req.body, artifact_id: Number(req.params.artifactId) },
     res,
   );
@@ -167,7 +165,7 @@ epic7ApiRouter.post('/heroes', (req, res) => {
     err(res, 'No game account selected.');
     return;
   }
-  const data = validateBody(addHeroSchema, req.body, res);
+  const data = validateBody(epic7AddHeroSchema, req.body, res);
   if (!data) return;
   const db = getDbOrFail(res);
   if (!db) return;
@@ -189,7 +187,7 @@ epic7ApiRouter.post('/artifacts', (req, res) => {
     err(res, 'No game account selected.');
     return;
   }
-  const data = validateBody(addArtifactSchema, req.body, res);
+  const data = validateBody(epic7AddArtifactSchema, req.body, res);
   if (!data) return;
   const db = getDbOrFail(res);
   if (!db) return;
@@ -211,7 +209,7 @@ epic7ApiRouter.patch('/heroes/:heroId/details', (req, res) => {
     return;
   }
   const data = validateBody(
-    updateHeroDetailsSchema,
+    epic7UpdateHeroDetailsSchema,
     { ...req.body, hero_id: Number(req.params.heroId) },
     res,
   );
@@ -242,7 +240,7 @@ epic7ApiRouter.patch('/artifacts/:artifactId/details', (req, res) => {
     return;
   }
   const data = validateBody(
-    updateArtifactDetailsSchema,
+    epic7UpdateArtifactDetailsSchema,
     { ...req.body, artifact_id: Number(req.params.artifactId) },
     res,
   );
@@ -272,7 +270,7 @@ epic7ApiRouter.delete('/heroes/:heroId', (req, res) => {
     return;
   }
   const data = validateBody(
-    deleteHeroSchema,
+    epic7DeleteHeroSchema,
     { hero_id: Number(req.params.heroId) },
     res,
   );
@@ -293,7 +291,7 @@ epic7ApiRouter.delete('/artifacts/:artifactId', (req, res) => {
     return;
   }
   const data = validateBody(
-    deleteArtifactSchema,
+    epic7DeleteArtifactSchema,
     { artifact_id: Number(req.params.artifactId) },
     res,
   );
@@ -341,7 +339,7 @@ epic7ApiRouter.post('/accounts/switch', (req, res) => {
     err(res, 'Unauthorized', 401);
     return;
   }
-  const data = validateBody(switchAccountSchema, req.body, res);
+  const data = validateBody(epic7SwitchAccountSchema, req.body, res);
   if (!data) return;
   const db = getDbOrFail(res);
   if (!db) return;
@@ -365,7 +363,7 @@ epic7ApiRouter.post('/accounts', (req, res) => {
     err(res, 'Unauthorized', 401);
     return;
   }
-  const data = validateBody(addAccountSchema, req.body, res);
+  const data = validateBody(epic7AddAccountSchema, req.body, res);
   if (!data) return;
   const db = getDbOrFail(res);
   if (!db) return;
@@ -393,7 +391,7 @@ epic7ApiRouter.delete('/accounts/:accountId', (req, res) => {
     return;
   }
   const data = validateBody(
-    deleteAccountSchema,
+    epic7DeleteAccountSchema,
     { account_id: Number(req.params.accountId) },
     res,
   );
@@ -450,7 +448,7 @@ epic7ApiRouter.get('/admin/base/artifacts', requireAdmin, (_req, res) => {
 });
 
 epic7ApiRouter.post('/admin/base/heroes', requireAdmin, (req, res) => {
-  const data = validateBody(adminAddBaseHeroSchema, req.body, res);
+  const data = validateBody(epic7AdminAddBaseHeroSchema, req.body, res);
   if (!data) return;
   const db = getDbOrFail(res);
   if (!db) return;
@@ -492,7 +490,7 @@ epic7ApiRouter.post('/admin/base/heroes', requireAdmin, (req, res) => {
 });
 
 epic7ApiRouter.post('/admin/base/artifacts', requireAdmin, (req, res) => {
-  const data = validateBody(adminAddBaseArtifactSchema, req.body, res);
+  const data = validateBody(epic7AdminAddBaseArtifactSchema, req.body, res);
   if (!data) return;
   const db = getDbOrFail(res);
   if (!db) return;
@@ -536,7 +534,7 @@ epic7ApiRouter.delete(
   requireAdmin,
   (req, res) => {
     const data = validateBody(
-      adminDeleteBaseHeroSchema,
+      epic7AdminDeleteBaseHeroSchema,
       { hero_id: Number(req.params.heroId) },
       res,
     );
@@ -557,7 +555,7 @@ epic7ApiRouter.delete(
   requireAdmin,
   (req, res) => {
     const data = validateBody(
-      adminDeleteBaseArtifactSchema,
+      epic7AdminDeleteBaseArtifactSchema,
       { artifact_id: Number(req.params.artifactId) },
       res,
     );

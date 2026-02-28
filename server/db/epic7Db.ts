@@ -1,4 +1,3 @@
-import * as epic7Queries from '../../packages/games/epic7/src/db/queries.js';
-import { getDb as getEpic7Db } from '../../packages/games/epic7/src/db/schema.js';
+import { epic7Queries, getEpic7Db } from '@corpus/game-epic7';
 
 export { getEpic7Db, epic7Queries };

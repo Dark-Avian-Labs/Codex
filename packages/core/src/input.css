@@ -356,7 +356,7 @@ html.theme-light .invert-on-light {
   .brand-lockup__title {
     margin: 0;
     min-width: 0;
-    font-size: clamp(1.2rem, 1.7vw, 1.5rem);
+    font-size: clamp(1.35rem, 2.4vw, 2.25rem);
     line-height: 1.2;
     font-weight: 700;
     letter-spacing: 0.01em;
@@ -956,7 +956,7 @@ html.theme-light .invert-on-light {
   }
 
   .account-btn {
-    padding: 0 16px;
+    padding: 0 30px 0 16px;
     font-size: 14px;
     line-height: 1.2;
     height: 40px;
@@ -971,6 +971,7 @@ html.theme-light .invert-on-light {
     gap: 8px;
     transition: all 0.2s;
     font-family: inherit;
+    position: relative;
   }
 
   .account-btn:hover {
@@ -981,6 +982,11 @@ html.theme-light .invert-on-light {
     content: '\25BC';
     font-size: 10px;
     opacity: 0.7;
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
   }
 
   .account-dropdown {
@@ -1060,7 +1066,7 @@ html.theme-light .invert-on-light {
     background: var(--color-glass);
     border: 1px solid var(--color-glass-border);
     border-radius: 1rem;
-    padding: 4px 8px;
+    padding: 4px 12px;
   }
 
   .filter-label {
@@ -1166,6 +1172,16 @@ html.theme-light .invert-on-light {
   .level-cell {
     text-align: center;
     width: 150px;
+  }
+
+  /* Keep Epic7 hero/artifact rows visually consistent. */
+  .epic7-table tbody tr {
+    height: 63px;
+  }
+
+  .epic7-table tbody td {
+    height: 63px;
+    vertical-align: middle;
   }
 
   /* -----------------------------------------------------------------------

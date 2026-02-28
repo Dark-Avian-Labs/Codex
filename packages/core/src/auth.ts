@@ -14,7 +14,10 @@ import { getCentralDb } from './db/schema.js';
 
 export interface CustomSessionData extends SessionData {
   user_id?: number;
+  username?: string;
   is_admin?: boolean;
+  avatar?: number;
+  login_time?: number;
 }
 
 export type AuthSession = CustomSessionData | undefined;
