@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  type CSSProperties,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 
 import { useLayoutSlots } from '../../components/Layout/useLayoutSlots';
 import { apiFetch } from '../../utils/api';
@@ -42,6 +48,22 @@ const WORKSHEET_LABELS: Record<string, string> = {
   'Archwing Weapons': 'Archwing',
   Accessories: 'Accessories',
 };
+const WORKSHEET_ORDER = [
+  'Warframes',
+  'Primary Weapons',
+  'Secondary Weapons',
+  'Melee Weapons',
+  'Modular Weapons',
+  'Archwing Weapons',
+  'Accessories',
+] as const;
+
+const worksheetOrderIndex = new Map<string, number>(
+  WORKSHEET_ORDER.map((name, index) => [name, index]),
+);
+const tableScrollStyle = {
+  '--header-offset': '430px',
+} as CSSProperties;
 
 function statusClass(value: string, columnName: string): string {
   if (columnName === 'Helminth') {
@@ -84,8 +106,14 @@ export function WarframeAdminPage() {
       if (!response.ok) throw new Error('Failed to load worksheets');
       const body = (await response.json()) as { worksheets?: Worksheet[] };
       const next = Array.isArray(body.worksheets) ? body.worksheets : [];
-      setWorksheets(next);
-      setWorksheetId((current) => current ?? next[0]?.id ?? null);
+      const sorted = [...next].sort((a, b) => {
+        const ai = worksheetOrderIndex.get(a.name) ?? Number.MAX_SAFE_INTEGER;
+        const bi = worksheetOrderIndex.get(b.name) ?? Number.MAX_SAFE_INTEGER;
+        if (ai !== bi) return ai - bi;
+        return a.name.localeCompare(b.name);
+      });
+      setWorksheets(sorted);
+      setWorksheetId((current) => current ?? sorted[0]?.id ?? null);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : 'Failed to load worksheets',
@@ -260,7 +288,21 @@ export function WarframeAdminPage() {
 
   return (
     <section className="space-y-4">
-      <h1 className="text-2xl font-semibold">Warframe Admin</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-semibold">Warframe Admin</h1>
+        <button
+          type="button"
+          className="btn btn-accent"
+          onClick={() => void handleSync()}
+          disabled={runningSync}
+        >
+          {runningSync ? 'Importing…' : 'Import From Parametric'}
+        </button>
+      </div>
+      <p className="text-sm text-muted">
+        Opening this page loads a preview only. Import runs when you click the
+        import button.
+      </p>
       {error ? (
         <p className="text-sm text-red-400" role="alert">
           {error}
@@ -304,7 +346,10 @@ export function WarframeAdminPage() {
             <span className="loading p-0">Loading worksheet data...</span>
           </div>
         ) : null}
-        <div className={`table-scroll ${loadingData ? 'opacity-60' : ''}`}>
+        <div
+          className={`table-scroll ${loadingData ? 'opacity-60' : ''}`}
+          style={tableScrollStyle}
+        >
           <table style={{ tableLayout: 'fixed' }}>
             <colgroup>
               <col style={{ width: 'auto' }} />
