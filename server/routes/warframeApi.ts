@@ -18,6 +18,7 @@ import { Router, type Request, type Response } from 'express';
 import fs from 'fs';
 
 import { requireAdmin, requireAuthApi } from '../auth/middleware.js';
+import { runWarframeSync } from '../services/warframeSync.js';
 
 export const warframeApiRouter = Router();
 
@@ -367,6 +368,56 @@ warframeApiRouter.patch('/admin/cells', requireAdmin, (req, res) => {
     } catch (error) {
       res.status(400).json({
         error: error instanceof Error ? error.message : 'Invalid status value.',
+      });
+    } finally {
+      db.close();
+    }
+  })();
+});
+
+warframeApiRouter.get('/admin/sync-preview', requireAdmin, (req, res) => {
+  void (async () => {
+    const userId = getUserId(req);
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+    const db = await getDbOrFail(res);
+    if (!db) return;
+    try {
+      const result = runWarframeSync(db, {
+        execute: false,
+        userIds: [userId],
+      });
+      res.status(200).json(result);
+    } catch (error) {
+      console.error('Failed to build Warframe sync preview:', error);
+      res.status(500).json({
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to build Warframe sync preview.',
+      });
+    } finally {
+      db.close();
+    }
+  })();
+});
+
+warframeApiRouter.post('/admin/sync-source', requireAdmin, (_req, res) => {
+  void (async () => {
+    const db = await getDbOrFail(res);
+    if (!db) return;
+    try {
+      const result = runWarframeSync(db, { execute: true });
+      res.status(200).json(result);
+    } catch (error) {
+      console.error('Failed to execute Warframe sync:', error);
+      res.status(500).json({
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to execute Warframe sync.',
       });
     } finally {
       db.close();

@@ -9,6 +9,9 @@ export const PROJECT_ROOT = path.resolve(__dirname, '..', '..');
 export const DATA_DIR = path.join(PROJECT_ROOT, 'data');
 export const CENTRAL_DB_PATH =
   process.env.CENTRAL_DB_PATH || path.join(DATA_DIR, 'central.db');
+export const PARAMETRIC_DB_PATH =
+  process.env.PARAMETRIC_DB_PATH ||
+  path.resolve(PROJECT_ROOT, '..', 'Parametric', 'data', 'parametric.db');
 
 const _port = parseInt(process.env.PORT || '3001', 10);
 export const PORT = Number.isFinite(_port) && _port > 0 ? _port : 3001;
@@ -113,4 +116,5 @@ export const SHARED_THEME_COOKIE = 'dal.theme.mode';
 export function ensureDataDirs(): void {
   fs.mkdirSync(DATA_DIR, { recursive: true });
   fs.mkdirSync(path.dirname(CENTRAL_DB_PATH), { recursive: true });
+  fs.mkdirSync(path.dirname(PARAMETRIC_DB_PATH), { recursive: true });
 }
