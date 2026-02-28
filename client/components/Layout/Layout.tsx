@@ -11,6 +11,8 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 
 import bgArt from '../../../packages/core/assets/background.txt?raw';
 import feathers from '../../../packages/core/assets/feathers.png';
+import epic7Favicon from '../../../packages/games/epic7/favicon.ico';
+import warframeFavicon from '../../../packages/games/warframe/favicon.ico';
 import {
   APP_DISPLAY_NAME,
   LEGAL_ENTITY_NAME,
@@ -147,15 +149,23 @@ export function Layout() {
 
   useEffect(() => {
     const path = location.pathname;
+    let faviconHref = '/favicon.ico';
     if (path.startsWith(APP_PATHS.warframe)) {
       document.title = 'Corpus - Warframe';
-      return;
-    }
-    if (path.startsWith(APP_PATHS.epic7)) {
+      faviconHref = warframeFavicon;
+    } else if (path.startsWith(APP_PATHS.epic7)) {
       document.title = 'Corpus - Epic Seven';
-      return;
+      faviconHref = epic7Favicon;
+    } else {
+      document.title = 'Corpus';
     }
-    document.title = 'Corpus';
+    let favicon = document.querySelector<HTMLLinkElement>('link[rel~="icon"]');
+    if (!favicon) {
+      favicon = document.createElement('link');
+      favicon.rel = 'icon';
+      document.head.append(favicon);
+    }
+    favicon.href = faviconHref;
   }, [location.pathname]);
 
   useEffect(() => {

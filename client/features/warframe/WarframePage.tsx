@@ -377,7 +377,18 @@ export function WarframePage() {
       </div>
       <div className="table-container">
         <div className="table-scroll">
-          <table>
+          <table style={{ tableLayout: 'fixed' }}>
+            <colgroup>
+              <col style={{ width: 'auto' }} />
+              {data.columns.map((column) => (
+                <col
+                  key={`col-${column.id}`}
+                  style={{
+                    width: column.name === 'Helminth' ? '150px' : '200px',
+                  }}
+                />
+              ))}
+            </colgroup>
             <thead>
               <tr>
                 <th>Name</th>
