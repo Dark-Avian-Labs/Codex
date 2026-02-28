@@ -9,18 +9,12 @@
 @source "../../games/epic7/assets/**/*.{js,ts,jsx,tsx}";
 @source "../views/**/*.{ejs,html}";
 
-/* ==========================================================================
-   DESIGN TOKENS
-   ========================================================================== */
 @theme {
-  /* Foreground / text */
   --color-foreground: #f8fafc;
   --color-muted: #c7c7cf;
 
-  /* Accent – default app colour; per-game overrides are injected inline */
   --color-accent: #6363ff;
 
-  /* Semantic */
   --color-success: #22c55e;
   --color-success-rgb: 34, 197, 94;
   --color-warning: #f59e0b;
@@ -30,7 +24,6 @@
   --color-unavailable: #6b7280;
   --color-unavailable-rgb: 107, 114, 128;
 
-  /* Glass-morphism palette */
   --color-glass: rgba(255, 255, 255, 0.024);
   --color-glass-border: rgba(255, 255, 255, 0.08);
   --color-glass-border-hover: rgba(255, 255, 255, 0.2);
@@ -38,46 +31,20 @@
   --color-glass-active: rgba(255, 255, 255, 0.12);
   --color-glass-divider: rgba(255, 255, 255, 0.06);
 
-  /* Surfaces */
   --color-surface-modal: rgba(255, 255, 255, 0.024);
   --color-surface-thead: rgba(22, 20, 33, 0.88);
 
-  /* Gradient endpoints (body background) */
   --color-bg-start: #000000;
   --color-bg-end: #0f172a;
   --color-bg-glow: rgba(100, 116, 139, 0.2);
 
-  /* Shadows */
   --shadow-panel: 0 8px 32px rgba(0, 0, 0, 0.25);
 }
 
-/* ---------- Layout custom properties ---------- */
-/* --header-offset is the total vertical space consumed above the scrollable
-   table area. It is used in `.table-scroll { max-height: calc(100vh - var(--header-offset)) }`
-   to keep the table viewport-contained.
-
-   Approximate breakdown of the default 280px (at md breakpoint, p-6):
-     ~24px  body padding-top          (p-6 = 1.5rem)
-     ~56px  <header> row              (h1 line-height + flex gap)
-      20px  header margin-bottom      (mb-5)
-     ~48px  .tabs                     (padding 6+6 + tab 10+10 + text)
-      16px  .tabs margin-bottom
-     ~48px  .stats-bar                (content-dependent)
-      16px  .stats-bar margin-bottom
-     ~52px  table-container chrome    (border, border-radius, thead)
-    ≈280px  total
-
-   Games that add extra bars (e.g. Epic7's .filter-bar) should override
-   --header-offset inline on .table-scroll (Epic7 uses 340px ≈ 280 + 60
-   for the filter bar + its 16px margin).
-
-   If you add/remove UI above the table, bump this value accordingly. */
 :root {
   --header-offset: 280px;
   --theme-mode: dark;
 
-  /* Derived accent tints – live in :root (not @theme) so they recalculate
-     whenever --color-accent is overridden inline (e.g. per-game cards). */
   --color-accent-weak: color-mix(in srgb, var(--color-accent) 10%, transparent);
   --color-accent-weak-2: color-mix(
     in srgb,
@@ -112,9 +79,6 @@ html.theme-light .invert-on-light {
   filter: invert(1);
 }
 
-/* ==========================================================================
-   BASE
-   ========================================================================== */
 @layer base {
   *,
   *::before,
@@ -155,13 +119,7 @@ html.theme-light .invert-on-light {
   }
 }
 
-/* ==========================================================================
-   COMPONENTS
-   ========================================================================== */
 @layer components {
-  /* -----------------------------------------------------------------------
-     Background art (ASCII overlay)
-     ----------------------------------------------------------------------- */
   .bg-art {
     position: fixed;
     top: 50%;
@@ -177,9 +135,6 @@ html.theme-light .invert-on-light {
     user-select: none;
   }
 
-  /* -----------------------------------------------------------------------
-     Buttons
-     ----------------------------------------------------------------------- */
   .btn {
     padding: 0 16px;
     font-size: 14px;
@@ -338,16 +293,16 @@ html.theme-light .invert-on-light {
   }
 
   .brand-lockup__icon {
-    width: 30px;
-    height: 30px;
+    width: 36px;
+    height: 36px;
     object-fit: contain;
     flex: 0 0 auto;
     display: block;
   }
 
   .brand-lockup img {
-    width: 30px;
-    height: 30px;
+    width: 36px;
+    height: 36px;
     object-fit: contain;
     flex: 0 0 auto;
     display: block;
@@ -362,9 +317,18 @@ html.theme-light .invert-on-light {
     letter-spacing: 0.01em;
   }
 
-  /* -----------------------------------------------------------------------
-     Header navigation links
-     ----------------------------------------------------------------------- */
+  .brand-lockup--fx {
+    text-shadow:
+      -0.05em 0 0.015em rgba(248, 250, 252, 0.45),
+      0.05em 0 0.015em rgba(248, 250, 252, 0.45);
+  }
+
+  html.theme-light .brand-lockup--fx {
+    text-shadow:
+      -0.05em 0 0.015em rgba(15, 23, 42, 0.35),
+      0.05em 0 0.015em rgba(15, 23, 42, 0.35);
+  }
+
   .header-link {
     padding: 0 16px;
     font-size: 14px;
@@ -416,9 +380,6 @@ html.theme-light .invert-on-light {
     display: inline;
   }
 
-  /* -----------------------------------------------------------------------
-     Badges
-     ----------------------------------------------------------------------- */
   .badge,
   .admin-badge {
     padding: 4px 10px;
@@ -434,9 +395,6 @@ html.theme-light .invert-on-light {
     border: 1px solid color-mix(in srgb, var(--color-warning) 30%, transparent);
   }
 
-  /* -----------------------------------------------------------------------
-     Glass panels & table container
-     ----------------------------------------------------------------------- */
   .table-container {
     position: relative;
     background: var(--color-glass);
@@ -489,9 +447,6 @@ html.theme-light .invert-on-light {
     background: rgba(255, 255, 255, 0.15);
   }
 
-  /* -----------------------------------------------------------------------
-     Tables
-     ----------------------------------------------------------------------- */
   table {
     width: 100%;
     border-collapse: collapse;
@@ -537,9 +492,6 @@ html.theme-light .invert-on-light {
     display: none;
   }
 
-  /* -----------------------------------------------------------------------
-     Tabs
-     ----------------------------------------------------------------------- */
   .tabs {
     display: flex;
     gap: 4px;
@@ -582,9 +534,6 @@ html.theme-light .invert-on-light {
     display: block;
   }
 
-  /* -----------------------------------------------------------------------
-     Search
-     ----------------------------------------------------------------------- */
   .search-wrapper {
     position: relative;
     display: inline-block;
@@ -640,9 +589,6 @@ html.theme-light .invert-on-light {
     display: flex;
   }
 
-  /* -----------------------------------------------------------------------
-     Modals
-     ----------------------------------------------------------------------- */
   .modal-overlay {
     position: fixed;
     inset: 0;
@@ -696,9 +642,6 @@ html.theme-light .invert-on-light {
     transition: all 0.2s;
   }
 
-  /* -----------------------------------------------------------------------
-     Forms
-     ----------------------------------------------------------------------- */
   .form-group {
     margin-bottom: 16px;
   }
@@ -741,9 +684,6 @@ html.theme-light .invert-on-light {
     cursor: not-allowed;
   }
 
-  /* -----------------------------------------------------------------------
-     Status buttons (Warframe tracker)
-     ----------------------------------------------------------------------- */
   .status-cell {
     text-align: center;
   }
@@ -821,9 +761,6 @@ html.theme-light .invert-on-light {
     background: rgba(74, 222, 128, 0.15);
   }
 
-  /* -----------------------------------------------------------------------
-     Status select (Warframe admin)
-     ----------------------------------------------------------------------- */
   .status-select {
     padding: 6px 10px;
     font-size: 13px;
@@ -846,9 +783,6 @@ html.theme-light .invert-on-light {
     color: var(--color-foreground);
   }
 
-  /* -----------------------------------------------------------------------
-     Stats bar
-     ----------------------------------------------------------------------- */
   .stats-bar {
     display: flex;
     gap: 20px;
@@ -879,9 +813,6 @@ html.theme-light .invert-on-light {
     color: #fbbf24;
   }
 
-  /* -----------------------------------------------------------------------
-     Edit mode
-     ----------------------------------------------------------------------- */
   .row-actions {
     display: table-cell;
     text-align: center;
@@ -900,7 +831,6 @@ html.theme-light .invert-on-light {
     display: inline-flex;
   }
 
-  /* Row action icon buttons */
   .row-actions .btn-icon {
     padding: 6px;
     font-size: 14px;
@@ -948,9 +878,6 @@ html.theme-light .invert-on-light {
     border-color: color-mix(in srgb, var(--color-danger) 30%, transparent);
   }
 
-  /* -----------------------------------------------------------------------
-     Account selector (Epic7)
-     ----------------------------------------------------------------------- */
   .account-selector {
     position: relative;
   }
@@ -983,7 +910,7 @@ html.theme-light .invert-on-light {
     font-size: 10px;
     opacity: 0.7;
     position: absolute;
-    right: 12px;
+    right: 17px;
     top: 50%;
     transform: translateY(-50%);
     pointer-events: none;
@@ -1013,6 +940,7 @@ html.theme-light .invert-on-light {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    color: var(--color-foreground);
     transition: background 0.15s;
   }
 
@@ -1037,7 +965,7 @@ html.theme-light .invert-on-light {
   .account-dropdown-action {
     padding: 10px 14px;
     cursor: pointer;
-    color: var(--color-muted);
+    color: var(--color-foreground);
     font-size: 13px;
     transition: all 0.15s;
     border-radius: 0 0 8px 8px;
@@ -1048,9 +976,6 @@ html.theme-light .invert-on-light {
     color: var(--color-foreground);
   }
 
-  /* -----------------------------------------------------------------------
-     Filters (Epic7)
-     ----------------------------------------------------------------------- */
   .filter-bar {
     display: flex;
     gap: 16px;
@@ -1128,9 +1053,6 @@ html.theme-light .invert-on-light {
     height: 24px;
   }
 
-  /* -----------------------------------------------------------------------
-     Rating / Gauge buttons (Epic7)
-     ----------------------------------------------------------------------- */
   .rating-btn {
     display: inline-flex;
     align-items: center;
@@ -1167,7 +1089,6 @@ html.theme-light .invert-on-light {
     border-color: var(--color-glass-border-hover);
   }
 
-  /* Cell widths for Epic7 tables */
   .icon-cell {
     width: 150px;
     text-align: center;
@@ -1198,7 +1119,6 @@ html.theme-light .invert-on-light {
     width: 150px;
   }
 
-  /* Keep Epic7 hero/artifact rows visually consistent. */
   .epic7-table tbody tr {
     height: 63px;
   }
@@ -1208,9 +1128,6 @@ html.theme-light .invert-on-light {
     vertical-align: middle;
   }
 
-  /* -----------------------------------------------------------------------
-     No-account message (Epic7)
-     ----------------------------------------------------------------------- */
   .no-account-msg {
     text-align: center;
     padding: 60px 20px;
@@ -1237,9 +1154,6 @@ html.theme-light .invert-on-light {
     background: var(--color-accent-weak-2);
   }
 
-  /* -----------------------------------------------------------------------
-     Panel component (Epic7 admin)
-     ----------------------------------------------------------------------- */
   .panel {
     background: var(--color-glass);
     border: 1px solid var(--color-glass-border);
@@ -1262,9 +1176,6 @@ html.theme-light .invert-on-light {
     color: var(--color-foreground);
   }
 
-  /* -----------------------------------------------------------------------
-     Auth pages (login / register)
-     ----------------------------------------------------------------------- */
   .auth-card {
     background: var(--color-glass);
     border: 1px solid var(--color-glass-border);
@@ -1338,7 +1249,6 @@ html.theme-light .invert-on-light {
     font-weight: 600;
   }
 
-  /* Inline checkbox group (register page) */
   .form-group-inline {
     display: flex;
     align-items: center;
@@ -1356,9 +1266,6 @@ html.theme-light .invert-on-light {
     cursor: pointer;
   }
 
-  /* -----------------------------------------------------------------------
-     Game picker (index)
-     ----------------------------------------------------------------------- */
   .game-card {
     display: block;
     padding: 1.5rem 2rem;
@@ -1368,8 +1275,6 @@ html.theme-light .invert-on-light {
     text-decoration: none;
     border: 1px solid color-mix(in srgb, var(--color-accent) 50%, transparent);
     border-radius: 12px;
-    /* Use color-mix() directly so var(--color-accent) resolves on this element,
-       picking up the per-game inline override instead of the :root default. */
     background: color-mix(in srgb, var(--color-accent) 10%, transparent);
     transition:
       background 0.2s,
@@ -1392,9 +1297,6 @@ html.theme-light .invert-on-light {
     font-size: 0.9rem;
   }
 
-  /* -----------------------------------------------------------------------
-     Corpus admin
-     ----------------------------------------------------------------------- */
   .game-toggle {
     display: inline-flex;
     align-items: center;
@@ -1415,16 +1317,12 @@ html.theme-light .invert-on-light {
     margin-left: 6px;
   }
 
-  /* Admin row-actions variant (flex, not table-cell) */
   .admin-row-actions {
     display: flex;
     gap: 6px;
     white-space: nowrap;
   }
 
-  /* -----------------------------------------------------------------------
-     Loading / Error states
-     ----------------------------------------------------------------------- */
   .loading {
     text-align: center;
     padding: 40px;
@@ -1437,9 +1335,6 @@ html.theme-light .invert-on-light {
     color: var(--color-danger);
   }
 
-  /* -----------------------------------------------------------------------
-     Responsive
-     ----------------------------------------------------------------------- */
   @media (max-width: 768px) {
     .search-box {
       width: 150px;

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { type ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { apiFetch } from '../../utils/api';
 import { useAuth } from '../auth/AuthContext';
@@ -27,6 +27,51 @@ const HERO_CLASSES = [
 ] as const;
 const ARTIFACT_CLASSES = [...HERO_CLASSES, 'universal'] as const;
 const ELEMENTS = ['fire', 'ice', 'earth', 'light', 'dark'] as const;
+const CLASS_NAMES: Record<(typeof ARTIFACT_CLASSES)[number], string> = {
+  warrior: 'Warrior',
+  knight: 'Knight',
+  thief: 'Thief',
+  ranger: 'Ranger',
+  mage: 'Mage',
+  soulweaver: 'Soul Weaver',
+  universal: 'Universal',
+};
+const ELEMENT_NAMES: Record<(typeof ELEMENTS)[number], string> = {
+  fire: 'Fire',
+  ice: 'Ice',
+  earth: 'Earth',
+  light: 'Light',
+  dark: 'Dark',
+};
+
+const ICON_MODULES = import.meta.glob(
+  '../../../packages/games/epic7/assets/icons/*.png',
+  { eager: true, import: 'default' },
+) as Record<string, string>;
+const ICONS: Record<string, string> = {};
+for (const [path, src] of Object.entries(ICON_MODULES)) {
+  const file = path.split('/').pop();
+  if (!file) continue;
+  ICONS[file.replace('.png', '')] = src;
+}
+
+function renderStars(count: number): string | ReactNode {
+  if (!count || count <= 0) return '-';
+  const iconSrc = ICONS[`star${count}`];
+  if (!iconSrc) return `${count}★`;
+  return (
+    <>
+      {Array.from({ length: count }).map((_, index) => (
+        <img
+          key={`${count}-${index}`}
+          src={iconSrc}
+          alt={`${count} stars`}
+          title={`${count} stars`}
+        />
+      ))}
+    </>
+  );
+}
 
 export function AdminPage() {
   const { auth } = useAuth();
@@ -242,17 +287,21 @@ export function AdminPage() {
           {error}
         </p>
       ) : null}
-      <div className="tab-bar">
+      <div className="tabs" role="tablist" aria-label="Epic Seven base categories">
         <button
           type="button"
-          className={`tab-btn ${tab === 'heroes' ? 'active' : ''}`}
+          className={`tab ${tab === 'heroes' ? 'active' : ''}`}
+          role="tab"
+          aria-selected={tab === 'heroes'}
           onClick={() => setActiveTab('heroes')}
         >
           Heroes
         </button>
         <button
           type="button"
-          className={`tab-btn ${tab === 'artifacts' ? 'active' : ''}`}
+          className={`tab ${tab === 'artifacts' ? 'active' : ''}`}
+          role="tab"
+          aria-selected={tab === 'artifacts'}
           onClick={() => setActiveTab('artifacts')}
         >
           Artifacts
@@ -331,15 +380,15 @@ export function AdminPage() {
               {tab === 'heroes' ? (
                 <tr>
                   <th>Name</th>
-                  <th className="text-center">Class</th>
-                  <th className="text-center">Element</th>
+                  <th className="icon-cell text-center">Class</th>
+                  <th className="icon-cell text-center">Element</th>
                   <th className="text-center">Stars</th>
                   <th className="text-center">Actions</th>
                 </tr>
               ) : (
                 <tr>
                   <th>Name</th>
-                  <th className="text-center">Class</th>
+                  <th className="icon-cell text-center">Class</th>
                   <th className="text-center">Stars</th>
                   <th className="text-center">Actions</th>
                 </tr>
@@ -357,9 +406,42 @@ export function AdminPage() {
                   filteredHeroes.map((hero) => (
                     <tr key={hero.id}>
                       <td className="item-name">{hero.name}</td>
-                      <td className="status-cell">{hero.class}</td>
-                      <td className="status-cell">{hero.element}</td>
-                      <td className="status-cell">{hero.star_rating}★</td>
+                      <td className="icon-cell">
+                        {ICONS[hero.class] ? (
+                          <img
+                            className="invert-on-light"
+                            src={ICONS[hero.class]}
+                            alt={
+                              CLASS_NAMES[hero.class as (typeof ARTIFACT_CLASSES)[number]] ??
+                              hero.class
+                            }
+                            title={
+                              CLASS_NAMES[hero.class as (typeof ARTIFACT_CLASSES)[number]] ??
+                              hero.class
+                            }
+                          />
+                        ) : (
+                          hero.class
+                        )}
+                      </td>
+                      <td className="icon-cell">
+                        {ICONS[hero.element] ? (
+                          <img
+                            src={ICONS[hero.element]}
+                            alt={
+                              ELEMENT_NAMES[hero.element as (typeof ELEMENTS)[number]] ??
+                              hero.element
+                            }
+                            title={
+                              ELEMENT_NAMES[hero.element as (typeof ELEMENTS)[number]] ??
+                              hero.element
+                            }
+                          />
+                        ) : (
+                          hero.element
+                        )}
+                      </td>
+                      <td className="stars-cell">{renderStars(hero.star_rating)}</td>
                       <td className="status-cell">
                         <button
                           type="button"
@@ -383,8 +465,27 @@ export function AdminPage() {
                 filteredArtifacts.map((artifact) => (
                   <tr key={artifact.id}>
                     <td className="item-name">{artifact.name}</td>
-                    <td className="status-cell">{artifact.class}</td>
-                    <td className="status-cell">{artifact.star_rating}★</td>
+                    <td className="icon-cell">
+                      {ICONS[artifact.class] ? (
+                        <img
+                          className="invert-on-light"
+                          src={ICONS[artifact.class]}
+                          alt={
+                            CLASS_NAMES[
+                              artifact.class as (typeof ARTIFACT_CLASSES)[number]
+                            ] ?? artifact.class
+                          }
+                          title={
+                            CLASS_NAMES[
+                              artifact.class as (typeof ARTIFACT_CLASSES)[number]
+                            ] ?? artifact.class
+                          }
+                        />
+                      ) : (
+                        artifact.class
+                      )}
+                    </td>
+                    <td className="stars-cell">{renderStars(artifact.star_rating)}</td>
                     <td className="status-cell">
                       <button
                         type="button"
