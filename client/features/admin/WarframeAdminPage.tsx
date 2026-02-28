@@ -1,4 +1,10 @@
-import { type CSSProperties, useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  type CSSProperties,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 
 import { useLayoutSlots } from '../../components/Layout/useLayoutSlots';
 import { apiFetch } from '../../utils/api';

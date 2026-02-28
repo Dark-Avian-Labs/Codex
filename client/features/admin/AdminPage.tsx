@@ -1,4 +1,10 @@
-import { type ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 
 import { apiFetch } from '../../utils/api';
 import { useAuth } from '../auth/AuthContext';
@@ -287,7 +293,11 @@ export function AdminPage() {
           {error}
         </p>
       ) : null}
-      <div className="tabs" role="tablist" aria-label="Epic Seven base categories">
+      <div
+        className="tabs"
+        role="tablist"
+        aria-label="Epic Seven base categories"
+      >
         <button
           type="button"
           className={`tab ${tab === 'heroes' ? 'active' : ''}`}
@@ -412,12 +422,14 @@ export function AdminPage() {
                             className="invert-on-light"
                             src={ICONS[hero.class]}
                             alt={
-                              CLASS_NAMES[hero.class as (typeof ARTIFACT_CLASSES)[number]] ??
-                              hero.class
+                              CLASS_NAMES[
+                                hero.class as (typeof ARTIFACT_CLASSES)[number]
+                              ] ?? hero.class
                             }
                             title={
-                              CLASS_NAMES[hero.class as (typeof ARTIFACT_CLASSES)[number]] ??
-                              hero.class
+                              CLASS_NAMES[
+                                hero.class as (typeof ARTIFACT_CLASSES)[number]
+                              ] ?? hero.class
                             }
                           />
                         ) : (
@@ -429,19 +441,23 @@ export function AdminPage() {
                           <img
                             src={ICONS[hero.element]}
                             alt={
-                              ELEMENT_NAMES[hero.element as (typeof ELEMENTS)[number]] ??
-                              hero.element
+                              ELEMENT_NAMES[
+                                hero.element as (typeof ELEMENTS)[number]
+                              ] ?? hero.element
                             }
                             title={
-                              ELEMENT_NAMES[hero.element as (typeof ELEMENTS)[number]] ??
-                              hero.element
+                              ELEMENT_NAMES[
+                                hero.element as (typeof ELEMENTS)[number]
+                              ] ?? hero.element
                             }
                           />
                         ) : (
                           hero.element
                         )}
                       </td>
-                      <td className="stars-cell">{renderStars(hero.star_rating)}</td>
+                      <td className="stars-cell">
+                        {renderStars(hero.star_rating)}
+                      </td>
                       <td className="status-cell">
                         <button
                           type="button"
@@ -485,7 +501,9 @@ export function AdminPage() {
                         artifact.class
                       )}
                     </td>
-                    <td className="stars-cell">{renderStars(artifact.star_rating)}</td>
+                    <td className="stars-cell">
+                      {renderStars(artifact.star_rating)}
+                    </td>
                     <td className="status-cell">
                       <button
                         type="button"
