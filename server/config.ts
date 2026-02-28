@@ -7,7 +7,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const PROJECT_ROOT = path.resolve(__dirname, '..', '..');
 
 export const DATA_DIR = path.join(PROJECT_ROOT, 'data');
-function requireAbsolutePathEnv(name: 'CENTRAL_DB_PATH' | 'PARAMETRIC_DB_PATH'): string {
+function requireAbsolutePathEnv(
+  name: 'CENTRAL_DB_PATH' | 'PARAMETRIC_DB_PATH',
+): string {
   const value = process.env[name]?.trim();
   if (!value) {
     throw new Error(`${name} must be set to an absolute shared SQLite path.`);

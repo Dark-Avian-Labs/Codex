@@ -101,10 +101,9 @@ function loadNames(
     .filter((name) => name.length > 0);
 }
 
-function loadWorksheetSource(parametricDb: Database.Database): Record<
-  WorksheetName,
-  Set<string>
-> {
+function loadWorksheetSource(
+  parametricDb: Database.Database,
+): Record<WorksheetName, Set<string>> {
   const warframes = new Set(
     loadNames(
       parametricDb,
@@ -359,4 +358,3 @@ export function runWarframeSync(
     parametricDb.close();
   }
 }
-

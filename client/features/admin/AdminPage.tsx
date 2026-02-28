@@ -98,7 +98,8 @@ export function AdminPage() {
         const q = search.trim().toLowerCase();
         const matchesSearch =
           q.length === 0 || artifact.name.toLowerCase().includes(q);
-        const matchesClass = classFilter === '' || artifact.class === classFilter;
+        const matchesClass =
+          classFilter === '' || artifact.class === classFilter;
         return matchesSearch && matchesClass;
       }),
     [baseArtifacts, classFilter, search],

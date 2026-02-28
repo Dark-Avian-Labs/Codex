@@ -68,9 +68,11 @@ export function getWorksheetByName(
     .prepare(
       'SELECT id, name, display_order FROM worksheets WHERE user_id = ? AND name = ?',
     )
-    .get(userId, worksheetName) as (Worksheet & {
-    display_order: number;
-  }) | undefined;
+    .get(userId, worksheetName) as
+    | (Worksheet & {
+        display_order: number;
+      })
+    | undefined;
 }
 
 export function getFirstWorksheetId(

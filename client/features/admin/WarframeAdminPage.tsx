@@ -87,7 +87,9 @@ export function WarframeAdminPage() {
       setWorksheets(next);
       setWorksheetId((current) => current ?? next[0]?.id ?? null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load worksheets');
+      setError(
+        err instanceof Error ? err.message : 'Failed to load worksheets',
+      );
     } finally {
       setLoading(false);
     }
@@ -128,7 +130,9 @@ export function WarframeAdminPage() {
       }
       setMismatchedByWorksheet(mismatchMap);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load sync preview');
+      setError(
+        err instanceof Error ? err.message : 'Failed to load sync preview',
+      );
     }
   }, []);
 
@@ -147,7 +151,8 @@ export function WarframeAdminPage() {
   }, [loadWorksheetData, worksheetId]);
 
   const activeWorksheetName = useMemo(
-    () => worksheets.find((worksheet) => worksheet.id === worksheetId)?.name ?? '',
+    () =>
+      worksheets.find((worksheet) => worksheet.id === worksheetId)?.name ?? '',
     [worksheetId, worksheets],
   );
 
@@ -234,11 +239,7 @@ export function WarframeAdminPage() {
     return () => {
       setHeaderActions(null);
     };
-  }, [
-    handleSync,
-    runningSync,
-    setHeaderActions,
-  ]);
+  }, [handleSync, runningSync, setHeaderActions]);
 
   if (!isAdmin) {
     return (
@@ -274,7 +275,11 @@ export function WarframeAdminPage() {
         </div>
       ) : null}
 
-      <div className="tabs" role="tablist" aria-label="Warframe admin categories">
+      <div
+        className="tabs"
+        role="tablist"
+        aria-label="Warframe admin categories"
+      >
         {worksheets.map((worksheet) => (
           <button
             key={worksheet.id}
@@ -345,7 +350,10 @@ export function WarframeAdminPage() {
                       {data.columns.map((column) => {
                         const value = row.values?.[String(column.id)];
                         return (
-                          <td key={`${row.id}-${column.id}`} className="status-cell">
+                          <td
+                            key={`${row.id}-${column.id}`}
+                            className="status-cell"
+                          >
                             <button
                               type="button"
                               className={statusClass(value ?? '', column.name)}
