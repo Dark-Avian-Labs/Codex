@@ -47,12 +47,14 @@ ensureDataDirs();
 ensureCentralSchema();
 const centralDb = getCentralDb();
 function assertTableExists(
-  db: { prepare: (sql: string) => { get: (...args: unknown[]) => unknown } },
+  db: { prepare: (sql: string) => unknown },
   tableName: string,
 ): void {
-  const row = db
-    .prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?")
-    .get(tableName);
+  const row = (
+    db.prepare(
+      "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
+    ) as { get: (param: string) => unknown }
+  ).get(tableName);
   if (!row) {
     throw new Error(`Required table "${tableName}" was not found.`);
   }
@@ -152,11 +154,11 @@ const { csrfSynchronisedProtection, generateToken } = csrfSync({
   getTokenFromState: (req) => {
     const sessionData = req.session;
     if (!sessionData) return null;
-    return sessionData.csrf_token ?? null;
+    return sessionData.csrfToken ?? null;
   },
   storeTokenInState: (req, token) => {
     if (req.session) {
-      req.session.csrf_token = token as string;
+      req.session.csrfToken = token as string;
     }
   },
 });

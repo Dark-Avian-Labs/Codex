@@ -61,17 +61,20 @@ export async function proxyAuthLogout(
       if (!csrfBody.csrfToken) {
         return false;
       }
-      const logoutResponse = await fetch(`${AUTH_SERVICE_URL}/api/auth/logout`, {
-        method: 'POST',
-        headers: {
-          cookie: req.headers.cookie ?? '',
-          accept: 'application/json',
-          'content-type': 'application/json',
-          'x-csrf-token': csrfBody.csrfToken,
+      const logoutResponse = await fetch(
+        `${AUTH_SERVICE_URL}/api/auth/logout`,
+        {
+          method: 'POST',
+          headers: {
+            cookie: req.headers.cookie ?? '',
+            accept: 'application/json',
+            'content-type': 'application/json',
+            'x-csrf-token': csrfBody.csrfToken,
+          },
+          body: JSON.stringify({ _csrf: csrfBody.csrfToken }),
+          signal: controller.signal,
         },
-        body: JSON.stringify({ _csrf: csrfBody.csrfToken }),
-        signal: controller.signal,
-      });
+      );
       const setCookies = (
         logoutResponse.headers as Headers & {
           getSetCookie?: () => string[];

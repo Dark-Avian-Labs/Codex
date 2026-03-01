@@ -220,9 +220,15 @@ export function requireAdmin(
       return;
     }
     const session = getSession(req);
-    if (!session || typeof session.user_id !== 'number' || session.user_id <= 0) {
+    if (
+      !session ||
+      typeof session.user_id !== 'number' ||
+      session.user_id <= 0
+    ) {
       if (wantsJson(req)) {
-        res.status(500).json({ error: 'Authenticated user id missing from session' });
+        res
+          .status(500)
+          .json({ error: 'Authenticated user id missing from session' });
       } else {
         res.status(500).send('Authenticated user id missing from session');
       }
