@@ -116,6 +116,32 @@ export function Modal({
     };
   }, [open]);
 
+  useEffect(() => {
+    if (!open || typeof document === 'undefined' || !document.body) {
+      return undefined;
+    }
+
+    const body = document.body;
+    const currentCount = Number(body.dataset.modalOpenCount ?? '0');
+    const nextCount = Number.isFinite(currentCount) ? currentCount + 1 : 1;
+    body.dataset.modalOpenCount = String(nextCount);
+    body.classList.add('modal-open');
+
+    return () => {
+      const activeCount = Number(body.dataset.modalOpenCount ?? '1');
+      const decremented = Number.isFinite(activeCount)
+        ? Math.max(0, activeCount - 1)
+        : 0;
+
+      if (decremented === 0) {
+        delete body.dataset.modalOpenCount;
+        body.classList.remove('modal-open');
+      } else {
+        body.dataset.modalOpenCount = String(decremented);
+      }
+    };
+  }, [open]);
+
   if (!open) {
     return null;
   }
