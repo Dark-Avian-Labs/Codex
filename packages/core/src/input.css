@@ -44,6 +44,10 @@
 :root {
   --header-offset: 280px;
   --theme-mode: dark;
+  /* Explicit root declarations keep editor diagnostics happy for custom vars. */
+  --color-foreground: #f8fafc;
+  --color-glass: rgba(255, 255, 255, 0.024);
+  --color-surface-modal: rgba(255, 255, 255, 0.024);
 
   --color-accent-weak: color-mix(in srgb, var(--color-accent) 10%, transparent);
   --color-accent-weak-2: color-mix(
@@ -120,6 +124,12 @@ html.theme-light .invert-on-light {
 }
 
 @layer components {
+  /* Fallback blur for browsers/contexts where backdrop-filter is unreliable. */
+  body.modal-open #root {
+    filter: blur(4px);
+    transition: filter 0.2s ease;
+  }
+
   .bg-art {
     position: fixed;
     top: 50%;
@@ -389,8 +399,8 @@ html.theme-light .invert-on-light {
   }
 
   select.epic7-account-select option {
-    color: var(--color-foreground);
-    background: var(--color-glass);
+    color: var(--color-foreground, #f8fafc);
+    background: var(--color-surface-modal, rgba(255, 255, 255, 0.024));
   }
 
   html.theme-dark select.epic7-account-select {
