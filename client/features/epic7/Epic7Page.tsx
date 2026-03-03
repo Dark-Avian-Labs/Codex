@@ -794,6 +794,7 @@ export function Epic7Page() {
     setHeaderActions(
       <div className="flex items-center gap-2">
         <select
+          id="epic7-account-select"
           value={currentAccountId ?? ''}
           onChange={(event) => {
             const value = Number(event.target.value);
