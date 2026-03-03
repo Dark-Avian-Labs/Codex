@@ -23,6 +23,12 @@ on:
 jobs:
   deploy:
     runs-on: blacksmith-2vcpu-ubuntu-2404
+    env:
+      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY_DEV }}
+      SERVER_KNOWN_HOST: ${{ secrets.SERVER_KNOWN_HOST_DEV }}
+      SERVER_PATH: ${{ secrets.SERVER_PATH_DEV }}
+      SERVER_USER: ${{ secrets.SERVER_USER_DEV }}
+      SERVER_HOST: ${{ secrets.SERVER_HOST_DEV }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -46,10 +52,42 @@ jobs:
 
       - name: Setup SSH
         run: |
+          require_non_empty() {
+            name="$1"
+            value="$2"
+            if [ -z "$value" ]; then
+              echo "ERROR: $name is missing or empty."
+              exit 1
+            fi
+          }
+
+          require_non_empty "SSH_PRIVATE_KEY_DEV" "$SSH_PRIVATE_KEY"
+          require_non_empty "SERVER_KNOWN_HOST_DEV" "$SERVER_KNOWN_HOST"
+          require_non_empty "SERVER_HOST_DEV" "$SERVER_HOST"
+          require_non_empty "SERVER_USER_DEV" "$SERVER_USER"
+          require_non_empty "SERVER_PATH_DEV" "$SERVER_PATH"
+
+          if [ -n "${RSYNC_DEST:-}" ]; then
+            require_non_empty "RSYNC_DEST" "$RSYNC_DEST"
+          fi
+
+          case "$SERVER_PATH" in
+            ""|"/"|"."|".."|"~"|"~/"|"/home"|"/root")
+              echo "ERROR: SERVER_PATH_DEV has unsafe value: '$SERVER_PATH'"
+              exit 1
+              ;;
+          esac
+          case "$SERVER_PATH" in
+            "~"*|*".."*|*"/./"*|*"/../"*|*"//"*)
+              echo "ERROR: SERVER_PATH_DEV contains unsafe path segments: '$SERVER_PATH'"
+              exit 1
+              ;;
+          esac
+
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY_DEV }}" > ~/.ssh/deploy_key
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          echo "${{ secrets.SERVER_KNOWN_HOST_DEV }}" >> ~/.ssh/known_hosts
+          echo "$SERVER_KNOWN_HOST" >> ~/.ssh/known_hosts
 
       - name: Prepare deployment
         run: |
@@ -70,14 +108,15 @@ jobs:
           --exclude='/import/' \
           -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes -o UserKnownHostsFile=~/.ssh/known_hosts" \
           /tmp/deploy/ \
-          ${{ secrets.SERVER_USER_DEV }}@${{ secrets.SERVER_HOST_DEV }}:${{ secrets.SERVER_PATH_DEV }}/
+          $SERVER_USER@$SERVER_HOST:$SERVER_PATH/
 
       - name: Restart PM2
         run: |
           ssh -i ~/.ssh/deploy_key \
-            -o StrictHostKeyChecking=yes -o UserKnownHostsFile=~/.ssh/known_hosts \
-            ${{ secrets.SERVER_USER_DEV }}@${{ secrets.SERVER_HOST_DEV }} \
-            "cd ${{ secrets.SERVER_PATH_DEV }} && source ~/.nvm/nvm.sh && pm2 restart '[DEV] Corpus' --update-env"
+            -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile=~/.ssh/known_hosts \
+            $SERVER_USER@$SERVER_HOST \
+            "cd $SERVER_PATH && source ~/.nvm/nvm.sh && pm2 restart '[DEV] Corpus' --update-env"
 
       - name: Cleanup SSH key
         if: always()
