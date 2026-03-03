@@ -23,6 +23,12 @@ on:
 jobs:
   deploy:
     runs-on: blacksmith-2vcpu-ubuntu-2404
+    env:
+      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      SERVER_KNOWN_HOST: ${{ secrets.SERVER_KNOWN_HOST }}
+      SERVER_PATH: ${{ secrets.SERVER_PATH }}
+      SERVER_USER: ${{ secrets.SERVER_USER }}
+      SERVER_HOST: ${{ secrets.SERVER_HOST }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -47,9 +53,13 @@ jobs:
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          echo "${{ secrets.SERVER_KNOWN_HOST }}" >> ~/.ssh/known_hosts
+          if [ -z "$SERVER_KNOWN_HOST" ]; then
+            echo "ERROR: SERVER_KNOWN_HOST secret is missing or empty."
+            exit 1
+          fi
+          echo "$SERVER_KNOWN_HOST" >> ~/.ssh/known_hosts
 
       - name: Prepare deployment
         run: |
@@ -70,14 +80,15 @@ jobs:
           --exclude='/import/' \
           -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes -o UserKnownHostsFile=~/.ssh/known_hosts" \
           /tmp/deploy/ \
-          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ secrets.SERVER_PATH }}/
+          $SERVER_USER@$SERVER_HOST:$SERVER_PATH/
 
       - name: Restart PM2
         run: |
           ssh -i ~/.ssh/deploy_key \
-            -o StrictHostKeyChecking=yes -o UserKnownHostsFile=~/.ssh/known_hosts \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
-            "cd ${{ secrets.SERVER_PATH }} && source ~/.nvm/nvm.sh && pm2 restart 'Corpus' --update-env"
+            -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile=~/.ssh/known_hosts \
+            $SERVER_USER@$SERVER_HOST \
+            "cd $SERVER_PATH && source ~/.nvm/nvm.sh && pm2 restart 'Corpus' --update-env"
 
       - name: Cleanup SSH key
         if: always()
