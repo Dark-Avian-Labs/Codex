@@ -369,7 +369,7 @@ html.theme-light .invert-on-light {
     background: var(--color-surface-modal);
   }
 
-  .epic7-account-select {
+  select.epic7-account-select {
     appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -384,20 +384,20 @@ html.theme-light .invert-on-light {
     background-size: 12px 8px;
   }
 
-  .epic7-account-select:hover {
+  select.epic7-account-select:hover {
     border-color: var(--color-glass-border-hover);
   }
 
-  .epic7-account-select option {
+  select.epic7-account-select option {
     color: var(--color-foreground);
-    background: var(--color-surface-modal);
+    background: var(--color-glass);
   }
 
-  html.theme-dark .epic7-account-select {
+  html.theme-dark select.epic7-account-select {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='M1 1.25L6 6.25L11 1.25' stroke='%23e2e8f0' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   }
 
-  html.theme-light .epic7-account-select {
+  html.theme-light select.epic7-account-select {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='M1 1.25L6 6.25L11 1.25' stroke='%23334155' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   }
 
