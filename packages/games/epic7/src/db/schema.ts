@@ -85,6 +85,7 @@ function hasTable(db: Database.Database, name: string): boolean {
 export type UniqueIndexOutcome =
   | 'created'
   | 'blocked_by_duplicates'
+  | 'failed'
   | 'skipped';
 
 export type UniqueIndexStatus = {
@@ -99,7 +100,6 @@ function ensureUniqueBaseNameIndexes(db: Database.Database): UniqueIndexStatus {
   };
   const heroTableExists = hasTable(db, 'base_heroes');
   if (heroTableExists) {
-    status.idx_base_heroes_name_unique = 'created';
     const heroDup = db
       .prepare(
         'SELECT name FROM base_heroes GROUP BY name HAVING COUNT(*) > 1 LIMIT 1',
@@ -111,9 +111,18 @@ function ensureUniqueBaseNameIndexes(db: Database.Database): UniqueIndexStatus {
         `[epic7 schema] Skipping unique index idx_base_heroes_name_unique: duplicate name in base_heroes: ${JSON.stringify(heroDup.name)}`,
       );
     } else {
-      db.exec(
-        'CREATE UNIQUE INDEX IF NOT EXISTS idx_base_heroes_name_unique ON base_heroes(name)',
-      );
+      try {
+        db.exec(
+          'CREATE UNIQUE INDEX IF NOT EXISTS idx_base_heroes_name_unique ON base_heroes(name)',
+        );
+        status.idx_base_heroes_name_unique = 'created';
+      } catch (error) {
+        status.idx_base_heroes_name_unique = 'failed';
+        console.error(
+          '[epic7 schema] Failed to create unique index idx_base_heroes_name_unique:',
+          error,
+        );
+      }
     }
   }
   const artifactTableExists = hasTable(db, 'base_artifacts');
@@ -140,6 +149,6 @@ function ensureUniqueBaseNameIndexes(db: Database.Database): UniqueIndexStatus {
 
 const { getDb, closeDb } = createDbSingleton(EPIC7_DB_PATH, {
   pragmas: ['journal_mode = WAL'],
-  onOpen: (db) => ensureUniqueBaseNameIndexes(db),
+  onOpen: (db: Database.Database) => ensureUniqueBaseNameIndexes(db),
 });
 export { getDb, closeDb };

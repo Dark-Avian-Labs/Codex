@@ -96,8 +96,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
       const user: UserSummary = {
-        ...body.user,
+        id: body.user.id,
+        username: body.user.username,
         isAdmin: body.user.is_admin,
+        avatar: body.user.avatar,
+        app: body.user.app,
       };
       setAuth({
         status: 'ok',

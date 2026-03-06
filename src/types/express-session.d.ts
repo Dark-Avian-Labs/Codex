@@ -6,6 +6,9 @@ declare module 'express-session' {
     username?: string;
     is_admin?: boolean;
     login_time?: number;
+    csrf_token?: string;
     csrfToken?: string;
+    account_id?: number | null;
+    account_name?: string | null;
   }
 }

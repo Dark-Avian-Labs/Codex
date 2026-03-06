@@ -32,8 +32,9 @@ async function getCsrfToken(): Promise<string | null> {
     }
   })();
 
+  const generationBeforeAwait = csrfTokenGeneration;
   const token = await inFlightPromise;
-  if (token === null) {
+  if (token === null && generationBeforeAwait === csrfTokenGeneration) {
     cachedToken = null;
   }
   return token;

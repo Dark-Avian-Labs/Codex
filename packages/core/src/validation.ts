@@ -26,11 +26,11 @@ export const positiveInt = z.coerce
   .positive({ error: 'Must be greater than 0' });
 
 export const optionalPositiveInt = z.preprocess(
-  (v) => (v == null || v === '' ? null : v),
+  (v: unknown) => (v == null || v === '' ? null : v),
   z.coerce.number().int().positive().nullable(),
 );
 
-export const flexBool = z.preprocess((v) => {
+export const flexBool = z.preprocess((v: unknown) => {
   if (v === undefined || v === null) return false;
   if (typeof v === 'boolean') return v;
   if (typeof v === 'number') return v !== 0;
@@ -39,5 +39,10 @@ export const flexBool = z.preprocess((v) => {
 }, z.boolean());
 
 export function zodEnum<const T extends readonly string[]>(values: T) {
+  if (values.length === 0) {
+    throw new Error(
+      'zodEnum requires at least one enum value, but received an empty array.',
+    );
+  }
   return z.enum(values);
 }

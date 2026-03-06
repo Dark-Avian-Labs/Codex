@@ -3,12 +3,19 @@ import type { Request, Response } from 'express';
 import { APP_PUBLIC_BASE_URL, AUTH_SERVICE_URL } from '../config.js';
 
 function isSafeRelativePath(next: string): boolean {
+  const trimmed = next.trim();
+  const hasControlChars = Array.from(trimmed).some((ch) => {
+    const code = ch.charCodeAt(0);
+    return code <= 0x1f || code === 0x7f;
+  });
   return (
-    next.startsWith('/') &&
-    !next.includes('\\') &&
-    !next.startsWith('//') &&
-    !next.includes('//') &&
-    !/^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(next)
+    trimmed === next &&
+    !hasControlChars &&
+    trimmed.startsWith('/') &&
+    !trimmed.includes('\\') &&
+    !trimmed.startsWith('//') &&
+    !trimmed.includes('//') &&
+    !/^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(trimmed)
   );
 }
 

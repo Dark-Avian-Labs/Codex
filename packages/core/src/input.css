@@ -892,6 +892,10 @@ html.theme-light .invert-on-light {
     color: var(--color-muted);
   }
 
+  .stat-option {
+    margin-left: auto;
+  }
+
   .stat-value {
     color: var(--color-foreground);
     font-weight: 600;
@@ -927,7 +931,7 @@ html.theme-light .invert-on-light {
 
   .row-actions .btn-icon {
     padding: 6px;
-    font-size: 14px;
+    font-size: 28px;
     border-radius: 4px;
     cursor: pointer;
     transition:
@@ -940,8 +944,8 @@ html.theme-light .invert-on-light {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 28px;
-    height: 28px;
+    min-width: 40px;
+    height: 40px;
     margin: 0 2px;
   }
 
@@ -1023,8 +1027,15 @@ html.theme-light .invert-on-light {
     border-radius: 8px;
     min-width: 200px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     z-index: 100;
     display: none;
+  }
+
+  [aria-labelledby='epic7-account-delete-modal-title'] {
+    backdrop-filter: blur(16px) saturate(130%);
+    -webkit-backdrop-filter: blur(16px) saturate(130%);
   }
 
   .account-dropdown.show {
@@ -1101,6 +1112,23 @@ html.theme-light .invert-on-light {
     border: 1px solid var(--color-glass-border);
     border-radius: 1rem;
     padding: 4px 12px;
+  }
+
+  .admin-add-row-form {
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 10px 12px;
+  }
+
+  .admin-add-row-form input,
+  .admin-add-row-form select {
+    height: 36px;
+    padding: 6px 10px;
+    color: var(--color-foreground);
+    background: var(--color-surface-modal);
+    border: 1px solid var(--color-glass-active);
+    border-radius: 8px;
+    font-family: inherit;
   }
 
   .sync-summary {

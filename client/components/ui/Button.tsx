@@ -83,10 +83,33 @@ export function Button(props: ButtonProps | LinkButtonProps) {
     const childClassName = child.props.className;
     const mergedClassName = [classes, childClassName].filter(Boolean).join(' ');
 
-    return cloneElement(child, {
+    const mergedProps: Partial<ChildProps> = {
       ...(childProps as Partial<ChildProps>),
-      className: mergedClassName,
-    });
+    };
+
+    for (const [key, childValue] of Object.entries(
+      child.props as Record<string, unknown>,
+    )) {
+      const buttonValue = mergedProps[key as keyof ChildProps];
+      if (
+        key.startsWith('on') &&
+        typeof buttonValue === 'function' &&
+        typeof childValue === 'function'
+      ) {
+        mergedProps[key as keyof ChildProps] = ((...args: unknown[]) => {
+          (buttonValue as (...handlerArgs: unknown[]) => void)(...args);
+          (childValue as (...handlerArgs: unknown[]) => void)(...args);
+        }) as ChildProps[keyof ChildProps];
+        continue;
+      }
+
+      mergedProps[key as keyof ChildProps] =
+        childValue as ChildProps[keyof ChildProps];
+    }
+
+    mergedProps.className = mergedClassName;
+
+    return cloneElement(child, mergedProps);
   }
 
   if ('href' in props && props.href) {

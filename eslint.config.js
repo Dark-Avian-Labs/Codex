@@ -3,6 +3,7 @@ import prettier from 'eslint-config-prettier';
 import importPlugin from 'eslint-plugin-import-x';
 import n from 'eslint-plugin-n';
 import promise from 'eslint-plugin-promise';
+import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default [
@@ -21,14 +22,9 @@ export default [
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
-      globals: {
-        console: 'readonly',
-        process: 'readonly',
-        module: 'readonly',
-        __dirname: 'readonly',
-        __filename: 'readonly',
-        global: 'readonly',
-      },
+      globals: Object.fromEntries(
+        Object.keys(globals.node).map((key) => [key, 'readonly']),
+      ),
     },
 
     rules: {
@@ -37,7 +33,7 @@ export default [
       'n/no-unsupported-features/node-builtins': [
         'error',
         {
-          version: '>=24.0.0',
+          version: '>=25.0.0',
           ignores: [],
         },
       ],

@@ -94,30 +94,35 @@ app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+const RATE_LIMIT_SKIP_PATHS = new Set([
+  '/healthz',
+  '/readyz',
+  '/favicon.ico',
+  '/login',
+  '/legal',
+  '/logout',
+  '/admin',
+  '/warframe/admin',
+  '/epic7/admin',
+  '/warframe',
+  '/epic7',
+  '/',
+  '/auth/login',
+  '/auth/profile',
+  '/auth/legal',
+]);
+const RATE_LIMIT_SKIP_PATTERNS = [
+  /^\/assets\/.+\.(?:css|js|png|jpe?g|gif|webp|svg|ico|woff2?)$/i,
+];
+
 const baselineLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 1200,
   standardHeaders: true,
   legacyHeaders: false,
   skip: (req) =>
-    req.path === '/healthz' ||
-    req.path === '/readyz' ||
-    req.path === '/favicon.ico' ||
-    req.path === '/login' ||
-    req.path === '/legal' ||
-    req.path === '/logout' ||
-    req.path === '/admin' ||
-    req.path === '/warframe/admin' ||
-    req.path === '/epic7/admin' ||
-    req.path === '/warframe' ||
-    req.path === '/epic7' ||
-    req.path === '/' ||
-    req.path === '/auth/login' ||
-    req.path === '/auth/profile' ||
-    req.path === '/auth/legal' ||
-    /^\/assets\/.+\.(?:css|js|png|jpe?g|gif|webp|svg|ico|woff2?)$/i.test(
-      req.path,
-    ),
+    RATE_LIMIT_SKIP_PATHS.has(req.path) ||
+    RATE_LIMIT_SKIP_PATTERNS.some((pattern) => pattern.test(req.path)),
 });
 app.use(baselineLimiter);
 

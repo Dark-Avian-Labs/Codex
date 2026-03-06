@@ -298,13 +298,11 @@ const tableScrollStyle = {
   '--header-offset': '340px',
 } as CSSProperties;
 
-export function Epic7Page() {
-  const { setHeaderCenter, setHeaderActions } = useLayoutSlots();
-  const [accounts, setAccounts] = useState<Epic7Account[]>([]);
-  const [currentAccountId, setCurrentAccountId] = useState<number | null>(null);
-  const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
-  const [heroes, setHeroes] = useState<Epic7Hero[]>([]);
-  const [artifacts, setArtifacts] = useState<Epic7Artifact[]>([]);
+function useEpic7Modal() {
+  return useReducer(epic7ModalReducer, initialModalState);
+}
+
+function useEpic7Filters() {
   const [tab, setTab] = useState<'heroes' | 'artifacts'>('heroes');
   const [search, setSearch] = useState('');
   const [activeFilters, setActiveFilters] = useState<ActiveFilters>({
@@ -312,15 +310,33 @@ export function Epic7Page() {
     element: null,
   });
   const [editMode, setEditMode] = useState(false);
-  const [modalState, dispatchModal] = useReducer(
-    epic7ModalReducer,
-    initialModalState,
-  );
+
+  useEffect(() => {
+    setActiveFilters({ class: null, element: null });
+  }, [tab]);
+
+  return {
+    tab,
+    setTab,
+    search,
+    setSearch,
+    activeFilters,
+    setActiveFilters,
+    editMode,
+    setEditMode,
+  };
+}
+
+function useEpic7Data() {
+  const [accounts, setAccounts] = useState<Epic7Account[]>([]);
+  const [currentAccountId, setCurrentAccountId] = useState<number | null>(null);
+  const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
+  const [heroes, setHeroes] = useState<Epic7Hero[]>([]);
+  const [artifacts, setArtifacts] = useState<Epic7Artifact[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [operationError, setOperationError] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
-  const accountMenuRef = useRef<HTMLDivElement | null>(null);
 
   const beginUserActionRequest = useCallback((): AbortSignal => {
     abortControllerRef.current?.abort();
@@ -417,9 +433,57 @@ export function Epic7Page() {
     };
   }, []);
 
-  useEffect(() => {
-    setActiveFilters({ class: null, element: null });
-  }, [tab]);
+  return {
+    accounts,
+    setAccounts,
+    currentAccountId,
+    setCurrentAccountId,
+    isAccountMenuOpen,
+    setIsAccountMenuOpen,
+    heroes,
+    setHeroes,
+    artifacts,
+    setArtifacts,
+    loading,
+    loadError,
+    operationError,
+    setOperationError,
+    abortControllerRef,
+    beginUserActionRequest,
+    loadAccountsAndData,
+  };
+}
+
+export function Epic7Page() {
+  const { setHeaderCenter, setHeaderActions } = useLayoutSlots();
+  const {
+    accounts,
+    currentAccountId,
+    isAccountMenuOpen,
+    setIsAccountMenuOpen,
+    heroes,
+    setHeroes,
+    artifacts,
+    setArtifacts,
+    loading,
+    loadError,
+    operationError,
+    setOperationError,
+    beginUserActionRequest,
+    loadAccountsAndData,
+  } = useEpic7Data();
+  const {
+    tab,
+    setTab,
+    search,
+    setSearch,
+    activeFilters,
+    setActiveFilters,
+    editMode,
+    setEditMode,
+  } = useEpic7Filters();
+  const [modalState, dispatchModal] = useEpic7Modal();
+  const accountMenuRef = useRef<HTMLDivElement | null>(null);
 
   const activeRows = useMemo(() => {
     if (tab === 'heroes') {

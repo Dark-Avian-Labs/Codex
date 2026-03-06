@@ -438,7 +438,8 @@ export function editRow(
   try {
     transaction();
     return true;
-  } catch {
+  } catch (err) {
+    console.error('[warframe db] editRow transaction failed', err);
     return false;
   }
 }
@@ -462,7 +463,8 @@ export function deleteRow(
   try {
     transaction();
     return true;
-  } catch {
+  } catch (err) {
+    console.error('[warframe db] deleteRow transaction failed', err);
     return false;
   }
 }

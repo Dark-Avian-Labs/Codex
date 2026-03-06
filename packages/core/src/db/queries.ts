@@ -37,15 +37,20 @@ export function createUser(
   isAdmin: boolean,
 ): { id: number; inserted: boolean } {
   const trimmed = username.trim();
-  const existing = db
-    .prepare('SELECT id FROM users WHERE LOWER(username) = LOWER(?)')
-    .get(trimmed) as { id: number } | undefined;
-  if (existing) return { id: existing.id, inserted: false };
   const r = db
     .prepare(
-      'INSERT INTO users (username, password_hash, is_admin) VALUES (?, ?, ?)',
+      'INSERT OR IGNORE INTO users (username, password_hash, is_admin) VALUES (?, ?, ?)',
     )
     .run(trimmed, passwordHash, isAdmin ? 1 : 0);
+  if (r.changes === 0) {
+    const existing = db
+      .prepare('SELECT id FROM users WHERE LOWER(username) = LOWER(?)')
+      .get(trimmed) as { id: number } | undefined;
+    if (!existing) {
+      throw new Error('Failed to load existing user after ignored insert');
+    }
+    return { id: existing.id, inserted: false };
+  }
   return { id: Number(r.lastInsertRowid), inserted: true };
 }
 

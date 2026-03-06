@@ -1,5 +1,6 @@
 import type { Request } from 'express';
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
+import { createHash } from 'node:crypto';
 
 function firstHeaderValue(req: Request, header: string): string | null {
   const value = req.headers?.[header];
@@ -12,6 +13,8 @@ function firstHeaderValue(req: Request, header: string): string | null {
 function buildFallbackKey(req: Request): string {
   const ua = firstHeaderValue(req, 'user-agent') ?? 'ua:unknown';
   const host = firstHeaderValue(req, 'host') ?? 'host:unknown';
+  const reqIp =
+    typeof req.ip === 'string' && req.ip.trim() !== '' ? req.ip : null;
   const forwarded = firstHeaderValue(req, 'x-forwarded-for');
   const realIp = firstHeaderValue(req, 'x-real-ip');
   const cfIp = firstHeaderValue(req, 'cf-connecting-ip');
@@ -21,23 +24,21 @@ function buildFallbackKey(req: Request): string {
       ? req.socket.remoteAddress
       : null;
 
-  const candidateIp = forwarded ?? realIp ?? cfIp ?? socketIp;
-  if (candidateIp) {
-    return ipKeyGenerator(candidateIp);
-  }
+  const candidateIp = reqIp ?? forwarded ?? realIp ?? cfIp ?? socketIp;
+  const normalizedIp = candidateIp ? ipKeyGenerator(candidateIp) : 'ip:unknown';
 
   const composite = [
+    normalizedIp,
     ua,
     host,
     req.method,
-    req.originalUrl ?? req.url ?? '',
     req.headers['accept-language'] ?? 'lang:unknown',
     req.headers['accept'] ?? 'accept:unknown',
   ]
     .map((part) => String(part ?? '').trim())
     .join('|');
 
-  return ipKeyGenerator(composite);
+  return createHash('sha256').update(composite).digest('hex');
 }
 
 const keyGen = (req: Request): string => {

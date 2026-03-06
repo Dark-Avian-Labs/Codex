@@ -172,6 +172,14 @@ describe('Epic7 validation schemas', () => {
         true,
       );
     });
+    it('rejects zero or negative artifact_id', () => {
+      expect(deleteArtifactSchema.safeParse({ artifact_id: 0 }).success).toBe(
+        false,
+      );
+      expect(deleteArtifactSchema.safeParse({ artifact_id: -1 }).success).toBe(
+        false,
+      );
+    });
   });
 
   describe('updateHeroDetailsSchema', () => {

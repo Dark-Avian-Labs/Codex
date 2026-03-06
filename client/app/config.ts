@@ -24,6 +24,7 @@ const lower = resolvedLegalPageUrl.toLowerCase();
 const isSafeRelativePath =
   resolvedLegalPageUrl.startsWith('/') &&
   !resolvedLegalPageUrl.startsWith('//') &&
+  !resolvedLegalPageUrl.includes('\\') &&
   !resolvedLegalPageUrl.includes('://') &&
   !lower.startsWith('javascript:') &&
   !lower.startsWith('data:') &&

@@ -271,6 +271,12 @@ export async function createUser(
       error: 'Password must be at least 8 characters',
     };
   }
+  if (password.length > 256) {
+    return {
+      success: false,
+      error: 'Password must be at most 256 characters',
+    };
+  }
   const db = getCentralDb();
   const hash = await hashPassword(password);
   const result = q.createUser(db, u, hash, isAdminUser);
@@ -300,6 +306,9 @@ export async function changePassword(
 ): Promise<{ success: true } | { success: false; error: string }> {
   if (newPassword.length < 8) {
     return { success: false, error: 'Password must be at least 8 characters' };
+  }
+  if (newPassword.length > 256) {
+    return { success: false, error: 'Password must be at most 256 characters' };
   }
   const db = getCentralDb();
   const hash = await hashPassword(newPassword);

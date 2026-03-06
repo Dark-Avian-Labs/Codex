@@ -8,7 +8,7 @@ function getSession(req: Request): AuthSession {
 }
 
 function wantsJson(req: Request): boolean {
-  return req.accepts('json') !== false;
+  return req.accepts(['html', 'json']) === 'json';
 }
 
 const AUTH_FETCH_TIMEOUT_MS = Number.parseInt(
@@ -140,7 +140,11 @@ async function fetchRemoteAuthState(
           ? body.permissions.filter((p): p is string => typeof p === 'string')
           : [],
       };
-    } catch {
+    } catch (err) {
+      console.error(
+        '[auth middleware] Failed to fetch remote auth state:',
+        err,
+      );
       return {
         authenticated: false,
         has_game_access: false,
@@ -191,12 +195,18 @@ export function requireAuth(
   next: NextFunction,
 ): Promise<void> {
   return (async () => {
-    const state = await syncSessionFromAuth(req);
-    if (state.authenticated) {
-      next();
+    try {
+      const state = await syncSessionFromAuth(req);
+      if (state.authenticated) {
+        next();
+        return;
+      }
+      res.redirect(getLoginRedirectUrl(req));
+      return;
+    } catch (err) {
+      next(err);
       return;
     }
-    res.redirect(getLoginRedirectUrl(req));
   })();
 }
 

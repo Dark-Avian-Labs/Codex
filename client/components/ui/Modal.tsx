@@ -169,7 +169,7 @@ export function Modal({
   );
 
   if (!mounted || typeof document === 'undefined' || !document.body) {
-    return modalContent;
+    return null;
   }
 
   return createPortal(modalContent, document.body);

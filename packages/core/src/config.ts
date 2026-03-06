@@ -19,9 +19,7 @@ const _authLockoutMinutes = parseInt(
   10,
 );
 export const AUTH_LOCKOUT_MINUTES =
-  Number.isFinite(_authLockoutMinutes) &&
-  Number.isInteger(_authLockoutMinutes) &&
-  _authLockoutMinutes > 0
+  Number.isInteger(_authLockoutMinutes) && _authLockoutMinutes > 0
     ? _authLockoutMinutes
     : 15;
 

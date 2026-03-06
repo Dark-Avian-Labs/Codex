@@ -12,33 +12,12 @@ import {
   SECURE_COOKIES,
   SESSION_COOKIE_NAME,
 } from '../config.js';
+import {
+  getGameMetadata,
+  unknownGameMetadata,
+} from '../games/metadataRegistry.js';
 
 export const authRouter = Router();
-
-type GameAppMetadata = {
-  label: string;
-  subtitle: string;
-  url: string;
-};
-
-const gameMetadata: Record<string, GameAppMetadata> = {
-  epic7: {
-    label: 'Epic Seven',
-    subtitle: 'Collection tracker',
-    url: '/epic7',
-  },
-  warframe: {
-    label: 'Warframe',
-    subtitle: 'Inventory tracker',
-    url: '/warframe',
-  },
-};
-
-const unknownGameMetadata: GameAppMetadata = {
-  label: 'Unknown Game',
-  subtitle: 'Unknown app',
-  url: '/apps',
-};
 
 authRouter.get('/csrf', (_req, res) => {
   res.json({
@@ -53,7 +32,7 @@ authRouter.get('/me', (req, res) => {
     return;
   }
   const apps = getGamesForUser(userId).map((id) => {
-    const metadata = gameMetadata[id] ?? {
+    const metadata = getGameMetadata(id) ?? {
       ...unknownGameMetadata,
       url: `/${id}`,
     };

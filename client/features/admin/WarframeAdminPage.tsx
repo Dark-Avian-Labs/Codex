@@ -155,6 +155,11 @@ export function WarframeAdminPage() {
         columns: Array.isArray(body.columns) ? body.columns : [],
         rows: Array.isArray(body.rows) ? body.rows : [],
       });
+    } catch (err) {
+      console.error('[warframe admin] Failed to load worksheet data', err);
+      setError(
+        err instanceof Error ? err.message : 'Failed to load worksheet data',
+      );
     } finally {
       setLoadingData(false);
     }

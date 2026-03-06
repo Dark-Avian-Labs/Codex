@@ -316,8 +316,11 @@ export function Layout() {
                           tabIndex={-1}
                           onClick={() => {
                             setMenuOpen(false);
-                            void logout('/login').catch(() => {
-                              // ignore
+                            void logout('/login').catch((err) => {
+                              console.error(
+                                '[layout] Logout failed from user menu',
+                                err,
+                              );
                             });
                           }}
                         >

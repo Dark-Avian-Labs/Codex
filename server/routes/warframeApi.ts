@@ -60,6 +60,20 @@ function getUserId(req: Request): number {
   return userId;
 }
 
+function ensureWarframeUserSettingsTable(
+  db: ReturnType<typeof getWarframeDb>,
+): void {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS user_settings (
+      user_id INTEGER NOT NULL,
+      setting_key TEXT NOT NULL,
+      setting_value TEXT NOT NULL,
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      PRIMARY KEY (user_id, setting_key)
+    );
+  `);
+}
+
 async function getDbOrFail(
   res: Response,
 ): Promise<ReturnType<typeof getWarframeDb> | null> {
@@ -79,6 +93,7 @@ async function getDbOrFail(
 }
 
 const ALLOWED_UPDATE_VALUES = ['', 'Obtained', 'Complete'];
+const SETTING_HIDE_COMPLETED = 'hide_completed';
 
 type ValidateColumnValuesInvalidEntry = {
   column_id: string;
@@ -152,6 +167,73 @@ warframeApiRouter.get('/worksheets', (req, res) => {
     } catch (error) {
       console.error('Failed to fetch worksheets:', error);
       res.status(500).json({ error: 'Internal Server Error' });
+    } finally {
+      db.close();
+    }
+  })();
+});
+
+warframeApiRouter.get('/settings', (req, res) => {
+  void (async () => {
+    const userId = extractUserIdFromRequest(req);
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+    const db = await getDbOrFail(res);
+    if (!db) return;
+    try {
+      ensureWarframeUserSettingsTable(db);
+      const row = db
+        .prepare(
+          `SELECT setting_value FROM user_settings
+           WHERE user_id = ? AND setting_key = ?`,
+        )
+        .get(userId, SETTING_HIDE_COMPLETED) as
+        | { setting_value: string }
+        | undefined;
+      res.status(200).json({
+        hide_completed: row?.setting_value === '1',
+      });
+    } catch (error) {
+      console.error('Failed to load Warframe settings:', error);
+      res.status(500).json({ error: 'Failed to load settings.' });
+    } finally {
+      db.close();
+    }
+  })();
+});
+
+warframeApiRouter.patch('/settings', (req, res) => {
+  void (async () => {
+    const userId = extractUserIdFromRequest(req);
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+    if (typeof req.body?.hide_completed !== 'boolean') {
+      res.status(400).json({ error: 'hide_completed must be a boolean.' });
+      return;
+    }
+    const db = await getDbOrFail(res);
+    if (!db) return;
+    try {
+      ensureWarframeUserSettingsTable(db);
+      db.prepare(
+        `INSERT INTO user_settings (user_id, setting_key, setting_value, updated_at)
+         VALUES (?, ?, ?, datetime('now'))
+         ON CONFLICT(user_id, setting_key) DO UPDATE SET
+           setting_value = excluded.setting_value,
+           updated_at = datetime('now')`,
+      ).run(
+        userId,
+        SETTING_HIDE_COMPLETED,
+        req.body.hide_completed ? '1' : '0',
+      );
+      res.status(200).json({ success: true });
+    } catch (error) {
+      console.error('Failed to save Warframe settings:', error);
+      res.status(500).json({ error: 'Failed to save settings.' });
     } finally {
       db.close();
     }
@@ -404,11 +486,7 @@ warframeApiRouter.patch('/admin/cells', requireAdmin, (req, res) => {
 
 warframeApiRouter.get('/admin/sync-preview', requireAdmin, (req, res) => {
   void (async () => {
-    const userId = extractUserIdFromRequest(req);
-    if (!userId) {
-      res.status(401).json({ error: 'Unauthorized' });
-      return;
-    }
+    const userId = extractUserIdFromRequest(req)!;
     const db = await getDbOrFail(res);
     if (!db) return;
     try {

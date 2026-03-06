@@ -16,11 +16,9 @@ export function ensureAuthenticatedPage(
   res: Response,
   next: NextFunction,
 ): void {
-  if (
-    req.session &&
-    typeof req.session.user_id === 'number' &&
-    req.session.user_id > 0
-  ) {
+  const userId = (req.session as { user_id?: unknown } | undefined)?.user_id;
+  const hasValidUserId = Number.isInteger(userId) && (userId as number) > 0;
+  if (req.session && hasValidUserId) {
     next();
     return;
   }
