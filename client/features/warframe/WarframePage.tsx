@@ -522,7 +522,9 @@ export function WarframePage() {
                 <tr
                   key={row.id}
                   className={
-                    isRowCompleted(row, data.columns) ? 'warframe-completed-row' : ''
+                    isRowCompleted(row, data.columns)
+                      ? 'warframe-completed-row'
+                      : ''
                   }
                 >
                   <td className="item-name">
