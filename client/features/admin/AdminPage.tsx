@@ -550,95 +550,100 @@ export function AdminPage() {
         </div>
       </div>
 
-      <div className="filter-group">
-        {tab === 'heroes' ? (
-          <>
-            <input
-              value={heroName}
-              onChange={(event) => setHeroName(event.target.value)}
-              placeholder="New hero name"
-              aria-label="New base hero name"
-            />
-            <select
-              value={heroClass}
-              onChange={(event) => setHeroClass(event.target.value)}
-              aria-label="New base hero class"
-            >
-              {HERO_CLASSES.map((value) => (
-                <option key={value} value={value}>
-                  {value}
-                </option>
-              ))}
-            </select>
-            <select
-              value={heroElement}
-              onChange={(event) => setHeroElement(event.target.value)}
-              aria-label="New base hero element"
-            >
-              {ELEMENTS.map((value) => (
-                <option key={value} value={value}>
-                  {value}
-                </option>
-              ))}
-            </select>
-            <select
-              value={heroStars}
-              onChange={(event) => setHeroStars(Number(event.target.value))}
-              aria-label="New base hero stars"
-            >
-              {[3, 4, 5].map((value) => (
-                <option key={value} value={value}>
-                  {value}
-                </option>
-              ))}
-            </select>
-            <button
-              type="button"
-              className="btn btn-accent"
-              onClick={() => void addHero()}
-            >
-              Add Hero
-            </button>
-          </>
-        ) : (
-          <>
-            <input
-              value={artifactName}
-              onChange={(event) => setArtifactName(event.target.value)}
-              placeholder="New artifact name"
-              aria-label="New base artifact name"
-            />
-            <select
-              value={artifactClass}
-              onChange={(event) => setArtifactClass(event.target.value)}
-              aria-label="New base artifact class"
-            >
-              {ARTIFACT_CLASSES.map((value) => (
-                <option key={value} value={value}>
-                  {value}
-                </option>
-              ))}
-            </select>
-            <select
-              value={artifactStars}
-              onChange={(event) => setArtifactStars(Number(event.target.value))}
-              aria-label="New base artifact stars"
-            >
-              {[3, 4, 5].map((value) => (
-                <option key={value} value={value}>
-                  {value}
-                </option>
-              ))}
-            </select>
-            <button
-              type="button"
-              className="btn btn-accent"
-              onClick={() => void addArtifact()}
-            >
-              Add Artifact
-            </button>
-          </>
-        )}
+      <div className="space-y-2">
+        <h2 className="text-base font-semibold">Add Row</h2>
+        <div className="filter-group admin-add-row-form">
+          {tab === 'heroes' ? (
+            <>
+              <input
+                value={heroName}
+                onChange={(event) => setHeroName(event.target.value)}
+                placeholder="New hero name"
+                aria-label="New base hero name"
+              />
+              <select
+                value={heroClass}
+                onChange={(event) => setHeroClass(event.target.value)}
+                aria-label="New base hero class"
+              >
+                {HERO_CLASSES.map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={heroElement}
+                onChange={(event) => setHeroElement(event.target.value)}
+                aria-label="New base hero element"
+              >
+                {ELEMENTS.map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={heroStars}
+                onChange={(event) => setHeroStars(Number(event.target.value))}
+                aria-label="New base hero stars"
+              >
+                {[3, 4, 5].map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                className="btn btn-accent"
+                onClick={() => void addHero()}
+              >
+                Add Hero
+              </button>
+            </>
+          ) : (
+            <>
+              <input
+                value={artifactName}
+                onChange={(event) => setArtifactName(event.target.value)}
+                placeholder="New artifact name"
+                aria-label="New base artifact name"
+              />
+              <select
+                value={artifactClass}
+                onChange={(event) => setArtifactClass(event.target.value)}
+                aria-label="New base artifact class"
+              >
+                {ARTIFACT_CLASSES.map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={artifactStars}
+                onChange={(event) =>
+                  setArtifactStars(Number(event.target.value))
+                }
+                aria-label="New base artifact stars"
+              >
+                {[3, 4, 5].map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                className="btn btn-accent"
+                onClick={() => void addArtifact()}
+              >
+                Add Artifact
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </section>
   );

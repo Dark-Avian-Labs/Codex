@@ -149,6 +149,6 @@ function ensureUniqueBaseNameIndexes(db: Database.Database): UniqueIndexStatus {
 
 const { getDb, closeDb } = createDbSingleton(EPIC7_DB_PATH, {
   pragmas: ['journal_mode = WAL'],
-  onOpen: (db) => ensureUniqueBaseNameIndexes(db),
+  onOpen: (db: Database.Database) => ensureUniqueBaseNameIndexes(db),
 });
 export { getDb, closeDb };

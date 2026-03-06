@@ -458,9 +458,7 @@ export function Epic7Page() {
   const { setHeaderCenter, setHeaderActions } = useLayoutSlots();
   const {
     accounts,
-    setAccounts,
     currentAccountId,
-    setCurrentAccountId,
     isAccountMenuOpen,
     setIsAccountMenuOpen,
     heroes,
@@ -471,7 +469,6 @@ export function Epic7Page() {
     loadError,
     operationError,
     setOperationError,
-    abortControllerRef,
     beginUserActionRequest,
     loadAccountsAndData,
   } = useEpic7Data();

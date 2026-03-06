@@ -9,6 +9,8 @@ interface MenuProps {
 
 export function Menu({ children, className, baseClass = 'menu' }: MenuProps) {
   return (
-    <div className={clsx(baseClass, 'glass-surface', className)}>{children}</div>
+    <div className={clsx(baseClass, 'glass-surface', className)}>
+      {children}
+    </div>
   );
 }

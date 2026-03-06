@@ -12,6 +12,9 @@ type Row = {
   values?: Record<string, string>;
 };
 type WorksheetData = { columns: Column[]; rows: Row[] };
+type WarframeSettings = {
+  hide_completed: boolean;
+};
 
 const STATUS_CYCLE = ['', 'Obtained', 'Complete'];
 const HELMINTH_CYCLE = ['', 'Yes'];
@@ -49,12 +52,43 @@ function statusClass(value: string, columnName: string): string {
   return `status-btn ${value.toLowerCase() || 'empty'}`;
 }
 
+function isRowCompleted(row: Row, columns: Column[]): boolean {
+  const coreColumns = columns.filter((column) => column.name !== 'Helminth');
+  if (coreColumns.length === 0) {
+    return false;
+  }
+
+  const relevantCoreColumns = coreColumns.filter((column) => {
+    const value = row.values?.[String(column.id)] ?? '';
+    return value !== 'Unavailable';
+  });
+  if (relevantCoreColumns.length === 0) {
+    return false;
+  }
+
+  const hasAllCoreComplete = relevantCoreColumns.every((column) => {
+    const value = row.values?.[String(column.id)] ?? '';
+    return value === 'Complete';
+  });
+  if (!hasAllCoreComplete) {
+    return false;
+  }
+
+  const helminthColumn = columns.find((column) => column.name === 'Helminth');
+  if (!helminthColumn) {
+    return true;
+  }
+
+  return (row.values?.[String(helminthColumn.id)] ?? '') === 'Yes';
+}
+
 export function WarframePage() {
   const { setHeaderCenter, setHeaderActions } = useLayoutSlots();
   const [worksheets, setWorksheets] = useState<Worksheet[]>([]);
   const [worksheetId, setWorksheetId] = useState<number | null>(null);
   const [data, setData] = useState<WorksheetData>({ columns: [], rows: [] });
   const [search, setSearch] = useState('');
+  const [hideCompleted, setHideCompleted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const worksheetIdRef = useRef<number | null>(worksheetId);
@@ -70,6 +104,17 @@ export function WarframePage() {
     }
     const body = (await response.json()) as { worksheets?: Worksheet[] };
     return Array.isArray(body.worksheets) ? body.worksheets : [];
+  }, []);
+
+  const fetchSettings = useCallback(async (): Promise<WarframeSettings> => {
+    const response = await apiFetch('/api/warframe/settings');
+    if (!response.ok) {
+      throw new Error('Failed to load Warframe settings');
+    }
+    const body = (await response.json()) as Partial<WarframeSettings> | null;
+    return {
+      hide_completed: Boolean(body?.hide_completed),
+    };
   }, []);
 
   const fetchWorksheetData = useCallback(
@@ -102,7 +147,11 @@ export function WarframePage() {
     setLoading(true);
     setError(null);
     try {
-      const items = (await fetchWorksheets())
+      const [worksheetItems, settings] = await Promise.all([
+        fetchWorksheets(),
+        fetchSettings(),
+      ]);
+      const items = worksheetItems
         .map((worksheet) => ({
           ...worksheet,
           name: worksheet.name.replace(/^\uFEFF/, '').trim(),
@@ -118,6 +167,7 @@ export function WarframePage() {
             (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB)
           );
         });
+      setHideCompleted(settings.hide_completed);
       setWorksheets(items);
       setWorksheetId(items[0]?.id ?? null);
     } catch {
@@ -125,7 +175,7 @@ export function WarframePage() {
     } finally {
       setLoading(false);
     }
-  }, [fetchWorksheets]);
+  }, [fetchSettings, fetchWorksheets]);
 
   const loadWorksheetData = useCallback(
     async (targetWorksheetId: number, signal?: AbortSignal): Promise<void> => {
@@ -177,15 +227,21 @@ export function WarframePage() {
     };
   }, [worksheetId, loadWorksheetData]);
 
-  const rows = useMemo(
-    () =>
-      data.rows.filter((row) =>
-        (row.name || row.item_name || '')
-          .toLowerCase()
-          .includes(search.toLowerCase()),
-      ),
-    [data.rows, search],
-  );
+  const rows = useMemo(() => {
+    const query = search.toLowerCase();
+    return data.rows.filter((row) => {
+      const matchesSearch = (row.name || row.item_name || '')
+        .toLowerCase()
+        .includes(query);
+      if (!matchesSearch) {
+        return false;
+      }
+      if (!hideCompleted) {
+        return true;
+      }
+      return !isRowCompleted(row, data.columns);
+    });
+  }, [data.columns, data.rows, hideCompleted, search]);
 
   const stats = useMemo(() => {
     const byColumn: Record<string, { total: number; complete: number }> = {};
@@ -279,6 +335,30 @@ export function WarframePage() {
       setError('Failed to save Warframe update.');
     }
   }
+
+  const handleHideCompletedChange = useCallback(
+    async (nextValue: boolean): Promise<void> => {
+      const previousValue = hideCompleted;
+      setHideCompleted(nextValue);
+      try {
+        const response = await apiFetch('/api/warframe/settings', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ hide_completed: nextValue }),
+        });
+        const body = (await response.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+        if (!response.ok || body?.error) {
+          throw new Error(body?.error || 'Failed to save Warframe settings');
+        }
+      } catch {
+        setHideCompleted(previousValue);
+        setError('Failed to save "Hide completed" setting.');
+      }
+    },
+    [hideCompleted],
+  );
 
   useEffect(() => {
     setHeaderActions(null);
@@ -378,6 +458,18 @@ export function WarframePage() {
             <span>({entry.percent}%)</span>
           </div>
         ))}
+        <div className="stat stat-option">
+          <label className="form-group-inline">
+            <input
+              type="checkbox"
+              checked={hideCompleted}
+              onChange={(event) => {
+                void handleHideCompletedChange(event.target.checked);
+              }}
+            />
+            <span>Hide completed</span>
+          </label>
+        </div>
       </div>
       <div className="table-container">
         <div className="table-scroll">

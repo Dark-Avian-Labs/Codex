@@ -103,7 +103,8 @@ export function Button(props: ButtonProps | LinkButtonProps) {
         continue;
       }
 
-      mergedProps[key as keyof ChildProps] = childValue as ChildProps[keyof ChildProps];
+      mergedProps[key as keyof ChildProps] =
+        childValue as ChildProps[keyof ChildProps];
     }
 
     mergedProps.className = mergedClassName;

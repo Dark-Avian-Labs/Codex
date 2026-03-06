@@ -141,7 +141,10 @@ async function fetchRemoteAuthState(
           : [],
       };
     } catch (err) {
-      console.error('[auth middleware] Failed to fetch remote auth state:', err);
+      console.error(
+        '[auth middleware] Failed to fetch remote auth state:',
+        err,
+      );
       return {
         authenticated: false,
         has_game_access: false,
