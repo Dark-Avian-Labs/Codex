@@ -473,7 +473,11 @@ export function WarframePage() {
             <span>/</span>
             <span className="stat-value">{entry.total}</span>
             <span>({entry.percent}%)</span>
-            <span className="stat-value stat-obtained">+{entry.obtained}</span>
+            {entry.obtained > 0 ? (
+              <span className="stat-value stat-obtained">
+                +{entry.obtained}
+              </span>
+            ) : null}
           </div>
         ))}
         <div className="stat stat-option">
