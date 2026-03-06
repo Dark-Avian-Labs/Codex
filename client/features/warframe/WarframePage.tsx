@@ -238,7 +238,8 @@ export function WarframePage() {
   }, [worksheetId, loadWorksheetData]);
 
   const rows = useMemo(() => {
-    const query = search.toLowerCase();
+    const query = search.trim().toLowerCase();
+    const hasSearch = query.length > 0;
     return data.rows.filter((row) => {
       const matchesSearch = (row.name || row.item_name || '')
         .toLowerCase()
@@ -246,7 +247,7 @@ export function WarframePage() {
       if (!matchesSearch) {
         return false;
       }
-      if (!hideCompleted) {
+      if (!hideCompleted || hasSearch) {
         return true;
       }
       return !isRowCompleted(row, data.columns);
