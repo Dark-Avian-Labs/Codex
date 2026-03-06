@@ -310,7 +310,8 @@ function reconcileVariantAvailability(params: {
 
   let hasChange = false;
   for (const [columnId, targetValue] of targetValuesByColumn.entries()) {
-    const currentValue = q.getCellValue(corpusDb, rowId, columnId, userId) ?? '';
+    const currentValue =
+      q.getCellValue(corpusDb, rowId, columnId, userId) ?? '';
     const nextValue =
       targetValue === 'Unavailable'
         ? 'Unavailable'
