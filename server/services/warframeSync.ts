@@ -134,31 +134,31 @@ function loadWorksheetSource(
   const primary = new Set(
     loadNames(
       parametricDb,
-      "SELECT name FROM weapons WHERE product_category = 'LongGuns'",
+      "SELECT name FROM weapons WHERE product_category = 'LongGuns' AND slot IS NOT NULL AND TRIM(slot) <> ''",
     ),
   );
   const secondary = new Set(
     loadNames(
       parametricDb,
-      "SELECT name FROM weapons WHERE product_category = 'Pistols'",
+      "SELECT name FROM weapons WHERE product_category = 'Pistols' AND slot IS NOT NULL AND TRIM(slot) <> ''",
     ),
   );
   const melee = new Set(
     loadNames(
       parametricDb,
-      "SELECT name FROM weapons WHERE product_category = 'Melee'",
+      "SELECT name FROM weapons WHERE product_category = 'Melee' AND slot IS NOT NULL AND TRIM(slot) <> ''",
     ),
   );
   const archwing = new Set(
     loadNames(
       parametricDb,
-      "SELECT name FROM weapons WHERE product_category IN ('SpaceGuns', 'SpaceMelee')",
+      "SELECT name FROM weapons WHERE product_category IN ('SpaceGuns', 'SpaceMelee') AND slot IS NOT NULL AND TRIM(slot) <> ''",
     ),
   );
   const modular = new Set(
     loadNames(
       parametricDb,
-      "SELECT name FROM weapons WHERE product_category IN ('ModularPrimary', 'ModularSecondary', 'Amps') AND name IS NOT NULL",
+      "SELECT name FROM weapons WHERE product_category IN ('ModularPrimary', 'ModularSecondary', 'Amps') AND name IS NOT NULL AND slot IS NOT NULL AND TRIM(slot) <> ''",
     ),
   );
 
@@ -181,7 +181,7 @@ function appendCurrentSpecialItemPlacements(
   const specialNames = new Set(
     loadNames(
       parametricDb,
-      "SELECT name FROM weapons WHERE product_category = 'SpecialItems' AND name IS NOT NULL",
+      "SELECT name FROM weapons WHERE product_category = 'SpecialItems' AND name IS NOT NULL AND slot IS NOT NULL AND TRIM(slot) <> ''",
     ),
   );
   for (const worksheet of [
