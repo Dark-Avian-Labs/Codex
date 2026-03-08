@@ -3,7 +3,6 @@ import type Database from 'better-sqlite3';
 
 import { EPIC7_DB_PATH } from '../config.js';
 
-/** Destructive: drops and recreates Epic Seven tables. Enable foreign keys before use. */
 export function createSchema(db: Database.Database): void {
   db.pragma('foreign_keys = ON');
   db.exec(`
