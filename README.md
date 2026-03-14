@@ -43,8 +43,8 @@ This project supports `dotenvx` for local `.env` loading now, and can optionally
 
 Suggested secret naming when vault is enabled:
 
-- `DOTENV_KEY_DEV`
-- `DOTENV_KEY_PROD`
+- `DOTENV_PRIVATE_KEY_DEVELOPMENT`
+- `DOTENV_PRIVATE_KEY_PRODUCTION`
 
 Use one key per environment to reduce blast radius.
 
