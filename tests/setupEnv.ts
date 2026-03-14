@@ -1,4 +1,24 @@
+import { config as loadEnv } from '@dotenvx/dotenvx';
+import fs from 'fs';
 import path from 'path';
+
+const testEnvCandidates = ['.env.test', '.env.development', '.env'];
+for (const envFile of testEnvCandidates) {
+  const envPath = path.join(process.cwd(), envFile);
+  if (!fs.existsSync(envPath)) {
+    continue;
+  }
+  try {
+    loadEnv({ path: envPath });
+  } catch (error) {
+    console.error(
+      `[Test Setup] Failed to load environment via loadEnv from "${envPath}".`,
+      error,
+    );
+    throw error;
+  }
+  break;
+}
 
 process.env.NODE_ENV ??= 'test';
 process.env.APP_PUBLIC_BASE_URL ??= 'https://corpus.example.test';
