@@ -269,7 +269,9 @@ export function requireAuth(
             .status(authServiceFailureStatus(state))
             .json({ error: 'Auth service unavailable' });
         } else {
-          res.status(503).send('Authentication service unavailable');
+          res
+            .status(authServiceFailureStatus(state))
+            .send('Authentication service unavailable');
         }
         return;
       }
@@ -300,7 +302,9 @@ export function requireAdmin(
           .status(authServiceFailureStatus(state))
           .json({ error: 'Auth service unavailable' });
       } else {
-        res.status(503).send('Authentication service unavailable');
+        res
+          .status(authServiceFailureStatus(state))
+          .send('Authentication service unavailable');
       }
       return;
     }
@@ -349,7 +353,9 @@ export function requireGameAccess(gameId: string) {
           .status(authServiceFailureStatus(state))
           .json({ error: 'Auth service unavailable' });
       } else {
-        res.status(503).send('Authentication service unavailable');
+        res
+          .status(authServiceFailureStatus(state))
+          .send('Authentication service unavailable');
       }
       return;
     }
