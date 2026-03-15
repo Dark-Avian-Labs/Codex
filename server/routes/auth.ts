@@ -1,4 +1,4 @@
-import { getGamesForUser } from '@corpus/core';
+import { getGamesForUser, requireAuthApi } from '@corpus/core';
 import { Router } from 'express';
 
 import {
@@ -25,7 +25,7 @@ authRouter.get('/csrf', (_req, res) => {
   });
 });
 
-authRouter.get('/me', (req, res) => {
+authRouter.get('/me', requireAuthApi, (req, res) => {
   const userId = req.session.user_id;
   if (typeof userId !== 'number' || userId <= 0) {
     res.status(401).json({ authenticated: false, user: null, apps: [] });

@@ -11,6 +11,41 @@ function wantsJson(req: Request): boolean {
   return req.accepts(['html', 'json']) === 'json';
 }
 
+function parseRetryAfterSeconds(value: string | null): number | undefined {
+  if (!value) return undefined;
+  const asNumber = Number.parseInt(value, 10);
+  if (Number.isFinite(asNumber) && asNumber > 0) {
+    return asNumber;
+  }
+  const asDateMs = Date.parse(value);
+  if (Number.isFinite(asDateMs)) {
+    const deltaMs = asDateMs - Date.now();
+    if (deltaMs > 0) {
+      return Math.ceil(deltaMs / 1000);
+    }
+  }
+  return undefined;
+}
+
+function authServiceFailureStatus(state: {
+  auth_rate_limited?: boolean;
+}): number {
+  return state.auth_rate_limited ? 429 : 503;
+}
+
+function applyAuthServiceRetryHeaders(
+  res: Response,
+  state: { auth_retry_after_sec?: number },
+): void {
+  if (
+    typeof state.auth_retry_after_sec === 'number' &&
+    Number.isFinite(state.auth_retry_after_sec) &&
+    state.auth_retry_after_sec > 0
+  ) {
+    res.setHeader('Retry-After', String(Math.ceil(state.auth_retry_after_sec)));
+  }
+}
+
 const AUTH_FETCH_TIMEOUT_MS = Number.parseInt(
   process.env.AUTH_FETCH_TIMEOUT_MS ?? '5000',
   10,
@@ -73,6 +108,9 @@ type RemoteAuthState = {
     avatar: number;
   } | null;
   permissions: string[];
+  auth_service_error?: boolean;
+  auth_rate_limited?: boolean;
+  auth_retry_after_sec?: number;
 };
 
 type AuthStateCache = Partial<Record<string, Promise<RemoteAuthState>>>;
@@ -114,6 +152,29 @@ async function fetchRemoteAuthState(
         signal: controller.signal,
       });
       if (!upstream.ok) {
+        if (upstream.status === 429) {
+          const retryAfterSec = parseRetryAfterSeconds(
+            upstream.headers.get('retry-after'),
+          );
+          return {
+            authenticated: false,
+            has_game_access: false,
+            user: null,
+            permissions: [],
+            auth_service_error: true,
+            auth_rate_limited: true,
+            auth_retry_after_sec: retryAfterSec,
+          };
+        }
+        if (upstream.status >= 500) {
+          return {
+            authenticated: false,
+            has_game_access: false,
+            user: null,
+            permissions: [],
+            auth_service_error: true,
+          };
+        }
         return {
           authenticated: false,
           has_game_access: false,
@@ -150,6 +211,7 @@ async function fetchRemoteAuthState(
         has_game_access: false,
         user: null,
         permissions: [],
+        auth_service_error: true,
       };
     } finally {
       clearTimeout(timeout);
@@ -166,6 +228,9 @@ async function syncSessionFromAuth(
   const state = await fetchRemoteAuthState(req, gameId);
   const session = getSession(req);
   if (!session) {
+    return state;
+  }
+  if (state.auth_service_error) {
     return state;
   }
   if (!state.authenticated || !state.user) {
@@ -197,6 +262,19 @@ export function requireAuth(
   return (async () => {
     try {
       const state = await syncSessionFromAuth(req);
+      if (state.auth_service_error) {
+        applyAuthServiceRetryHeaders(res, state);
+        if (wantsJson(req)) {
+          res
+            .status(authServiceFailureStatus(state))
+            .json({ error: 'Auth service unavailable' });
+        } else {
+          res
+            .status(authServiceFailureStatus(state))
+            .send('Authentication service unavailable');
+        }
+        return;
+      }
       if (state.authenticated) {
         next();
         return;
@@ -217,6 +295,19 @@ export function requireAdmin(
 ): Promise<void> {
   return (async () => {
     const state = await syncSessionFromAuth(req);
+    if (state.auth_service_error) {
+      applyAuthServiceRetryHeaders(res, state);
+      if (wantsJson(req)) {
+        res
+          .status(authServiceFailureStatus(state))
+          .json({ error: 'Auth service unavailable' });
+      } else {
+        res
+          .status(authServiceFailureStatus(state))
+          .send('Authentication service unavailable');
+      }
+      return;
+    }
     if (!state.authenticated || !state.user) {
       res.redirect(getLoginRedirectUrl(req));
       return;
@@ -255,6 +346,19 @@ export function requireGameAccess(gameId: string) {
     next: NextFunction,
   ): Promise<void> => {
     const state = await syncSessionFromAuth(req, gameId);
+    if (state.auth_service_error) {
+      applyAuthServiceRetryHeaders(res, state);
+      if (wantsJson(req)) {
+        res
+          .status(authServiceFailureStatus(state))
+          .json({ error: 'Auth service unavailable' });
+      } else {
+        res
+          .status(authServiceFailureStatus(state))
+          .send('Authentication service unavailable');
+      }
+      return;
+    }
     if (!state.authenticated || !state.user) {
       if (wantsJson(req)) {
         res.status(401).json({ error: 'Unauthorized' });
@@ -282,6 +386,13 @@ export function requireAuthApi(
 ): Promise<void> {
   return (async () => {
     const state = await syncSessionFromAuth(req);
+    if (state.auth_service_error) {
+      applyAuthServiceRetryHeaders(res, state);
+      res
+        .status(authServiceFailureStatus(state))
+        .json({ error: 'Auth service unavailable' });
+      return;
+    }
     if (state.authenticated) {
       next();
       return;
