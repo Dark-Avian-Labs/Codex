@@ -104,12 +104,17 @@ jobs:
           cp -r dist/ /tmp/deploy/
           cp -r packages/ /tmp/deploy/
           cp package*.json /tmp/deploy/
+          if [ -f .env.production ]; then cp .env.production /tmp/deploy/; fi
+          cat > /tmp/deploy/.env.keys <<EOF
+          DOTENV_PRIVATE_KEY_PRODUCTION=${DOTENV_PRIVATE_KEY_PRODUCTION}
+          EOF
+          chmod 600 /tmp/deploy/.env.keys
           if [ -f favicon.ico ]; then cp favicon.ico /tmp/deploy/; fi
           cd /tmp/deploy && npm ci --omit=dev
 
       - name: Deploy to server
         run: |
-          rsync -av --delete \
+          rsync -avp --delete \
           --exclude='/.env' \
           --exclude='/.env.local' \
           --exclude='/logs/' \

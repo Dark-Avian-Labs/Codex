@@ -1,10 +1,11 @@
+import { resolveEnvFilePath } from '@corpus/core';
 import { config as loadEnv } from '@dotenvx/dotenvx';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-const envPath = path.join(process.cwd(), '.env');
-if (fs.existsSync(envPath)) {
+const envPath = resolveEnvFilePath(process.cwd());
+if (envPath) {
   try {
     loadEnv({ path: envPath });
   } catch (error) {

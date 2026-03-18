@@ -1,5 +1,6 @@
 export {
   APP_NAME,
+  resolveEnvFilePath,
   AUTH_LOCKOUT_FILE,
   AUTH_MAX_ATTEMPTS,
   AUTH_LOCKOUT_MINUTES,
