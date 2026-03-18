@@ -5,7 +5,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const envPath = resolveEnvFilePath(process.cwd());
-if (envPath) {
+const shouldLoadEnv = Boolean(envPath) && process.env.NODE_ENV == null;
+if (shouldLoadEnv && envPath) {
   try {
     loadEnv({ path: envPath });
   } catch (error) {
