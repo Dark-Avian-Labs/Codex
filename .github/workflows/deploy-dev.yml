@@ -105,10 +105,6 @@ jobs:
           cp -r packages/ /tmp/deploy/
           cp package*.json /tmp/deploy/
           if [ -f .env.development ]; then cp .env.development /tmp/deploy/; fi
-          cat > /tmp/deploy/.env.keys <<EOF
-          DOTENV_PRIVATE_KEY_DEVELOPMENT=${DOTENV_PRIVATE_KEY_DEVELOPMENT}
-          EOF
-          chmod 600 /tmp/deploy/.env.keys
           if [ -f favicon.ico ]; then cp favicon.ico /tmp/deploy/; fi
           cd /tmp/deploy && npm ci --omit=dev
 
@@ -123,6 +119,13 @@ jobs:
           -e "ssh -p $SERVER_SSH_PORT -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes -o UserKnownHostsFile=~/.ssh/known_hosts" \
           /tmp/deploy/ \
           $SERVER_USER@$SERVER_HOST:$SERVER_PATH/
+
+          DOTENV_KEY_B64=$(printf '%s' "$DOTENV_PRIVATE_KEY_DEVELOPMENT" | base64 | tr -d '\n')
+          ssh -p "$SERVER_SSH_PORT" -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile=~/.ssh/known_hosts \
+            "$SERVER_USER@$SERVER_HOST" \
+            "cd \"$SERVER_PATH\" && printf 'DOTENV_PRIVATE_KEY_DEVELOPMENT=%s\n' \"\$(printf '%s' '$DOTENV_KEY_B64' | base64 -d)\" > .env.keys && chmod 600 .env.keys && test -f .env.keys || { echo 'ERROR: Failed to create or configure .env.keys on server'; exit 1; }"
 
       - name: Restart PM2
         run: |
