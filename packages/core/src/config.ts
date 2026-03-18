@@ -3,8 +3,32 @@ import fs from 'fs';
 import path from 'path';
 
 const projectRoot = process.cwd();
-const envPath = path.join(projectRoot, '.env');
-if (fs.existsSync(envPath)) {
+export function resolveEnvFilePath(rootPath: string): string | null {
+  const normalizedNodeEnv = (process.env.NODE_ENV ?? '').trim().toLowerCase();
+  const envFileByMode: Record<string, string> = {
+    production: '.env.production',
+    development: '.env.development',
+    test: '.env.test',
+  };
+  const prioritizedFiles = [
+    envFileByMode[normalizedNodeEnv],
+    '.env.production',
+    '.env.development',
+  ].filter((value, index, values): value is string => {
+    return typeof value === 'string' && values.indexOf(value) === index;
+  });
+
+  for (const fileName of prioritizedFiles) {
+    const candidatePath = path.join(rootPath, fileName);
+    if (fs.existsSync(candidatePath)) {
+      return candidatePath;
+    }
+  }
+  return null;
+}
+
+const envPath = resolveEnvFilePath(projectRoot);
+if (envPath) {
   try {
     loadEnv({ path: envPath });
   } catch (error) {
@@ -14,6 +38,10 @@ if (fs.existsSync(envPath)) {
     );
     throw error;
   }
+} else {
+  console.debug(
+    `[Core Config] No env file resolved for project root "${projectRoot}" (NODE_ENV="${process.env.NODE_ENV ?? ''}").`,
+  );
 }
 
 export const APP_NAME = 'Corpus';
