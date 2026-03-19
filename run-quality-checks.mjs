@@ -1,10 +1,10 @@
 import { spawnSync } from 'node:child_process';
 
 const steps = [
-  { name: 'Formatting', command: 'npm run check-format' },
-  { name: 'Lint', command: 'npm run lint' },
-  { name: 'Typecheck', command: 'npm run typecheck' },
-  { name: 'Tests', command: 'npm run test' },
+  { name: 'Formatting', command: 'pnpm run check-format' },
+  { name: 'Lint', command: 'pnpm run lint' },
+  { name: 'Typecheck', command: 'pnpm run typecheck' },
+  { name: 'Tests', command: 'pnpm run test' },
 ];
 
 const results = [];
