@@ -31,6 +31,7 @@
     "@dotenvx/dotenvx": "^1.56.0",
     "@fontsource-variable/inter": "^5.2.8",
     "better-sqlite3": "^12.8.0",
+    "better-sqlite3-session-store": "^0.1.0",
     "clsx": "^2.1.1",
     "cookie-parser": "^1.4.7",
     "csrf-sync": "^4.2.1",
