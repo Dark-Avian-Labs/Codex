@@ -1,6 +1,7 @@
-import { config as loadEnv } from '@dotenvx/dotenvx';
 import fs from 'fs';
 import path from 'path';
+
+import { config as loadEnv } from '@dotenvx/dotenvx';
 
 const projectRoot = process.cwd();
 export function resolveEnvFilePath(rootPath: string): string | null {
@@ -32,10 +33,7 @@ if (envPath) {
   try {
     loadEnv({ path: envPath });
   } catch (error) {
-    console.error(
-      `[Core Config] Failed to load environment via loadEnv from "${envPath}".`,
-      error,
-    );
+    console.error(`[Core Config] Failed to load environment via loadEnv from "${envPath}".`, error);
     throw error;
   }
 } else {
@@ -50,23 +48,13 @@ export const AUTH_LOCKOUT_FILE = path.resolve(
 );
 const _authMaxAttempts = parseInt(process.env.AUTH_MAX_ATTEMPTS ?? '5', 10);
 export const AUTH_MAX_ATTEMPTS =
-  Number.isInteger(_authMaxAttempts) && _authMaxAttempts > 0
-    ? _authMaxAttempts
-    : 5;
+  Number.isInteger(_authMaxAttempts) && _authMaxAttempts > 0 ? _authMaxAttempts : 5;
 
-const _authLockoutMinutes = parseInt(
-  process.env.AUTH_LOCKOUT_MINUTES ?? '15',
-  10,
-);
+const _authLockoutMinutes = parseInt(process.env.AUTH_LOCKOUT_MINUTES ?? '15', 10);
 export const AUTH_LOCKOUT_MINUTES =
-  Number.isInteger(_authLockoutMinutes) && _authLockoutMinutes > 0
-    ? _authLockoutMinutes
-    : 15;
+  Number.isInteger(_authLockoutMinutes) && _authLockoutMinutes > 0 ? _authLockoutMinutes : 15;
 
-const _authAttemptWindowMinutes = parseInt(
-  process.env.AUTH_ATTEMPT_WINDOW_MINUTES ?? '15',
-  10,
-);
+const _authAttemptWindowMinutes = parseInt(process.env.AUTH_ATTEMPT_WINDOW_MINUTES ?? '15', 10);
 export const AUTH_ATTEMPT_WINDOW_MINUTES =
   Number.isFinite(_authAttemptWindowMinutes) &&
   Number.isInteger(_authAttemptWindowMinutes) &&
@@ -77,14 +65,10 @@ export const AUTH_ATTEMPT_WINDOW_SECONDS = AUTH_ATTEMPT_WINDOW_MINUTES * 60;
 
 const _centralDbPath = process.env.CENTRAL_DB_PATH?.trim();
 if (!_centralDbPath) {
-  throw new Error(
-    'CENTRAL_DB_PATH must be set to an absolute shared SQLite path.',
-  );
+  throw new Error('CENTRAL_DB_PATH must be set to an absolute shared SQLite path.');
 }
 if (!path.isAbsolute(_centralDbPath)) {
-  throw new Error(
-    'CENTRAL_DB_PATH must be absolute; relative sibling paths are not supported.',
-  );
+  throw new Error('CENTRAL_DB_PATH must be absolute; relative sibling paths are not supported.');
 }
 export const CENTRAL_DB_PATH = _centralDbPath;
 

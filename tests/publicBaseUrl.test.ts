@@ -11,8 +11,7 @@ describe('getAppPublicBaseUrl', () => {
     process.env.BASE_HOST = 'corpus.example.com';
     process.env.AUTH_SERVICE_URL = 'https://auth.example.com';
     try {
-      const { getAppPublicBaseUrl } =
-        await import('../packages/core/src/middleware/auth.js');
+      const { getAppPublicBaseUrl } = await import('../packages/core/src/middleware/auth.js');
       expect(getAppPublicBaseUrl()).toBe('https://corpus.example.com');
     } finally {
       if (originalBaseUrl === undefined) {

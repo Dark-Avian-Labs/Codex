@@ -12,16 +12,12 @@ export function HomePage() {
     <div className="space-y-5">
       <GlassCard className="p-6">
         <h1 className="mb-2 text-2xl font-semibold">Corpus</h1>
-        <p className="text-sm text-muted">
+        <p className="text-muted text-sm">
           Select a game workspace to manage your collection and progress.
         </p>
       </GlassCard>
       <div className="grid gap-4 md:grid-cols-2">
-        <Link
-          to={APP_PATHS.warframe}
-          className="game-card"
-          style={warframeStyle}
-        >
+        <Link to={APP_PATHS.warframe} className="game-card" style={warframeStyle}>
           <h2>Warframe</h2>
           <p>Track worksheet status and completion.</p>
         </Link>

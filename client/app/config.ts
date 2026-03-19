@@ -30,9 +30,7 @@ const isSafeRelativePath =
   !lower.startsWith('data:') &&
   !lower.startsWith('vbscript:');
 
-export const LEGAL_PAGE_URL = isSafeRelativePath
-  ? resolvedLegalPageUrl
-  : '/auth/legal';
+export const LEGAL_PAGE_URL = isSafeRelativePath ? resolvedLegalPageUrl : '/auth/legal';
 
 export const SEARCH_PLACEHOLDER = readTrimmedEnv(
   import.meta.env.VITE_SEARCH_PLACEHOLDER as string | undefined,

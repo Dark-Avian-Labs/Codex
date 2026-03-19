@@ -40,9 +40,7 @@ export const flexBool = z.preprocess((v: unknown) => {
 
 export function zodEnum<const T extends readonly string[]>(values: T) {
   if (values.length === 0) {
-    throw new Error(
-      'zodEnum requires at least one enum value, but received an empty array.',
-    );
+    throw new Error('zodEnum requires at least one enum value, but received an empty array.');
   }
   return z.enum(values);
 }

@@ -1,7 +1,8 @@
-import argon2 from 'argon2';
-import type { SessionData } from 'express-session';
 import fs from 'fs';
 import path from 'path';
+
+import argon2 from 'argon2';
+import type { SessionData } from 'express-session';
 
 import {
   AUTH_LOCKOUT_FILE,
@@ -47,10 +48,7 @@ async function hashPassword(password: string): Promise<string> {
   });
 }
 
-async function verifyPassword(
-  password: string,
-  hash: string,
-): Promise<boolean> {
+async function verifyPassword(password: string, hash: string): Promise<boolean> {
   try {
     return await argon2.verify(hash, password);
   } catch {
@@ -66,8 +64,7 @@ function ensureLockoutDir(): void {
 function getLockoutData(): LockoutData {
   const now = Date.now();
   const stale =
-    lockoutCache === null ||
-    (!lockoutCacheDirty && now - lockoutCacheLastLoad > LOCKOUT_CACHE_TTL);
+    lockoutCache === null || (!lockoutCacheDirty && now - lockoutCacheLastLoad > LOCKOUT_CACHE_TTL);
   if (stale && !lockoutCacheDirty) {
     if (!fs.existsSync(AUTH_LOCKOUT_FILE)) {
       lockoutCache = {};
@@ -129,9 +126,7 @@ export function getClientIP(req: {
   }
   const forwarded = req.headers?.['x-forwarded-for'];
   if (forwarded) {
-    const first = Array.isArray(forwarded)
-      ? forwarded[0]
-      : String(forwarded).split(',')[0];
+    const first = Array.isArray(forwarded) ? forwarded[0] : String(forwarded).split(',')[0];
     return first?.trim() ?? 'unknown';
   }
   const real = req.headers?.['x-real-ip'];
@@ -243,9 +238,7 @@ export async function createUser(
   username: string,
   password: string,
   isAdminUser: boolean,
-): Promise<
-  { success: true; user_id: number } | { success: false; error: string }
-> {
+): Promise<{ success: true; user_id: number } | { success: false; error: string }> {
   const u = username.trim();
   if (!password) {
     return { success: false, error: 'Password is required' };
@@ -343,11 +336,7 @@ export function grantGameAccess(userId: number, gameId: string): boolean {
   return q.grantGameAccess(db, userId, gameId);
 }
 
-export function setUserGameAccess(
-  userId: number,
-  gameId: string,
-  enabled: boolean,
-): boolean {
+export function setUserGameAccess(userId: number, gameId: string, enabled: boolean): boolean {
   const db = getCentralDb();
   return q.setUserGameAccess(db, userId, gameId, enabled);
 }

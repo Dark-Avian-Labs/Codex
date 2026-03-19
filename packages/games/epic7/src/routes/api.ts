@@ -1,6 +1,7 @@
+import fs from 'fs';
+
 import { validateBody } from '@corpus/core/validation';
 import type { Request, Response } from 'express';
-import fs from 'fs';
 
 import {
   ARTIFACT_CLASSES,
@@ -9,6 +10,8 @@ import {
   EPIC7_DB_PATH,
   HERO_CLASSES,
 } from '../config.js';
+import * as q from '../db/queries.js';
+import { getDb } from '../db/schema.js';
 import {
   addAccountSchema,
   addArtifactSchema,
@@ -26,8 +29,6 @@ import {
   updateHeroDetailsSchema,
   updateHeroSchema,
 } from './validation.js';
-import * as q from '../db/queries.js';
-import { getDb } from '../db/schema.js';
 
 function session(req: Request): {
   user_id?: number;
@@ -150,9 +151,7 @@ export function handleUpdateArtifact(req: Request, res: Response): void {
   if (!data) return;
   const db = getDbOrFail(res);
   if (!db) return;
-  if (
-    !q.updateArtifactGauge(db, data.artifact_id, accountId, data.gauge_level)
-  ) {
+  if (!q.updateArtifactGauge(db, data.artifact_id, accountId, data.gauge_level)) {
     err(res, 'Artifact not found.', 404);
     return;
   }
@@ -453,8 +452,7 @@ export function handleUserInfo(req: Request, res: Response): void {
   const s = session(req);
   json(res, {
     user_id: s.user_id ?? null,
-    username:
-      (req.session as unknown as { username?: string }).username ?? null,
+    username: (req.session as unknown as { username?: string }).username ?? null,
     is_admin: !!s.is_admin,
     account_id: s.account_id ?? null,
     account_name: s.account_name ?? null,
@@ -510,22 +508,14 @@ export function handleAdminAddBaseHero(req: Request, res: Response): void {
     err(res, 'Failed to create base hero.');
     return;
   }
-  const row = db
-    .prepare('SELECT display_order FROM base_heroes WHERE id = ?')
-    .get(heroId) as { display_order: number } | undefined;
+  const row = db.prepare('SELECT display_order FROM base_heroes WHERE id = ?').get(heroId) as
+    | { display_order: number }
+    | undefined;
   if (row == null) {
     err(res, 'Failed to create base hero.');
     return;
   }
-  q.addBaseHeroToAllAccounts(
-    db,
-    heroId,
-    name,
-    cls,
-    element,
-    starRating,
-    row.display_order,
-  );
+  q.addBaseHeroToAllAccounts(db, heroId, name, cls, element, starRating, row.display_order);
   json(res, { success: true, hero_id: heroId });
 }
 
@@ -548,21 +538,14 @@ export function handleAdminAddBaseArtifact(req: Request, res: Response): void {
     err(res, 'Failed to create base artifact.');
     return;
   }
-  const row = db
-    .prepare('SELECT display_order FROM base_artifacts WHERE id = ?')
-    .get(artifactId) as { display_order: number } | undefined;
+  const row = db.prepare('SELECT display_order FROM base_artifacts WHERE id = ?').get(artifactId) as
+    | { display_order: number }
+    | undefined;
   if (row == null) {
     err(res, 'Failed to create base artifact.');
     return;
   }
-  q.addBaseArtifactToAllAccounts(
-    db,
-    artifactId,
-    name,
-    cls,
-    starRating,
-    row.display_order,
-  );
+  q.addBaseArtifactToAllAccounts(db, artifactId, name, cls, starRating, row.display_order);
   json(res, { success: true, artifact_id: artifactId });
 }
 
@@ -583,10 +566,7 @@ export function handleAdminDeleteBaseHero(req: Request, res: Response): void {
   json(res, { success: true });
 }
 
-export function handleAdminDeleteBaseArtifact(
-  req: Request,
-  res: Response,
-): void {
+export function handleAdminDeleteBaseArtifact(req: Request, res: Response): void {
   if (req.method !== 'POST') {
     err(res, 'POST method required.', 405);
     return;

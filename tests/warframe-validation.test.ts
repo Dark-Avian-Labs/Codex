@@ -41,9 +41,7 @@ describe('Warframe validation schemas', () => {
     });
 
     it('rejects non-positive row_id', () => {
-      expect(
-        updateSchema.safeParse({ row_id: 0, column_id: 1, value: '' }).success,
-      ).toBe(false);
+      expect(updateSchema.safeParse({ row_id: 0, column_id: 1, value: '' }).success).toBe(false);
     });
 
     it('coerces string IDs', () => {
@@ -84,15 +82,11 @@ describe('Warframe validation schemas', () => {
     });
 
     it('rejects empty item_name', () => {
-      expect(
-        addRowSchema.safeParse({ worksheet_id: 1, item_name: '' }).success,
-      ).toBe(false);
+      expect(addRowSchema.safeParse({ worksheet_id: 1, item_name: '' }).success).toBe(false);
     });
 
     it('rejects non-positive worksheet_id', () => {
-      expect(
-        addRowSchema.safeParse({ worksheet_id: -1, item_name: 'Test' }).success,
-      ).toBe(false);
+      expect(addRowSchema.safeParse({ worksheet_id: -1, item_name: 'Test' }).success).toBe(false);
     });
   });
 

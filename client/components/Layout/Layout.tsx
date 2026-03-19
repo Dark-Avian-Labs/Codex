@@ -13,11 +13,7 @@ import bgArt from '../../../packages/core/assets/background.txt?raw';
 import feathers from '../../../packages/core/assets/feathers.png';
 import epic7Favicon from '../../../packages/games/epic7/favicon.ico';
 import warframeFavicon from '../../../packages/games/warframe/favicon.ico';
-import {
-  APP_DISPLAY_NAME,
-  LEGAL_ENTITY_NAME,
-  LEGAL_PAGE_URL,
-} from '../../app/config';
+import { APP_DISPLAY_NAME, LEGAL_ENTITY_NAME, LEGAL_PAGE_URL } from '../../app/config';
 import { APP_PATHS } from '../../app/paths';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../features/auth/AuthContext';
@@ -78,9 +74,7 @@ export function Layout() {
       return;
     }
 
-    const refsInOrder = menuItemIds.map(
-      (id) => menuItemNodeMap.current[id] ?? null,
-    );
+    const refsInOrder = menuItemIds.map((id) => menuItemNodeMap.current[id] ?? null);
     menuItemRefs.current = refsInOrder;
     firstMenuItemRef.current =
       refsInOrder.find((item): item is HTMLElement => item !== null) ?? null;
@@ -110,17 +104,15 @@ export function Layout() {
       return;
     }
 
-    const enabledItems = menuItemRefs.current.filter(
-      (item): item is HTMLElement => {
-        if (!item) {
-          return false;
-        }
-        if (item.hasAttribute('disabled')) {
-          return false;
-        }
-        return item.getAttribute('aria-disabled') !== 'true';
-      },
-    );
+    const enabledItems = menuItemRefs.current.filter((item): item is HTMLElement => {
+      if (!item) {
+        return false;
+      }
+      if (item.hasAttribute('disabled')) {
+        return false;
+      }
+      return item.getAttribute('aria-disabled') !== 'true';
+    });
 
     if (enabledItems.length === 0) {
       return;
@@ -138,20 +130,15 @@ export function Layout() {
     }
 
     const activeElement =
-      document.activeElement instanceof HTMLElement
-        ? document.activeElement
-        : null;
-    const currentIndex = activeElement
-      ? enabledItems.indexOf(activeElement)
-      : -1;
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const currentIndex = activeElement ? enabledItems.indexOf(activeElement) : -1;
     const direction = key === 'ArrowDown' ? 1 : -1;
     const nextIndex =
       currentIndex === -1
         ? key === 'ArrowDown'
           ? 0
           : enabledItems.length - 1
-        : (currentIndex + direction + enabledItems.length) %
-          enabledItems.length;
+        : (currentIndex + direction + enabledItems.length) % enabledItems.length;
 
     enabledItems[nextIndex]?.focus();
   };
@@ -205,7 +192,7 @@ export function Layout() {
     <div className="flex min-h-screen flex-col">
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-black focus:px-3 focus:py-2 focus:text-white"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:rounded-md focus:bg-black focus:px-3 focus:py-2 focus:text-white"
       >
         Skip to main content
       </a>
@@ -215,18 +202,10 @@ export function Layout() {
       <header className="relative z-30 h-[100px] px-6">
         <div className="mx-auto grid h-full w-full max-w-[1900px] grid-cols-[1fr_auto_1fr] items-center gap-4">
           <Link to={APP_PATHS.home} className="brand-lockup w-fit">
-            <img
-              src={feathers}
-              alt="Dark Avian Labs feather mark"
-              className="brand-lockup__icon"
-            />
-            <span className="brand-lockup__title brand-lockup--fx">
-              {baseTitle}
-            </span>
+            <img src={feathers} alt="Dark Avian Labs feather mark" className="brand-lockup__icon" />
+            <span className="brand-lockup__title brand-lockup--fx">{baseTitle}</span>
             {brandTitle.length > 0 ? (
-              <span className="brand-lockup__title brand-lockup__title_small">
-                {brandTitle}
-              </span>
+              <span className="brand-lockup__title brand-lockup__title_small">{brandTitle}</span>
             ) : null}
           </Link>
 
@@ -256,11 +235,7 @@ export function Layout() {
               >
                 {isLoggedIn ? (
                   hasAvatar ? (
-                    <img
-                      src={avatarSrc}
-                      alt=""
-                      className="profile-avatar-image"
-                    />
+                    <img src={avatarSrc} alt="" className="profile-avatar-image" />
                   ) : (
                     <span aria-hidden="true" className="text-xs font-semibold">
                       #{auth.user?.avatar ?? 1}
@@ -319,10 +294,7 @@ export function Layout() {
                           onClick={() => {
                             setMenuOpen(false);
                             void logout('/login').catch((err) => {
-                              console.error(
-                                '[layout] Logout failed from user menu',
-                                err,
-                              );
+                              console.error('[layout] Logout failed from user menu', err);
                             });
                           }}
                         >
@@ -348,7 +320,7 @@ export function Layout() {
         <div className="mx-auto w-full max-w-[1900px] text-center">
           <a
             href={LEGAL_PAGE_URL}
-            className="text-sm text-muted hover:text-foreground"
+            className="text-muted hover:text-foreground text-sm"
             target={LEGAL_PAGE_URL.startsWith('http') ? '_blank' : undefined}
             rel={LEGAL_PAGE_URL.startsWith('http') ? 'noreferrer' : undefined}
           >

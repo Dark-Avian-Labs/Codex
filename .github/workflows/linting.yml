@@ -1,4 +1,4 @@
-name: Check Linting
+name: Check OxLint
 
 permissions:
   contents: read
@@ -23,5 +23,5 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Lint code
+      - name: Run OxLint
         run: npm run lint

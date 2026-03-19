@@ -27,9 +27,7 @@ function parseRetryAfterSeconds(value: string | null): number | undefined {
   return undefined;
 }
 
-function authServiceFailureStatus(state: {
-  auth_rate_limited?: boolean;
-}): number {
+function authServiceFailureStatus(state: { auth_rate_limited?: boolean }): number {
   return state.auth_rate_limited ? 429 : 503;
 }
 
@@ -46,10 +44,7 @@ function applyAuthServiceRetryHeaders(
   }
 }
 
-const AUTH_FETCH_TIMEOUT_MS = Number.parseInt(
-  process.env.AUTH_FETCH_TIMEOUT_MS ?? '5000',
-  10,
-);
+const AUTH_FETCH_TIMEOUT_MS = Number.parseInt(process.env.AUTH_FETCH_TIMEOUT_MS ?? '5000', 10);
 const SESSION_TOUCH_INTERVAL_MS = 5 * 60 * 1000;
 const AUTH_STATE_CACHE_KEY = Symbol('authStateCache');
 
@@ -71,20 +66,13 @@ export function getAppPublicBaseUrl(): string {
       parsed.hostname === '127.0.0.1' ||
       parsed.hostname === '::1');
   const nodeEnv = process.env.NODE_ENV;
-  const isKnownNonProductionEnv =
-    nodeEnv === 'development' || nodeEnv === 'test';
-  if (
-    nodeEnv == null ||
-    (nodeEnv !== 'production' && !isKnownNonProductionEnv)
-  ) {
+  const isKnownNonProductionEnv = nodeEnv === 'development' || nodeEnv === 'test';
+  if (nodeEnv == null || (nodeEnv !== 'production' && !isKnownNonProductionEnv)) {
     console.warn(
       `Unknown or unset NODE_ENV "${nodeEnv ?? ''}" detected; defaulting APP_PUBLIC_BASE_URL protocol policy to production (https-only unless local http).`,
     );
   }
-  if (
-    parsed.protocol !== 'https:' &&
-    !(isLocalHttp || isKnownNonProductionEnv)
-  ) {
+  if (parsed.protocol !== 'https:' && !(isLocalHttp || isKnownNonProductionEnv)) {
     throw new Error('APP_PUBLIC_BASE_URL must use https://');
   }
   return normalized;
@@ -129,10 +117,7 @@ function getRequestAuthCache(req: Request): AuthStateCache {
   return reqWithCache[AUTH_STATE_CACHE_KEY];
 }
 
-async function fetchRemoteAuthState(
-  req: Request,
-  gameId?: string,
-): Promise<RemoteAuthState> {
+async function fetchRemoteAuthState(req: Request, gameId?: string): Promise<RemoteAuthState> {
   const cache = getRequestAuthCache(req);
   const cacheKey = cacheKeyForGame(gameId);
   if (cache[cacheKey]) return await cache[cacheKey];
@@ -153,9 +138,7 @@ async function fetchRemoteAuthState(
       });
       if (!upstream.ok) {
         if (upstream.status === 429) {
-          const retryAfterSec = parseRetryAfterSeconds(
-            upstream.headers.get('retry-after'),
-          );
+          const retryAfterSec = parseRetryAfterSeconds(upstream.headers.get('retry-after'));
           return {
             authenticated: false,
             has_game_access: false,
@@ -202,10 +185,7 @@ async function fetchRemoteAuthState(
           : [],
       };
     } catch (err) {
-      console.error(
-        '[auth middleware] Failed to fetch remote auth state:',
-        err,
-      );
+      console.error('[auth middleware] Failed to fetch remote auth state:', err);
       return {
         authenticated: false,
         has_game_access: false,
@@ -221,10 +201,7 @@ async function fetchRemoteAuthState(
   return await cache[cacheKey];
 }
 
-async function syncSessionFromAuth(
-  req: Request,
-  gameId?: string,
-): Promise<RemoteAuthState> {
+async function syncSessionFromAuth(req: Request, gameId?: string): Promise<RemoteAuthState> {
   const state = await fetchRemoteAuthState(req, gameId);
   const session = getSession(req);
   if (!session) {
@@ -254,24 +231,16 @@ async function syncSessionFromAuth(
   return state;
 }
 
-export function requireAuth(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-): Promise<void> {
+export function requireAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
   return (async () => {
     try {
       const state = await syncSessionFromAuth(req);
       if (state.auth_service_error) {
         applyAuthServiceRetryHeaders(res, state);
         if (wantsJson(req)) {
-          res
-            .status(authServiceFailureStatus(state))
-            .json({ error: 'Auth service unavailable' });
+          res.status(authServiceFailureStatus(state)).json({ error: 'Auth service unavailable' });
         } else {
-          res
-            .status(authServiceFailureStatus(state))
-            .send('Authentication service unavailable');
+          res.status(authServiceFailureStatus(state)).send('Authentication service unavailable');
         }
         return;
       }
@@ -288,23 +257,15 @@ export function requireAuth(
   })();
 }
 
-export function requireAdmin(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-): Promise<void> {
+export function requireAdmin(req: Request, res: Response, next: NextFunction): Promise<void> {
   return (async () => {
     const state = await syncSessionFromAuth(req);
     if (state.auth_service_error) {
       applyAuthServiceRetryHeaders(res, state);
       if (wantsJson(req)) {
-        res
-          .status(authServiceFailureStatus(state))
-          .json({ error: 'Auth service unavailable' });
+        res.status(authServiceFailureStatus(state)).json({ error: 'Auth service unavailable' });
       } else {
-        res
-          .status(authServiceFailureStatus(state))
-          .send('Authentication service unavailable');
+        res.status(authServiceFailureStatus(state)).send('Authentication service unavailable');
       }
       return;
     }
@@ -321,15 +282,9 @@ export function requireAdmin(
       return;
     }
     const session = getSession(req);
-    if (
-      !session ||
-      typeof session.user_id !== 'number' ||
-      session.user_id <= 0
-    ) {
+    if (!session || typeof session.user_id !== 'number' || session.user_id <= 0) {
       if (wantsJson(req)) {
-        res
-          .status(500)
-          .json({ error: 'Authenticated user id missing from session' });
+        res.status(500).json({ error: 'Authenticated user id missing from session' });
       } else {
         res.status(500).send('Authenticated user id missing from session');
       }
@@ -340,22 +295,14 @@ export function requireAdmin(
 }
 
 export function requireGameAccess(gameId: string) {
-  return async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<void> => {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const state = await syncSessionFromAuth(req, gameId);
     if (state.auth_service_error) {
       applyAuthServiceRetryHeaders(res, state);
       if (wantsJson(req)) {
-        res
-          .status(authServiceFailureStatus(state))
-          .json({ error: 'Auth service unavailable' });
+        res.status(authServiceFailureStatus(state)).json({ error: 'Auth service unavailable' });
       } else {
-        res
-          .status(authServiceFailureStatus(state))
-          .send('Authentication service unavailable');
+        res.status(authServiceFailureStatus(state)).send('Authentication service unavailable');
       }
       return;
     }
@@ -379,18 +326,12 @@ export function requireGameAccess(gameId: string) {
   };
 }
 
-export function requireAuthApi(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-): Promise<void> {
+export function requireAuthApi(req: Request, res: Response, next: NextFunction): Promise<void> {
   return (async () => {
     const state = await syncSessionFromAuth(req);
     if (state.auth_service_error) {
       applyAuthServiceRetryHeaders(res, state);
-      res
-        .status(authServiceFailureStatus(state))
-        .json({ error: 'Auth service unavailable' });
+      res.status(authServiceFailureStatus(state)).json({ error: 'Auth service unavailable' });
       return;
     }
     if (state.authenticated) {

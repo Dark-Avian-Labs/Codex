@@ -1,10 +1,4 @@
-import {
-  useEffect,
-  useRef,
-  useState,
-  type MouseEvent,
-  type ReactNode,
-} from 'react';
+import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 
 interface ModalProps {
@@ -15,13 +9,7 @@ interface ModalProps {
   ariaLabelledBy?: string;
 }
 
-export function Modal({
-  open,
-  onClose,
-  children,
-  className,
-  ariaLabelledBy,
-}: ModalProps) {
+export function Modal({ open, onClose, children, className, ariaLabelledBy }: ModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
   const [mounted, setMounted] = useState(false);
@@ -129,9 +117,7 @@ export function Modal({
 
     return () => {
       const activeCount = Number(body.dataset.modalOpenCount ?? '1');
-      const decremented = Number.isFinite(activeCount)
-        ? Math.max(0, activeCount - 1)
-        : 0;
+      const decremented = Number.isFinite(activeCount) ? Math.max(0, activeCount - 1) : 0;
 
       if (decremented === 0) {
         delete body.dataset.modalOpenCount;

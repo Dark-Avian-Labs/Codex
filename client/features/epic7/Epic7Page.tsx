@@ -86,13 +86,7 @@ type Epic7ModalAction =
   | { type: 'CANCEL_ACCOUNT_DELETE' }
   | { type: 'CONFIRM_ACCOUNT_DELETE' };
 
-type HeroClass =
-  | 'warrior'
-  | 'knight'
-  | 'thief'
-  | 'ranger'
-  | 'mage'
-  | 'soulweaver';
+type HeroClass = 'warrior' | 'knight' | 'thief' | 'ranger' | 'mage' | 'soulweaver';
 type ArtifactClass = HeroClass | 'universal';
 type Element = 'fire' | 'ice' | 'earth' | 'light' | 'dark';
 type ActiveFilters = { class: ArtifactClass | null; element: Element | null };
@@ -101,14 +95,7 @@ const HERO_RATINGS = ['-', 'D', 'C', 'B', 'A', 'S', 'SS', 'SSS'] as const;
 const GAUGE_MAX = 5;
 const GAUGE_FILLED = '▰';
 const GAUGE_EMPTY = '▱';
-const HERO_CLASSES: HeroClass[] = [
-  'warrior',
-  'knight',
-  'thief',
-  'ranger',
-  'mage',
-  'soulweaver',
-];
+const HERO_CLASSES: HeroClass[] = ['warrior', 'knight', 'thief', 'ranger', 'mage', 'soulweaver'];
 const ARTIFACT_CLASSES: ArtifactClass[] = [...HERO_CLASSES, 'universal'];
 const ELEMENTS: Element[] = ['fire', 'ice', 'earth', 'light', 'dark'];
 const CLASS_NAMES: Record<ArtifactClass, string> = {
@@ -146,10 +133,10 @@ const GAUGE_COLORS: Record<number, string> = {
   5: '#ef4444',
 };
 
-const ICON_MODULES = import.meta.glob(
-  '../../../packages/games/epic7/assets/icons/*.png',
-  { eager: true, import: 'default' },
-) as Record<string, string>;
+const ICON_MODULES = import.meta.glob('../../../packages/games/epic7/assets/icons/*.png', {
+  eager: true,
+  import: 'default',
+}) as Record<string, string>;
 
 const ICONS: Record<string, string> = {};
 for (const [path, src] of Object.entries(ICON_MODULES)) {
@@ -178,10 +165,7 @@ const initialModalState: Epic7ModalState = {
   deletingAccount: null,
 };
 
-function epic7ModalReducer(
-  state: Epic7ModalState,
-  action: Epic7ModalAction,
-): Epic7ModalState {
+function epic7ModalReducer(state: Epic7ModalState, action: Epic7ModalAction): Epic7ModalState {
   switch (action.type) {
     case 'OPEN_ACCOUNT_MODAL':
       return { ...state, isAccountModalOpen: true };
@@ -213,10 +197,7 @@ function epic7ModalReducer(
         editingId: null,
         draft: {
           name: '',
-          class:
-            action.payload.itemType === 'heroes'
-              ? HERO_CLASSES[0]
-              : ARTIFACT_CLASSES[0],
+          class: action.payload.itemType === 'heroes' ? HERO_CLASSES[0] : ARTIFACT_CLASSES[0],
           element: ELEMENTS[0],
           stars: 5,
         },
@@ -289,9 +270,7 @@ function renderStars(count: number | undefined) {
 }
 
 function renderGauge(level: number): string {
-  return `${GAUGE_FILLED.repeat(level)}${GAUGE_EMPTY.repeat(
-    Math.max(0, GAUGE_MAX - level),
-  )}`;
+  return `${GAUGE_FILLED.repeat(level)}${GAUGE_EMPTY.repeat(Math.max(0, GAUGE_MAX - level))}`;
 }
 
 const tableScrollStyle = {
@@ -345,65 +324,58 @@ function useEpic7Data() {
     return controller.signal;
   }, []);
 
-  const loadAccountsAndData = useCallback(
-    async (signal?: AbortSignal): Promise<void> => {
-      setLoading(true);
-      setLoadError(null);
-      try {
-        const accountsRes = await apiFetch('/api/epic7/accounts', { signal });
-        if (!accountsRes.ok) {
-          throw new Error('Failed to load accounts');
-        }
-        const accountsBody = (await accountsRes.json()) as {
-          accounts?: Epic7Account[];
-          current_account_id?: number | null;
-        };
-        const nextAccounts = Array.isArray(accountsBody.accounts)
-          ? accountsBody.accounts
-          : [];
-        const nextAccountId =
-          typeof accountsBody.current_account_id === 'number'
-            ? accountsBody.current_account_id
-            : null;
-        if (signal?.aborted) return;
-        setAccounts(nextAccounts);
-        setCurrentAccountId(nextAccountId);
-        if (nextAccountId === null) {
-          setHeroes([]);
-          setArtifacts([]);
-          setLoading(false);
-          return;
-        }
-
-        const [heroesRes, artifactsRes] = await Promise.all([
-          apiFetch('/api/epic7/heroes', { signal }),
-          apiFetch('/api/epic7/artifacts', { signal }),
-        ]);
-        if (!heroesRes.ok || !artifactsRes.ok) {
-          throw new Error('Failed to load Epic7 data');
-        }
-        const heroesBody = (await heroesRes.json()) as { heroes?: Epic7Hero[] };
-        const artifactsBody = (await artifactsRes.json()) as {
-          artifacts?: Epic7Artifact[];
-        };
-        if (signal?.aborted) return;
-        setHeroes(Array.isArray(heroesBody.heroes) ? heroesBody.heroes : []);
-        setArtifacts(
-          Array.isArray(artifactsBody.artifacts) ? artifactsBody.artifacts : [],
-        );
-      } catch (error) {
-        if (error instanceof DOMException && error.name === 'AbortError') {
-          return;
-        }
-        setLoadError('Could not load Epic Seven data.');
-      } finally {
-        if (!signal?.aborted) {
-          setLoading(false);
-        }
+  const loadAccountsAndData = useCallback(async (signal?: AbortSignal): Promise<void> => {
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const accountsRes = await apiFetch('/api/epic7/accounts', { signal });
+      if (!accountsRes.ok) {
+        throw new Error('Failed to load accounts');
       }
-    },
-    [],
-  );
+      const accountsBody = (await accountsRes.json()) as {
+        accounts?: Epic7Account[];
+        current_account_id?: number | null;
+      };
+      const nextAccounts = Array.isArray(accountsBody.accounts) ? accountsBody.accounts : [];
+      const nextAccountId =
+        typeof accountsBody.current_account_id === 'number'
+          ? accountsBody.current_account_id
+          : null;
+      if (signal?.aborted) return;
+      setAccounts(nextAccounts);
+      setCurrentAccountId(nextAccountId);
+      if (nextAccountId === null) {
+        setHeroes([]);
+        setArtifacts([]);
+        setLoading(false);
+        return;
+      }
+
+      const [heroesRes, artifactsRes] = await Promise.all([
+        apiFetch('/api/epic7/heroes', { signal }),
+        apiFetch('/api/epic7/artifacts', { signal }),
+      ]);
+      if (!heroesRes.ok || !artifactsRes.ok) {
+        throw new Error('Failed to load Epic7 data');
+      }
+      const heroesBody = (await heroesRes.json()) as { heroes?: Epic7Hero[] };
+      const artifactsBody = (await artifactsRes.json()) as {
+        artifacts?: Epic7Artifact[];
+      };
+      if (signal?.aborted) return;
+      setHeroes(Array.isArray(heroesBody.heroes) ? heroesBody.heroes : []);
+      setArtifacts(Array.isArray(artifactsBody.artifacts) ? artifactsBody.artifacts : []);
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return;
+      }
+      setLoadError('Could not load Epic Seven data.');
+    } finally {
+      if (!signal?.aborted) {
+        setLoading(false);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     let timeoutId: number | null = null;
@@ -472,16 +444,8 @@ export function Epic7Page() {
     beginUserActionRequest,
     loadAccountsAndData,
   } = useEpic7Data();
-  const {
-    tab,
-    setTab,
-    search,
-    setSearch,
-    activeFilters,
-    setActiveFilters,
-    editMode,
-    setEditMode,
-  } = useEpic7Filters();
+  const { tab, setTab, search, setSearch, activeFilters, setActiveFilters, editMode, setEditMode } =
+    useEpic7Filters();
   const [modalState, dispatchModal] = useEpic7Modal();
   const accountMenuRef = useRef<HTMLDivElement | null>(null);
 
@@ -520,12 +484,8 @@ export function Epic7Page() {
       return { total, owned, maxed };
     }
     const artifactRows = activeRows as Epic7Artifact[];
-    const owned = artifactRows.filter(
-      (artifact) => artifact.gauge_level > 0,
-    ).length;
-    const maxed = artifactRows.filter(
-      (artifact) => artifact.gauge_level === GAUGE_MAX,
-    ).length;
+    const owned = artifactRows.filter((artifact) => artifact.gauge_level > 0).length;
+    const maxed = artifactRows.filter((artifact) => artifact.gauge_level === GAUGE_MAX).length;
     return { total, owned, maxed };
   }, [activeRows, tab]);
   const currentAccount = useMemo(
@@ -592,8 +552,7 @@ export function Epic7Page() {
 
   async function cycleHero(hero: Epic7Hero): Promise<void> {
     const index = HERO_RATINGS.indexOf(hero.rating);
-    const rating =
-      HERO_RATINGS[(index + 1 + HERO_RATINGS.length) % HERO_RATINGS.length];
+    const rating = HERO_RATINGS[(index + 1 + HERO_RATINGS.length) % HERO_RATINGS.length];
     setHeroes((previous) =>
       previous.map((candidate) =>
         candidate.id === hero.id ? { ...candidate, rating } : candidate,
@@ -614,9 +573,7 @@ export function Epic7Page() {
     } catch {
       setHeroes((previous) =>
         previous.map((candidate) =>
-          candidate.id === hero.id
-            ? { ...candidate, rating: hero.rating }
-            : candidate,
+          candidate.id === hero.id ? { ...candidate, rating: hero.rating } : candidate,
         ),
       );
       setOperationError('Failed to save hero rating.');
@@ -627,20 +584,15 @@ export function Epic7Page() {
     const gaugeLevel = (artifact.gauge_level + 1) % (GAUGE_MAX + 1);
     setArtifacts((previous) =>
       previous.map((candidate) =>
-        candidate.id === artifact.id
-          ? { ...candidate, gauge_level: gaugeLevel }
-          : candidate,
+        candidate.id === artifact.id ? { ...candidate, gauge_level: gaugeLevel } : candidate,
       ),
     );
     try {
-      const response = await apiFetch(
-        `/api/epic7/artifacts/${artifact.id}/gauge`,
-        {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ gauge_level: gaugeLevel }),
-        },
-      );
+      const response = await apiFetch(`/api/epic7/artifacts/${artifact.id}/gauge`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gauge_level: gaugeLevel }),
+      });
       const body = (await response.json().catch(() => null)) as {
         error?: string;
       } | null;
@@ -727,13 +679,10 @@ export function Epic7Page() {
     }
     const signal = beginUserActionRequest();
     try {
-      const response = await apiFetch(
-        `/api/epic7/accounts/${deletingAccount.id}`,
-        {
-          method: 'DELETE',
-          signal,
-        },
-      );
+      const response = await apiFetch(`/api/epic7/accounts/${deletingAccount.id}`, {
+        method: 'DELETE',
+        signal,
+      });
       const body = (await response.json().catch(() => null)) as {
         error?: string;
       } | null;
@@ -762,17 +711,13 @@ export function Epic7Page() {
 
   async function deleteItem(): Promise<void> {
     if (!modalState.deletingItem) return;
-    const path =
-      modalState.deletingItem.type === 'hero' ? 'heroes' : 'artifacts';
+    const path = modalState.deletingItem.type === 'hero' ? 'heroes' : 'artifacts';
     const signal = beginUserActionRequest();
     try {
-      const response = await apiFetch(
-        `/api/epic7/${path}/${modalState.deletingItem.id}`,
-        {
-          method: 'DELETE',
-          signal,
-        },
-      );
+      const response = await apiFetch(`/api/epic7/${path}/${modalState.deletingItem.id}`, {
+        method: 'DELETE',
+        signal,
+      });
       const payload = (await response.json().catch(() => null)) as {
         error?: string;
       } | null;
@@ -805,9 +750,7 @@ export function Epic7Page() {
         id: item.id,
         draft: {
           name: item.name,
-          class:
-            item.class ||
-            (itemType === 'heroes' ? HERO_CLASSES[0] : ARTIFACT_CLASSES[0]),
+          class: item.class || (itemType === 'heroes' ? HERO_CLASSES[0] : ARTIFACT_CLASSES[0]),
           element: 'rating' in item ? item.element || ELEMENTS[0] : ELEMENTS[0],
           stars: item.star_rating || 5,
         },
@@ -947,11 +890,7 @@ export function Epic7Page() {
           {editMode ? 'Done Editing' : 'Edit Mode'}
         </button>
         {editMode ? (
-          <button
-            type="button"
-            className="header-link"
-            onClick={openAddItemModal}
-          >
+          <button type="button" className="header-link" onClick={openAddItemModal}>
             Add {tab === 'heroes' ? 'Hero' : 'Artifact'}
           </button>
         ) : null}
@@ -997,10 +936,7 @@ export function Epic7Page() {
   return (
     <section className="space-y-4">
       {operationError ? (
-        <div
-          className="error flex items-center justify-between gap-3"
-          role="alert"
-        >
+        <div className="error flex items-center justify-between gap-3" role="alert">
           <span>{operationError}</span>
           <button
             type="button"
@@ -1041,9 +977,7 @@ export function Epic7Page() {
                 <button
                   key={classKey}
                   type="button"
-                  className={`filter-icon ${
-                    activeFilters.class === classKey ? 'active' : ''
-                  }`}
+                  className={`filter-icon ${activeFilters.class === classKey ? 'active' : ''}`}
                   title={CLASS_NAMES[classKey]}
                   onClick={() =>
                     setActiveFilters((previous) => ({
@@ -1066,22 +1000,16 @@ export function Epic7Page() {
                 <button
                   key={elementKey}
                   type="button"
-                  className={`filter-icon ${
-                    activeFilters.element === elementKey ? 'active' : ''
-                  }`}
+                  className={`filter-icon ${activeFilters.element === elementKey ? 'active' : ''}`}
                   title={ELEMENT_NAMES[elementKey]}
                   onClick={() =>
                     setActiveFilters((previous) => ({
                       ...previous,
-                      element:
-                        previous.element === elementKey ? null : elementKey,
+                      element: previous.element === elementKey ? null : elementKey,
                     }))
                   }
                 >
-                  <img
-                    src={ICONS[elementKey]}
-                    alt={ELEMENT_NAMES[elementKey]}
-                  />
+                  <img src={ICONS[elementKey]} alt={ELEMENT_NAMES[elementKey]} />
                 </button>
               ))}
             </div>
@@ -1093,9 +1021,7 @@ export function Epic7Page() {
               <button
                 key={classKey}
                 type="button"
-                className={`filter-icon ${
-                  activeFilters.class === classKey ? 'active' : ''
-                }`}
+                className={`filter-icon ${activeFilters.class === classKey ? 'active' : ''}`}
                 title={CLASS_NAMES[classKey]}
                 onClick={() =>
                   setActiveFilters((previous) => ({
@@ -1178,12 +1104,8 @@ export function Epic7Page() {
                       <img
                         className="invert-on-light"
                         src={ICONS[row.class]}
-                        alt={
-                          CLASS_NAMES[row.class as ArtifactClass] ?? row.class
-                        }
-                        title={
-                          CLASS_NAMES[row.class as ArtifactClass] ?? row.class
-                        }
+                        alt={CLASS_NAMES[row.class as ArtifactClass] ?? row.class}
+                        title={CLASS_NAMES[row.class as ArtifactClass] ?? row.class}
                       />
                     ) : (
                       row.class || '-'
@@ -1194,12 +1116,8 @@ export function Epic7Page() {
                       {row.element && ICONS[row.element] ? (
                         <img
                           src={ICONS[row.element]}
-                          alt={
-                            ELEMENT_NAMES[row.element as Element] ?? row.element
-                          }
-                          title={
-                            ELEMENT_NAMES[row.element as Element] ?? row.element
-                          }
+                          alt={ELEMENT_NAMES[row.element as Element] ?? row.element}
+                          title={ELEMENT_NAMES[row.element as Element] ?? row.element}
                         />
                       ) : (
                         row.element || '-'
@@ -1214,12 +1132,8 @@ export function Epic7Page() {
                         className="rating-btn"
                         style={{
                           color: RATING_COLORS[row.rating] ?? '#6b7280',
-                          borderColor: `${
-                            RATING_COLORS[row.rating] ?? '#6b7280'
-                          }50`,
-                          background: `${
-                            RATING_COLORS[row.rating] ?? '#6b7280'
-                          }20`,
+                          borderColor: `${RATING_COLORS[row.rating] ?? '#6b7280'}50`,
+                          background: `${RATING_COLORS[row.rating] ?? '#6b7280'}20`,
                         }}
                         onClick={() => {
                           void cycleHero(row);
@@ -1233,8 +1147,7 @@ export function Epic7Page() {
                         type="button"
                         className="gauge-btn"
                         style={{
-                          color:
-                            GAUGE_COLORS[row.gauge_level] ?? GAUGE_COLORS[0],
+                          color: GAUGE_COLORS[row.gauge_level] ?? GAUGE_COLORS[0],
                         }}
                         onClick={() => {
                           void cycleArtifact(row);
@@ -1286,15 +1199,12 @@ export function Epic7Page() {
         onClose={() => dispatchModal({ type: 'CLOSE_ACCOUNT_MODAL' })}
         ariaLabelledBy="epic7-account-modal-title"
       >
-        <h2
-          id="epic7-account-modal-title"
-          className="mb-4 text-lg font-semibold"
-        >
+        <h2 id="epic7-account-modal-title" className="mb-4 text-lg font-semibold">
           Game Accounts
         </h2>
         <div className="account-manager-list">
           {accounts.length === 0 ? (
-            <p className="text-sm text-muted">No accounts yet.</p>
+            <p className="text-muted text-sm">No accounts yet.</p>
           ) : (
             accounts.map((account) => {
               const isEditing = modalState.accountEditId === account.id;
@@ -1315,9 +1225,7 @@ export function Epic7Page() {
                   ) : (
                     <div className="account-manager-name">
                       <span>{account.account_name}</span>
-                      {isActive ? (
-                        <span className="account-manager-active">Active</span>
-                      ) : null}
+                      {isActive ? <span className="account-manager-active">Active</span> : null}
                     </div>
                   )}
                   <div className="account-manager-actions">
@@ -1346,9 +1254,7 @@ export function Epic7Page() {
                         <button
                           type="button"
                           className="btn btn-cancel"
-                          onClick={() =>
-                            dispatchModal({ type: 'CANCEL_ACCOUNT_EDIT' })
-                          }
+                          onClick={() => dispatchModal({ type: 'CANCEL_ACCOUNT_EDIT' })}
                         >
                           Cancel
                         </button>
@@ -1408,11 +1314,7 @@ export function Epic7Page() {
           >
             Cancel
           </button>
-          <button
-            type="button"
-            className="btn btn-accent"
-            onClick={() => void addAccount()}
-          >
+          <button type="button" className="btn btn-accent" onClick={() => void addAccount()}>
             Add Account
           </button>
         </div>
@@ -1453,14 +1355,13 @@ export function Epic7Page() {
               })
             }
           >
-            {(modalState.modalItemType === 'heroes'
-              ? HERO_CLASSES
-              : ARTIFACT_CLASSES
-            ).map((value) => (
-              <option key={value} value={value}>
-                {CLASS_NAMES[value]}
-              </option>
-            ))}
+            {(modalState.modalItemType === 'heroes' ? HERO_CLASSES : ARTIFACT_CLASSES).map(
+              (value) => (
+                <option key={value} value={value}>
+                  {CLASS_NAMES[value]}
+                </option>
+              ),
+            )}
           </select>
         </div>
         {modalState.modalItemType === 'heroes' ? (
@@ -1511,11 +1412,7 @@ export function Epic7Page() {
           >
             Cancel
           </button>
-          <button
-            type="button"
-            className="btn btn-accent"
-            onClick={() => void saveItem()}
-          >
+          <button type="button" className="btn btn-accent" onClick={() => void saveItem()}>
             Save
           </button>
         </div>
@@ -1526,18 +1423,12 @@ export function Epic7Page() {
         onClose={() => dispatchModal({ type: 'CANCEL_ACCOUNT_DELETE' })}
         ariaLabelledBy="epic7-account-delete-modal-title"
       >
-        <h2
-          id="epic7-account-delete-modal-title"
-          className="mb-4 text-lg font-semibold"
-        >
+        <h2 id="epic7-account-delete-modal-title" className="mb-4 text-lg font-semibold">
           Delete Account
         </h2>
-        <p className="text-sm text-muted">
-          Delete{' '}
-          <strong>
-            {modalState.deletingAccount?.account_name || 'this account'}
-          </strong>
-          ? This also removes heroes and artifacts in this account.
+        <p className="text-muted text-sm">
+          Delete <strong>{modalState.deletingAccount?.account_name || 'this account'}</strong>? This
+          also removes heroes and artifacts in this account.
         </p>
         <div className="modal-actions">
           <button
@@ -1547,11 +1438,7 @@ export function Epic7Page() {
           >
             Cancel
           </button>
-          <button
-            type="button"
-            className="btn btn-danger"
-            onClick={() => void deleteAccount()}
-          >
+          <button type="button" className="btn btn-danger" onClick={() => void deleteAccount()}>
             Delete
           </button>
         </div>
@@ -1562,16 +1449,11 @@ export function Epic7Page() {
         onClose={() => dispatchModal({ type: 'CANCEL_DELETE' })}
         ariaLabelledBy="epic7-delete-modal-title"
       >
-        <h2
-          id="epic7-delete-modal-title"
-          className="mb-4 text-lg font-semibold"
-        >
-          Delete{' '}
-          {modalState.deletingItem?.type === 'hero' ? 'Hero' : 'Artifact'}
+        <h2 id="epic7-delete-modal-title" className="mb-4 text-lg font-semibold">
+          Delete {modalState.deletingItem?.type === 'hero' ? 'Hero' : 'Artifact'}
         </h2>
-        <p className="text-sm text-muted">
-          Delete <strong>{modalState.deletingItem?.name || 'this item'}</strong>
-          ?
+        <p className="text-muted text-sm">
+          Delete <strong>{modalState.deletingItem?.name || 'this item'}</strong>?
         </p>
         <div className="modal-actions">
           <button
@@ -1581,11 +1463,7 @@ export function Epic7Page() {
           >
             Cancel
           </button>
-          <button
-            type="button"
-            className="btn btn-danger"
-            onClick={() => void deleteItem()}
-          >
+          <button type="button" className="btn btn-danger" onClick={() => void deleteItem()}>
             Delete
           </button>
         </div>

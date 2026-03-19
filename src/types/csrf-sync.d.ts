@@ -16,11 +16,7 @@ declare module 'csrf-sync' {
   }
 
   interface CsrfSyncResult {
-    csrfSynchronisedProtection: (
-      req: Request,
-      res: Response,
-      next: NextFunction,
-    ) => void;
+    csrfSynchronisedProtection: (req: Request, res: Response, next: NextFunction) => void;
     generateToken: (req: Request) => string;
   }
 

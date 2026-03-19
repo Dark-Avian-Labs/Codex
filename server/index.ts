@@ -1,3 +1,6 @@
+import { createRequire } from 'module';
+import path from 'path';
+
 import { requireAuth, requireAdmin } from '@corpus/core';
 import { getEpic7Db } from '@corpus/game-epic7';
 import { getWarframeDb } from '@corpus/game-warframe';
@@ -7,8 +10,6 @@ import express, { type Request, type Response } from 'express';
 import { rateLimit } from 'express-rate-limit';
 import session from 'express-session';
 import helmet from 'helmet';
-import { createRequire } from 'module';
-import path from 'path';
 
 import { buildAuthLoginUrl, proxyAuthLogout } from './auth/remoteAuth.js';
 import {
@@ -46,14 +47,11 @@ const STATUS_TEXT: Record<number, string> = {
 ensureDataDirs();
 ensureCentralSchema();
 const centralDb = getCentralDb();
-function assertTableExists(
-  db: { prepare: (sql: string) => unknown },
-  tableName: string,
-): void {
+function assertTableExists(db: { prepare: (sql: string) => unknown }, tableName: string): void {
   const row = (
-    db.prepare(
-      "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
-    ) as { get: (param: string) => unknown }
+    db.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?") as {
+      get: (param: string) => unknown;
+    }
   ).get(tableName);
   if (!row) {
     throw new Error(`Required table "${tableName}" was not found.`);
@@ -84,9 +82,7 @@ ensureGameSchemasReady();
 const app = express();
 if (TRUST_PROXY) app.set('trust proxy', 1);
 if (NODE_ENV === 'production' && SECURE_COOKIES && !TRUST_PROXY) {
-  throw new Error(
-    'TRUST_PROXY must be enabled in production with secure cookies.',
-  );
+  throw new Error('TRUST_PROXY must be enabled in production with secure cookies.');
 }
 
 app.use(helmet());
@@ -111,9 +107,7 @@ const RATE_LIMIT_SKIP_PATHS = new Set([
   '/auth/profile',
   '/auth/legal',
 ]);
-const RATE_LIMIT_SKIP_PATTERNS = [
-  /^\/assets\/.+\.(?:css|js|png|jpe?g|gif|webp|svg|ico|woff2?)$/i,
-];
+const RATE_LIMIT_SKIP_PATTERNS = [/^\/assets\/.+\.(?:css|js|png|jpe?g|gif|webp|svg|ico|woff2?)$/i];
 
 const baselineLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -189,29 +183,24 @@ const defaultDevOrigins = IS_DEV_ENV
     ]
   : [];
 const configuredOrigins = [process.env.ALLOWED_APP_ORIGINS, AUTH_SERVICE_URL]
-  .filter(
-    (value): value is string => typeof value === 'string' && value.length > 0,
-  )
+  .filter((value): value is string => typeof value === 'string' && value.length > 0)
   .join(',');
 const originCandidates = configuredOrigins
   .split(',')
   .map((value) => value.trim())
   .filter(Boolean);
 const excludedOrigins: string[] = [];
-const ALLOWED_APP_ORIGINS = [
-  ...new Set([...originCandidates, ...defaultDevOrigins]),
-].filter((value) => {
-  const isHttps = value.startsWith('https://');
-  const isDevHttp = IS_DEV_ENV && value.startsWith('http://');
-  const allowed = isHttps || isDevHttp;
-  if (!allowed) excludedOrigins.push(value);
-  return allowed;
-});
+const ALLOWED_APP_ORIGINS = [...new Set([...originCandidates, ...defaultDevOrigins])].filter(
+  (value) => {
+    const isHttps = value.startsWith('https://');
+    const isDevHttp = IS_DEV_ENV && value.startsWith('http://');
+    const allowed = isHttps || isDevHttp;
+    if (!allowed) excludedOrigins.push(value);
+    return allowed;
+  },
+);
 if (excludedOrigins.length > 0) {
-  console.warn(
-    '[CORS] Excluded app origins from ALLOWED_APP_ORIGINS:',
-    excludedOrigins,
-  );
+  console.warn('[CORS] Excluded app origins from ALLOWED_APP_ORIGINS:', excludedOrigins);
 }
 
 app.use((req: Request, res: Response, next) => {
@@ -220,14 +209,8 @@ app.use((req: Request, res: Response, next) => {
     res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Vary', 'Origin');
     res.setHeader('Access-Control-Allow-Credentials', 'true');
-    res.setHeader(
-      'Access-Control-Allow-Headers',
-      'Content-Type, X-CSRF-Token, X-XSRF-Token',
-    );
-    res.setHeader(
-      'Access-Control-Allow-Methods',
-      'GET,POST,PATCH,PUT,DELETE,OPTIONS',
-    );
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-CSRF-Token, X-XSRF-Token');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PATCH,PUT,DELETE,OPTIONS');
   }
   if (req.method === 'OPTIONS') {
     res.status(204).end();
@@ -353,47 +336,39 @@ app.get('/auth/legal', publicPageLimiter, (_req, res) => {
   res.redirect(`${AUTH_SERVICE_URL}/legal`);
 });
 
-app.use(
-  (err: unknown, _req: Request, res: Response, _next: express.NextFunction) => {
-    const error = err as Partial<Error> & {
-      status?: number;
-      statusCode?: number;
-      code?: string;
-    };
-    const isCsrfError = error.code === 'EBADCSRFTOKEN';
-    if (isCsrfError) {
-      res.setHeader('X-CSRF-Error', '1');
-    }
-    console.error('[Error]', error.stack ?? error.message);
-    const status =
-      typeof error.status === 'number'
-        ? error.status
-        : typeof error.statusCode === 'number'
-          ? error.statusCode
-          : error.name === 'ForbiddenError'
-            ? 403
-            : 500;
-    const isClientError = status >= 400 && status < 500;
-    const fallbackStatusText = STATUS_TEXT[status] || 'Request error';
-    const message = isClientError
-      ? (typeof error.message === 'string' && error.message.trim()) ||
-        (typeof error.name === 'string' && error.name.trim()) ||
-        fallbackStatusText
-      : 'Internal server error';
-    res
-      .status(status)
-      .json(
-        isCsrfError
-          ? { error: message, code: 'CSRF_INVALID' }
-          : { error: message },
-      );
-  },
-);
+app.use((err: unknown, _req: Request, res: Response, _next: express.NextFunction) => {
+  const error = err as Partial<Error> & {
+    status?: number;
+    statusCode?: number;
+    code?: string;
+  };
+  const isCsrfError = error.code === 'EBADCSRFTOKEN';
+  if (isCsrfError) {
+    res.setHeader('X-CSRF-Error', '1');
+  }
+  console.error('[Error]', error.stack ?? error.message);
+  const status =
+    typeof error.status === 'number'
+      ? error.status
+      : typeof error.statusCode === 'number'
+        ? error.statusCode
+        : error.name === 'ForbiddenError'
+          ? 403
+          : 500;
+  const isClientError = status >= 400 && status < 500;
+  const fallbackStatusText = STATUS_TEXT[status] || 'Request error';
+  const message = isClientError
+    ? (typeof error.message === 'string' && error.message.trim()) ||
+      (typeof error.name === 'string' && error.name.trim()) ||
+      fallbackStatusText
+    : 'Internal server error';
+  res
+    .status(status)
+    .json(isCsrfError ? { error: message, code: 'CSRF_INVALID' } : { error: message });
+});
 
 const server = app.listen(PORT, HOST, () => {
-  console.log(
-    `[${APP_NAME}] Server running on http://${HOST}:${PORT} (${NODE_ENV})`,
-  );
+  console.log(`[${APP_NAME}] Server running on http://${HOST}:${PORT} (${NODE_ENV})`);
 });
 
 const SHUTDOWN_TIMEOUT_MS = 10_000;

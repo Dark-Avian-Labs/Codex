@@ -28,10 +28,7 @@ export function isPrimeVariantName(value: string): boolean {
   return /\s+prime$/i.test(normalizeDisplayName(value));
 }
 
-export function resolveCanonicalKey(
-  value: string,
-  aliases?: ReadonlyMap<string, string>,
-): string {
+export function resolveCanonicalKey(value: string, aliases?: ReadonlyMap<string, string>): string {
   const key = stripPrimeSuffix(normalizeNameForKey(value));
   return aliases?.get(key) ?? key;
 }

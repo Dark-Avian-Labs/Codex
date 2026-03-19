@@ -1,4 +1,4 @@
-name: Check Formatting
+name: Check OxFmt
 
 permissions:
   contents: read
@@ -23,5 +23,5 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Check formatting
+      - name: Run OxFmt check
         run: npm run check-format

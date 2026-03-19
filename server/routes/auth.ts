@@ -1,21 +1,9 @@
 import { getGamesForUser, requireAuthApi } from '@corpus/core';
 import { Router } from 'express';
 
-import {
-  buildAuthLoginUrl,
-  buildAuthLogoutUrl,
-  proxyAuthLogout,
-} from '../auth/remoteAuth.js';
-import {
-  APP_ID,
-  COOKIE_DOMAIN,
-  SECURE_COOKIES,
-  SESSION_COOKIE_NAME,
-} from '../config.js';
-import {
-  getGameMetadata,
-  unknownGameMetadata,
-} from '../games/metadataRegistry.js';
+import { buildAuthLoginUrl, buildAuthLogoutUrl, proxyAuthLogout } from '../auth/remoteAuth.js';
+import { APP_ID, COOKIE_DOMAIN, SECURE_COOKIES, SESSION_COOKIE_NAME } from '../config.js';
+import { getGameMetadata, unknownGameMetadata } from '../games/metadataRegistry.js';
 
 export const authRouter = Router();
 
@@ -61,10 +49,7 @@ authRouter.post('/logout', async (req, res) => {
       console.warn('[Auth] Upstream logout sync failed for /api/auth/logout');
     }
   } catch (error) {
-    console.warn(
-      '[Auth] Upstream logout sync threw for /api/auth/logout:',
-      error,
-    );
+    console.warn('[Auth] Upstream logout sync threw for /api/auth/logout:', error);
   }
 
   req.session.destroy((err) => {

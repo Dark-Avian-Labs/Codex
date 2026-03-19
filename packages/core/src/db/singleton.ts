@@ -10,10 +10,7 @@ export interface DbSingleton {
   closeDb(): void;
 }
 
-export function createDbSingleton(
-  dbPath: string,
-  options?: DbSingletonOptions,
-): DbSingleton {
+export function createDbSingleton(dbPath: string, options?: DbSingletonOptions): DbSingleton {
   let instance: Database.Database | null = null;
 
   function getDb(): Database.Database {

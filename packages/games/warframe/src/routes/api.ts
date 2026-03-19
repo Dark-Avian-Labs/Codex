@@ -1,7 +1,8 @@
+import fs from 'fs';
+
 import { isAdmin } from '@corpus/core';
 import { validateBody } from '@corpus/core/validation';
 import type { Request, Response } from 'express';
-import fs from 'fs';
 
 import {
   HELMINTH_VALUES,
@@ -10,6 +11,8 @@ import {
   VALID_STATUSES,
   WARFRAME_DB_PATH,
 } from '../config.js';
+import * as q from '../db/queries.js';
+import { getDb } from '../db/schema.js';
 import {
   addRowSchema,
   adminUpdateSchema,
@@ -17,8 +20,6 @@ import {
   editRowSchema,
   updateSchema,
 } from './validation.js';
-import * as q from '../db/queries.js';
-import { getDb } from '../db/schema.js';
 
 type JsonResponse = (data: object, status?: number) => void;
 
@@ -37,9 +38,7 @@ function getUserId(req: Request): number | null {
   return typeof id === 'number' && id > 0 ? id : null;
 }
 
-async function getDbOrFail(
-  res: Response,
-): Promise<ReturnType<typeof getDb> | null> {
+async function getDbOrFail(res: Response): Promise<ReturnType<typeof getDb> | null> {
   try {
     await fs.promises.access(WARFRAME_DB_PATH);
   } catch {
@@ -93,18 +92,14 @@ function validateColumnValues(
       });
       continue;
     }
-    const isValid =
-      col.name === 'Helminth' ? isHelminthValue(v) : isValidStatus(v);
+    const isValid = col.name === 'Helminth' ? isHelminthValue(v) : isValidStatus(v);
     if (!isValid) {
       invalid.push({
         column_id: k,
         value: v,
         reason:
-          col.name === 'Helminth'
-            ? 'invalid value for Helminth column'
-            : 'invalid status value',
-        allowed:
-          col.name === 'Helminth' ? [...HELMINTH_VALUES] : [...VALID_STATUSES],
+          col.name === 'Helminth' ? 'invalid value for Helminth column' : 'invalid status value',
+        allowed: col.name === 'Helminth' ? [...HELMINTH_VALUES] : [...VALID_STATUSES],
       });
     } else {
       valid[id] = v;
@@ -113,10 +108,7 @@ function validateColumnValues(
   return { valid, invalid };
 }
 
-export async function handleWorksheets(
-  req: Request,
-  res: Response,
-): Promise<void> {
+export async function handleWorksheets(req: Request, res: Response): Promise<void> {
   const userId = getUserId(req);
   if (!userId) {
     res.status(401).json({ error: 'Unauthorized' });
@@ -224,11 +216,7 @@ export async function handleAddRow(req: Request, res: Response): Promise<void> {
   }
   const data = validateBody(addRowSchema, req.body, res);
   if (!data) return;
-  const {
-    worksheet_id: worksheetId,
-    item_name: itemName,
-    values: valuesRaw,
-  } = data;
+  const { worksheet_id: worksheetId, item_name: itemName, values: valuesRaw } = data;
   const db = await getDbOrFail(res);
   if (!db) return;
   try {
@@ -252,10 +240,7 @@ export async function handleAddRow(req: Request, res: Response): Promise<void> {
   }
 }
 
-export async function handleEditRow(
-  req: Request,
-  res: Response,
-): Promise<void> {
+export async function handleEditRow(req: Request, res: Response): Promise<void> {
   const userId = getUserId(req);
   if (!userId) {
     res.status(401).json({ error: 'Unauthorized' });
@@ -292,10 +277,7 @@ export async function handleEditRow(
   }
 }
 
-export async function handleDeleteRow(
-  req: Request,
-  res: Response,
-): Promise<void> {
+export async function handleDeleteRow(req: Request, res: Response): Promise<void> {
   const userId = getUserId(req);
   if (!userId) {
     res.status(401).json({ error: 'Unauthorized' });
@@ -318,10 +300,7 @@ export async function handleDeleteRow(
   }
 }
 
-export async function handleAdminUpdate(
-  req: Request,
-  res: Response,
-): Promise<void> {
+export async function handleAdminUpdate(req: Request, res: Response): Promise<void> {
   const userId = getUserId(req);
   if (!userId) {
     res.status(401).json({ error: 'Unauthorized' });

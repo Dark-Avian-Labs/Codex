@@ -5,12 +5,7 @@ export const WARFRAME_DB_PATH = path.resolve(
   process.env.WARFRAME_DB_PATH ?? path.join(dataDir, 'warframe.db'),
 );
 
-export const VALID_STATUSES = [
-  '',
-  'Obtained',
-  'Complete',
-  'Unavailable',
-] as const;
+export const VALID_STATUSES = ['', 'Obtained', 'Complete', 'Unavailable'] as const;
 export type ValidStatus = (typeof VALID_STATUSES)[number];
 
 export function isValidStatus(value: string): value is ValidStatus {

@@ -2,10 +2,7 @@ import { clsx } from 'clsx';
 import type { HTMLAttributes } from 'react';
 import { twMerge } from 'tailwind-merge';
 
-export function GlassCard({
-  className = '',
-  ...props
-}: HTMLAttributes<HTMLDivElement>) {
+export function GlassCard({ className = '', ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       className={twMerge(

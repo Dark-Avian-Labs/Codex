@@ -2,13 +2,21 @@
   "name": "@corpus/game-epic7",
   "version": "3.1.0",
   "description": "Corpus Epic7 game module",
+  "license": "GPL-3.0-or-later",
+  "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "scripts": {
     "build": "tsc",
-    "lint": "eslint .",
-    "format": "prettier --write .",
-    "check-format": "prettier --check ."
+    "lint": "oxlint .",
+    "format": "oxfmt --write .",
+    "check-format": "oxfmt --check ."
   },
   "dependencies": {
     "@corpus/core": "3.1.0",
@@ -21,16 +29,8 @@
     "@types/node": "^25.3.3",
     "typescript": "^5.9.3"
   },
-  "type": "module",
-  "license": "GPL-3.0-or-later",
   "engines": {
     "node": ">=25.0.0",
     "npm": ">=11.0.0"
-  },
-  "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    }
   }
 }

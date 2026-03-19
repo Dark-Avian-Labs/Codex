@@ -1,3 +1,5 @@
+import fs from 'fs';
+
 import { requireGameAccess } from '@corpus/core';
 import { validateBody } from '@corpus/core/validation';
 import {
@@ -26,7 +28,6 @@ import {
   getEpic7Db,
 } from '@corpus/game-epic7';
 import { Router, type Request, type Response } from 'express';
-import fs from 'fs';
 
 import { requireAdmin } from '../auth/middleware.js';
 
@@ -151,9 +152,7 @@ epic7ApiRouter.patch('/artifacts/:artifactId/gauge', (req, res) => {
   if (!data) return;
   const db = getDbOrFail(res);
   if (!db) return;
-  if (
-    !q.updateArtifactGauge(db, data.artifact_id, accountId, data.gauge_level)
-  ) {
+  if (!q.updateArtifactGauge(db, data.artifact_id, accountId, data.gauge_level)) {
     err(res, 'Artifact not found.', 404);
     return;
   }
@@ -270,11 +269,7 @@ epic7ApiRouter.delete('/heroes/:heroId', (req, res) => {
     err(res, 'No game account selected.');
     return;
   }
-  const data = validateBody(
-    epic7DeleteHeroSchema,
-    { hero_id: Number(req.params.heroId) },
-    res,
-  );
+  const data = validateBody(epic7DeleteHeroSchema, { hero_id: Number(req.params.heroId) }, res);
   if (!data) return;
   const db = getDbOrFail(res);
   if (!db) return;
@@ -412,9 +407,7 @@ epic7ApiRouter.patch('/accounts/:accountId', (req, res) => {
     err(res, 'An account with this name already exists.');
     return;
   }
-  if (
-    !q.updateGameAccountName(db, data.account_id, userId, data.account_name)
-  ) {
+  if (!q.updateGameAccountName(db, data.account_id, userId, data.account_name)) {
     err(res, 'Failed to update account name.');
     return;
   }
@@ -496,19 +489,13 @@ epic7ApiRouter.post('/admin/base/heroes', requireAdmin, (req, res) => {
   const db = getDbOrFail(res);
   if (!db) return;
   const createBaseHero = db.transaction(() => {
-    const heroId = q.addBaseHero(
-      db,
-      data.name,
-      data.class,
-      data.element,
-      data.star_rating,
-    );
+    const heroId = q.addBaseHero(db, data.name, data.class, data.element, data.star_rating);
     if (!heroId) {
       throw new Error('Failed to create base hero.');
     }
-    const row = db
-      .prepare('SELECT display_order FROM base_heroes WHERE id = ?')
-      .get(heroId) as { display_order: number } | undefined;
+    const row = db.prepare('SELECT display_order FROM base_heroes WHERE id = ?').get(heroId) as
+      | { display_order: number }
+      | undefined;
     if (row == null) {
       throw new Error('Failed to create base hero.');
     }
@@ -538,12 +525,7 @@ epic7ApiRouter.post('/admin/base/artifacts', requireAdmin, (req, res) => {
   const db = getDbOrFail(res);
   if (!db) return;
   const createBaseArtifact = db.transaction(() => {
-    const artifactId = q.addBaseArtifact(
-      db,
-      data.name,
-      data.class,
-      data.star_rating,
-    );
+    const artifactId = q.addBaseArtifact(db, data.name, data.class, data.star_rating);
     if (!artifactId) {
       throw new Error('Failed to create base artifact.');
     }
@@ -572,44 +554,36 @@ epic7ApiRouter.post('/admin/base/artifacts', requireAdmin, (req, res) => {
   }
 });
 
-epic7ApiRouter.delete(
-  '/admin/base/heroes/:heroId',
-  requireAdmin,
-  (req, res) => {
-    const data = validateBody(
-      epic7AdminDeleteBaseHeroSchema,
-      { hero_id: Number(req.params.heroId) },
-      res,
-    );
-    if (!data) return;
-    const db = getDbOrFail(res);
-    if (!db) return;
-    const deleted = q.deleteBaseHero(db, data.hero_id);
-    if (!deleted) {
-      err(res, 'Base hero not found', 404);
-      return;
-    }
-    json(res, { success: true });
-  },
-);
+epic7ApiRouter.delete('/admin/base/heroes/:heroId', requireAdmin, (req, res) => {
+  const data = validateBody(
+    epic7AdminDeleteBaseHeroSchema,
+    { hero_id: Number(req.params.heroId) },
+    res,
+  );
+  if (!data) return;
+  const db = getDbOrFail(res);
+  if (!db) return;
+  const deleted = q.deleteBaseHero(db, data.hero_id);
+  if (!deleted) {
+    err(res, 'Base hero not found', 404);
+    return;
+  }
+  json(res, { success: true });
+});
 
-epic7ApiRouter.delete(
-  '/admin/base/artifacts/:artifactId',
-  requireAdmin,
-  (req, res) => {
-    const data = validateBody(
-      epic7AdminDeleteBaseArtifactSchema,
-      { artifact_id: Number(req.params.artifactId) },
-      res,
-    );
-    if (!data) return;
-    const db = getDbOrFail(res);
-    if (!db) return;
-    const deleted = q.deleteBaseArtifact(db, data.artifact_id);
-    if (!deleted) {
-      err(res, 'Base artifact not found', 404);
-      return;
-    }
-    json(res, { success: true });
-  },
-);
+epic7ApiRouter.delete('/admin/base/artifacts/:artifactId', requireAdmin, (req, res) => {
+  const data = validateBody(
+    epic7AdminDeleteBaseArtifactSchema,
+    { artifact_id: Number(req.params.artifactId) },
+    res,
+  );
+  if (!data) return;
+  const db = getDbOrFail(res);
+  if (!db) return;
+  const deleted = q.deleteBaseArtifact(db, data.artifact_id);
+  if (!deleted) {
+    err(res, 'Base artifact not found', 404);
+    return;
+  }
+  json(res, { success: true });
+});

@@ -1,10 +1,4 @@
-import {
-  type CSSProperties,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { type CSSProperties, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useLayoutSlots } from '../../components/Layout/useLayoutSlots';
 import { apiFetch } from '../../utils/api';
@@ -87,9 +81,7 @@ const tableScrollStyle = {
 
 function statusClass(value: string, columnName: string): string {
   if (columnName === 'Helminth') {
-    return value === 'Yes'
-      ? 'status-btn helminth-btn yes'
-      : 'status-btn helminth-btn empty';
+    return value === 'Yes' ? 'status-btn helminth-btn yes' : 'status-btn helminth-btn empty';
   }
   return `status-btn ${value.toLowerCase() || 'empty'}`;
 }
@@ -115,9 +107,9 @@ export function WarframeAdminPage() {
   const [error, setError] = useState<string | null>(null);
   const [summary, setSummary] = useState<SyncResult['summary'] | null>(null);
   const [cleanup, setCleanup] = useState<SyncResult['cleanup'] | null>(null);
-  const [mismatchedByWorksheet, setMismatchedByWorksheet] = useState<
-    Record<string, Set<number>>
-  >({});
+  const [mismatchedByWorksheet, setMismatchedByWorksheet] = useState<Record<string, Set<number>>>(
+    {},
+  );
 
   const loadWorksheets = useCallback(async (): Promise<void> => {
     setLoading(true);
@@ -136,9 +128,7 @@ export function WarframeAdminPage() {
       setWorksheets(sorted);
       setWorksheetId((current) => current ?? sorted[0]?.id ?? null);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Failed to load worksheets',
-      );
+      setError(err instanceof Error ? err.message : 'Failed to load worksheets');
     } finally {
       setLoading(false);
     }
@@ -147,9 +137,7 @@ export function WarframeAdminPage() {
   const loadWorksheetData = useCallback(async (targetWorksheetId: number) => {
     setLoadingData(true);
     try {
-      const response = await apiFetch(
-        `/api/warframe/worksheets/${targetWorksheetId}`,
-      );
+      const response = await apiFetch(`/api/warframe/worksheets/${targetWorksheetId}`);
       if (!response.ok) throw new Error('Failed to load worksheet data');
       const body = (await response.json()) as {
         columns?: Column[];
@@ -161,9 +149,7 @@ export function WarframeAdminPage() {
       });
     } catch (err) {
       console.error('[warframe admin] Failed to load worksheet data', err);
-      setError(
-        err instanceof Error ? err.message : 'Failed to load worksheet data',
-      );
+      setError(err instanceof Error ? err.message : 'Failed to load worksheet data');
     } finally {
       setLoadingData(false);
     }
@@ -185,9 +171,7 @@ export function WarframeAdminPage() {
       }
       setMismatchedByWorksheet(mismatchMap);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Failed to load sync preview',
-      );
+      setError(err instanceof Error ? err.message : 'Failed to load sync preview');
     }
   }, []);
 
@@ -199,27 +183,21 @@ export function WarframeAdminPage() {
   useEffect(() => {
     if (worksheetId === null) return;
     void loadWorksheetData(worksheetId).catch((err) => {
-      setError(
-        err instanceof Error ? err.message : 'Failed to load worksheet data',
-      );
+      setError(err instanceof Error ? err.message : 'Failed to load worksheet data');
     });
   }, [loadWorksheetData, worksheetId]);
 
   const activeWorksheetName = useMemo(
-    () =>
-      worksheets.find((worksheet) => worksheet.id === worksheetId)?.name ?? '',
+    () => worksheets.find((worksheet) => worksheet.id === worksheetId)?.name ?? '',
     [worksheetId, worksheets],
   );
 
-  const mismatchedRows =
-    mismatchedByWorksheet[activeWorksheetName] ?? new Set<number>();
+  const mismatchedRows = mismatchedByWorksheet[activeWorksheetName] ?? new Set<number>();
 
   const filteredRows = useMemo(
     () =>
       data.rows.filter((row) =>
-        (row.name || row.item_name || '')
-          .toLowerCase()
-          .includes(search.toLowerCase()),
+        (row.name || row.item_name || '').toLowerCase().includes(search.toLowerCase()),
       ),
     [data.rows, search],
   );
@@ -236,9 +214,7 @@ export function WarframeAdminPage() {
         | { error?: string }
         | null;
       if (!response.ok || (body && 'error' in body && body.error)) {
-        throw new Error(
-          (body && 'error' in body && body.error) || 'Failed to run sync',
-        );
+        throw new Error((body && 'error' in body && body.error) || 'Failed to run sync');
       }
       const result = body as SyncResult;
       setSummary(result.summary ?? null);
@@ -301,7 +277,7 @@ export function WarframeAdminPage() {
     return (
       <section className="rounded-2xl border border-[var(--color-glass-border)] bg-[var(--color-glass)] p-6">
         <h1 className="mb-2 text-2xl font-semibold">Warframe Admin</h1>
-        <p className="text-sm text-muted">Admin access is required.</p>
+        <p className="text-muted text-sm">Admin access is required.</p>
       </section>
     );
   }
@@ -317,9 +293,8 @@ export function WarframeAdminPage() {
   return (
     <section className="space-y-4">
       <h1 className="text-2xl font-semibold">Warframe Admin</h1>
-      <p className="text-sm text-muted">
-        Opening this page loads a preview only. Import runs from the header
-        action button.
+      <p className="text-muted text-sm">
+        Opening this page loads a preview only. Import runs from the header action button.
       </p>
       {error ? (
         <p className="text-sm text-red-400" role="alert">
@@ -340,16 +315,12 @@ export function WarframeAdminPage() {
       ) : null}
       {cleanup && cleanup.requiresConfirmationRows.length > 0 ? (
         <p className="text-sm text-yellow-300" role="status">
-          Some duplicate rows contain user progress and were not deleted. Review
-          required before manual cleanup.
+          Some duplicate rows contain user progress and were not deleted. Review required before
+          manual cleanup.
         </p>
       ) : null}
 
-      <div
-        className="tabs"
-        role="tablist"
-        aria-label="Warframe admin categories"
-      >
+      <div className="tabs" role="tablist" aria-label="Warframe admin categories">
         {worksheets.map((worksheet) => (
           <button
             key={worksheet.id}
@@ -374,10 +345,7 @@ export function WarframeAdminPage() {
             <span className="loading p-0">Loading worksheet data...</span>
           </div>
         ) : null}
-        <div
-          className={`table-scroll ${loadingData ? 'opacity-60' : ''}`}
-          style={tableScrollStyle}
-        >
+        <div className={`table-scroll ${loadingData ? 'opacity-60' : ''}`} style={tableScrollStyle}>
           <table style={{ tableLayout: 'fixed' }}>
             <colgroup>
               <col style={{ width: 'auto' }} />
@@ -404,7 +372,7 @@ export function WarframeAdminPage() {
               {loadingData ? (
                 <tr>
                   <td
-                    className="text-center text-muted"
+                    className="text-muted text-center"
                     colSpan={Math.max(data.columns.length + 1, 1)}
                   >
                     Loading worksheet data...
@@ -415,18 +383,12 @@ export function WarframeAdminPage() {
                   const displayName = row.name || row.item_name || 'Unnamed';
                   const isMismatch = mismatchedRows.has(row.id);
                   return (
-                    <tr
-                      key={row.id}
-                      className={isMismatch ? 'sync-mismatch-row' : undefined}
-                    >
+                    <tr key={row.id} className={isMismatch ? 'sync-mismatch-row' : undefined}>
                       <td className="item-name">{displayName}</td>
                       {data.columns.map((column) => {
                         const value = row.values?.[String(column.id)];
                         return (
-                          <td
-                            key={`${row.id}-${column.id}`}
-                            className="status-cell"
-                          >
+                          <td key={`${row.id}-${column.id}`} className="status-cell">
                             <button
                               type="button"
                               className={statusClass(value ?? '', column.name)}

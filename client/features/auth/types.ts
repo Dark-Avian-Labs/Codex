@@ -13,10 +13,7 @@ export interface AppSummary {
   url: string;
 }
 
-export type AuthErrorDetail =
-  | Error
-  | string
-  | { message: string; code?: string };
+export type AuthErrorDetail = Error | string | { message: string; code?: string };
 
 export type AuthState =
   | { status: 'loading'; user: null; apps: AppSummary[] }

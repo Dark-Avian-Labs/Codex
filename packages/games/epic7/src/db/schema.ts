@@ -75,17 +75,11 @@ export function createSchema(db: Database.Database): void {
 }
 
 function hasTable(db: Database.Database, name: string): boolean {
-  const row = db
-    .prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?")
-    .get(name);
+  const row = db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?").get(name);
   return !!row;
 }
 
-export type UniqueIndexOutcome =
-  | 'created'
-  | 'blocked_by_duplicates'
-  | 'failed'
-  | 'skipped';
+export type UniqueIndexOutcome = 'created' | 'blocked_by_duplicates' | 'failed' | 'skipped';
 
 export type UniqueIndexStatus = {
   idx_base_heroes_name_unique: UniqueIndexOutcome;
@@ -100,9 +94,7 @@ function ensureUniqueBaseNameIndexes(db: Database.Database): UniqueIndexStatus {
   const heroTableExists = hasTable(db, 'base_heroes');
   if (heroTableExists) {
     const heroDup = db
-      .prepare(
-        'SELECT name FROM base_heroes GROUP BY name HAVING COUNT(*) > 1 LIMIT 1',
-      )
+      .prepare('SELECT name FROM base_heroes GROUP BY name HAVING COUNT(*) > 1 LIMIT 1')
       .get() as { name: string } | undefined;
     if (heroDup) {
       status.idx_base_heroes_name_unique = 'blocked_by_duplicates';
@@ -128,9 +120,7 @@ function ensureUniqueBaseNameIndexes(db: Database.Database): UniqueIndexStatus {
   if (artifactTableExists) {
     status.idx_base_artifacts_name_unique = 'created';
     const artifactDup = db
-      .prepare(
-        'SELECT name FROM base_artifacts GROUP BY name HAVING COUNT(*) > 1 LIMIT 1',
-      )
+      .prepare('SELECT name FROM base_artifacts GROUP BY name HAVING COUNT(*) > 1 LIMIT 1')
       .get() as { name: string } | undefined;
     if (artifactDup) {
       status.idx_base_artifacts_name_unique = 'blocked_by_duplicates';
