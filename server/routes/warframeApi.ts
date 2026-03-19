@@ -1,3 +1,5 @@
+import fs from 'fs';
+
 import { requireGameAccess } from '@corpus/core';
 import { validateBody } from '@corpus/core/validation';
 import {
@@ -15,7 +17,6 @@ import {
   warframeUpdateSchema,
 } from '@corpus/game-warframe';
 import { Router, type Request, type Response } from 'express';
-import fs from 'fs';
 
 import { requireAdmin } from '../auth/middleware.js';
 import { runWarframeSync } from '../services/warframeSync.js';
@@ -60,9 +61,7 @@ function getUserId(req: Request): number {
   return userId;
 }
 
-function ensureWarframeUserSettingsTable(
-  db: ReturnType<typeof getWarframeDb>,
-): void {
+function ensureWarframeUserSettingsTable(db: ReturnType<typeof getWarframeDb>): void {
   db.exec(`
     CREATE TABLE IF NOT EXISTS user_settings (
       user_id INTEGER NOT NULL,
@@ -74,9 +73,7 @@ function ensureWarframeUserSettingsTable(
   `);
 }
 
-async function getDbOrFail(
-  res: Response,
-): Promise<ReturnType<typeof getWarframeDb> | null> {
+async function getDbOrFail(res: Response): Promise<ReturnType<typeof getWarframeDb> | null> {
   try {
     await fs.promises.access(WARFRAME_DB_PATH);
   } catch {
@@ -132,18 +129,14 @@ function validateColumnValues(
       });
       continue;
     }
-    const validValue =
-      col.name === 'Helminth' ? isHelminthValue(value) : isValidStatus(value);
+    const validValue = col.name === 'Helminth' ? isHelminthValue(value) : isValidStatus(value);
     if (!validValue) {
       invalid.push({
         column_id: key,
         value,
         reason:
-          col.name === 'Helminth'
-            ? 'invalid value for Helminth column'
-            : 'invalid status value',
-        allowed:
-          col.name === 'Helminth' ? [...HELMINTH_VALUES] : [...VALID_STATUSES],
+          col.name === 'Helminth' ? 'invalid value for Helminth column' : 'invalid status value',
+        allowed: col.name === 'Helminth' ? [...HELMINTH_VALUES] : [...VALID_STATUSES],
       });
     } else {
       valid[id] = value;
@@ -189,9 +182,7 @@ warframeApiRouter.get('/settings', (req, res) => {
           `SELECT setting_value FROM user_settings
            WHERE user_id = ? AND setting_key = ?`,
         )
-        .get(userId, SETTING_HIDE_COMPLETED) as
-        | { setting_value: string }
-        | undefined;
+        .get(userId, SETTING_HIDE_COMPLETED) as { setting_value: string } | undefined;
       res.status(200).json({
         hide_completed: row?.setting_value === '1',
       });
@@ -225,11 +216,7 @@ warframeApiRouter.patch('/settings', (req, res) => {
          ON CONFLICT(user_id, setting_key) DO UPDATE SET
            setting_value = excluded.setting_value,
            updated_at = datetime('now')`,
-      ).run(
-        userId,
-        SETTING_HIDE_COMPLETED,
-        req.body.hide_completed ? '1' : '0',
-      );
+      ).run(userId, SETTING_HIDE_COMPLETED, req.body.hide_completed ? '1' : '0');
       res.status(200).json({ success: true });
     } catch (error) {
       console.error('Failed to save Warframe settings:', error);
@@ -312,24 +299,15 @@ warframeApiRouter.patch('/cells', (req, res) => {
           return;
         }
       }
-      const changes = q.updateCell(
-        db,
-        data.row_id,
-        data.column_id,
-        data.value,
-        userId,
-      );
+      const changes = q.updateCell(db, data.row_id, data.column_id, data.value, userId);
       if (changes <= 0) {
-        res
-          .status(404)
-          .json({ error: 'Update failed: row or column not updated.' });
+        res.status(404).json({ error: 'Update failed: row or column not updated.' });
         return;
       }
       res.status(200).json({ success: true, value: data.value });
     } catch (error) {
       res.status(400).json({
-        error:
-          error instanceof Error ? error.message : 'Failed to update cell.',
+        error: error instanceof Error ? error.message : 'Failed to update cell.',
       });
     } finally {
       db.close();
@@ -351,9 +329,7 @@ warframeApiRouter.post('/rows', (req, res) => {
     try {
       const columns = q.getWorksheetColumns(db, data.worksheet_id, userId);
       if (columns.length === 0) {
-        res
-          .status(403)
-          .json({ error: 'Worksheet not found or access denied.' });
+        res.status(403).json({ error: 'Worksheet not found or access denied.' });
         return;
       }
       const { valid, invalid } = validateColumnValues(data.values, columns);
@@ -362,13 +338,7 @@ warframeApiRouter.post('/rows', (req, res) => {
         return;
       }
       try {
-        const rowId = q.addRow(
-          db,
-          data.worksheet_id,
-          userId,
-          data.item_name,
-          valid,
-        );
+        const rowId = q.addRow(db, data.worksheet_id, userId, data.item_name, valid);
         res.status(201).json({ success: true, row_id: rowId });
       } catch (error) {
         console.error('Failed to add row:', error);
@@ -431,11 +401,7 @@ warframeApiRouter.delete('/rows/:rowId', (req, res) => {
       res.status(401).json({ error: 'Unauthorized' });
       return;
     }
-    const data = validateBody(
-      warframeDeleteRowSchema,
-      { row_id: Number(req.params.rowId) },
-      res,
-    );
+    const data = validateBody(warframeDeleteRowSchema, { row_id: Number(req.params.rowId) }, res);
     if (!data) return;
     const db = await getDbOrFail(res);
     if (!db) return;
@@ -462,13 +428,7 @@ warframeApiRouter.patch('/admin/cells', requireAdmin, (req, res) => {
     const db = await getDbOrFail(res);
     if (!db) return;
     try {
-      const result = q.adminUpdateCell(
-        db,
-        data.row_id,
-        data.column_id,
-        data.value,
-        getUserId(req),
-      );
+      const result = q.adminUpdateCell(db, data.row_id, data.column_id, data.value, getUserId(req));
       if (result <= 0) {
         res.status(404).json({ error: 'Row or column not updated.' });
         return;
@@ -498,10 +458,7 @@ warframeApiRouter.get('/admin/sync-preview', requireAdmin, (req, res) => {
     } catch (error) {
       console.error('Failed to build Warframe sync preview:', error);
       res.status(500).json({
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Failed to build Warframe sync preview.',
+        error: error instanceof Error ? error.message : 'Failed to build Warframe sync preview.',
       });
     } finally {
       db.close();
@@ -531,10 +488,7 @@ warframeApiRouter.post('/admin/sync-source', requireAdmin, (req, res) => {
         error,
       });
       res.status(500).json({
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Failed to execute Warframe sync.',
+        error: error instanceof Error ? error.message : 'Failed to execute Warframe sync.',
       });
     } finally {
       db.close();

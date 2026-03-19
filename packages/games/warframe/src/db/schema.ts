@@ -3,10 +3,7 @@ import type Database from 'better-sqlite3';
 
 import { WARFRAME_DB_PATH } from '../config.js';
 
-export function createSchema(
-  db: Database.Database,
-  confirmReset: boolean,
-): void {
+export function createSchema(db: Database.Database, confirmReset: boolean): void {
   db.pragma('foreign_keys = ON');
   if (!confirmReset) return;
   db.exec(`

@@ -1,10 +1,4 @@
-import {
-  type ReactNode,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { type ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { apiFetch } from '../../utils/api';
 import { useAuth } from '../auth/AuthContext';
@@ -23,14 +17,7 @@ type BaseArtifact = {
   star_rating: number;
 };
 
-const HERO_CLASSES = [
-  'warrior',
-  'knight',
-  'thief',
-  'ranger',
-  'mage',
-  'soulweaver',
-] as const;
+const HERO_CLASSES = ['warrior', 'knight', 'thief', 'ranger', 'mage', 'soulweaver'] as const;
 const ARTIFACT_CLASSES = [...HERO_CLASSES, 'universal'] as const;
 const ELEMENTS = ['fire', 'ice', 'earth', 'light', 'dark'] as const;
 const CLASS_NAMES: Record<(typeof ARTIFACT_CLASSES)[number], string> = {
@@ -50,10 +37,10 @@ const ELEMENT_NAMES: Record<(typeof ELEMENTS)[number], string> = {
   dark: 'Dark',
 };
 
-const ICON_MODULES = import.meta.glob(
-  '../../../packages/games/epic7/assets/icons/*.png',
-  { eager: true, import: 'default' },
-) as Record<string, string>;
+const ICON_MODULES = import.meta.glob('../../../packages/games/epic7/assets/icons/*.png', {
+  eager: true,
+  import: 'default',
+}) as Record<string, string>;
 const ICONS: Record<string, string> = {};
 for (const [path, src] of Object.entries(ICON_MODULES)) {
   const file = path.split('/').pop();
@@ -96,9 +83,7 @@ export function AdminPage() {
   const [heroStars, setHeroStars] = useState(5);
 
   const [artifactName, setArtifactName] = useState('');
-  const [artifactClass, setArtifactClass] = useState<string>(
-    ARTIFACT_CLASSES[0],
-  );
+  const [artifactClass, setArtifactClass] = useState<string>(ARTIFACT_CLASSES[0]);
   const [artifactStars, setArtifactStars] = useState(5);
 
   const loadBaseData = useCallback(async (): Promise<void> => {
@@ -117,9 +102,7 @@ export function AdminPage() {
         artifacts?: BaseArtifact[];
       };
       setBaseHeroes(Array.isArray(heroesBody.heroes) ? heroesBody.heroes : []);
-      setBaseArtifacts(
-        Array.isArray(artifactsBody.artifacts) ? artifactsBody.artifacts : [],
-      );
+      setBaseArtifacts(Array.isArray(artifactsBody.artifacts) ? artifactsBody.artifacts : []);
     } catch {
       setError('Failed to load base tables.');
     }
@@ -133,11 +116,9 @@ export function AdminPage() {
     () =>
       baseHeroes.filter((hero) => {
         const q = search.trim().toLowerCase();
-        const matchesSearch =
-          q.length === 0 || hero.name.toLowerCase().includes(q);
+        const matchesSearch = q.length === 0 || hero.name.toLowerCase().includes(q);
         const matchesClass = classFilter === '' || hero.class === classFilter;
-        const matchesElement =
-          elementFilter === '' || hero.element === elementFilter;
+        const matchesElement = elementFilter === '' || hero.element === elementFilter;
         return matchesSearch && matchesClass && matchesElement;
       }),
     [baseHeroes, classFilter, elementFilter, search],
@@ -147,10 +128,8 @@ export function AdminPage() {
     () =>
       baseArtifacts.filter((artifact) => {
         const q = search.trim().toLowerCase();
-        const matchesSearch =
-          q.length === 0 || artifact.name.toLowerCase().includes(q);
-        const matchesClass =
-          classFilter === '' || artifact.class === classFilter;
+        const matchesSearch = q.length === 0 || artifact.name.toLowerCase().includes(q);
+        const matchesClass = classFilter === '' || artifact.class === classFilter;
         return matchesSearch && matchesClass;
       }),
     [baseArtifacts, classFilter, search],
@@ -160,9 +139,7 @@ export function AdminPage() {
     setTab(nextTab);
     if (nextTab === 'heroes') {
       setClassFilter((current) =>
-        HERO_CLASSES.includes(current as (typeof HERO_CLASSES)[number])
-          ? current
-          : '',
+        HERO_CLASSES.includes(current as (typeof HERO_CLASSES)[number]) ? current : '',
       );
       setElementFilter((current) =>
         ELEMENTS.includes(current as (typeof ELEMENTS)[number]) ? current : '',
@@ -171,9 +148,7 @@ export function AdminPage() {
     }
 
     setClassFilter((current) =>
-      ARTIFACT_CLASSES.includes(current as (typeof ARTIFACT_CLASSES)[number])
-        ? current
-        : '',
+      ARTIFACT_CLASSES.includes(current as (typeof ARTIFACT_CLASSES)[number]) ? current : '',
     );
     setElementFilter('');
   }, []);
@@ -225,9 +200,7 @@ export function AdminPage() {
       setArtifactName('');
       await loadBaseData();
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Failed to add base artifact.',
-      );
+      setError(err instanceof Error ? err.message : 'Failed to add base artifact.');
     }
   }
 
@@ -260,12 +233,9 @@ export function AdminPage() {
     if (!confirmed) return;
 
     try {
-      const res = await apiFetch(
-        `/api/epic7/admin/base/artifacts/${artifactId}`,
-        {
-          method: 'DELETE',
-        },
-      );
+      const res = await apiFetch(`/api/epic7/admin/base/artifacts/${artifactId}`, {
+        method: 'DELETE',
+      });
       const body = (await res.json().catch(() => null)) as {
         error?: string;
       } | null;
@@ -282,7 +252,7 @@ export function AdminPage() {
     return (
       <section className="rounded-2xl border border-[var(--color-glass-border)] bg-[var(--color-glass)] p-6">
         <h1 className="mb-2 text-2xl font-semibold">Admin</h1>
-        <p className="text-sm text-muted">Admin access is required.</p>
+        <p className="text-muted text-sm">Admin access is required.</p>
       </section>
     );
   }
@@ -295,11 +265,7 @@ export function AdminPage() {
           {error}
         </p>
       ) : null}
-      <div
-        className="tabs"
-        role="tablist"
-        aria-label="Epic Seven base categories"
-      >
+      <div className="tabs" role="tablist" aria-label="Epic Seven base categories">
         <button
           type="button"
           className={`tab ${tab === 'heroes' ? 'active' : ''}`}
@@ -350,27 +316,15 @@ export function AdminPage() {
                 className={`filter-icon ${isActive ? 'active' : ''}`}
                 aria-pressed={isActive}
                 title={CLASS_NAMES[value]}
-                onClick={() =>
-                  setClassFilter((previous) =>
-                    previous === value ? '' : value,
-                  )
-                }
+                onClick={() => setClassFilter((previous) => (previous === value ? '' : value))}
               >
-                <img
-                  className="invert-on-light"
-                  src={ICONS[value]}
-                  alt={CLASS_NAMES[value]}
-                />
+                <img className="invert-on-light" src={ICONS[value]} alt={CLASS_NAMES[value]} />
               </button>
             );
           })}
         </div>
         {tab === 'heroes' ? (
-          <div
-            className="filter-group"
-            role="group"
-            aria-label="Filter by element"
-          >
+          <div className="filter-group" role="group" aria-label="Filter by element">
             <span className="filter-label">Element:</span>
             {ELEMENTS.map((value) => {
               const isActive = elementFilter === value;
@@ -381,11 +335,7 @@ export function AdminPage() {
                   className={`filter-icon ${isActive ? 'active' : ''}`}
                   aria-pressed={isActive}
                   title={ELEMENT_NAMES[value]}
-                  onClick={() =>
-                    setElementFilter((previous) =>
-                      previous === value ? '' : value,
-                    )
-                  }
+                  onClick={() => setElementFilter((previous) => (previous === value ? '' : value))}
                 >
                   <img src={ICONS[value]} alt={ELEMENT_NAMES[value]} />
                 </button>
@@ -450,14 +400,12 @@ export function AdminPage() {
                             className="invert-on-light"
                             src={ICONS[hero.class]}
                             alt={
-                              CLASS_NAMES[
-                                hero.class as (typeof ARTIFACT_CLASSES)[number]
-                              ] ?? hero.class
+                              CLASS_NAMES[hero.class as (typeof ARTIFACT_CLASSES)[number]] ??
+                              hero.class
                             }
                             title={
-                              CLASS_NAMES[
-                                hero.class as (typeof ARTIFACT_CLASSES)[number]
-                              ] ?? hero.class
+                              CLASS_NAMES[hero.class as (typeof ARTIFACT_CLASSES)[number]] ??
+                              hero.class
                             }
                           />
                         ) : (
@@ -469,23 +417,19 @@ export function AdminPage() {
                           <img
                             src={ICONS[hero.element]}
                             alt={
-                              ELEMENT_NAMES[
-                                hero.element as (typeof ELEMENTS)[number]
-                              ] ?? hero.element
+                              ELEMENT_NAMES[hero.element as (typeof ELEMENTS)[number]] ??
+                              hero.element
                             }
                             title={
-                              ELEMENT_NAMES[
-                                hero.element as (typeof ELEMENTS)[number]
-                              ] ?? hero.element
+                              ELEMENT_NAMES[hero.element as (typeof ELEMENTS)[number]] ??
+                              hero.element
                             }
                           />
                         ) : (
                           hero.element
                         )}
                       </td>
-                      <td className="stars-cell">
-                        {renderStars(hero.star_rating)}
-                      </td>
+                      <td className="stars-cell">{renderStars(hero.star_rating)}</td>
                       <td className="status-cell">
                         <button
                           type="button"
@@ -515,23 +459,19 @@ export function AdminPage() {
                           className="invert-on-light"
                           src={ICONS[artifact.class]}
                           alt={
-                            CLASS_NAMES[
-                              artifact.class as (typeof ARTIFACT_CLASSES)[number]
-                            ] ?? artifact.class
+                            CLASS_NAMES[artifact.class as (typeof ARTIFACT_CLASSES)[number]] ??
+                            artifact.class
                           }
                           title={
-                            CLASS_NAMES[
-                              artifact.class as (typeof ARTIFACT_CLASSES)[number]
-                            ] ?? artifact.class
+                            CLASS_NAMES[artifact.class as (typeof ARTIFACT_CLASSES)[number]] ??
+                            artifact.class
                           }
                         />
                       ) : (
                         artifact.class
                       )}
                     </td>
-                    <td className="stars-cell">
-                      {renderStars(artifact.star_rating)}
-                    </td>
+                    <td className="stars-cell">{renderStars(artifact.star_rating)}</td>
                     <td className="status-cell">
                       <button
                         type="button"
@@ -594,11 +534,7 @@ export function AdminPage() {
                   </option>
                 ))}
               </select>
-              <button
-                type="button"
-                className="btn btn-accent"
-                onClick={() => void addHero()}
-              >
+              <button type="button" className="btn btn-accent" onClick={() => void addHero()}>
                 Add Hero
               </button>
             </>
@@ -623,9 +559,7 @@ export function AdminPage() {
               </select>
               <select
                 value={artifactStars}
-                onChange={(event) =>
-                  setArtifactStars(Number(event.target.value))
-                }
+                onChange={(event) => setArtifactStars(Number(event.target.value))}
                 aria-label="New base artifact stars"
               >
                 {[3, 4, 5].map((value) => (
@@ -634,11 +568,7 @@ export function AdminPage() {
                   </option>
                 ))}
               </select>
-              <button
-                type="button"
-                className="btn btn-accent"
-                onClick={() => void addArtifact()}
-              >
+              <button type="button" className="btn btn-accent" onClick={() => void addArtifact()}>
                 Add Artifact
               </button>
             </>

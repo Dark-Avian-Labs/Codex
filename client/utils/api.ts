@@ -65,13 +65,9 @@ async function isCsrfFailureResponse(response: Response): Promise<boolean> {
   }
 }
 
-export async function apiFetch(
-  url: string,
-  init?: RequestInit,
-): Promise<Response> {
+export async function apiFetch(url: string, init?: RequestInit): Promise<Response> {
   const method = (init?.method ?? 'GET').toUpperCase();
-  const needsCsrf =
-    method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS';
+  const needsCsrf = method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS';
 
   const headers = new Headers(init?.headers);
   if (needsCsrf) {

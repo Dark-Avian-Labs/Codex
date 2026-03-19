@@ -8,8 +8,8 @@ import {
   type ReactNode,
 } from 'react';
 
-import type { AuthErrorDetail, AuthState, UserSummary } from './types';
 import { apiFetch, clearCsrfToken } from '../../utils/api';
+import type { AuthErrorDetail, AuthState, UserSummary } from './types';
 
 interface AuthContextValue {
   auth: AuthState;
@@ -32,9 +32,7 @@ function isSafeRelativePath(next: string): boolean {
   }
   const hasControlCharacters = Array.from(trimmed).some((char) => {
     const codePoint = char.codePointAt(0);
-    return (
-      typeof codePoint === 'number' && (codePoint <= 31 || codePoint === 127)
-    );
+    return typeof codePoint === 'number' && (codePoint <= 31 || codePoint === 127);
   });
   if (trimmed.includes('\\') || hasControlCharacters) {
     return false;

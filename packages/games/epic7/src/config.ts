@@ -5,30 +5,14 @@ export const EPIC7_DB_PATH = path.resolve(
   process.env.EPIC7_DB_PATH ?? path.join(dataDir, 'epic7.db'),
 );
 
-export const HERO_CLASSES = [
-  'warrior',
-  'knight',
-  'thief',
-  'ranger',
-  'mage',
-  'soulweaver',
-] as const;
+export const HERO_CLASSES = ['warrior', 'knight', 'thief', 'ranger', 'mage', 'soulweaver'] as const;
 export type HeroClassKey = (typeof HERO_CLASSES)[number];
 export const ARTIFACT_CLASSES = [...HERO_CLASSES, 'universal'] as const;
 export const ELEMENTS = ['fire', 'ice', 'earth', 'light', 'dark'] as const;
 
 export type ClassKey = (typeof ARTIFACT_CLASSES)[number];
 export type ElementKey = (typeof ELEMENTS)[number];
-export const HERO_RATINGS = [
-  '-',
-  'D',
-  'C',
-  'B',
-  'A',
-  'S',
-  'SS',
-  'SSS',
-] as const;
+export const HERO_RATINGS = ['-', 'D', 'C', 'B', 'A', 'S', 'SS', 'SSS'] as const;
 export const ARTIFACT_GAUGE_MAX = 5;
 export const ARTIFACT_GAUGE_FILLED = '▰';
 export const ARTIFACT_GAUGE_EMPTY = '▱';

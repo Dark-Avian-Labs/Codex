@@ -1,26 +1,24 @@
+import { createHash } from 'node:crypto';
+
 import type { Request } from 'express';
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
-import { createHash } from 'node:crypto';
 
 function firstHeaderValue(req: Request, header: string): string | null {
   const value = req.headers?.[header];
   if (Array.isArray(value)) return value[0] ?? null;
-  if (typeof value === 'string' && value.trim() !== '')
-    return value.split(',')[0]?.trim() ?? null;
+  if (typeof value === 'string' && value.trim() !== '') return value.split(',')[0]?.trim() ?? null;
   return null;
 }
 
 function buildFallbackKey(req: Request): string {
   const ua = firstHeaderValue(req, 'user-agent') ?? 'ua:unknown';
   const host = firstHeaderValue(req, 'host') ?? 'host:unknown';
-  const reqIp =
-    typeof req.ip === 'string' && req.ip.trim() !== '' ? req.ip : null;
+  const reqIp = typeof req.ip === 'string' && req.ip.trim() !== '' ? req.ip : null;
   const forwarded = firstHeaderValue(req, 'x-forwarded-for');
   const realIp = firstHeaderValue(req, 'x-real-ip');
   const cfIp = firstHeaderValue(req, 'cf-connecting-ip');
   const socketIp =
-    typeof req.socket?.remoteAddress === 'string' &&
-    req.socket.remoteAddress.length > 0
+    typeof req.socket?.remoteAddress === 'string' && req.socket.remoteAddress.length > 0
       ? req.socket.remoteAddress
       : null;
 

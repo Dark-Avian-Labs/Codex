@@ -12,11 +12,7 @@ export interface GameMountOptions {
 export interface GameModule {
   id: string;
   name: string;
-  mount: (
-    app: Application,
-    basePath: string,
-    options: GameMountOptions,
-  ) => void;
+  mount: (app: Application, basePath: string, options: GameMountOptions) => void;
   getDbPath: () => string;
   getDb: () => import('better-sqlite3').Database;
   applyDefaultsForNewUser?: (userId: number) => void | Promise<void>;

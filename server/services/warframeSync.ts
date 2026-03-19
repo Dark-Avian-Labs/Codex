@@ -137,15 +137,9 @@ function stripKitgunPrimarySuffix(value: string): string {
   return value.replace(/\s*\(primary\)\s*$/i, '').trim();
 }
 
-function loadNames(
-  db: Database.Database,
-  sql: string,
-  args: unknown[] = [],
-): string[] {
+function loadNames(db: Database.Database, sql: string, args: unknown[] = []): string[] {
   const rows = db.prepare(sql).all(...args) as { name: string | null }[];
-  return rows
-    .map((row) => row.name?.trim() ?? '')
-    .filter((name) => name.length > 0);
+  return rows.map((row) => row.name?.trim() ?? '').filter((name) => name.length > 0);
 }
 
 type WeaponSourceRow = {
@@ -212,13 +206,11 @@ function isCompanionModularMainComponent(row: WeaponSourceRow): boolean {
   const uniqueName = row.unique_name?.toLowerCase() ?? '';
   if (!uniqueName) return false;
 
-  const isMoaHead =
-    uniqueName.includes('/moapetparts/') && uniqueName.includes('/moapethead');
+  const isMoaHead = uniqueName.includes('/moapetparts/') && uniqueName.includes('/moapethead');
   if (isMoaHead) return true;
 
   const isHoundHead =
-    uniqueName.includes('/zanukapetparts/') &&
-    uniqueName.includes('/zanukapetparthead');
+    uniqueName.includes('/zanukapetparts/') && uniqueName.includes('/zanukapetparthead');
   if (isHoundHead) return true;
 
   return false;
@@ -259,16 +251,10 @@ function ensureWorksheetExistsForSync(
   const existingWorksheets = q.getWorksheets(corpusDb, userId);
   const displayOrder =
     existingWorksheets.reduce(
-      (maxOrder, sheet) =>
-        Math.max(maxOrder, sheet.display_order ?? Number.MIN_SAFE_INTEGER),
+      (maxOrder, sheet) => Math.max(maxOrder, sheet.display_order ?? Number.MIN_SAFE_INTEGER),
       -1,
     ) + 1;
-  const worksheetId = q.createWorksheet(
-    corpusDb,
-    userId,
-    worksheet,
-    displayOrder,
-  );
+  const worksheetId = q.createWorksheet(corpusDb, userId, worksheet, displayOrder);
   q.addColumn(corpusDb, worksheetId, userId, 'Normal', 0);
   q.addColumn(corpusDb, worksheetId, userId, 'Prime', 1);
   if (worksheet === 'Warframes') {
@@ -277,14 +263,9 @@ function ensureWorksheetExistsForSync(
   return q.getWorksheetByName(corpusDb, userId, worksheet);
 }
 
-function loadWorksheetSource(
-  parametricDb: Database.Database,
-): Record<WorksheetName, Set<string>> {
+function loadWorksheetSource(parametricDb: Database.Database): Record<WorksheetName, Set<string>> {
   const warframes = new Set(
-    loadNames(
-      parametricDb,
-      "SELECT name FROM warframes WHERE product_category = 'Suits'",
-    ),
+    loadNames(parametricDb, "SELECT name FROM warframes WHERE product_category = 'Suits'"),
   );
   const accessories = new Set(
     loadNames(
@@ -349,11 +330,7 @@ function appendCurrentSpecialItemPlacements(
       "SELECT name FROM weapons WHERE product_category = 'SpecialItems' AND name IS NOT NULL AND slot IS NOT NULL AND TRIM(slot) <> ''",
     ),
   );
-  for (const worksheet of [
-    'Primary Weapons',
-    'Secondary Weapons',
-    'Melee Weapons',
-  ] as const) {
+  for (const worksheet of ['Primary Weapons', 'Secondary Weapons', 'Melee Weapons'] as const) {
     for (const rowName of currentRowsByWorksheet.get(worksheet) ?? []) {
       if (specialNames.has(rowName)) {
         sourceByWorksheet[worksheet].add(rowName);
@@ -383,8 +360,7 @@ function createDesiredEntries(
     const key = resolveCanonicalKey(displayName);
     if (!key) continue;
     const specialPrimeBaseName = getSpecialPrimeVariantBaseName(displayName);
-    const isPrime =
-      isPrimeVariantName(displayName) || specialPrimeBaseName !== undefined;
+    const isPrime = isPrimeVariantName(displayName) || specialPrimeBaseName !== undefined;
     const canonicalDisplayName = isPrime
       ? (specialPrimeBaseName ?? stripPrimeSuffix(displayName))
       : displayName;
@@ -431,9 +407,7 @@ function createDesiredEntries(
   return desired;
 }
 
-function resolveVariantColumns(
-  columns: Array<{ id: number; name: string }>,
-): VariantColumns {
+function resolveVariantColumns(columns: Array<{ id: number; name: string }>): VariantColumns {
   const baseColumnIds: number[] = [];
   const primeColumnIds: number[] = [];
   for (const column of columns) {
@@ -455,8 +429,7 @@ function reconcileVariantAvailability(params: {
   variantColumns: VariantColumns;
   execute: boolean;
 }): boolean {
-  const { corpusDb, userId, rowId, desiredEntry, variantColumns, execute } =
-    params;
+  const { corpusDb, userId, rowId, desiredEntry, variantColumns, execute } = params;
   const targetValuesByColumn = new Map<number, '' | 'Unavailable'>();
   if (!desiredEntry.hasBaseVariant) {
     for (const columnId of variantColumns.baseColumnIds) {
@@ -480,8 +453,7 @@ function reconcileVariantAvailability(params: {
 
   let hasChange = false;
   for (const [columnId, targetValue] of targetValuesByColumn.entries()) {
-    const currentValue =
-      q.getCellValue(corpusDb, rowId, columnId, userId) ?? '';
+    const currentValue = q.getCellValue(corpusDb, rowId, columnId, userId) ?? '';
     const nextValue =
       targetValue === 'Unavailable'
         ? 'Unavailable'
@@ -617,12 +589,9 @@ export function runWarframeSync(
 ): WarframeSyncResult {
   if (
     options.execute &&
-    (!Number.isInteger(options.initiatedByUserId) ||
-      (options.initiatedByUserId ?? 0) <= 0)
+    (!Number.isInteger(options.initiatedByUserId) || (options.initiatedByUserId ?? 0) <= 0)
   ) {
-    throw new Error(
-      'A valid initiating admin user id is required for execute mode.',
-    );
+    throw new Error('A valid initiating admin user id is required for execute mode.');
   }
   const mode = options.execute ? 'execute' : 'preview';
   const parametricDb = new Database(PARAMETRIC_DB_PATH, {
@@ -646,12 +615,7 @@ export function runWarframeSync(
       const sourceByWorksheetForUser = cloneWorksheetSource(sourceByWorksheet);
       const currentRowsByWorksheet = new Map<WorksheetName, string[]>();
       for (const worksheet of WORKSHEET_NAMES) {
-        const sheet = ensureWorksheetExistsForSync(
-          corpusDb,
-          userId,
-          worksheet,
-          options.execute,
-        );
+        const sheet = ensureWorksheetExistsForSync(corpusDb, userId, worksheet, options.execute);
         if (!sheet) continue;
         const rows = q.getWorksheetRows(corpusDb, sheet.id, userId);
         currentRowsByWorksheet.set(
@@ -667,17 +631,9 @@ export function runWarframeSync(
 
       const worksheetResults: WorksheetSyncResult[] = [];
       for (const worksheet of WORKSHEET_NAMES) {
-        const sheet = ensureWorksheetExistsForSync(
-          corpusDb,
-          userId,
-          worksheet,
-          options.execute,
-        );
+        const sheet = ensureWorksheetExistsForSync(corpusDb, userId, worksheet, options.execute);
         if (!sheet) continue;
-        const desired = createDesiredEntries(
-          worksheet,
-          sourceByWorksheetForUser[worksheet],
-        );
+        const desired = createDesiredEntries(worksheet, sourceByWorksheetForUser[worksheet]);
         let rows = q.getWorksheetRows(corpusDb, sheet.id, userId);
         const columns = q.getWorksheetColumns(corpusDb, sheet.id, userId);
         const variantColumns = resolveVariantColumns(columns);
@@ -717,14 +673,11 @@ export function runWarframeSync(
               : row.item_name;
           const didNormalizeKitgunName =
             normalizedItemName !== row.item_name &&
-            resolveCanonicalKey(normalizedItemName) ===
-              resolveCanonicalKey(row.item_name);
+            resolveCanonicalKey(normalizedItemName) === resolveCanonicalKey(row.item_name);
           if (didNormalizeKitgunName && options.execute) {
             q.editRow(corpusDb, row.id, userId, normalizedItemName, {});
           }
-          const effectiveItemName = didNormalizeKitgunName
-            ? normalizedItemName
-            : row.item_name;
+          const effectiveItemName = didNormalizeKitgunName ? normalizedItemName : row.item_name;
 
           if (DISCARDED_ROWS.has(effectiveItemName)) {
             if (options.execute) {
@@ -763,9 +716,7 @@ export function runWarframeSync(
           deleted.push(...cleanup.deletedItemNames);
         }
         cleanupDeletedRows.push(...cleanup.deletedRows);
-        cleanupRequiresConfirmationRows.push(
-          ...cleanup.requiresConfirmationRows,
-        );
+        cleanupRequiresConfirmationRows.push(...cleanup.requiresConfirmationRows);
 
         worksheetResults.push({
           worksheet,

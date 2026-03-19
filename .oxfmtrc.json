@@ -1,0 +1,65 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+
+  "printWidth": 100,
+  "tabWidth": 2,
+  "useTabs": false,
+  "semi": true,
+  "singleQuote": true,
+  "trailingComma": "all",
+  "endOfLine": "lf",
+  "insertFinalNewline": true,
+
+  "sortPackageJson": true,
+  "sortTailwindcss": {
+    "enabled": true
+  },
+  "sortImports": {
+    "groups": [
+      "side_effect",
+      "builtin",
+      "external",
+      ["internal", "subpath"],
+      ["parent", "sibling", "index"],
+      "style",
+      "unknown"
+    ],
+    "order": "asc",
+    "ignoreCase": true,
+    "partitionByNewline": false,
+    "newlinesBetween": true,
+    "internalPattern": ["~/**", "@/**", "src/**"]
+  },
+
+  "ignorePatterns": [
+    "node_modules/**",
+    "dist/**",
+    "build/**",
+    "coverage/**",
+    ".turbo/**",
+    ".next/**",
+    ".output/**",
+    ".vite/**",
+    "tmp/**",
+    "out/**",
+    "pnpm-lock.yaml",
+    "yarn.lock",
+    "package-lock.json",
+    "bun.lockb"
+  ],
+
+  "overrides": [
+    {
+      "files": ["**/*.test.*", "**/*.spec.*", "**/__tests__/**"],
+      "options": { "printWidth": 120 }
+    },
+    {
+      "files": ["**/*.md", "**/*.mdx"],
+      "options": { "proseWrap": "preserve" }
+    },
+    {
+      "files": ["**/*.html", "**/*.hbs", "**/*.handlebars"],
+      "options": { "printWidth": 120 }
+    }
+  ]
+}

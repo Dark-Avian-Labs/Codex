@@ -20,12 +20,9 @@ function isSafeRelativePath(next: string): boolean {
 }
 
 export function buildAuthLoginUrl(req: Request, fallbackPath = '/'): string {
-  const requestedNext =
-    typeof req.query?.next === 'string' ? req.query.next : undefined;
+  const requestedNext = typeof req.query?.next === 'string' ? req.query.next : undefined;
   const normalizedFallback =
-    isSafeRelativePath(fallbackPath) && fallbackPath !== '/login'
-      ? fallbackPath
-      : '/';
+    isSafeRelativePath(fallbackPath) && fallbackPath !== '/login' ? fallbackPath : '/';
   const fallbackNext =
     isSafeRelativePath(req.originalUrl) &&
     req.originalUrl !== '/login' &&
@@ -33,9 +30,7 @@ export function buildAuthLoginUrl(req: Request, fallbackPath = '/'): string {
       ? req.originalUrl
       : normalizedFallback;
   const requested =
-    requestedNext && isSafeRelativePath(requestedNext)
-      ? requestedNext
-      : fallbackNext;
+    requestedNext && isSafeRelativePath(requestedNext) ? requestedNext : fallbackNext;
   const next = new URL(requested, APP_PUBLIC_BASE_URL).toString();
   const loginUrl = new URL(`${AUTH_SERVICE_URL}/login`);
   loginUrl.searchParams.set('next', next);
@@ -45,17 +40,11 @@ export function buildAuthLoginUrl(req: Request, fallbackPath = '/'): string {
 export function buildAuthLogoutUrl(next = '/login'): string {
   const safeNext = isSafeRelativePath(next) ? next : '/login';
   const logoutUrl = new URL(`${AUTH_SERVICE_URL}/logout`);
-  logoutUrl.searchParams.set(
-    'next',
-    new URL(safeNext, APP_PUBLIC_BASE_URL).toString(),
-  );
+  logoutUrl.searchParams.set('next', new URL(safeNext, APP_PUBLIC_BASE_URL).toString());
   return logoutUrl.toString();
 }
 
-export async function proxyAuthLogout(
-  req: Request,
-  res: Response,
-): Promise<boolean> {
+export async function proxyAuthLogout(req: Request, res: Response): Promise<boolean> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 5000);
   try {
@@ -75,20 +64,17 @@ export async function proxyAuthLogout(
       if (!csrfBody.csrfToken) {
         return false;
       }
-      const logoutResponse = await fetch(
-        `${AUTH_SERVICE_URL}/api/auth/logout`,
-        {
-          method: 'POST',
-          headers: {
-            cookie: req.headers.cookie ?? '',
-            accept: 'application/json',
-            'content-type': 'application/json',
-            'x-csrf-token': csrfBody.csrfToken,
-          },
-          body: JSON.stringify({ _csrf: csrfBody.csrfToken }),
-          signal: controller.signal,
+      const logoutResponse = await fetch(`${AUTH_SERVICE_URL}/api/auth/logout`, {
+        method: 'POST',
+        headers: {
+          cookie: req.headers.cookie ?? '',
+          accept: 'application/json',
+          'content-type': 'application/json',
+          'x-csrf-token': csrfBody.csrfToken,
         },
-      );
+        body: JSON.stringify({ _csrf: csrfBody.csrfToken }),
+        signal: controller.signal,
+      });
       const setCookies = (
         logoutResponse.headers as Headers & {
           getSetCookie?: () => string[];

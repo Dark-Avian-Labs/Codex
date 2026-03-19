@@ -29,16 +29,12 @@ interface BaseProps {
 }
 
 interface ButtonProps
-  extends
-    Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'className'>,
-    BaseProps {
+  extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'className'>, BaseProps {
   href?: never;
 }
 
 interface LinkButtonProps
-  extends
-    Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'className'>,
-    BaseProps {
+  extends Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'className'>, BaseProps {
   href: string;
 }
 
@@ -58,11 +54,7 @@ export function Button(props: ButtonProps | LinkButtonProps) {
     if (!isValidElement(children)) {
       if (process.env.NODE_ENV !== 'production') {
         const childType =
-          children === null
-            ? 'null'
-            : Array.isArray(children)
-              ? 'array'
-              : typeof children;
+          children === null ? 'null' : Array.isArray(children) ? 'array' : typeof children;
         console.warn(
           `[Button] "asChild" requires a single valid React element child; received ${childType}.`,
         );
@@ -87,9 +79,7 @@ export function Button(props: ButtonProps | LinkButtonProps) {
       ...(childProps as Partial<ChildProps>),
     };
 
-    for (const [key, childValue] of Object.entries(
-      child.props as Record<string, unknown>,
-    )) {
+    for (const [key, childValue] of Object.entries(child.props as Record<string, unknown>)) {
       const buttonValue = mergedProps[key as keyof ChildProps];
       if (
         key.startsWith('on') &&
@@ -103,8 +93,7 @@ export function Button(props: ButtonProps | LinkButtonProps) {
         continue;
       }
 
-      mergedProps[key as keyof ChildProps] =
-        childValue as ChildProps[keyof ChildProps];
+      mergedProps[key as keyof ChildProps] = childValue as ChildProps[keyof ChildProps];
     }
 
     mergedProps.className = mergedClassName;

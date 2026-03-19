@@ -1,8 +1,9 @@
-import { resolveEnvFilePath } from '@corpus/core';
-import { config as loadEnv } from '@dotenvx/dotenvx';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+
+import { resolveEnvFilePath } from '@corpus/core';
+import { config as loadEnv } from '@dotenvx/dotenvx';
 
 const envPath = resolveEnvFilePath(process.cwd());
 const shouldLoadEnv = Boolean(envPath) && process.env.NODE_ENV == null;
@@ -10,10 +11,7 @@ if (shouldLoadEnv && envPath) {
   try {
     loadEnv({ path: envPath });
   } catch (error) {
-    console.error(
-      `[Config] Failed to load environment via loadEnv from "${envPath}".`,
-      error,
-    );
+    console.error(`[Config] Failed to load environment via loadEnv from "${envPath}".`, error);
     throw error;
   }
 }
@@ -22,17 +20,13 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const PROJECT_ROOT = path.resolve(__dirname, '..', '..');
 
 export const DATA_DIR = path.join(PROJECT_ROOT, 'data');
-function requireAbsolutePathEnv(
-  name: 'CENTRAL_DB_PATH' | 'PARAMETRIC_DB_PATH',
-): string {
+function requireAbsolutePathEnv(name: 'CENTRAL_DB_PATH' | 'PARAMETRIC_DB_PATH'): string {
   const value = process.env[name]?.trim();
   if (!value) {
     throw new Error(`${name} must be set to an absolute shared SQLite path.`);
   }
   if (!path.isAbsolute(value)) {
-    throw new Error(
-      `${name} must be absolute; relative sibling paths are not supported.`,
-    );
+    throw new Error(`${name} must be absolute; relative sibling paths are not supported.`);
   }
   return value;
 }
@@ -73,9 +67,7 @@ function validateBaseProtocol(value: string | undefined): AllowedProtocol {
     return normalized as AllowedProtocol;
   }
 
-  console.warn(
-    `Invalid BASE_PROTOCOL "${value}" provided; falling back to "https".`,
-  );
+  console.warn(`Invalid BASE_PROTOCOL "${value}" provided; falling back to "https".`);
   return 'https';
 }
 
@@ -92,10 +84,7 @@ function isValidDomain(domain: string): boolean {
     domain.length <= 253 &&
     domainLabels.length >= 2 &&
     domainLabels.every(
-      (label) =>
-        label.length >= 1 &&
-        label.length <= 63 &&
-        DOMAIN_LABEL_REGEX.test(label),
+      (label) => label.length >= 1 && label.length <= 63 && DOMAIN_LABEL_REGEX.test(label),
     ) &&
     domainLabels[domainLabels.length - 1].length >= 2
   );
@@ -106,15 +95,13 @@ if (!hasValidBaseDomain) {
   throw new Error('BASE_DOMAIN must be a valid domain.');
 }
 
-export const APP_SUBDOMAIN =
-  process.env.APP_SUBDOMAIN?.trim().toLowerCase() || APP_ID;
+export const APP_SUBDOMAIN = process.env.APP_SUBDOMAIN?.trim().toLowerCase() || APP_ID;
 if (!DOMAIN_LABEL_REGEX.test(APP_SUBDOMAIN)) {
   throw new Error('APP_SUBDOMAIN is invalid.');
 }
 
 export const APP_PUBLIC_BASE_URL = `${BASE_PROTOCOL}://${APP_SUBDOMAIN}.${BASE_DOMAIN}`;
-const configuredCookieDomain =
-  process.env.COOKIE_DOMAIN?.trim().toLowerCase() || '';
+const configuredCookieDomain = process.env.COOKIE_DOMAIN?.trim().toLowerCase() || '';
 let resolvedCookieDomain = `.${BASE_DOMAIN}`;
 
 if (configuredCookieDomain) {
@@ -130,8 +117,7 @@ if (configuredCookieDomain) {
 
 export const COOKIE_DOMAIN = resolvedCookieDomain;
 
-export const AUTH_SERVICE_URL =
-  process.env.AUTH_SERVICE_URL?.trim().replace(/\/+$/, '') || '';
+export const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL?.trim().replace(/\/+$/, '') || '';
 if (!AUTH_SERVICE_URL || !AUTH_SERVICE_URL.startsWith('https://')) {
   throw new Error('AUTH_SERVICE_URL must be set and use https://');
 }

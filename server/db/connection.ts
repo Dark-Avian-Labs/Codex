@@ -14,9 +14,7 @@ export function getCentralDb(): Database.Database {
       | { journal_mode?: string }
       | undefined;
     if (result?.journal_mode?.toLowerCase() !== 'wal') {
-      throw new Error(
-        `Unexpected journal_mode: ${result?.journal_mode ?? 'unknown'}`,
-      );
+      throw new Error(`Unexpected journal_mode: ${result?.journal_mode ?? 'unknown'}`);
     }
   } catch (error) {
     console.error('Failed to enable WAL mode for central DB:', error);

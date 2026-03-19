@@ -1,21 +1,10 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ReactNode,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 
 import { useAuth } from './AuthContext';
 
 function safeRedirectPath(path: string): string {
-  if (
-    path.startsWith('/') &&
-    !path.startsWith('//') &&
-    !/^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(path)
-  ) {
+  if (path.startsWith('/') && !path.startsWith('//') && !/^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(path)) {
     return path;
   }
   return '/';
@@ -24,9 +13,7 @@ function safeRedirectPath(path: string): string {
 export function RequireAuth({ children }: { children: ReactNode }) {
   const { auth, refresh, logout } = useAuth();
   const location = useLocation();
-  const next = safeRedirectPath(
-    `${location.pathname}${location.search}${location.hash}`,
-  );
+  const next = safeRedirectPath(`${location.pathname}${location.search}${location.hash}`);
   const [nowMs, setNowMs] = useState(() => Date.now());
   const refreshingRef = useRef(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -92,10 +79,8 @@ export function RequireAuth({ children }: { children: ReactNode }) {
     return (
       <div className="flex min-h-screen items-center justify-center p-6">
         <div className="glass-panel max-w-md p-6 text-center">
-          <h1 className="mb-2 text-xl font-semibold text-foreground">
-            Auth check failed
-          </h1>
-          <p className="mb-4 text-sm text-muted">
+          <h1 className="text-foreground mb-2 text-xl font-semibold">Auth check failed</h1>
+          <p className="text-muted mb-4 text-sm">
             We could not verify your session right now. Please try again.
           </p>
           <button
@@ -116,12 +101,9 @@ export function RequireAuth({ children }: { children: ReactNode }) {
     return (
       <div className="flex min-h-screen items-center justify-center p-6">
         <div className="glass-panel max-w-md p-6 text-center">
-          <h1 className="mb-2 text-xl font-semibold text-foreground">
-            Access denied
-          </h1>
-          <p className="mb-4 text-sm text-muted">
-            Your account is authenticated but does not have access to this
-            application.
+          <h1 className="text-foreground mb-2 text-xl font-semibold">Access denied</h1>
+          <p className="text-muted mb-4 text-sm">
+            Your account is authenticated but does not have access to this application.
           </p>
           <button
             className="btn btn-accent"
@@ -141,16 +123,11 @@ export function RequireAuth({ children }: { children: ReactNode }) {
     return (
       <div className="flex min-h-screen items-center justify-center p-6">
         <div className="glass-panel max-w-md p-6 text-center">
-          <h1 className="mb-2 text-xl font-semibold text-foreground">
-            Too many requests
-          </h1>
-          <p className="mb-4 text-sm text-muted">
-            Authentication checks are temporarily rate limited. Please wait
-            before trying again.
+          <h1 className="text-foreground mb-2 text-xl font-semibold">Too many requests</h1>
+          <p className="text-muted mb-4 text-sm">
+            Authentication checks are temporarily rate limited. Please wait before trying again.
           </p>
-          <div className="mb-4 text-2xl font-semibold text-warning">
-            {secondsRemaining}s
-          </div>
+          <div className="text-warning mb-4 text-2xl font-semibold">{secondsRemaining}s</div>
           <button
             className="btn btn-accent"
             type="button"

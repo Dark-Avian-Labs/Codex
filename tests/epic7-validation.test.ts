@@ -168,17 +168,11 @@ describe('Epic7 validation schemas', () => {
 
   describe('deleteArtifactSchema', () => {
     it('accepts positive integer', () => {
-      expect(deleteArtifactSchema.safeParse({ artifact_id: 1 }).success).toBe(
-        true,
-      );
+      expect(deleteArtifactSchema.safeParse({ artifact_id: 1 }).success).toBe(true);
     });
     it('rejects zero or negative artifact_id', () => {
-      expect(deleteArtifactSchema.safeParse({ artifact_id: 0 }).success).toBe(
-        false,
-      );
-      expect(deleteArtifactSchema.safeParse({ artifact_id: -1 }).success).toBe(
-        false,
-      );
+      expect(deleteArtifactSchema.safeParse({ artifact_id: 0 }).success).toBe(false);
+      expect(deleteArtifactSchema.safeParse({ artifact_id: -1 }).success).toBe(false);
     });
   });
 
@@ -209,9 +203,7 @@ describe('Epic7 validation schemas', () => {
 
   describe('switchAccountSchema', () => {
     it('accepts valid account_id', () => {
-      expect(switchAccountSchema.safeParse({ account_id: 5 }).success).toBe(
-        true,
-      );
+      expect(switchAccountSchema.safeParse({ account_id: 5 }).success).toBe(true);
     });
   });
 
@@ -221,17 +213,13 @@ describe('Epic7 validation schemas', () => {
       expect(r.success).toBe(true);
     });
     it('rejects blank name', () => {
-      expect(addAccountSchema.safeParse({ account_name: '' }).success).toBe(
-        false,
-      );
+      expect(addAccountSchema.safeParse({ account_name: '' }).success).toBe(false);
     });
   });
 
   describe('deleteAccountSchema', () => {
     it('accepts valid account_id', () => {
-      expect(deleteAccountSchema.safeParse({ account_id: 1 }).success).toBe(
-        true,
-      );
+      expect(deleteAccountSchema.safeParse({ account_id: 1 }).success).toBe(true);
     });
   });
 
@@ -260,17 +248,13 @@ describe('Epic7 validation schemas', () => {
 
   describe('adminDeleteBaseHeroSchema', () => {
     it('accepts valid hero_id', () => {
-      expect(adminDeleteBaseHeroSchema.safeParse({ hero_id: 10 }).success).toBe(
-        true,
-      );
+      expect(adminDeleteBaseHeroSchema.safeParse({ hero_id: 10 }).success).toBe(true);
     });
   });
 
   describe('adminDeleteBaseArtifactSchema', () => {
     it('accepts valid artifact_id', () => {
-      expect(
-        adminDeleteBaseArtifactSchema.safeParse({ artifact_id: 10 }).success,
-      ).toBe(true);
+      expect(adminDeleteBaseArtifactSchema.safeParse({ artifact_id: 10 }).success).toBe(true);
     });
   });
 });

@@ -1,8 +1,9 @@
-import type { GameModule, GameMountOptions } from '@corpus/core';
-import express, { type Application } from 'express';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+
+import type { GameModule, GameMountOptions } from '@corpus/core';
+import express, { type Application } from 'express';
 
 import { EPIC7_DB_PATH } from './config.js';
 import {
@@ -68,12 +69,7 @@ export const epic7Game: GameModule = {
       const run = dbInstance.transaction(() => {
         const accounts = getGameAccountsByUserId(dbInstance, userId);
         if (accounts.length > 0) return;
-        const accountId = createGameAccount(
-          dbInstance,
-          userId,
-          'Default',
-          true,
-        );
+        const accountId = createGameAccount(dbInstance, userId, 'Default', true);
         seedAccountHeroesFromBase(dbInstance, accountId);
         seedAccountArtifactsFromBase(dbInstance, accountId);
       });

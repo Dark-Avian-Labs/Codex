@@ -64,10 +64,7 @@ function isValidArtifactGaugeLevel(level: number): boolean {
   return Number.isInteger(level) && level >= 0 && level <= ARTIFACT_GAUGE_MAX;
 }
 
-export function getGameAccountsByUserId(
-  db: Database.Database,
-  userId: number,
-): GameAccount[] {
+export function getGameAccountsByUserId(db: Database.Database, userId: number): GameAccount[] {
   return db
     .prepare(
       'SELECT id, account_name, is_active, created_at FROM game_accounts WHERE user_id = ? ORDER BY is_active DESC, id ASC',
@@ -81,17 +78,11 @@ export function getGameAccountByIdAndUser(
   userId: number,
 ): { id: number; account_name: string } | undefined {
   return db
-    .prepare(
-      'SELECT id, account_name FROM game_accounts WHERE id = ? AND user_id = ?',
-    )
+    .prepare('SELECT id, account_name FROM game_accounts WHERE id = ? AND user_id = ?')
     .get(accountId, userId) as { id: number; account_name: string } | undefined;
 }
 
-export function setActiveAccount(
-  db: Database.Database,
-  userId: number,
-  accountId: number,
-): void {
+export function setActiveAccount(db: Database.Database, userId: number, accountId: number): void {
   const transaction = db.transaction(() => {
     const exists = db
       .prepare('SELECT id FROM game_accounts WHERE id = ? AND user_id = ?')
@@ -99,13 +90,9 @@ export function setActiveAccount(
     if (!exists) {
       throw new Error('Account not found or does not belong to user');
     }
-    db.prepare('UPDATE game_accounts SET is_active = 0 WHERE user_id = ?').run(
-      userId,
-    );
+    db.prepare('UPDATE game_accounts SET is_active = 0 WHERE user_id = ?').run(userId);
     const r = db
-      .prepare(
-        'UPDATE game_accounts SET is_active = 1 WHERE id = ? AND user_id = ?',
-      )
+      .prepare('UPDATE game_accounts SET is_active = 1 WHERE id = ? AND user_id = ?')
       .run(accountId, userId);
     if (r.changes === 0) {
       throw new Error('Failed to set active account');
@@ -121,9 +108,7 @@ export function createGameAccount(
   isFirst: boolean,
 ): number {
   const r = db
-    .prepare(
-      'INSERT INTO game_accounts (user_id, account_name, is_active) VALUES (?, ?, ?)',
-    )
+    .prepare('INSERT INTO game_accounts (user_id, account_name, is_active) VALUES (?, ?, ?)')
     .run(userId, accountName, isFirst ? 1 : 0);
   return Number(r.lastInsertRowid);
 }
@@ -134,9 +119,7 @@ export function getAccountByNameAndUser(
   name: string,
 ): { id: number } | undefined {
   return db
-    .prepare(
-      'SELECT id FROM game_accounts WHERE user_id = ? AND account_name = ?',
-    )
+    .prepare('SELECT id FROM game_accounts WHERE user_id = ? AND account_name = ?')
     .get(userId, name) as { id: number } | undefined;
 }
 
@@ -158,9 +141,7 @@ export function updateGameAccountName(
   accountName: string,
 ): boolean {
   const r = db
-    .prepare(
-      'UPDATE game_accounts SET account_name = ? WHERE id = ? AND user_id = ?',
-    )
+    .prepare('UPDATE game_accounts SET account_name = ? WHERE id = ? AND user_id = ?')
     .run(accountName, accountId, userId);
   return r.changes > 0;
 }
@@ -186,10 +167,7 @@ export function getUserAccountsForApi(
   }[];
 }
 
-export function seedAccountHeroesFromBase(
-  db: Database.Database,
-  accountId: number,
-): void {
+export function seedAccountHeroesFromBase(db: Database.Database, accountId: number): void {
   db.prepare(
     `
     INSERT INTO account_heroes (account_id, base_hero_id, name, class, element, star_rating, rating, display_order)
@@ -199,10 +177,7 @@ export function seedAccountHeroesFromBase(
   ).run(accountId, accountId);
 }
 
-export function seedAccountArtifactsFromBase(
-  db: Database.Database,
-  accountId: number,
-): void {
+export function seedAccountArtifactsFromBase(db: Database.Database, accountId: number): void {
   db.prepare(
     `
     INSERT INTO account_artifacts (account_id, base_artifact_id, name, class, star_rating, gauge_level, display_order)
@@ -323,9 +298,7 @@ export function updateHeroRating(
     return false;
   }
   const r = db
-    .prepare(
-      'UPDATE account_heroes SET rating = ? WHERE id = ? AND account_id = ?',
-    )
+    .prepare('UPDATE account_heroes SET rating = ? WHERE id = ? AND account_id = ?')
     .run(rating, heroId, accountId);
   return r.changes > 0;
 }
@@ -340,9 +313,7 @@ export function updateArtifactGauge(
     return false;
   }
   const r = db
-    .prepare(
-      'UPDATE account_artifacts SET gauge_level = ? WHERE id = ? AND account_id = ?',
-    )
+    .prepare('UPDATE account_artifacts SET gauge_level = ? WHERE id = ? AND account_id = ?')
     .run(gaugeLevel, artifactId, accountId);
   return r.changes > 0;
 }
@@ -382,11 +353,7 @@ export function addArtifact(
   return Number(r.lastInsertRowid);
 }
 
-export function deleteHero(
-  db: Database.Database,
-  heroId: number,
-  accountId: number,
-): boolean {
+export function deleteHero(db: Database.Database, heroId: number, accountId: number): boolean {
   const r = db
     .prepare('DELETE FROM account_heroes WHERE id = ? AND account_id = ?')
     .run(heroId, accountId);
@@ -477,17 +444,10 @@ export function deleteBaseHero(db: Database.Database, heroId: number): boolean {
   return transaction(heroId);
 }
 
-export function deleteBaseArtifact(
-  db: Database.Database,
-  artifactId: number,
-): boolean {
+export function deleteBaseArtifact(db: Database.Database, artifactId: number): boolean {
   const transaction = db.transaction((id: number) => {
-    db.prepare('DELETE FROM account_artifacts WHERE base_artifact_id = ?').run(
-      id,
-    );
-    const result = db
-      .prepare('DELETE FROM base_artifacts WHERE id = ?')
-      .run(id);
+    db.prepare('DELETE FROM account_artifacts WHERE base_artifact_id = ?').run(id);
+    const result = db.prepare('DELETE FROM base_artifacts WHERE id = ?').run(id);
     return result.changes > 0;
   });
   return transaction(artifactId);
@@ -527,23 +487,17 @@ export function addBaseArtifactToAllAccounts(
 }
 
 export function getBaseHeroMaxOrder(db: Database.Database): number {
-  const row = db
-    .prepare('SELECT MAX(display_order) as m FROM base_heroes')
-    .get() as { m: number | null };
+  const row = db.prepare('SELECT MAX(display_order) as m FROM base_heroes').get() as {
+    m: number | null;
+  };
   return (row?.m ?? -1) + 1;
 }
 
 export function getBaseArtifactMaxOrder(db: Database.Database): number {
-  const row = db
-    .prepare('SELECT MAX(display_order) as m FROM base_artifacts')
-    .get() as { m: number | null };
+  const row = db.prepare('SELECT MAX(display_order) as m FROM base_artifacts').get() as {
+    m: number | null;
+  };
   return (row?.m ?? -1) + 1;
 }
 
-export {
-  heroClasses,
-  artifactClasses,
-  elements,
-  heroRatings,
-  ARTIFACT_GAUGE_MAX,
-};
+export { heroClasses, artifactClasses, elements, heroRatings, ARTIFACT_GAUGE_MAX };

@@ -8,9 +8,9 @@ import {
 } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 
-import { APP_PATHS } from './paths';
 import { Layout } from '../components/Layout/Layout';
 import { RequireAuth } from '../features/auth/RequireAuth';
+import { APP_PATHS } from './paths';
 
 const lazyNamed = <TModule extends Record<string, unknown>>(
   importer: () => Promise<TModule>,
@@ -22,26 +22,11 @@ const lazyNamed = <TModule extends Record<string, unknown>>(
     })),
   );
 
-const HomePage = lazyNamed(
-  () => import('../features/selector/HomePage'),
-  'HomePage',
-);
-const WarframePage = lazyNamed(
-  () => import('../features/warframe/WarframePage'),
-  'WarframePage',
-);
-const Epic7Page = lazyNamed(
-  () => import('../features/epic7/Epic7Page'),
-  'Epic7Page',
-);
-const LegalPage = lazyNamed(
-  () => import('../features/legal/LegalPage'),
-  'LegalPage',
-);
-const AdminPage = lazyNamed(
-  () => import('../features/admin/AdminPage'),
-  'AdminPage',
-);
+const HomePage = lazyNamed(() => import('../features/selector/HomePage'), 'HomePage');
+const WarframePage = lazyNamed(() => import('../features/warframe/WarframePage'), 'WarframePage');
+const Epic7Page = lazyNamed(() => import('../features/epic7/Epic7Page'), 'Epic7Page');
+const LegalPage = lazyNamed(() => import('../features/legal/LegalPage'), 'LegalPage');
+const AdminPage = lazyNamed(() => import('../features/admin/AdminPage'), 'AdminPage');
 const WarframeAdminPage = lazyNamed(
   () => import('../features/admin/WarframeAdminPage'),
   'WarframeAdminPage',
@@ -55,7 +40,7 @@ function RouteFallback() {
       aria-live="polite"
       aria-busy="true"
     >
-      <p className="text-sm text-muted">Loading...</p>
+      <p className="text-muted text-sm">Loading...</p>
     </div>
   );
 }
@@ -79,13 +64,13 @@ function ChunkLoadError({ onRetry }: { onRetry: () => void }) {
       role="alert"
       aria-live="assertive"
     >
-      <p className="text-sm text-muted">
+      <p className="text-muted text-sm">
         Something went wrong while loading this page. Please try again.
       </p>
       <button
         type="button"
         onClick={onRetry}
-        className="rounded-md border border-border px-3 py-1.5 text-sm text-foreground transition hover:bg-secondary"
+        className="border-border text-foreground hover:bg-secondary rounded-md border px-3 py-1.5 text-sm transition"
       >
         Retry
       </button>
@@ -93,15 +78,10 @@ function ChunkLoadError({ onRetry }: { onRetry: () => void }) {
   );
 }
 
-class ChunkErrorBoundary extends Component<
-  { children: ReactNode },
-  ChunkErrorBoundaryState
-> {
+class ChunkErrorBoundary extends Component<{ children: ReactNode }, ChunkErrorBoundaryState> {
   public state: ChunkErrorBoundaryState = { hasError: false };
 
-  public static getDerivedStateFromError(
-    error: Error,
-  ): ChunkErrorBoundaryState | null {
+  public static getDerivedStateFromError(error: Error): ChunkErrorBoundaryState | null {
     if (isChunkLoadError(error)) {
       return { hasError: true };
     }
@@ -182,10 +162,7 @@ export function AppRoutes() {
               path={APP_PATHS.admin}
               element={<Navigate to={APP_PATHS.epic7Admin} replace />}
             />
-            <Route
-              path="*"
-              element={<Navigate to={APP_PATHS.legal} replace />}
-            />
+            <Route path="*" element={<Navigate to={APP_PATHS.legal} replace />} />
           </Route>
         </Routes>
       </Suspense>

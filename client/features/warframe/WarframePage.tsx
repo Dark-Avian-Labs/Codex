@@ -1,11 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type CSSProperties,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 
 import { useLayoutSlots } from '../../components/Layout/useLayoutSlots';
 import { apiFetch } from '../../utils/api';
@@ -60,9 +53,7 @@ function nextStatus(current: string, columnName: string): string {
 
 function statusClass(value: string, columnName: string): string {
   if (columnName === 'Helminth') {
-    return value === 'Yes'
-      ? 'status-btn helminth-btn yes'
-      : 'status-btn helminth-btn empty';
+    return value === 'Yes' ? 'status-btn helminth-btn yes' : 'status-btn helminth-btn empty';
   }
   return `status-btn ${value.toLowerCase() || 'empty'}`;
 }
@@ -104,9 +95,7 @@ export function WarframePage() {
   const [data, setData] = useState<WorksheetData>({ columns: [], rows: [] });
   const [search, setSearch] = useState('');
   const [hideCompleted, setHideCompleted] = useState(false);
-  const [exitingRows, setExitingRows] = useState<Record<number, ExitRowPhase>>(
-    {},
-  );
+  const [exitingRows, setExitingRows] = useState<Record<number, ExitRowPhase>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const worksheetIdRef = useRef<number | null>(worksheetId);
@@ -198,16 +187,10 @@ export function WarframePage() {
   }, []);
 
   const fetchWorksheetData = useCallback(
-    async (
-      targetWorksheetId: number,
-      signal?: AbortSignal,
-    ): Promise<WorksheetData> => {
-      const response = await apiFetch(
-        `/api/warframe/worksheets/${targetWorksheetId}`,
-        {
-          signal,
-        },
-      );
+    async (targetWorksheetId: number, signal?: AbortSignal): Promise<WorksheetData> => {
+      const response = await apiFetch(`/api/warframe/worksheets/${targetWorksheetId}`, {
+        signal,
+      });
       if (!response.ok) {
         throw new Error('Failed to load worksheet data');
       }
@@ -227,25 +210,16 @@ export function WarframePage() {
     setLoading(true);
     setError(null);
     try {
-      const [worksheetItems, settings] = await Promise.all([
-        fetchWorksheets(),
-        fetchSettings(),
-      ]);
+      const [worksheetItems, settings] = await Promise.all([fetchWorksheets(), fetchSettings()]);
       const items = worksheetItems
         .map((worksheet) => ({
           ...worksheet,
           name: worksheet.name.replace(/^\uFEFF/, '').trim(),
         }))
         .sort((a, b) => {
-          const indexA = TAB_ORDER.indexOf(
-            a.name as (typeof TAB_ORDER)[number],
-          );
-          const indexB = TAB_ORDER.indexOf(
-            b.name as (typeof TAB_ORDER)[number],
-          );
-          return (
-            (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB)
-          );
+          const indexA = TAB_ORDER.indexOf(a.name as (typeof TAB_ORDER)[number]);
+          const indexB = TAB_ORDER.indexOf(b.name as (typeof TAB_ORDER)[number]);
+          return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB);
         });
       setHideCompleted(settings.hide_completed);
       setWorksheets(items);
@@ -263,10 +237,7 @@ export function WarframePage() {
       setError(null);
       setData({ columns: [], rows: [] });
       try {
-        const worksheetData = await fetchWorksheetData(
-          targetWorksheetId,
-          signal,
-        );
+        const worksheetData = await fetchWorksheetData(targetWorksheetId, signal);
         if (signal?.aborted || worksheetIdRef.current !== targetWorksheetId) {
           return;
         }
@@ -319,13 +290,9 @@ export function WarframePage() {
   const rows = useMemo(() => {
     const query = search.trim().toLowerCase();
     const hasSearch = query.length > 0;
-    const exitingRowIds = new Set(
-      Object.keys(exitingRows).map((rowId) => Number(rowId)),
-    );
+    const exitingRowIds = new Set(Object.keys(exitingRows).map((rowId) => Number(rowId)));
     return data.rows.filter((row) => {
-      const matchesSearch = (row.name || row.item_name || '')
-        .toLowerCase()
-        .includes(query);
+      const matchesSearch = (row.name || row.item_name || '').toLowerCase().includes(query);
       if (!matchesSearch) {
         return false;
       }
@@ -340,10 +307,7 @@ export function WarframePage() {
   }, [data.columns, data.rows, hideCompleted, search, exitingRows]);
 
   const stats = useMemo(() => {
-    const byColumn: Record<
-      string,
-      { total: number; complete: number; obtained: number }
-    > = {};
+    const byColumn: Record<string, { total: number; complete: number; obtained: number }> = {};
     for (const column of data.columns) {
       if (column.name === 'Helminth') continue;
       byColumn[String(column.id)] = { total: 0, complete: 0, obtained: 0 };
@@ -368,10 +332,7 @@ export function WarframePage() {
       .filter((column) => column.name !== 'Helminth')
       .map((column) => {
         const entry = byColumn[String(column.id)];
-        const percent =
-          entry.total > 0
-            ? Math.round((entry.complete / entry.total) * 100)
-            : 0;
+        const percent = entry.total > 0 ? Math.round((entry.complete / entry.total) * 100) : 0;
         return {
           name: column.name,
           complete: entry.complete,
@@ -393,19 +354,13 @@ export function WarframePage() {
     const updatedRowForCompletionCheck: Row = {
       ...row,
       values: {
-        ...(row.values || {}),
+        ...row.values,
         [String(column.id)]: value,
       },
     };
-    const nowCompleted = isRowCompleted(
-      updatedRowForCompletionCheck,
-      data.columns,
-    );
+    const nowCompleted = isRowCompleted(updatedRowForCompletionCheck, data.columns);
     const shouldAnimateExit =
-      hideCompleted &&
-      search.trim().length === 0 &&
-      !wasCompleted &&
-      nowCompleted;
+      hideCompleted && search.trim().length === 0 && !wasCompleted && nowCompleted;
     if (!shouldAnimateExit) {
       cancelExitAnimation(rowId);
     }
@@ -416,7 +371,7 @@ export function WarframePage() {
           ? {
               ...candidate,
               values: {
-                ...(candidate.values || {}),
+                ...candidate.values,
                 [String(column.id)]: value,
               },
             }
@@ -451,7 +406,7 @@ export function WarframePage() {
             ? {
                 ...candidate,
                 values: {
-                  ...(candidate.values || {}),
+                  ...candidate.values,
                   [String(column.id)]: oldValue,
                 },
               }
@@ -539,18 +494,10 @@ export function WarframePage() {
           {error}
         </p>
         <div className="flex gap-2">
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={handleRetry}
-          >
+          <button type="button" className="btn btn-secondary" onClick={handleRetry}>
             Retry
           </button>
-          <button
-            type="button"
-            className="btn btn-cancel"
-            onClick={() => setError(null)}
-          >
+          <button type="button" className="btn btn-cancel" onClick={() => setError(null)}>
             Dismiss
           </button>
         </div>
@@ -583,9 +530,7 @@ export function WarframePage() {
             <span className="stat-value">{entry.total}</span>
             <span>({entry.percent}%)</span>
             {entry.obtained > 0 ? (
-              <span className="stat-value stat-obtained">
-                +{entry.obtained}
-              </span>
+              <span className="stat-value stat-obtained">+{entry.obtained}</span>
             ) : null}
           </div>
         ))}
@@ -596,7 +541,7 @@ export function WarframePage() {
               void handleHideCompletedChange(!hideCompleted);
             }}
             aria-pressed={hideCompleted}
-            className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-glass-border px-2.5 py-1.5 text-sm text-muted transition-all hover:border-glass-border-hover hover:bg-glass-hover hover:text-foreground"
+            className="border-glass-border text-muted hover:border-glass-border-hover hover:bg-glass-hover hover:text-foreground inline-flex cursor-pointer items-center gap-2 rounded-lg border px-2.5 py-1.5 text-sm transition-all"
             title='Toggle "Hide completed"'
           >
             <span>Hide completed</span>
@@ -640,25 +585,17 @@ export function WarframePage() {
             <tbody>
               {rows.map((row) => {
                 const isCompletedRow = isRowCompleted(row, data.columns);
-                const rowClassName =
-                  `${isCompletedRow ? 'warframe-completed-row ' : ''}${
-                    exitingRows[row.id] === 'fill'
-                      ? 'warframe-row-exit-fill '
-                      : ''
-                  }${exitingRows[row.id] === 'push' ? 'warframe-row-exit-push' : ''}`.trim();
+                const rowClassName = `${isCompletedRow ? 'warframe-completed-row ' : ''}${
+                  exitingRows[row.id] === 'fill' ? 'warframe-row-exit-fill ' : ''
+                }${exitingRows[row.id] === 'push' ? 'warframe-row-exit-push' : ''}`.trim();
 
                 return (
                   <tr key={row.id} className={rowClassName}>
-                    <td className="item-name">
-                      {row.name || row.item_name || 'Unnamed'}
-                    </td>
+                    <td className="item-name">{row.name || row.item_name || 'Unnamed'}</td>
                     {data.columns.map((column) => {
                       const value = row.values?.[String(column.id)] ?? '';
                       return (
-                        <td
-                          key={`${row.id}-${column.id}`}
-                          className="status-cell"
-                        >
+                        <td key={`${row.id}-${column.id}`} className="status-cell">
                           <button
                             type="button"
                             className={statusClass(value, column.name)}

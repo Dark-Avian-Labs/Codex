@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import {
   isPrimeVariantName,
   normalizeDisplayName,
@@ -8,17 +9,13 @@ import {
 
 describe('warframe sync canonicalization', () => {
   it('strips archwing prefix and prime suffix for canonical key', () => {
-    expect(normalizeDisplayName('<ARCHWING> Odonata Prime')).toBe(
-      'Odonata Prime',
-    );
+    expect(normalizeDisplayName('<ARCHWING> Odonata Prime')).toBe('Odonata Prime');
     expect(resolveCanonicalKey('<ARCHWING> Odonata Prime')).toBe('odonata');
   });
 
   it('keeps Excalibur and Excalibur Umbra as distinct canonical names', () => {
     expect(resolveCanonicalKey('Excalibur Prime')).toBe('excalibur');
-    expect(resolveCanonicalKey('Excalibur Umbra Prime')).toBe(
-      'excalibur umbra',
-    );
+    expect(resolveCanonicalKey('Excalibur Umbra Prime')).toBe('excalibur umbra');
     expect(resolveCanonicalKey('Excalibur Umbra')).toBe('excalibur umbra');
   });
 
