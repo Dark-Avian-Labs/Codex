@@ -1,0 +1,4 @@
+packages:
+  - 'packages/core'
+  - 'packages/games/warframe'
+  - 'packages/games/epic7'
