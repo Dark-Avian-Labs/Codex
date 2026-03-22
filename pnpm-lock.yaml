@@ -24,8 +24,8 @@ importers:
         specifier: workspace:*
         version: link:packages/games/warframe
       '@dotenvx/dotenvx':
-        specifier: ^1.56.0
-        version: 1.56.0
+        specifier: ^1.57.1
+        version: 1.57.1
       '@fontsource-variable/inter':
         specifier: ^5.2.8
         version: 5.2.8
@@ -209,6 +209,10 @@ packages:
 
   '@dotenvx/dotenvx@1.56.0':
     resolution: {integrity: sha512-HI5vnhK0bvkMV7bo9Bi3cp9V9ED3MAOpUoktRDtrS19Bg2SNivhqNV6slFRzf8eD9wU9S4S5NIQ11wi1CvnXAQ==}
+    hasBin: true
+
+  '@dotenvx/dotenvx@1.57.1':
+    resolution: {integrity: sha512-iKXuo8Nes9Ft4zF3AZOT4FHkl6OV8bHqn61a67qHokkBzSEurnKZAlOkT0FYrRNVGvE6nCfZMtYswyjfXCR1MQ==}
     hasBin: true
 
   '@ecies/ciphers@0.2.5':
@@ -1713,6 +1717,18 @@ packages:
 snapshots:
 
   '@dotenvx/dotenvx@1.56.0':
+    dependencies:
+      commander: 11.1.0
+      dotenv: 17.3.1
+      eciesjs: 0.4.18
+      execa: 5.1.1
+      fdir: 6.5.0(picomatch@4.0.3)
+      ignore: 5.3.2
+      object-treeify: 1.1.33
+      picomatch: 4.0.3
+      which: 4.0.0
+
+  '@dotenvx/dotenvx@1.57.1':
     dependencies:
       commander: 11.1.0
       dotenv: 17.3.1
