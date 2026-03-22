@@ -16,9 +16,8 @@ const color = {
   reset: useColor ? '\x1b[0m' : '',
 };
 
-// Matches a non-zero warning count in tool output, such as "5 warnings" or "1 warning".
-// This is used together with a separate check for "0 warnings" to distinguish clean runs.
-const LINT_WARNING_REGEX = /(^|\s)(\d+)?\s*warnings?\b/i;
+const WARNING_PATTERN = /(^|\s)(\d+)?\s*warnings?\b/i;
+const ZERO_WARNING_PATTERN = /\b0 warnings?\b/i;
 
 for (const step of steps) {
   console.log(`\n=== ${step.name}: ${step.command} ===`);
@@ -40,8 +39,8 @@ for (const step of steps) {
   const hasWarnings =
     step.name === 'Lint' &&
     success &&
-    LINT_WARNING_REGEX.test(output) &&
-    !/\b0 warnings?\b/i.test(output);
+    WARNING_PATTERN.test(output) &&
+    !ZERO_WARNING_PATTERN.test(output);
   results.push({ name: step.name, success, hasWarnings, elapsedSeconds });
   console.log(
     `--- ${step.name} completed in ${elapsedSeconds.toFixed(2)}s (${success ? (hasWarnings ? 'WARN' : 'PASS') : 'FAIL'}) ---`,
