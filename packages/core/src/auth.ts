@@ -69,7 +69,7 @@ function getLockoutData(): LockoutData {
     if (!fs.existsSync(AUTH_LOCKOUT_FILE)) {
       lockoutCache = {};
       lockoutCacheLastLoad = now;
-      return lockoutCache ?? {};
+      return lockoutCache;
     }
     try {
       const data = fs.readFileSync(AUTH_LOCKOUT_FILE, 'utf-8');
