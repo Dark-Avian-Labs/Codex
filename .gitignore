@@ -13,6 +13,9 @@ _resources/
 node_modules/
 dist/
 
+# TypeScript incremental (composite / project references); default path is repo root
+*.tsbuildinfo
+
 # OS
 .DS_Store
 Thumbs.db
