@@ -24,6 +24,22 @@
     {
       "name": "@plugin",
       "description": "Tailwind CSS v4: load a JavaScript plugin."
+    },
+    {
+      "name": "@import",
+      "description": "Tailwind CSS v4: pull in Tailwind and other sheets (e.g. `@import \"tailwindcss\"`)."
+    },
+    {
+      "name": "@apply",
+      "description": "Tailwind CSS v4: inline utility classes inside a CSS rule."
+    },
+    {
+      "name": "@reference",
+      "description": "Tailwind CSS v4: import for reference only so `@apply` / variants resolve without emitting that CSS."
+    },
+    {
+      "name": "@config",
+      "description": "Tailwind CSS v4: load a legacy JS/TS Tailwind config from the CSS entry."
     }
   ]
 }
