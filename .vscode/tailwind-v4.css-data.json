@@ -1,0 +1,45 @@
+{
+  "version": 1.1,
+  "atDirectives": [
+    {
+      "name": "@theme",
+      "description": "Tailwind CSS v4: define design tokens (theme variables) for utilities."
+    },
+    {
+      "name": "@source",
+      "description": "Tailwind CSS v4: register content globs for class detection."
+    },
+    {
+      "name": "@utility",
+      "description": "Tailwind CSS v4: define a custom utility."
+    },
+    {
+      "name": "@variant",
+      "description": "Tailwind CSS v4: define a custom variant."
+    },
+    {
+      "name": "@custom-variant",
+      "description": "Tailwind CSS v4: define a custom variant with a selector."
+    },
+    {
+      "name": "@plugin",
+      "description": "Tailwind CSS v4: load a JavaScript plugin."
+    },
+    {
+      "name": "@import",
+      "description": "Tailwind CSS v4: pull in Tailwind and other sheets (e.g. `@import \"tailwindcss\"`)."
+    },
+    {
+      "name": "@apply",
+      "description": "Tailwind CSS v4: inline utility classes inside a CSS rule."
+    },
+    {
+      "name": "@reference",
+      "description": "Tailwind CSS v4: import for reference only so `@apply` / variants resolve without emitting that CSS."
+    },
+    {
+      "name": "@config",
+      "description": "Tailwind CSS v4: load a legacy JS/TS Tailwind config from the CSS entry."
+    }
+  ]
+}

@@ -52,7 +52,7 @@ export function Button(props: ButtonProps | LinkButtonProps) {
 
   if (asChild) {
     if (!isValidElement(children)) {
-      if (process.env.NODE_ENV !== 'production') {
+      if (import.meta.env.DEV) {
         const childType =
           children === null ? 'null' : Array.isArray(children) ? 'array' : typeof children;
         console.warn(
