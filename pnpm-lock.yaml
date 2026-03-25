@@ -121,8 +121,8 @@ importers:
   packages/core:
     dependencies:
       '@dotenvx/dotenvx':
-        specifier: ^1.51.4
-        version: 1.56.0
+        specifier: ^1.57.2
+        version: 1.57.2
       argon2:
         specifier: ^0.44.0
         version: 0.44.0
@@ -206,10 +206,6 @@ importers:
         version: 5.9.3
 
 packages:
-
-  '@dotenvx/dotenvx@1.56.0':
-    resolution: {integrity: sha512-HI5vnhK0bvkMV7bo9Bi3cp9V9ED3MAOpUoktRDtrS19Bg2SNivhqNV6slFRzf8eD9wU9S4S5NIQ11wi1CvnXAQ==}
-    hasBin: true
 
   '@dotenvx/dotenvx@1.57.2':
     resolution: {integrity: sha512-lv9+UZPnl/KOvShepevLWm3+/wc1It5kgO5Q580evnvOFMZcgKVEYFwxlL7Ohl9my1yjTsWo28N3PJYUEO8wFQ==}
@@ -1373,10 +1369,6 @@ packages:
   picocolors@1.1.1:
     resolution: {integrity: sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==}
 
-  picomatch@4.0.3:
-    resolution: {integrity: sha512-5gTmgEY/sqK6gFXLIsQNH19lWb4ebPDLA4SdLP7dsWkIXHWlG66oPuVvXSGFPppYZz8ZDZq0dYYrbHfBCVUb1Q==}
-    engines: {node: '>=12'}
-
   picomatch@4.0.4:
     resolution: {integrity: sha512-QP88BAKvMam/3NxH6vj2o21R6MjxZUAd6nlwAS/pnGvN9IVLocLHxGYIzFhg6fUQ+5th6P4dv4eW9jX3DSIj7A==}
     engines: {node: '>=12'}
@@ -1724,18 +1716,6 @@ packages:
     resolution: {integrity: sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg==}
 
 snapshots:
-
-  '@dotenvx/dotenvx@1.56.0':
-    dependencies:
-      commander: 11.1.0
-      dotenv: 17.3.1
-      eciesjs: 0.4.18
-      execa: 5.1.1
-      fdir: 6.5.0(picomatch@4.0.3)
-      ignore: 5.3.2
-      object-treeify: 1.1.33
-      picomatch: 4.0.3
-      which: 4.0.0
 
   '@dotenvx/dotenvx@1.57.2':
     dependencies:
@@ -2412,10 +2392,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  fdir@6.5.0(picomatch@4.0.3):
-    optionalDependencies:
-      picomatch: 4.0.3
-
   fdir@6.5.0(picomatch@4.0.4):
     optionalDependencies:
       picomatch: 4.0.4
@@ -2688,8 +2664,6 @@ snapshots:
   pathe@2.0.3: {}
 
   picocolors@1.1.1: {}
-
-  picomatch@4.0.3: {}
 
   picomatch@4.0.4: {}
 
