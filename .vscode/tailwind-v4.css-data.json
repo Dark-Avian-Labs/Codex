@@ -1,0 +1,29 @@
+{
+  "version": 1.1,
+  "atDirectives": [
+    {
+      "name": "@theme",
+      "description": "Tailwind CSS v4: define design tokens (theme variables) for utilities."
+    },
+    {
+      "name": "@source",
+      "description": "Tailwind CSS v4: register content globs for class detection."
+    },
+    {
+      "name": "@utility",
+      "description": "Tailwind CSS v4: define a custom utility."
+    },
+    {
+      "name": "@variant",
+      "description": "Tailwind CSS v4: define a custom variant."
+    },
+    {
+      "name": "@custom-variant",
+      "description": "Tailwind CSS v4: define a custom variant with a selector."
+    },
+    {
+      "name": "@plugin",
+      "description": "Tailwind CSS v4: load a JavaScript plugin."
+    }
+  ]
+}

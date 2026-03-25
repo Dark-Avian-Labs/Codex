@@ -28,7 +28,7 @@
     "@corpus/core": "workspace:*",
     "@corpus/game-epic7": "workspace:*",
     "@corpus/game-warframe": "workspace:*",
-    "@dotenvx/dotenvx": "^1.57.1",
+    "@dotenvx/dotenvx": "^1.57.2",
     "@fontsource-variable/inter": "^5.2.8",
     "better-sqlite3": "^12.8.0",
     "better-sqlite3-session-store": "^0.1.0",
@@ -41,7 +41,7 @@
     "helmet": "^8.1.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "react-router-dom": "^7.13.1",
+    "react-router-dom": "^7.13.2",
     "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
@@ -55,12 +55,12 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
     "globals": "^17.4.0",
-    "oxfmt": "^0.41.0",
-    "oxlint": "^1.56.0",
+    "oxfmt": "^0.42.0",
+    "oxlint": "^1.57.0",
     "tailwindcss": "^4.2.2",
-    "typescript": "^5.9.3",
-    "vite": "^8.0.1",
-    "vitest": "^4.1.0"
+    "typescript": "^6.0.2",
+    "vite": "^8.0.2",
+    "vitest": "^4.1.1"
   },
   "engines": {
     "node": ">=25.0.0",

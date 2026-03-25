@@ -36,11 +36,14 @@ for (const step of steps) {
 
   const success = run.status === 0;
   const output = `${run.stdout ?? ''}\n${run.stderr ?? ''}`;
+  const shouldDetectWarnings = step.detectWarnings !== false;
+  const warningPattern = step.warningPattern ?? WARNING_PATTERN;
+  const zeroWarningPattern = step.warningZeroPattern ?? ZERO_WARNING_PATTERN;
   const hasWarnings =
-    step.name === 'Lint' &&
     success &&
-    WARNING_PATTERN.test(output) &&
-    !ZERO_WARNING_PATTERN.test(output);
+    shouldDetectWarnings &&
+    warningPattern.test(output) &&
+    !zeroWarningPattern.test(output);
   results.push({ name: step.name, success, hasWarnings, elapsedSeconds });
   console.log(
     `--- ${step.name} completed in ${elapsedSeconds.toFixed(2)}s (${success ? (hasWarnings ? 'WARN' : 'PASS') : 'FAIL'}) ---`,

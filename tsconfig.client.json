@@ -9,9 +9,8 @@
     "jsx": "react-jsx",
     "isolatedModules": true,
     "noEmit": true,
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["client/*"]
+      "@/*": ["./client/*"]
     }
   },
   "include": ["client/**/*", "vite-env.d.ts"],
