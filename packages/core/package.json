@@ -23,7 +23,7 @@
     "check-format": "oxfmt --check ."
   },
   "dependencies": {
-    "@dotenvx/dotenvx": "^1.51.4",
+    "@dotenvx/dotenvx": "^1.57.2",
     "argon2": "^0.44.0",
     "better-sqlite3": "^12.6.2",
     "express": "^5.2.1",
