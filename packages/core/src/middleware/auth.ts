@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from 'express';
 
 import { type AuthSession } from '../auth.js';
 import { AUTH_SERVICE_URL } from '../config.js';
+import { getAppPublicBaseUrl } from './appPublicBaseUrl.js';
 
 function getSession(req: Request): AuthSession {
   return req.session as AuthSession;
@@ -47,36 +48,6 @@ function applyAuthServiceRetryHeaders(
 const AUTH_FETCH_TIMEOUT_MS = Number.parseInt(process.env.AUTH_FETCH_TIMEOUT_MS ?? '5000', 10);
 const SESSION_TOUCH_INTERVAL_MS = 5 * 60 * 1000;
 const AUTH_STATE_CACHE_KEY = Symbol('authStateCache');
-
-export function getAppPublicBaseUrl(): string {
-  const configured = process.env.APP_PUBLIC_BASE_URL?.trim();
-  if (!configured) {
-    throw new Error('APP_PUBLIC_BASE_URL must be set.');
-  }
-  const normalized = configured.replace(/\/+$/, '');
-  let parsed: URL;
-  try {
-    parsed = new URL(normalized);
-  } catch {
-    throw new Error('APP_PUBLIC_BASE_URL must be a valid URL.');
-  }
-  const isLocalHttp =
-    parsed.protocol === 'http:' &&
-    (parsed.hostname === 'localhost' ||
-      parsed.hostname === '127.0.0.1' ||
-      parsed.hostname === '::1');
-  const nodeEnv = process.env.NODE_ENV;
-  const isKnownNonProductionEnv = nodeEnv === 'development' || nodeEnv === 'test';
-  if (nodeEnv == null || (nodeEnv !== 'production' && !isKnownNonProductionEnv)) {
-    console.warn(
-      `Unknown or unset NODE_ENV "${nodeEnv ?? ''}" detected; defaulting APP_PUBLIC_BASE_URL protocol policy to production (https-only unless local http).`,
-    );
-  }
-  if (parsed.protocol !== 'https:' && !(isLocalHttp || isKnownNonProductionEnv)) {
-    throw new Error('APP_PUBLIC_BASE_URL must use https://');
-  }
-  return normalized;
-}
 
 function getLoginRedirectUrl(req: Request, gameId?: string): string {
   const nextPath = gameId ? `/games/${gameId}` : req.originalUrl || '/';
