@@ -1,6 +1,7 @@
 import { type CSSProperties, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useLayoutSlots } from '../../components/Layout/useLayoutSlots';
+import { Modal } from '../../components/ui/Modal';
 import { apiFetch } from '../../utils/api';
 import { useAuth } from '../auth/AuthContext';
 
@@ -21,6 +22,7 @@ type WorksheetSyncResult = {
   mismatched: number[];
 };
 type SyncResult = {
+  mode?: 'preview' | 'execute';
   users: Array<{
     userId: number;
     worksheets: WorksheetSyncResult[];
@@ -48,6 +50,24 @@ type SyncResult = {
     }>;
   };
 };
+
+const NAME_PREVIEW_LIMIT = 10;
+
+function formatNameSample(names: string[], limit = NAME_PREVIEW_LIMIT): string | null {
+  if (names.length === 0) return null;
+  const slice = names.slice(0, limit);
+  const suffix = names.length > limit ? ` (+${names.length - limit} more)` : '';
+  return `${slice.join(', ')}${suffix}`;
+}
+
+function worksheetHasActivity(sheet: WorksheetSyncResult): boolean {
+  return (
+    sheet.added.length > 0 ||
+    sheet.deleted.length > 0 ||
+    sheet.markedUnavailable.length > 0 ||
+    sheet.mismatched.length > 0
+  );
+}
 
 const WORKSHEET_LABELS: Record<string, string> = {
   Warframes: 'Warframes',
@@ -79,6 +99,174 @@ const tableScrollStyle = {
   '--header-offset': '430px',
 } as CSSProperties;
 
+function SyncFromParametricReportModal({
+  open,
+  result,
+  onClose,
+}: {
+  open: boolean;
+  result: SyncResult | null;
+  onClose: () => void;
+}) {
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      ariaLabelledBy="warframe-sync-report-title"
+      className="warframe-sync-report-modal"
+    >
+      {!result ? (
+        <>
+          <h2 id="warframe-sync-report-title">Parametric sync</h2>
+          <p className="text-muted text-sm">No report data.</p>
+          <div className="modal-actions">
+            <button type="button" onClick={onClose}>
+              Close
+            </button>
+          </div>
+        </>
+      ) : (
+        <SyncFromParametricReportBody result={result} onClose={onClose} />
+      )}
+    </Modal>
+  );
+}
+
+function SyncFromParametricReportBody({
+  result,
+  onClose,
+}: {
+  result: SyncResult;
+  onClose: () => void;
+}) {
+  const { summary, cleanup, users } = result;
+  const totalMovement =
+    summary.added + summary.deleted + summary.markedUnavailable + summary.mismatched;
+  const cleanupRemoved = cleanup?.deleted ?? 0;
+  const cleanupReview = cleanup?.requiresConfirmation ?? 0;
+
+  return (
+    <>
+      <h2 id="warframe-sync-report-title">Parametric sync complete</h2>
+      <p className="text-muted mt-2 text-sm leading-relaxed">
+        Worksheet rows were reconciled against Parametric&apos;s database (same item names your
+        tracker uses). Totals below are across all Corpus users who own these worksheets.
+      </p>
+
+      <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+        <dt className="text-muted">New rows added</dt>
+        <dd className="font-medium tabular-nums">{summary.added}</dd>
+        <dt className="text-muted">Rows removed / merged out</dt>
+        <dd className="font-medium tabular-nums">{summary.deleted}</dd>
+        <dt className="text-muted">Marked unavailable</dt>
+        <dd className="font-medium tabular-nums">{summary.markedUnavailable}</dd>
+        <dt className="text-muted">Mismatched (still on sheet)</dt>
+        <dd className="font-medium tabular-nums">{summary.mismatched}</dd>
+      </dl>
+
+      {cleanupRemoved > 0 || cleanupReview > 0 ? (
+        <div
+          className={`mt-4 rounded-lg border px-3 py-2 text-sm ${
+            cleanupReview > 0
+              ? 'border-amber-500/40 bg-amber-500/10'
+              : 'border-[var(--color-glass-border)] bg-[var(--color-glass)]'
+          }`}
+        >
+          <p className="font-medium">Duplicate cleanup</p>
+          <ul className="text-muted mt-1 list-inside list-disc space-y-0.5">
+            {cleanupRemoved > 0 ? (
+              <li>
+                Removed {cleanupRemoved} duplicate row{cleanupRemoved === 1 ? '' : 's'} that had no
+                progress.
+              </li>
+            ) : null}
+            {cleanupReview > 0 ? (
+              <li>
+                {cleanupReview} duplicate row{cleanupReview === 1 ? '' : 's'} still need manual
+                review (progress on both copies). They stay in the sheet until you resolve them.
+              </li>
+            ) : null}
+          </ul>
+        </div>
+      ) : null}
+
+      {totalMovement === 0 && cleanupRemoved === 0 && cleanupReview === 0 ? (
+        <p className="text-muted mt-4 text-sm">
+          No changes were necessary — Corpus already matched Parametric for every user.
+        </p>
+      ) : (
+        <div className="mt-4 max-h-[min(50vh,22rem)] space-y-4 overflow-y-auto border-t border-[var(--color-glass-border)] pt-4">
+          {users.map((u) => {
+            const activeSheets = u.worksheets.filter(worksheetHasActivity);
+            if (activeSheets.length === 0) return null;
+            return (
+              <div key={u.userId}>
+                {users.length > 1 ? (
+                  <p className="text-muted mb-2 text-xs font-semibold tracking-wide uppercase">
+                    User {u.userId}
+                  </p>
+                ) : null}
+                {activeSheets.map((ws) => {
+                  const label = WORKSHEET_LABELS[ws.worksheet] ?? ws.worksheet;
+                  const addedLine = formatNameSample(ws.added);
+                  const deletedLine = formatNameSample(ws.deleted);
+                  const unavailableLine = formatNameSample(ws.markedUnavailable);
+                  return (
+                    <div key={`${u.userId}-${ws.worksheet}`} className="mb-4 last:mb-0">
+                      <h3 className="text-sm font-semibold">{label}</h3>
+                      <ul className="text-muted mt-1.5 list-inside list-disc space-y-1 text-sm leading-relaxed">
+                        {ws.added.length > 0 ? (
+                          <li>
+                            <span className="text-[var(--color-fg)]">
+                              Added ({ws.added.length}):
+                            </span>{' '}
+                            {addedLine}
+                          </li>
+                        ) : null}
+                        {ws.deleted.length > 0 ? (
+                          <li>
+                            <span className="text-[var(--color-fg)]">
+                              Removed / cleanup ({ws.deleted.length}):
+                            </span>{' '}
+                            {deletedLine}
+                          </li>
+                        ) : null}
+                        {ws.markedUnavailable.length > 0 ? (
+                          <li>
+                            <span className="text-[var(--color-fg)]">
+                              Marked unavailable ({ws.markedUnavailable.length}):
+                            </span>{' '}
+                            {unavailableLine}
+                          </li>
+                        ) : null}
+                        {ws.mismatched.length > 0 ? (
+                          <li>
+                            <span className="text-[var(--color-fg)]">
+                              Not in Parametric list ({ws.mismatched.length} rows)
+                            </span>{' '}
+                            — still on this worksheet; highlighted in the table until you remove or
+                            fix them.
+                          </li>
+                        ) : null}
+                      </ul>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <div className="modal-actions">
+        <button type="button" onClick={onClose}>
+          Close
+        </button>
+      </div>
+    </>
+  );
+}
+
 function statusClass(value: string, columnName: string): string {
   if (columnName === 'Helminth') {
     return value === 'Yes' ? 'status-btn helminth-btn yes' : 'status-btn helminth-btn empty';
@@ -104,6 +292,8 @@ export function WarframeAdminPage() {
   const [loading, setLoading] = useState(true);
   const [loadingData, setLoadingData] = useState(false);
   const [runningSync, setRunningSync] = useState(false);
+  const [syncReportOpen, setSyncReportOpen] = useState(false);
+  const [lastSyncReport, setLastSyncReport] = useState<SyncResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [summary, setSummary] = useState<SyncResult['summary'] | null>(null);
   const [cleanup, setCleanup] = useState<SyncResult['cleanup'] | null>(null);
@@ -202,6 +392,11 @@ export function WarframeAdminPage() {
     [data.rows, search],
   );
 
+  const closeSyncReport = useCallback(() => {
+    setSyncReportOpen(false);
+    setLastSyncReport(null);
+  }, []);
+
   const handleSync = useCallback(async (): Promise<void> => {
     setRunningSync(true);
     setError(null);
@@ -219,6 +414,8 @@ export function WarframeAdminPage() {
       const result = body as SyncResult;
       setSummary(result.summary ?? null);
       setCleanup(result.cleanup ?? null);
+      setLastSyncReport(result);
+      setSyncReportOpen(true);
       await loadWorksheets();
       if (worksheetId !== null) {
         await loadWorksheetData(worksheetId);
@@ -292,6 +489,11 @@ export function WarframeAdminPage() {
 
   return (
     <section className="space-y-4">
+      <SyncFromParametricReportModal
+        open={syncReportOpen}
+        result={lastSyncReport}
+        onClose={closeSyncReport}
+      />
       <h1 className="text-2xl font-semibold">Warframe Admin</h1>
       <p className="text-muted text-sm">
         Opening this page loads a preview only. Import runs from the header action button.
