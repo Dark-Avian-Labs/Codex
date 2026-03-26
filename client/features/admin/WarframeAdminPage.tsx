@@ -22,7 +22,6 @@ type WorksheetSyncResult = {
   mismatched: number[];
 };
 type SyncResult = {
-  mode?: 'preview' | 'execute';
   users: Array<{
     userId: number;
     worksheets: WorksheetSyncResult[];
@@ -217,7 +216,7 @@ function SyncFromParametricReportBody({
                       <ul className="text-muted mt-1.5 list-inside list-disc space-y-1 text-sm leading-relaxed">
                         {ws.added.length > 0 ? (
                           <li>
-                            <span className="text-[var(--color-fg)]">
+                            <span className="text-[var(--color-foreground)]">
                               Added ({ws.added.length}):
                             </span>{' '}
                             {addedLine}
@@ -225,7 +224,7 @@ function SyncFromParametricReportBody({
                         ) : null}
                         {ws.deleted.length > 0 ? (
                           <li>
-                            <span className="text-[var(--color-fg)]">
+                            <span className="text-[var(--color-foreground)]">
                               Removed / cleanup ({ws.deleted.length}):
                             </span>{' '}
                             {deletedLine}
@@ -233,7 +232,7 @@ function SyncFromParametricReportBody({
                         ) : null}
                         {ws.markedUnavailable.length > 0 ? (
                           <li>
-                            <span className="text-[var(--color-fg)]">
+                            <span className="text-[var(--color-foreground)]">
                               Marked unavailable ({ws.markedUnavailable.length}):
                             </span>{' '}
                             {unavailableLine}
@@ -241,7 +240,7 @@ function SyncFromParametricReportBody({
                         ) : null}
                         {ws.mismatched.length > 0 ? (
                           <li>
-                            <span className="text-[var(--color-fg)]">
+                            <span className="text-[var(--color-foreground)]">
                               Not in Parametric list ({ws.mismatched.length} rows)
                             </span>{' '}
                             — still on this worksheet; highlighted in the table until you remove or
