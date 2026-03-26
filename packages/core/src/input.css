@@ -698,6 +698,10 @@ html.theme-light .invert-on-light {
     max-width: 400px;
   }
 
+  .modal.warframe-sync-report-modal {
+    max-width: min(36rem, 92vw);
+  }
+
   .modal h2 {
     margin: 0 0 20px;
     font-size: 1.25rem;
