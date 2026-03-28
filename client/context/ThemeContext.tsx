@@ -94,10 +94,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     applyUiStyle(uiStyle);
     try {
       window.localStorage.setItem(UI_STYLE_STORAGE_KEY, uiStyle);
+      writeUiStyleCookie(uiStyle);
     } catch (error) {
-      console.warn('Failed to persist UI style to localStorage.', error);
+      console.warn('Failed to persist UI style to localStorage or cookie.', error);
     }
-    writeUiStyleCookie(uiStyle);
   }, [uiStyle]);
 
   useEffect(() => {
@@ -106,8 +106,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       return;
     }
     applyMode(mode);
-    window.localStorage.setItem(THEME_STORAGE_KEY, mode);
-    writeThemeCookie(mode);
+    try {
+      window.localStorage.setItem(THEME_STORAGE_KEY, mode);
+      writeThemeCookie(mode);
+    } catch (error) {
+      console.warn('Failed to persist theme mode to localStorage or cookie.', error);
+    }
   }, [mode]);
 
   const value = useMemo<ThemeContextValue>(
