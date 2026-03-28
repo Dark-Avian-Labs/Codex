@@ -1605,7 +1605,13 @@ html.ui-shadow.theme-dark .modal {
   backdrop-filter: blur(10px) saturate(1.1);
 }
 
-html.ui-shadow.theme-dark thead th {
+/*
+ * Shadow UI table headers: match glass section headers (Parametric-style) instead of flat black.
+ */
+html.ui-shadow thead th {
+  background: color-mix(in srgb, var(--color-glass-hover) 50%, transparent);
+  border-bottom: 1px solid var(--color-glass-divider);
+  padding: 10px 16px;
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
 }
