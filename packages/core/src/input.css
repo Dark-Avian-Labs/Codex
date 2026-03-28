@@ -75,6 +75,37 @@ html.theme-dark {
   color-scheme: dark;
 }
 
+/*
+ * Shadow UI — void.cloud hero-file-tree black glass
+ * (#000000bf, blur(10px), border rgba(255,255,255,0.1))
+ */
+html.ui-shadow.theme-dark {
+  --color-glass: rgba(0, 0, 0, 0.75);
+  --color-glass-border: rgba(255, 255, 255, 0.1);
+  --color-glass-border-hover: rgba(255, 255, 255, 0.2);
+  --color-glass-hover: rgba(255, 255, 255, 0.08);
+  --color-glass-active: rgba(255, 255, 255, 0.15);
+  --color-glass-divider: rgba(255, 255, 255, 0.08);
+  --color-surface-modal: rgba(0, 0, 0, 0.78);
+  --color-surface-thead: rgba(0, 0, 0, 0.88);
+  --shadow-panel: 0 12px 48px rgba(0, 0, 0, 0.55);
+  --color-bg-start: #020203;
+  --color-bg-end: #0a0a10;
+  --color-bg-glow: rgba(55, 65, 90, 0.14);
+}
+
+html.ui-shadow.theme-light {
+  --color-glass: rgba(255, 255, 255, 0.38);
+  --color-glass-border: rgba(15, 23, 42, 0.14);
+  --color-glass-border-hover: rgba(15, 23, 42, 0.24);
+  --color-glass-hover: rgba(255, 255, 255, 0.58);
+  --color-glass-active: rgba(255, 255, 255, 0.72);
+  --color-glass-divider: rgba(15, 23, 42, 0.1);
+  --color-surface-modal: rgba(255, 255, 255, 0.9);
+  --color-surface-thead: rgba(248, 250, 252, 0.92);
+  --shadow-panel: 0 12px 40px rgba(15, 23, 42, 0.14);
+}
+
 html.theme-light .invert-on-light {
   filter: invert(1);
 }
@@ -1538,6 +1569,51 @@ html.theme-light .invert-on-light {
       gap: 8px;
     }
   }
+}
+
+html.ui-shadow.theme-dark .table-container {
+  -webkit-backdrop-filter: blur(10px) saturate(1.1);
+  backdrop-filter: blur(10px) saturate(1.1);
+  box-shadow:
+    var(--shadow-panel),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.4);
+}
+
+html.ui-shadow.theme-dark .table-container::before {
+  opacity: 0.38;
+}
+
+html.ui-shadow.theme-dark .user-menu {
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+html.ui-shadow.theme-dark .icon-toggle-btn,
+html.ui-shadow.theme-dark .search-box {
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+html.ui-shadow.theme-dark .modal-overlay {
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+html.ui-shadow.theme-dark .modal {
+  -webkit-backdrop-filter: blur(10px) saturate(1.1);
+  backdrop-filter: blur(10px) saturate(1.1);
+}
+
+html.ui-shadow.theme-dark thead th {
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+html.ui-shadow.theme-dark .account-dropdown {
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-panel);
 }
 
 @media (prefers-reduced-motion: reduce) {

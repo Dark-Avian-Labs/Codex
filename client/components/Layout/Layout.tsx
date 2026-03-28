@@ -26,7 +26,7 @@ export type LayoutOutletContext = {
 };
 
 export function Layout() {
-  const { mode, toggleMode } = useTheme();
+  const { mode, toggleMode, uiStyle, setUiStyle } = useTheme();
   const location = useLocation();
   const { auth, logout } = useAuth();
   const isLoggedIn = auth.status === 'ok' && auth.user !== null;
@@ -45,9 +45,11 @@ export function Layout() {
   const [headerActions, setHeaderActions] = useState<ReactNode | null>(null);
   const menuItemIds = useMemo(() => {
     if (!isLoggedIn) {
-      return ['login'];
+      return ['login', 'ui-prism', 'ui-shadow'];
     }
-    return isAdmin ? ['profile', 'admin', 'logout'] : ['profile', 'logout'];
+    return isAdmin
+      ? ['profile', 'admin', 'ui-prism', 'ui-shadow', 'logout']
+      : ['profile', 'ui-prism', 'ui-shadow', 'logout'];
   }, [isAdmin, isLoggedIn]);
   const menuItemIndexById = useMemo(() => {
     return new Map(menuItemIds.map((id, index) => [id, index]));
@@ -251,16 +253,46 @@ export function Layout() {
                 <Menu baseClass="user-menu" className="focus:outline-none">
                   <div role="menu" onKeyDown={onMenuKeyDown}>
                     {!isLoggedIn ? (
-                      <a
-                        ref={nextMenuItemRef('login')}
-                        href="/auth/login"
-                        className="user-menu-item"
-                        role="menuitem"
-                        tabIndex={-1}
-                        onClick={() => setMenuOpen(false)}
-                      >
-                        Login
-                      </a>
+                      <>
+                        <a
+                          ref={nextMenuItemRef('login')}
+                          href="/auth/login"
+                          className="user-menu-item"
+                          role="menuitem"
+                          tabIndex={-1}
+                          onClick={() => setMenuOpen(false)}
+                        >
+                          Login
+                        </a>
+                        <div
+                          className="text-muted border-glass-border mt-1 border-t px-3 pt-2 pb-1 text-xs font-semibold tracking-wide uppercase"
+                          role="presentation"
+                        >
+                          Theme
+                        </div>
+                        <button
+                          ref={nextMenuItemRef('ui-prism')}
+                          type="button"
+                          className="user-menu-item text-left"
+                          role="menuitemradio"
+                          aria-checked={uiStyle === 'prism'}
+                          tabIndex={-1}
+                          onClick={() => setUiStyle('prism')}
+                        >
+                          Prism
+                        </button>
+                        <button
+                          ref={nextMenuItemRef('ui-shadow')}
+                          type="button"
+                          className="user-menu-item text-left"
+                          role="menuitemradio"
+                          aria-checked={uiStyle === 'shadow'}
+                          tabIndex={-1}
+                          onClick={() => setUiStyle('shadow')}
+                        >
+                          Shadow
+                        </button>
+                      </>
                     ) : (
                       <>
                         <a
@@ -285,6 +317,34 @@ export function Layout() {
                             Admin
                           </NavLink>
                         ) : null}
+                        <div
+                          className="text-muted border-glass-border mt-1 border-t px-3 pt-2 pb-1 text-xs font-semibold tracking-wide uppercase"
+                          role="presentation"
+                        >
+                          Theme
+                        </div>
+                        <button
+                          ref={nextMenuItemRef('ui-prism')}
+                          type="button"
+                          className="user-menu-item text-left"
+                          role="menuitemradio"
+                          aria-checked={uiStyle === 'prism'}
+                          tabIndex={-1}
+                          onClick={() => setUiStyle('prism')}
+                        >
+                          Prism
+                        </button>
+                        <button
+                          ref={nextMenuItemRef('ui-shadow')}
+                          type="button"
+                          className="user-menu-item text-left"
+                          role="menuitemradio"
+                          aria-checked={uiStyle === 'shadow'}
+                          tabIndex={-1}
+                          onClick={() => setUiStyle('shadow')}
+                        >
+                          Shadow
+                        </button>
                         <button
                           ref={nextMenuItemRef('logout')}
                           className="user-menu-item text-left"
