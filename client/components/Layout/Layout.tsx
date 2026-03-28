@@ -19,15 +19,13 @@ import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../features/auth/AuthContext';
 import { getProfileIconSrc } from '../../utils/profileIcons';
 import { Menu } from '../ui/Menu';
-import { ThemeRadioGroup } from './ThemeRadioGroup';
-
 export type LayoutOutletContext = {
   setHeaderCenter: (node: ReactNode | null) => void;
   setHeaderActions: (node: ReactNode | null) => void;
 };
 
 export function Layout() {
-  const { mode, toggleMode, uiStyle, setUiStyle } = useTheme();
+  const { mode, toggleMode } = useTheme();
   const location = useLocation();
   const { auth, logout } = useAuth();
   const isLoggedIn = auth.status === 'ok' && auth.user !== null;
@@ -46,11 +44,9 @@ export function Layout() {
   const [headerActions, setHeaderActions] = useState<ReactNode | null>(null);
   const menuItemIds = useMemo(() => {
     if (!isLoggedIn) {
-      return ['login', 'ui-prism', 'ui-shadow'];
+      return ['login'];
     }
-    return isAdmin
-      ? ['profile', 'admin', 'ui-prism', 'ui-shadow', 'logout']
-      : ['profile', 'ui-prism', 'ui-shadow', 'logout'];
+    return isAdmin ? ['profile', 'admin', 'logout'] : ['profile', 'logout'];
   }, [isAdmin, isLoggedIn]);
   const menuItemIndexById = useMemo(() => {
     return new Map(menuItemIds.map((id, index) => [id, index]));
@@ -265,13 +261,6 @@ export function Layout() {
                         >
                           Login
                         </a>
-                        <ThemeRadioGroup
-                          uiStyle={uiStyle}
-                          setUiStyle={setUiStyle}
-                          prismButtonRef={nextMenuItemRef('ui-prism')}
-                          shadowButtonRef={nextMenuItemRef('ui-shadow')}
-                          menuItemTabIndex={-1}
-                        />
                       </>
                     ) : (
                       <>
@@ -297,13 +286,6 @@ export function Layout() {
                             Admin
                           </NavLink>
                         ) : null}
-                        <ThemeRadioGroup
-                          uiStyle={uiStyle}
-                          setUiStyle={setUiStyle}
-                          prismButtonRef={nextMenuItemRef('ui-prism')}
-                          shadowButtonRef={nextMenuItemRef('ui-shadow')}
-                          menuItemTabIndex={-1}
-                        />
                         <button
                           ref={nextMenuItemRef('logout')}
                           className="user-menu-item text-left"
