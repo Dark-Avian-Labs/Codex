@@ -24,7 +24,6 @@ const THEME_STORAGE_KEY = 'dal.theme.mode';
 const THEME_COOKIE = 'dal.theme.mode';
 const THEME_COOKIE_DOMAIN =
   (import.meta.env.VITE_SHARED_THEME_COOKIE_DOMAIN as string | undefined) ?? '';
-const PREFER_SHARED_THEME_COOKIE = THEME_COOKIE_DOMAIN.trim().length > 0;
 const UI_STYLE_STORAGE_KEY = 'dal.ui.style';
 const UI_STYLE_COOKIE = 'dal.ui.style';
 const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
@@ -57,41 +56,30 @@ function parseUiStyleCookie(): UiStyle | null {
 
 function resolveInitialMode(): ThemeMode {
   if (typeof window === 'undefined') return 'dark';
-  if (PREFER_SHARED_THEME_COOKIE) {
-    const fromCookie = parseThemeCookie();
-    if (fromCookie) return fromCookie;
-  }
+  const fromCookie = parseThemeCookie();
+  if (fromCookie) return fromCookie;
   const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
   if (stored === 'light' || stored === 'dark') {
     return stored;
-  }
-  if (!PREFER_SHARED_THEME_COOKIE) {
-    const fromCookie = parseThemeCookie();
-    if (fromCookie) return fromCookie;
   }
   return 'dark';
 }
 
 function resolveInitialUiStyle(): UiStyle {
   if (typeof window === 'undefined') return 'prism';
-  if (PREFER_SHARED_THEME_COOKIE) {
-    const fromCookie = parseUiStyleCookie();
-    if (fromCookie) return fromCookie;
-  }
+  const fromCookie = parseUiStyleCookie();
+  if (fromCookie) return fromCookie;
   const stored = window.localStorage.getItem(UI_STYLE_STORAGE_KEY);
   if (stored === 'prism' || stored === 'shadow') return stored;
-  if (!PREFER_SHARED_THEME_COOKIE) {
-    const fromCookie = parseUiStyleCookie();
-    if (fromCookie) return fromCookie;
-  }
   return 'prism';
 }
 
 function writeThemeCookie(mode: ThemeMode): void {
   const secure = window.location.protocol === 'https:' ? '; Secure' : '';
   const base = `${THEME_COOKIE}=${mode}; Max-Age=${ONE_YEAR_SECONDS}; Path=/; SameSite=Lax${secure}`;
-  if (THEME_COOKIE_DOMAIN) {
-    document.cookie = `${base}; Domain=${THEME_COOKIE_DOMAIN}`;
+  const domain = THEME_COOKIE_DOMAIN.trim();
+  if (domain) {
+    document.cookie = `${base}; Domain=${domain}`;
     return;
   }
   document.cookie = base;
@@ -100,8 +88,9 @@ function writeThemeCookie(mode: ThemeMode): void {
 function writeUiStyleCookie(style: UiStyle): void {
   const secure = window.location.protocol === 'https:' ? '; Secure' : '';
   const base = `${UI_STYLE_COOKIE}=${style}; Max-Age=${ONE_YEAR_SECONDS}; Path=/; SameSite=Lax${secure}`;
-  if (THEME_COOKIE_DOMAIN) {
-    document.cookie = `${base}; Domain=${THEME_COOKIE_DOMAIN}`;
+  const domain = THEME_COOKIE_DOMAIN.trim();
+  if (domain) {
+    document.cookie = `${base}; Domain=${domain}`;
     return;
   }
   document.cookie = base;
