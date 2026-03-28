@@ -24,40 +24,66 @@ const THEME_STORAGE_KEY = 'dal.theme.mode';
 const THEME_COOKIE = 'dal.theme.mode';
 const THEME_COOKIE_DOMAIN =
   (import.meta.env.VITE_SHARED_THEME_COOKIE_DOMAIN as string | undefined) ?? '';
+const PREFER_SHARED_THEME_COOKIE = THEME_COOKIE_DOMAIN.trim().length > 0;
 const UI_STYLE_STORAGE_KEY = 'dal.ui.style';
 const UI_STYLE_COOKIE = 'dal.ui.style';
 const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
-function resolveInitialMode(): ThemeMode {
-  if (typeof window === 'undefined') return 'dark';
-  const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
-  if (stored === 'light' || stored === 'dark') {
-    return stored;
-  }
-  const cookieTheme = document.cookie
+function parseThemeCookie(): ThemeMode | null {
+  const raw = document.cookie
     .split(';')
     .map((part) => part.trim())
     .find((part) => part.startsWith(`${THEME_COOKIE}=`))
     ?.split('=')
     .slice(1)
     .join('=');
-  return cookieTheme === 'light' ? 'light' : 'dark';
+  if (raw === 'light' || raw === 'dark') return raw;
+  return null;
 }
 
-function resolveInitialUiStyle(): UiStyle {
-  if (typeof window === 'undefined') return 'prism';
-  const stored = window.localStorage.getItem(UI_STYLE_STORAGE_KEY);
-  if (stored === 'prism' || stored === 'shadow') return stored;
-  const fromCookie = document.cookie
+function parseUiStyleCookie(): UiStyle | null {
+  const raw = document.cookie
     .split(';')
     .map((part) => part.trim())
     .find((part) => part.startsWith(`${UI_STYLE_COOKIE}=`))
     ?.split('=')
     .slice(1)
     .join('=');
-  if (fromCookie === 'prism' || fromCookie === 'shadow') return fromCookie;
+  if (raw === 'prism' || raw === 'shadow') return raw;
+  return null;
+}
+
+function resolveInitialMode(): ThemeMode {
+  if (typeof window === 'undefined') return 'dark';
+  if (PREFER_SHARED_THEME_COOKIE) {
+    const fromCookie = parseThemeCookie();
+    if (fromCookie) return fromCookie;
+  }
+  const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+  if (stored === 'light' || stored === 'dark') {
+    return stored;
+  }
+  if (!PREFER_SHARED_THEME_COOKIE) {
+    const fromCookie = parseThemeCookie();
+    if (fromCookie) return fromCookie;
+  }
+  return 'dark';
+}
+
+function resolveInitialUiStyle(): UiStyle {
+  if (typeof window === 'undefined') return 'prism';
+  if (PREFER_SHARED_THEME_COOKIE) {
+    const fromCookie = parseUiStyleCookie();
+    if (fromCookie) return fromCookie;
+  }
+  const stored = window.localStorage.getItem(UI_STYLE_STORAGE_KEY);
+  if (stored === 'prism' || stored === 'shadow') return stored;
+  if (!PREFER_SHARED_THEME_COOKIE) {
+    const fromCookie = parseUiStyleCookie();
+    if (fromCookie) return fromCookie;
+  }
   return 'prism';
 }
 
