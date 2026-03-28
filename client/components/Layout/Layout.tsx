@@ -19,6 +19,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../features/auth/AuthContext';
 import { getProfileIconSrc } from '../../utils/profileIcons';
 import { Menu } from '../ui/Menu';
+import { ThemeRadioGroup } from './ThemeRadioGroup';
 
 export type LayoutOutletContext = {
   setHeaderCenter: (node: ReactNode | null) => void;
@@ -26,7 +27,7 @@ export type LayoutOutletContext = {
 };
 
 export function Layout() {
-  const { mode, toggleMode } = useTheme();
+  const { mode, toggleMode, uiStyle, setUiStyle } = useTheme();
   const location = useLocation();
   const { auth, logout } = useAuth();
   const isLoggedIn = auth.status === 'ok' && auth.user !== null;
@@ -45,9 +46,11 @@ export function Layout() {
   const [headerActions, setHeaderActions] = useState<ReactNode | null>(null);
   const menuItemIds = useMemo(() => {
     if (!isLoggedIn) {
-      return ['login'];
+      return ['login', 'ui-prism', 'ui-shadow'];
     }
-    return isAdmin ? ['profile', 'admin', 'logout'] : ['profile', 'logout'];
+    return isAdmin
+      ? ['profile', 'admin', 'ui-prism', 'ui-shadow', 'logout']
+      : ['profile', 'ui-prism', 'ui-shadow', 'logout'];
   }, [isAdmin, isLoggedIn]);
   const menuItemIndexById = useMemo(() => {
     return new Map(menuItemIds.map((id, index) => [id, index]));
@@ -251,16 +254,25 @@ export function Layout() {
                 <Menu baseClass="user-menu" className="focus:outline-none">
                   <div role="menu" onKeyDown={onMenuKeyDown}>
                     {!isLoggedIn ? (
-                      <a
-                        ref={nextMenuItemRef('login')}
-                        href="/auth/login"
-                        className="user-menu-item"
-                        role="menuitem"
-                        tabIndex={-1}
-                        onClick={() => setMenuOpen(false)}
-                      >
-                        Login
-                      </a>
+                      <>
+                        <a
+                          ref={nextMenuItemRef('login')}
+                          href="/auth/login"
+                          className="user-menu-item"
+                          role="menuitem"
+                          tabIndex={-1}
+                          onClick={() => setMenuOpen(false)}
+                        >
+                          Login
+                        </a>
+                        <ThemeRadioGroup
+                          uiStyle={uiStyle}
+                          setUiStyle={setUiStyle}
+                          prismButtonRef={nextMenuItemRef('ui-prism')}
+                          shadowButtonRef={nextMenuItemRef('ui-shadow')}
+                          menuItemTabIndex={-1}
+                        />
+                      </>
                     ) : (
                       <>
                         <a
@@ -285,6 +297,13 @@ export function Layout() {
                             Admin
                           </NavLink>
                         ) : null}
+                        <ThemeRadioGroup
+                          uiStyle={uiStyle}
+                          setUiStyle={setUiStyle}
+                          prismButtonRef={nextMenuItemRef('ui-prism')}
+                          shadowButtonRef={nextMenuItemRef('ui-shadow')}
+                          menuItemTabIndex={-1}
+                        />
                         <button
                           ref={nextMenuItemRef('logout')}
                           className="user-menu-item text-left"
