@@ -19,6 +19,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../features/auth/AuthContext';
 import { getProfileIconSrc } from '../../utils/profileIcons';
 import { Menu } from '../ui/Menu';
+import { ThemeRadioGroup } from './ThemeRadioGroup';
 
 export type LayoutOutletContext = {
   setHeaderCenter: (node: ReactNode | null) => void;
@@ -264,34 +265,13 @@ export function Layout() {
                         >
                           Login
                         </a>
-                        <div
-                          className="text-muted border-glass-border mt-1 border-t px-3 pt-2 pb-1 text-xs font-semibold tracking-wide uppercase"
-                          role="presentation"
-                        >
-                          Theme
-                        </div>
-                        <button
-                          ref={nextMenuItemRef('ui-prism')}
-                          type="button"
-                          className="user-menu-item text-left"
-                          role="menuitemradio"
-                          aria-checked={uiStyle === 'prism'}
-                          tabIndex={-1}
-                          onClick={() => setUiStyle('prism')}
-                        >
-                          Prism
-                        </button>
-                        <button
-                          ref={nextMenuItemRef('ui-shadow')}
-                          type="button"
-                          className="user-menu-item text-left"
-                          role="menuitemradio"
-                          aria-checked={uiStyle === 'shadow'}
-                          tabIndex={-1}
-                          onClick={() => setUiStyle('shadow')}
-                        >
-                          Shadow
-                        </button>
+                        <ThemeRadioGroup
+                          uiStyle={uiStyle}
+                          setUiStyle={setUiStyle}
+                          prismButtonRef={nextMenuItemRef('ui-prism')}
+                          shadowButtonRef={nextMenuItemRef('ui-shadow')}
+                          menuItemTabIndex={-1}
+                        />
                       </>
                     ) : (
                       <>
@@ -317,34 +297,13 @@ export function Layout() {
                             Admin
                           </NavLink>
                         ) : null}
-                        <div
-                          className="text-muted border-glass-border mt-1 border-t px-3 pt-2 pb-1 text-xs font-semibold tracking-wide uppercase"
-                          role="presentation"
-                        >
-                          Theme
-                        </div>
-                        <button
-                          ref={nextMenuItemRef('ui-prism')}
-                          type="button"
-                          className="user-menu-item text-left"
-                          role="menuitemradio"
-                          aria-checked={uiStyle === 'prism'}
-                          tabIndex={-1}
-                          onClick={() => setUiStyle('prism')}
-                        >
-                          Prism
-                        </button>
-                        <button
-                          ref={nextMenuItemRef('ui-shadow')}
-                          type="button"
-                          className="user-menu-item text-left"
-                          role="menuitemradio"
-                          aria-checked={uiStyle === 'shadow'}
-                          tabIndex={-1}
-                          onClick={() => setUiStyle('shadow')}
-                        >
-                          Shadow
-                        </button>
+                        <ThemeRadioGroup
+                          uiStyle={uiStyle}
+                          setUiStyle={setUiStyle}
+                          prismButtonRef={nextMenuItemRef('ui-prism')}
+                          shadowButtonRef={nextMenuItemRef('ui-shadow')}
+                          menuItemTabIndex={-1}
+                        />
                         <button
                           ref={nextMenuItemRef('logout')}
                           className="user-menu-item text-left"
