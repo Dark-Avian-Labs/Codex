@@ -89,15 +89,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!hasMountedRef.current) {
-      hasMountedRef.current = true;
       return;
     }
-    applyMode(mode);
-    window.localStorage.setItem(THEME_STORAGE_KEY, mode);
-    writeThemeCookie(mode);
-  }, [mode]);
-
-  useEffect(() => {
     applyUiStyle(uiStyle);
     try {
       window.localStorage.setItem(UI_STYLE_STORAGE_KEY, uiStyle);
@@ -106,6 +99,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }
     writeUiStyleCookie(uiStyle);
   }, [uiStyle]);
+
+  useEffect(() => {
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      return;
+    }
+    applyMode(mode);
+    window.localStorage.setItem(THEME_STORAGE_KEY, mode);
+    writeThemeCookie(mode);
+  }, [mode]);
 
   const value = useMemo<ThemeContextValue>(
     () => ({
