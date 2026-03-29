@@ -103,8 +103,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const root = document.documentElement;
-    root.classList.remove('theme-light', 'theme-dark');
-    root.classList.add(`theme-${mode}`);
+    root.style.colorScheme = mode === 'dark' ? 'dark' : 'light';
+    root.classList.remove('dark');
+    if (mode === 'dark') {
+      root.classList.add('dark');
+    }
     if (!hasMountedRef.current) {
       return;
     }

@@ -39,8 +39,9 @@ function RouteFallback() {
       role="status"
       aria-live="polite"
       aria-busy="true"
+      aria-atomic="true"
     >
-      <p className="text-muted text-sm">Loading...</p>
+      <p className="text-muted text-sm">Loading…</p>
     </div>
   );
 }

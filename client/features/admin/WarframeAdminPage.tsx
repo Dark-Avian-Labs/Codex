@@ -436,7 +436,7 @@ export function WarframeAdminPage() {
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           aria-label="Search Warframe admin rows"
-          placeholder="Search..."
+          placeholder="Search…"
         />
         <button
           type="button"

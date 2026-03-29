@@ -815,7 +815,7 @@ export function Epic7Page() {
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           aria-label="Search Epic Seven entries"
-          placeholder="Search..."
+          placeholder="Search…"
         />
         <button
           type="button"
