@@ -294,7 +294,7 @@ export function AdminPage() {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             aria-label="Search base table entries"
-            placeholder="Search…"
+            placeholder="Search..."
           />
           <button
             type="button"

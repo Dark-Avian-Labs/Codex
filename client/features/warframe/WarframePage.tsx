@@ -454,7 +454,7 @@ export function WarframePage() {
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           aria-label="Search Warframe items"
-          placeholder="Search…"
+          placeholder="Search..."
         />
         <button
           type="button"
