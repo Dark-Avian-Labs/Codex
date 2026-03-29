@@ -541,7 +541,7 @@ export function WarframePage() {
               void handleHideCompletedChange(!hideCompleted);
             }}
             aria-pressed={hideCompleted}
-            className="border-glass-border text-muted hover:border-glass-border-hover hover:bg-glass-hover hover:text-foreground inline-flex cursor-pointer items-center gap-2 rounded-lg border px-2.5 py-1.5 text-sm transition-all"
+            className="border-glass-border text-muted hover:border-glass-border-hover hover:bg-glass-hover hover:text-foreground inline-flex cursor-pointer items-center gap-2 rounded-lg border px-2.5 py-1.5 text-sm transition-[color,background-color,border-color,box-shadow] duration-200"
             title='Toggle "Hide completed"'
           >
             <span>Hide completed</span>

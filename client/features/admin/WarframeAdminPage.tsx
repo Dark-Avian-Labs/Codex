@@ -461,7 +461,7 @@ export function WarframeAdminPage() {
         onClick={() => void handleSync()}
         disabled={runningSync}
       >
-        {runningSync ? 'Syncing…' : 'Sync From Parametric'}
+        {runningSync ? 'Syncing...' : 'Sync From Parametric'}
       </button>,
     );
     return () => {

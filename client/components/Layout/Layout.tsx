@@ -189,10 +189,7 @@ export function Layout() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:rounded-md focus:bg-black focus:px-3 focus:py-2 focus:text-white"
-      >
+      <a href="#main-content" className="skip-link">
         Skip to main content
       </a>
       <div className="bg-art" aria-hidden="true">
@@ -247,7 +244,7 @@ export function Layout() {
                 )}
               </button>
               {menuOpen ? (
-                <Menu baseClass="user-menu" className="focus:outline-none">
+                <Menu baseClass="user-menu">
                   <div role="menu" onKeyDown={onMenuKeyDown}>
                     {!isLoggedIn ? (
                       <>
