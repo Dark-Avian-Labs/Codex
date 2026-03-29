@@ -513,6 +513,7 @@ html:not(.dark) .invert-on-light {
 
   .table-scroll {
     max-height: calc(100vh - var(--header-offset));
+    overflow-x: hidden;
     overflow-y: auto;
   }
 
