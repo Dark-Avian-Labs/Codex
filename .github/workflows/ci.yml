@@ -12,9 +12,13 @@ on:
     branches: [main]
     paths:
       - 'server/**'
+      - 'src/**'
+      - 'packages/**'
+      - 'scripts/**'
       - 'client/**'
       - 'index.html'
       - 'package.json'
+      - 'pnpm-workspace.yaml'
       - 'tsconfig*.json'
       - 'vite.config.ts'
       - 'favicon.ico'
@@ -368,6 +372,7 @@ jobs:
           --exclude='.env.local' \
           --exclude='logs/' \
           --exclude='data/' \
+          --exclude='import/' \
           -e "ssh -p $SERVER_SSH_PORT -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes -o UserKnownHostsFile=~/.ssh/known_hosts" \
           /tmp/deploy/ \
           $SERVER_USER@$SERVER_HOST:$SERVER_PATH/
