@@ -1,7 +1,10 @@
-name: Run Tests
+name: Corpus Run Tests
 
 permissions:
   contents: read
+  pull-requests: read
+env:
+  NODE_VERSION: 25
 
 on:
   pull_request:
@@ -9,6 +12,7 @@ on:
 jobs:
   test:
     runs-on: blacksmith-2vcpu-ubuntu-2404
+
     env:
       DOTENV_PRIVATE_KEY_DEVELOPMENT: ${{ secrets.DOTENV_PRIVATE_KEY_DEVELOPMENT }}
 
@@ -22,13 +26,12 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '25'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # Dependabot (and workflows without repo secrets) cannot read Actions secrets; use plaintext CI env.
       - name: Prepare CI environment
         run: |
           if [ -n "${DOTENV_PRIVATE_KEY_DEVELOPMENT:-}" ]; then

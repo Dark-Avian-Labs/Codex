@@ -1,7 +1,11 @@
-name: Check OxFmt
+name: Corpus Check Formatting
 
 permissions:
   contents: read
+  pull-requests: read
+
+env:
+  NODE_VERSION: 25
 
 on:
   pull_request:
@@ -20,7 +24,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '25'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
 
       - name: Install dependencies

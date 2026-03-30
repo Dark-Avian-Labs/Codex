@@ -1,0 +1,379 @@
+name: Corpus CI/CD
+
+permissions:
+  contents: read
+  pull-requests: read
+
+env:
+  NODE_VERSION: 25
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'server/**'
+      - 'client/**'
+      - 'index.html'
+      - 'package.json'
+      - 'tsconfig*.json'
+      - 'vite.config.ts'
+      - 'favicon.ico'
+      - 'background.txt'
+      - '.env.production'
+      - '.github/workflows/ci.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deployment-check:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+
+    outputs:
+      deploy: ${{ steps.decide.outputs.deploy }}
+
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Check if changes require deployment
+        id: decide
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          BEFORE="${{ github.event.before }}"
+          AFTER="${{ github.sha }}"
+
+          if [ -z "$BEFORE" ] || ! git cat-file -e "$BEFORE"^{commit} 2>/dev/null; then
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          changed_files=$(git diff --name-only "$BEFORE" "$AFTER")
+          echo "Changed files:"
+          echo "$changed_files"
+
+          if [ -z "$changed_files" ]; then
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          others=$(echo "$changed_files" | grep -vE '^(package.json|pnpm-lock.yaml)$' || true)
+          if [ -n "$others" ]; then
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          tmp_old=$(mktemp)
+          tmp_new=$(mktemp)
+          printf '%s' "$(git show "$BEFORE:package.json" 2>/dev/null || echo '{}')" > "$tmp_old"
+          printf '%s' "$(git show "$AFTER:package.json" 2>/dev/null || echo '{}')" > "$tmp_new"
+
+          if ! jq -e --slurp \
+            '.[0] as $new | .[1] as $old |
+             ($new | del(.devDependencies)) == ($old | del(.devDependencies))' \
+            "$tmp_new" "$tmp_old" >/dev/null; then
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "deploy=false" >> "$GITHUB_OUTPUT"
+
+  install-cache:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+
+    needs: deployment-check
+    if: needs.deployment-check.outputs.deploy == 'true'
+
+    steps:
+      - name: Checkout Commit
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        id: cache-dependencies
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Install dependencies
+        if: steps.cache-dependencies.outputs.cache-hit != 'true'
+        run: pnpm install --frozen-lockfile
+
+  type-check:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+
+    needs: [install-cache]
+
+    steps:
+      - name: Checkout Commit
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore dependencies
+        uses: actions/cache@v4
+        id: cache-dependencies
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Check types
+        run: pnpm run typecheck
+
+  unit-tests:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+
+    needs: [install-cache]
+
+    steps:
+      - name: Checkout Commit
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore dependencies
+        uses: actions/cache@v4
+        id: cache-dependencies
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Run tests
+        run: pnpm run test
+
+  run-lint:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+
+    needs: [install-cache]
+
+    steps:
+      - name: Checkout Commit
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore dependencies
+        uses: actions/cache@v4
+        id: cache-dependencies
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Run lint
+        run: pnpm run lint
+
+  run-check-format:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+
+    needs: [install-cache]
+
+    steps:
+      - name: Checkout Commit
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore dependencies
+        uses: actions/cache@v4
+        id: cache-dependencies
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Run check-format
+        run: pnpm run check-format
+
+  build:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+
+    needs: [install-cache, type-check, unit-tests, run-lint, run-check-format]
+
+    env:
+      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      SERVER_KNOWN_HOST: ${{ secrets.SERVER_KNOWN_HOST }}
+      SERVER_STACK_PATH: ${{ secrets.SERVER_STACK_PATH }}
+      SERVER_PATH: ${{ secrets.SERVER_PATH }}
+      SERVER_USER: ${{ secrets.SERVER_USER }}
+      SERVER_HOST: ${{ secrets.SERVER_HOST }}
+      SERVER_SSH_PORT: ${{ secrets.SERVER_SSH_PORT }}
+      DOTENV_PRIVATE_KEY_PRODUCTION: ${{ secrets.DOTENV_PRIVATE_KEY_PRODUCTION }}
+
+    steps:
+      - name: Checkout Commit
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore dependencies
+        uses: actions/cache@v4
+        id: cache-dependencies
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Build project
+        run: |
+          if [ -z "$DOTENV_PRIVATE_KEY_PRODUCTION" ]; then
+            echo "ERROR: DOTENV_PRIVATE_KEY_PRODUCTION secret is missing or empty."
+            exit 1
+          fi
+          pnpm exec dotenvx run --strict -f .env.production -- pnpm run build
+
+      - name: List built files (debug)
+        run: |
+          ls -la dist/
+          if [ -d dist/static ]; then ls -la dist/static/; fi
+
+      - name: Setup SSH
+        run: |
+          require_non_empty() {
+            name="$1"
+            value="$2"
+            if [ -z "$value" ]; then
+              echo "ERROR: $name is missing or empty."
+              exit 1
+            fi
+          }
+
+          require_non_empty "SSH_PRIVATE_KEY" "$SSH_PRIVATE_KEY"
+          require_non_empty "SERVER_KNOWN_HOST" "$SERVER_KNOWN_HOST"
+          require_non_empty "SERVER_HOST" "$SERVER_HOST"
+          require_non_empty "SERVER_USER" "$SERVER_USER"
+          require_non_empty "SERVER_PATH" "$SERVER_PATH"
+
+          if [ -n "${RSYNC_DEST:-}" ]; then
+            require_non_empty "RSYNC_DEST" "$RSYNC_DEST"
+          fi
+
+          case "$SERVER_PATH" in
+            ""|"/"|"."|".."|"~"|"~/"|"/home"|"/root")
+              echo "ERROR: SERVER_PATH has unsafe value: '$SERVER_PATH'"
+              exit 1
+              ;;
+          esac
+          case "$SERVER_PATH" in
+            "~"*|*".."*|*"/./"*|*"/../"*|*"//"*)
+              echo "ERROR: SERVER_PATH contains unsafe path segments: '$SERVER_PATH'"
+              exit 1
+              ;;
+          esac
+
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          if [ -z "$SERVER_KNOWN_HOST" ]; then
+            echo "ERROR: SERVER_KNOWN_HOST secret is missing or empty."
+            exit 1
+          fi
+          if [ -z "$SERVER_SSH_PORT" ]; then
+            echo "ERROR: SERVER_SSH_PORT secret is missing or empty."
+            exit 1
+          fi
+          echo "$SERVER_KNOWN_HOST" >> ~/.ssh/known_hosts
+
+      - name: Prepare deployment
+        run: |
+          mkdir -p /tmp/deploy
+          cp -r dist/ /tmp/deploy/
+          cp package.json pnpm-lock.yaml /tmp/deploy/
+          if [ -f .env.production ]; then cp .env.production /tmp/deploy/; fi
+          if [ -f favicon.ico ]; then cp favicon.ico /tmp/deploy/; fi
+          if [ -f feathers.png ]; then cp feathers.png /tmp/deploy/; fi
+          if [ -f background.txt ]; then cp background.txt /tmp/deploy/; fi
+          cd /tmp/deploy && pnpm install --frozen-lockfile --prod
+
+      - name: Deploy to server
+        run: |
+          STACK_PATH="$SERVER_STACK_PATH"
+          if [ -z "$STACK_PATH" ]; then
+            STACK_PATH="$(dirname "$SERVER_PATH")"
+          fi
+
+          rsync -avp --delete \
+          --exclude='.env' \
+          --exclude='.env.local' \
+          --exclude='logs/' \
+          --exclude='data/' \
+          -e "ssh -p $SERVER_SSH_PORT -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes -o UserKnownHostsFile=~/.ssh/known_hosts" \
+          /tmp/deploy/ \
+          $SERVER_USER@$SERVER_HOST:$SERVER_PATH/
+
+          rsync -av \
+          -e "ssh -p $SERVER_SSH_PORT -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes -o UserKnownHostsFile=~/.ssh/known_hosts" \
+          dark-avian-labs.config.cjs \
+          $SERVER_USER@$SERVER_HOST:${STACK_PATH}/
+
+          DOTENV_KEY_B64=$(printf '%s' "$DOTENV_PRIVATE_KEY_PRODUCTION" | base64 | tr -d '\n')
+          ssh -p "$SERVER_SSH_PORT" -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile=~/.ssh/known_hosts \
+            "$SERVER_USER@$SERVER_HOST" \
+            "cd \"$SERVER_PATH\" && printf 'DOTENV_PRIVATE_KEY_PRODUCTION=%s\n' \"\$(printf '%s' '$DOTENV_KEY_B64' | base64 -d)\" > .env.keys && chmod 600 .env.keys && test -s .env.keys || { echo 'ERROR: Failed to create or configure .env.keys on server'; exit 1; }"
+
+      - name: Restart PM2
+        run: |
+          ssh -p "$SERVER_SSH_PORT" -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile=~/.ssh/known_hosts \
+            $SERVER_USER@$SERVER_HOST \
+            "cd $SERVER_PATH && source ~/.nvm/nvm.sh && pm2 restart 'Auth' --update-env"
+
+      - name: Cleanup SSH key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key

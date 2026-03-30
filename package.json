@@ -66,7 +66,7 @@
     "node": ">=25.0.0",
     "pnpm": ">=10.0.0"
   },
-  "packageManager": "pnpm@10.32.1",
+  "packageManager": "pnpm@10.33.0",
   "pnpm": {
     "onlyBuiltDependencies": [
       "argon2",
