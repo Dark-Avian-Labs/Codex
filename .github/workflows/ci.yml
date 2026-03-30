@@ -112,7 +112,6 @@ jobs:
             ${{ runner.os }}-pnpm-
 
       - name: Install dependencies
-        if: steps.cache-dependencies.outputs.cache-hit != 'true'
         run: pnpm install --frozen-lockfile
 
   type-check:
@@ -142,7 +141,6 @@ jobs:
             ${{ runner.os }}-pnpm-
 
       - name: Install dependencies
-        if: steps.cache-dependencies.outputs.cache-hit != 'true'
         run: pnpm install --frozen-lockfile
 
       - name: Check types
@@ -175,7 +173,6 @@ jobs:
             ${{ runner.os }}-pnpm-
 
       - name: Install dependencies
-        if: steps.cache-dependencies.outputs.cache-hit != 'true'
         run: pnpm install --frozen-lockfile
 
       - name: Build workspace packages
@@ -211,7 +208,6 @@ jobs:
             ${{ runner.os }}-pnpm-
 
       - name: Install dependencies
-        if: steps.cache-dependencies.outputs.cache-hit != 'true'
         run: pnpm install --frozen-lockfile
 
       - name: Run lint
@@ -244,7 +240,6 @@ jobs:
             ${{ runner.os }}-pnpm-
 
       - name: Install dependencies
-        if: steps.cache-dependencies.outputs.cache-hit != 'true'
         run: pnpm install --frozen-lockfile
 
       - name: Run check-format
@@ -258,7 +253,6 @@ jobs:
     env:
       SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
       SERVER_KNOWN_HOST: ${{ secrets.SERVER_KNOWN_HOST }}
-      SERVER_STACK_PATH: ${{ secrets.SERVER_STACK_PATH }}
       SERVER_PATH: ${{ secrets.SERVER_PATH }}
       SERVER_USER: ${{ secrets.SERVER_USER }}
       SERVER_HOST: ${{ secrets.SERVER_HOST }}
@@ -287,7 +281,6 @@ jobs:
             ${{ runner.os }}-pnpm-
 
       - name: Install dependencies
-        if: steps.cache-dependencies.outputs.cache-hit != 'true'
         run: pnpm install --frozen-lockfile
 
       - name: Build project
