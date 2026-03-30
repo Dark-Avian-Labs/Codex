@@ -104,15 +104,12 @@ function saveLockoutData(data: LockoutData): void {
 
 let dummyHashPromise: Promise<string> | undefined;
 function getDummyHash(): Promise<string> {
-  if (dummyHashPromise === undefined) {
-    dummyHashPromise = argon2.hash('timing-dummy', {
-      type: argon2.argon2id,
-      memoryCost: 19 * 1024,
-      timeCost: 2,
-      parallelism: 1,
-    });
-  }
-  return dummyHashPromise;
+  return (dummyHashPromise ??= argon2.hash('timing-dummy', {
+    type: argon2.argon2id,
+    memoryCost: 19 * 1024,
+    timeCost: 2,
+    parallelism: 1,
+  }));
 }
 
 export function getClientIP(req: {
