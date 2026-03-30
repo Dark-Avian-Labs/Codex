@@ -102,9 +102,9 @@ function saveLockoutData(data: LockoutData): void {
   lockoutWriteTimer = setTimeout(flushLockoutToDisk, LOCKOUT_DEBOUNCE_MS);
 }
 
-let dummyHashPromise: Promise<string> | null = null;
+let dummyHashPromise: Promise<string> | undefined;
 function getDummyHash(): Promise<string> {
-  if (!dummyHashPromise) {
+  if (dummyHashPromise === undefined) {
     dummyHashPromise = argon2.hash('timing-dummy', {
       type: argon2.argon2id,
       memoryCost: 19 * 1024,

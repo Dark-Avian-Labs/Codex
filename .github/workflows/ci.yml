@@ -141,6 +141,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-
 
+      - name: Install dependencies
+        if: steps.cache-dependencies.outputs.cache-hit != 'true'
+        run: pnpm install --frozen-lockfile
+
       - name: Check types
         run: pnpm run typecheck
 
@@ -169,6 +173,13 @@ jobs:
           key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-
+
+      - name: Install dependencies
+        if: steps.cache-dependencies.outputs.cache-hit != 'true'
+        run: pnpm install --frozen-lockfile
+
+      - name: Build workspace packages
+        run: pnpm --filter @corpus/core --filter @corpus/game-warframe --filter @corpus/game-epic7 run --if-present build
 
       - name: Run tests
         run: pnpm run test
@@ -199,6 +210,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-
 
+      - name: Install dependencies
+        if: steps.cache-dependencies.outputs.cache-hit != 'true'
+        run: pnpm install --frozen-lockfile
+
       - name: Run lint
         run: pnpm run lint
 
@@ -227,6 +242,10 @@ jobs:
           key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-
+
+      - name: Install dependencies
+        if: steps.cache-dependencies.outputs.cache-hit != 'true'
+        run: pnpm install --frozen-lockfile
 
       - name: Run check-format
         run: pnpm run check-format
@@ -266,6 +285,10 @@ jobs:
           key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-
+
+      - name: Install dependencies
+        if: steps.cache-dependencies.outputs.cache-hit != 'true'
+        run: pnpm install --frozen-lockfile
 
       - name: Build project
         run: |
@@ -354,10 +377,12 @@ jobs:
           /tmp/deploy/ \
           $SERVER_USER@$SERVER_HOST:$SERVER_PATH/
 
-          rsync -av \
-          -e "ssh -p $SERVER_SSH_PORT -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes -o UserKnownHostsFile=~/.ssh/known_hosts" \
-          dark-avian-labs.config.cjs \
-          $SERVER_USER@$SERVER_HOST:${STACK_PATH}/
+          if [ -f dark-avian-labs.config.cjs ]; then
+            rsync -av \
+            -e "ssh -p $SERVER_SSH_PORT -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes -o UserKnownHostsFile=~/.ssh/known_hosts" \
+            dark-avian-labs.config.cjs \
+            $SERVER_USER@$SERVER_HOST:${STACK_PATH}/
+          fi
 
           DOTENV_KEY_B64=$(printf '%s' "$DOTENV_PRIVATE_KEY_PRODUCTION" | base64 | tr -d '\n')
           ssh -p "$SERVER_SSH_PORT" -i ~/.ssh/deploy_key \
@@ -372,7 +397,7 @@ jobs:
             -o StrictHostKeyChecking=yes \
             -o UserKnownHostsFile=~/.ssh/known_hosts \
             $SERVER_USER@$SERVER_HOST \
-            "cd $SERVER_PATH && source ~/.nvm/nvm.sh && pm2 restart 'Auth' --update-env"
+            "cd $SERVER_PATH && source ~/.nvm/nvm.sh && pm2 restart 'Corpus' --update-env"
 
       - name: Cleanup SSH key
         if: always()
