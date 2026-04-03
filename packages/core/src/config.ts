@@ -6,10 +6,15 @@ import { config as loadEnv } from '@dotenvx/dotenvx';
 const projectRoot = process.cwd();
 export function resolveEnvFilePath(rootPath: string): string | null {
   const normalizedNodeEnv = (process.env.NODE_ENV ?? '').trim().toLowerCase();
+
+  if (normalizedNodeEnv === 'test') {
+    const testPath = path.join(rootPath, '.env.test');
+    return fs.existsSync(testPath) ? testPath : null;
+  }
+
   const envFileByMode: Record<string, string> = {
     production: '.env.production',
     development: '.env.development',
-    test: '.env.test',
   };
   const prioritizedFiles = [
     envFileByMode[normalizedNodeEnv],
@@ -20,6 +25,7 @@ export function resolveEnvFilePath(rootPath: string): string | null {
   });
 
   for (const fileName of prioritizedFiles) {
+    if (!fileName) continue;
     const candidatePath = path.join(rootPath, fileName);
     if (fs.existsSync(candidatePath)) {
       return candidatePath;
@@ -28,7 +34,8 @@ export function resolveEnvFilePath(rootPath: string): string | null {
   return null;
 }
 
-const envPath = resolveEnvFilePath(projectRoot);
+const skipDotenvx = process.env.USE_DOTENVX === 'false';
+const envPath = skipDotenvx ? null : resolveEnvFilePath(projectRoot);
 if (envPath) {
   try {
     loadEnv({ path: envPath });
@@ -37,9 +44,13 @@ if (envPath) {
     throw error;
   }
 } else {
-  console.debug(
-    `[Core Config] No env file resolved for project root "${projectRoot}" (NODE_ENV="${process.env.NODE_ENV ?? ''}").`,
-  );
+  if (skipDotenvx) {
+    console.debug('[Core Config] Skipping dotenvx (USE_DOTENVX=false).');
+  } else {
+    console.debug(
+      `[Core Config] No env file resolved for project root "${projectRoot}" (NODE_ENV="${process.env.NODE_ENV ?? ''}").`,
+    );
+  }
 }
 
 export const APP_NAME = 'Corpus';

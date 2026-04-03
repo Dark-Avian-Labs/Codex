@@ -155,6 +155,9 @@ jobs:
 
     needs: [install-cache]
 
+    env:
+      USE_DOTENVX: 'false'
+
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v6
@@ -358,6 +361,9 @@ jobs:
           if [ -f favicon.ico ]; then cp favicon.ico /tmp/deploy/; fi
           if [ -f feathers.png ]; then cp feathers.png /tmp/deploy/; fi
           if [ -f background.txt ]; then cp background.txt /tmp/deploy/; fi
+          printf 'DOTENV_PRIVATE_KEY_PRODUCTION=%s\n' "$DOTENV_PRIVATE_KEY_PRODUCTION" > /tmp/deploy/.env.keys
+          chmod 600 /tmp/deploy/.env.keys
+          test -s /tmp/deploy/.env.keys || { echo "ERROR: Failed to create .env.keys in deployment bundle."; exit 1; }
           cd /tmp/deploy && pnpm install --frozen-lockfile --prod
 
       - name: Deploy to server
@@ -367,37 +373,49 @@ jobs:
             STACK_PATH="$(dirname "$SERVER_PATH")"
           fi
 
-          rsync -avp --delete \
-          --exclude='.env' \
-          --exclude='.env.local' \
-          --exclude='logs/' \
-          --exclude='data/' \
-          --exclude='import/' \
-          -e "ssh -p $SERVER_SSH_PORT -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes -o UserKnownHostsFile=~/.ssh/known_hosts" \
-          /tmp/deploy/ \
-          $SERVER_USER@$SERVER_HOST:$SERVER_PATH/
+          rsync -av --no-times --delete \
+                --exclude='.env' \
+                --exclude='.env.local' \
+                --exclude='logs/' \
+                --exclude='data/' \
+                --exclude='import/' \
+                --exclude='.env.keys' \
+                --chmod=D2770,F640 \
+                --omit-dir-times \
+                -e "ssh -p $SERVER_SSH_PORT -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes -o UserKnownHostsFile=~/.ssh/known_hosts" \
+                /tmp/deploy/ \
+                $SERVER_USER@$SERVER_HOST:$SERVER_PATH/
+
+          rsync -av --no-times \
+                --chmod=F600 \
+                --omit-dir-times \
+                -e "ssh -p $SERVER_SSH_PORT -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes -o UserKnownHostsFile=~/.ssh/known_hosts" \
+                /tmp/deploy/.env.keys \
+                "$SERVER_USER@$SERVER_HOST:$SERVER_PATH/.env.keys"
 
           if [ -f dark-avian-labs.config.cjs ]; then
-            rsync -av \
-            -e "ssh -p $SERVER_SSH_PORT -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes -o UserKnownHostsFile=~/.ssh/known_hosts" \
-            dark-avian-labs.config.cjs \
-            $SERVER_USER@$SERVER_HOST:${STACK_PATH}/
+            rsync -av --no-times \
+                  --chmod=F640 \
+                  --omit-dir-times \
+                  -e "ssh -p $SERVER_SSH_PORT -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes -o UserKnownHostsFile=~/.ssh/known_hosts" \
+                  dark-avian-labs.config.cjs \
+                  "$SERVER_USER@$SERVER_HOST:${STACK_PATH}/"
           fi
 
-          DOTENV_KEY_B64=$(printf '%s' "$DOTENV_PRIVATE_KEY_PRODUCTION" | base64 | tr -d '\n')
+      - name: Update permissions
+        run: |
           ssh -p "$SERVER_SSH_PORT" -i ~/.ssh/deploy_key \
-            -o StrictHostKeyChecking=yes \
-            -o UserKnownHostsFile=~/.ssh/known_hosts \
-            "$SERVER_USER@$SERVER_HOST" \
-            "cd \"$SERVER_PATH\" && printf 'DOTENV_PRIVATE_KEY_PRODUCTION=%s\n' \"\$(printf '%s' '$DOTENV_KEY_B64' | base64 -d)\" > .env.keys && chmod 600 .env.keys && test -s .env.keys || { echo 'ERROR: Failed to create or configure .env.keys on server'; exit 1; }"
+              -o StrictHostKeyChecking=yes -o UserKnownHostsFile=~/.ssh/known_hosts \
+              "$SERVER_USER@$SERVER_HOST" \
+              "/usr/local/bin/pm2-chown-tree $SERVER_PATH/"
 
       - name: Restart PM2
         run: |
           ssh -p "$SERVER_SSH_PORT" -i ~/.ssh/deploy_key \
-            -o StrictHostKeyChecking=yes \
-            -o UserKnownHostsFile=~/.ssh/known_hosts \
-            $SERVER_USER@$SERVER_HOST \
-            "cd $SERVER_PATH && source ~/.nvm/nvm.sh && pm2 restart 'Corpus' --update-env"
+              -o StrictHostKeyChecking=yes \
+              -o UserKnownHostsFile=~/.ssh/known_hosts \
+              $SERVER_USER@$SERVER_HOST \
+              "/usr/local/bin/pm2-restart-safe Corpus"
 
       - name: Cleanup SSH key
         if: always()

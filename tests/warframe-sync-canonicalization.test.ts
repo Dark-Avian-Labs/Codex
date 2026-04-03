@@ -1,11 +1,5 @@
+import { isPrimeVariantName, normalizeDisplayName, resolveCanonicalKey, stripPrimeSuffix } from '@corpus/game-warframe';
 import { describe, expect, it } from 'vitest';
-
-import {
-  isPrimeVariantName,
-  normalizeDisplayName,
-  resolveCanonicalKey,
-  stripPrimeSuffix,
-} from '../server/services/warframeSyncNaming.js';
 
 describe('warframe sync canonicalization', () => {
   it('strips archwing prefix and prime suffix for canonical key', () => {

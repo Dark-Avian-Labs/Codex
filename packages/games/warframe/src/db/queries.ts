@@ -1,6 +1,7 @@
 import Database from 'better-sqlite3';
 
 import { isHelminthValue, isValidStatus } from '../config.js';
+import { normalizeDisplayName } from '../displayName.js';
 
 export interface Worksheet {
   id: number;
@@ -233,6 +234,12 @@ export function getWorksheetData(
       return acc;
     }, {}),
   }));
+
+  dataRows.sort((a, b) =>
+    normalizeDisplayName(a.name).localeCompare(normalizeDisplayName(b.name), undefined, {
+      sensitivity: 'base',
+    }),
+  );
 
   return {
     worksheet,
