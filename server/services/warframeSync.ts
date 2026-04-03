@@ -1,14 +1,14 @@
 import { warframeQueries as q } from '@corpus/game-warframe';
-import Database from 'better-sqlite3';
-
-import { PARAMETRIC_DB_PATH } from '../config.js';
 import {
   isPrimeVariantName,
   normalizeDisplayName,
   normalizeNameForKey,
   resolveCanonicalKey as resolveCanonicalKeyWithAliases,
   stripPrimeSuffix,
-} from './warframeSyncNaming.js';
+} from '@corpus/game-warframe';
+import Database from 'better-sqlite3';
+
+import { PARAMETRIC_DB_PATH } from '../config.js';
 
 const WORKSHEET_NAMES = [
   'Warframes',

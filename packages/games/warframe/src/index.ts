@@ -75,3 +75,10 @@ export {
   editRowSchema as warframeEditRowSchema,
   updateSchema as warframeUpdateSchema,
 } from './routes/validation.js';
+export {
+  isPrimeVariantName,
+  normalizeDisplayName,
+  normalizeNameForKey,
+  resolveCanonicalKey,
+  stripPrimeSuffix,
+} from './displayName.js';
