@@ -155,6 +155,9 @@ jobs:
 
     needs: [install-cache]
 
+    env:
+      USE_DOTENVX: 'false'
+
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v6
