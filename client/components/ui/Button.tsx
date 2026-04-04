@@ -18,8 +18,6 @@ function variantClass(variant: ButtonVariant): string {
     case 'danger':
       return 'btn-danger';
   }
-  const exhaustiveVariant: never = variant;
-  throw new Error(`Unhandled ButtonVariant: ${exhaustiveVariant}`);
 }
 
 interface BaseProps {

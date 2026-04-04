@@ -87,7 +87,7 @@ function flushLockoutToDisk(): void {
   if (!lockoutCacheDirty) return;
   ensureLockoutDir();
   try {
-    fs.writeFileSync(AUTH_LOCKOUT_FILE, JSON.stringify(lockoutCache, null, 0));
+    fs.writeFileSync(AUTH_LOCKOUT_FILE, JSON.stringify(lockoutCache, null, 2));
     lockoutCacheDirty = false;
   } catch (err) {
     console.error('Lockout persist error:', err);
@@ -102,9 +102,9 @@ function saveLockoutData(data: LockoutData): void {
   lockoutWriteTimer = setTimeout(flushLockoutToDisk, LOCKOUT_DEBOUNCE_MS);
 }
 
-let dummyHashPromise: Promise<string> | undefined;
-function getDummyHash(): Promise<string> {
-  return (dummyHashPromise ??= argon2.hash('timing-dummy', {
+let timingAttackPreventionHashPromise: Promise<string> | undefined;
+function getTimingAttackPreventionHash(): Promise<string> {
+  return (timingAttackPreventionHashPromise ??= argon2.hash('timing-dummy', {
     type: argon2.argon2id,
     memoryCost: 19 * 1024,
     timeCost: 2,
@@ -131,11 +131,15 @@ export function getClientIP(req: {
   return req.ip ?? 'unknown';
 }
 
+function nowInSeconds(): number {
+  return Math.floor(Date.now() / 1000);
+}
+
 export function isLockedOut(ip: string): boolean {
   const data = getLockoutData();
   const record = data[ip];
   if (!record?.locked_until) return false;
-  if (Date.now() / 1000 < record.locked_until) return true;
+  if (nowInSeconds() < record.locked_until) return true;
   delete data[ip];
   saveLockoutData(data);
   return false;
@@ -145,12 +149,12 @@ export function getLockoutRemaining(ip: string): number {
   const data = getLockoutData();
   const until = data[ip]?.locked_until;
   if (!until) return 0;
-  return Math.max(0, Math.floor(until - Date.now() / 1000));
+  return Math.max(0, Math.floor(until - nowInSeconds()));
 }
 
 function recordFailedAttempt(ip: string): number {
   const data = getLockoutData();
-  const nowSec = Math.floor(Date.now() / 1000);
+  const nowSec = nowInSeconds();
   if (!data[ip]) {
     data[ip] = { attempts: 0, first_attempt: nowSec };
   }
@@ -192,7 +196,7 @@ export async function attemptLogin(
   const db = getCentralDb();
   const user = q.getUserByUsername(db, username);
   if (!user) {
-    const h = await getDummyHash();
+    const h = await getTimingAttackPreventionHash();
     await verifyPassword(password, h);
     const remaining = recordFailedAttempt(ip);
     if (remaining <= 0) {
@@ -237,11 +241,11 @@ export async function createUser(
   isAdminUser: boolean,
 ): Promise<{ success: true; user_id: number } | { success: false; error: string }> {
   const u = username.trim();
-  if (!password) {
-    return { success: false, error: 'Password is required' };
-  }
   if (!u) {
     return { success: false, error: 'Username is required' };
+  }
+  if (!password) {
+    return { success: false, error: 'Password is required' };
   }
   if (u.length < 3) {
     return { success: false, error: 'Username must be at least 3 characters' };
