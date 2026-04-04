@@ -10,13 +10,21 @@
         .find(function (p) {
           return p.substring(0, name.length + 1) === name + '=';
         });
-      return part ? part.slice(name.length + 1) : '';
+      if (!part) return '';
+      try {
+        return decodeURIComponent(part.slice(name.length + 1));
+      } catch {
+        return '';
+      }
     }
     var theme = readCookie('dal.theme.mode').trim();
     if (theme !== 'light' && theme !== 'dark') {
       try {
         theme = (localStorage.getItem('dal.theme.mode') || '').trim();
-      } catch {
+      } catch (e) {
+        if (typeof console !== 'undefined' && console && typeof console.warn === 'function') {
+          console.warn('Unable to read theme from localStorage; falling back to default.', e);
+        }
         theme = '';
       }
     }
@@ -29,7 +37,10 @@
     if (ui !== 'prism' && ui !== 'shadow') {
       try {
         ui = (localStorage.getItem('dal.ui.style') || '').trim();
-      } catch {
+      } catch (e) {
+        if (typeof console !== 'undefined' && console && typeof console.warn === 'function') {
+          console.warn('Unable to read UI style from localStorage; falling back to default.', e);
+        }
         ui = '';
       }
     }
