@@ -3,7 +3,6 @@ import path from 'node:path';
 
 import { defineConfig } from 'vitest/config';
 
-/** Minimal env so `@corpus/core` config loads when tests import packages that depend on it. */
 const testEnvDefaults = {
   NODE_ENV: 'test',
   CENTRAL_DB_PATH: path.join(os.tmpdir(), 'corpus-vitest-central.db'),
