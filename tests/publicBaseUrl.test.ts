@@ -28,8 +28,6 @@ async function withEnvOverrides<T>(
     for (const key of ENV_KEYS) {
       if (key in overrides) {
         restoreEnv(key, overrides[key]);
-      } else {
-        restoreEnv(key, originals[key]);
       }
     }
     await vi.resetModules();
