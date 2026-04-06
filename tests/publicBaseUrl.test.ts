@@ -64,7 +64,7 @@ describe('getAppPublicBaseUrl', () => {
         AUTH_SERVICE_URL: 'https://auth.example.com',
       },
       (getAppPublicBaseUrl) => {
-        expect(() => getAppPublicBaseUrl()).toThrow();
+        expect(() => getAppPublicBaseUrl()).toThrow('APP_PUBLIC_BASE_URL must be set.');
       },
     );
   });
@@ -77,7 +77,7 @@ describe('getAppPublicBaseUrl', () => {
         AUTH_SERVICE_URL: 'https://auth.example.com',
       },
       (getAppPublicBaseUrl) => {
-        expect(() => getAppPublicBaseUrl()).toThrow();
+        expect(() => getAppPublicBaseUrl()).toThrow('APP_PUBLIC_BASE_URL must be a valid URL.');
       },
     );
   });
@@ -92,6 +92,21 @@ describe('getAppPublicBaseUrl', () => {
       },
       (getAppPublicBaseUrl) => {
         expect(() => getAppPublicBaseUrl()).toThrow();
+      },
+    );
+  });
+
+  it('allows non-https APP_PUBLIC_BASE_URL in development', async () => {
+    await withEnvOverrides(
+      {
+        APP_PUBLIC_BASE_URL: 'http://corpus.example.com/',
+        COOKIE_DOMAIN: '.example.com',
+        BASE_HOST: 'corpus.example.com',
+        AUTH_SERVICE_URL: 'https://auth.example.com',
+        NODE_ENV: 'development',
+      },
+      (getAppPublicBaseUrl) => {
+        expect(getAppPublicBaseUrl()).toBe('http://corpus.example.com');
       },
     );
   });
