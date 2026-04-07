@@ -4,7 +4,7 @@ packages:
   - 'packages/games/epic7'
 
 catalog:
-  '@dotenvx/dotenvx': ^1.60.0
+  '@dotenvx/dotenvx': ^1.60.1
   '@fontsource-variable/inter': ^5.2.8
   '@tailwindcss/vite': ^4.2.2
   '@types/better-sqlite3': ^7.6.13
