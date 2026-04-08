@@ -538,9 +538,9 @@ export function handleAdminAddBaseArtifact(req: Request, res: Response): void {
     err(res, 'Failed to create base artifact.');
     return;
   }
-  const row = db.prepare('SELECT display_order FROM base_artifacts WHERE id = ?').get(artifactId) as
-    | { display_order: number }
-    | undefined;
+  const row = db
+    .prepare('SELECT display_order FROM base_artifacts WHERE id = ?')
+    .get(artifactId) as { display_order: number } | undefined;
   if (row == null) {
     err(res, 'Failed to create base artifact.');
     return;
