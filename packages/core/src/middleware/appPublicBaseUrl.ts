@@ -1,7 +1,3 @@
-/**
- * Public app base URL derived only from env (no config.ts side effects).
- * Kept separate so unit tests can cover URL rules without loading encrypted env / DB config.
- */
 export function getAppPublicBaseUrl(): string {
   const configured = process.env.APP_PUBLIC_BASE_URL?.trim();
   if (!configured) {

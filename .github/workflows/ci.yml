@@ -370,7 +370,6 @@ jobs:
           mkdir -p /tmp/deploy
           cp -r dist/ /tmp/deploy/
           cp package.json pnpm-lock.yaml pnpm-workspace.yaml /tmp/deploy/
-          # Lockfile + catalog live in pnpm-workspace.yaml; workspace:* needs packages/* (built, no src).
           rsync -a --exclude='node_modules' --exclude='src' packages/ /tmp/deploy/packages/
           if [ -f .env.production ]; then cp .env.production /tmp/deploy/; fi
           if [ -f favicon.ico ]; then cp favicon.ico /tmp/deploy/; fi
