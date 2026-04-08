@@ -73,10 +73,6 @@ html.dark {
   color-scheme: dark;
 }
 
-/*
- * Shadow UI — void.cloud hero-file-tree black glass
- * (#000000bf, blur(10px), border rgba(255,255,255,0.1))
- */
 html.dark.ui-shadow {
   --color-glass: oklch(0% 0 0 / 0.75);
   --color-glass-border: oklch(100% 0 0 / 0.1);
@@ -1638,9 +1634,6 @@ html.dark.ui-shadow .modal {
   backdrop-filter: blur(10px) saturate(1.1);
 }
 
-/*
- * Shadow UI table headers: match glass section headers (Parametric-style) instead of flat black.
- */
 html.ui-shadow thead th {
   background: color-mix(in oklab, var(--color-glass-hover) 50%, transparent);
   border-bottom: 1px solid var(--color-glass-divider);
