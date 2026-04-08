@@ -55,6 +55,7 @@ jobs:
 
           if [ -z "$BEFORE" ] || ! git cat-file -e "$BEFORE"^{commit} 2>/dev/null; then
             echo "deploy=true" >> "$GITHUB_OUTPUT"
+            echo "Reason: Missing or invalid before commit"
             exit 0
           fi
 
@@ -64,29 +65,43 @@ jobs:
 
           if [ -z "$changed_files" ]; then
             echo "deploy=false" >> "$GITHUB_OUTPUT"
+            echo "Reason: No files changed"
             exit 0
           fi
 
-          others=$(echo "$changed_files" | grep -vE '^(package.json|pnpm-lock.yaml)$' || true)
+          others=$(echo "$changed_files" | grep -vE '(^|/)package\.json$|(^|/)pnpm-lock\.yaml$' || true)
+
           if [ -n "$others" ]; then
+            echo "Other files changed:"
+            echo "$others"
             echo "deploy=true" >> "$GITHUB_OUTPUT"
+            echo "Reason: Non-package files changed"
             exit 0
           fi
 
           tmp_old=$(mktemp)
           tmp_new=$(mktemp)
-          printf '%s' "$(git show "$BEFORE:package.json" 2>/dev/null || echo '{}')" > "$tmp_old"
-          printf '%s' "$(git show "$AFTER:package.json" 2>/dev/null || echo '{}')" > "$tmp_new"
+
+          git show "$BEFORE:package.json" 2>/dev/null > "$tmp_old" || echo '{}' > "$tmp_old"
+          git show "$AFTER:package.json" 2>/dev/null > "$tmp_new" || echo '{}' > "$tmp_new"
 
           if ! jq -e --slurp \
             '.[0] as $new | .[1] as $old |
              ($new | del(.devDependencies)) == ($old | del(.devDependencies))' \
             "$tmp_new" "$tmp_old" >/dev/null; then
             echo "deploy=true" >> "$GITHUB_OUTPUT"
+            echo "Reason: Production dependencies changed"
             exit 0
           fi
 
           echo "deploy=false" >> "$GITHUB_OUTPUT"
+          echo "Reason: Only devDependencies or lockfile changed"
+
+      - name: Debug
+        run: |
+          echo "Deploy decision: ${{ steps.decide.outputs.deploy }}"
+          echo "Before: ${{ github.event.before }}"
+          echo "After: ${{ github.sha }}"
 
   install-cache:
     runs-on: blacksmith-2vcpu-ubuntu-2404
