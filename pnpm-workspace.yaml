@@ -26,8 +26,8 @@ catalog:
   express-session: ^1.19.0
   globals: ^17.5.0
   helmet: ^8.1.0
-  oxfmt: ^0.44.0
-  oxlint: ^1.59.0
+  oxfmt: ^0.45.0
+  oxlint: ^1.60.0
   react: ^19.2.5
   react-dom: ^19.2.5
   react-router-dom: ^7.14.0
