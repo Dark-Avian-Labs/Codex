@@ -103,72 +103,11 @@ jobs:
           echo "Before: ${{ github.event.before }}"
           echo "After: ${{ github.sha }}"
 
-  install-cache:
+  validate:
     runs-on: blacksmith-2vcpu-ubuntu-2404
 
     needs: deployment-check
     if: needs.deployment-check.outputs.deploy == 'true'
-
-    steps:
-      - name: Checkout Commit
-        uses: actions/checkout@v6
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v6
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Cache dependencies
-        uses: actions/cache@v5
-        id: cache-dependencies
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-  type-check:
-    runs-on: blacksmith-2vcpu-ubuntu-2404
-
-    needs: [install-cache]
-
-    steps:
-      - name: Checkout Commit
-        uses: actions/checkout@v6
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v6
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Restore dependencies
-        uses: actions/cache@v5
-        id: cache-dependencies
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Check types
-        run: pnpm run typecheck
-
-  unit-tests:
-    runs-on: blacksmith-2vcpu-ubuntu-2404
-
-    needs: [install-cache]
 
     env:
       USE_DOTENVX: 'false'
@@ -184,93 +123,28 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
-
-      - name: Restore dependencies
-        uses: actions/cache@v5
-        id: cache-dependencies
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-
+          cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build workspace packages
-        run: pnpm --filter @corpus/core --filter @corpus/game-warframe --filter @corpus/game-epic7 run --if-present build
+      - name: Check formatting
+        run: pnpm run check-format
+
+      - name: Check linting
+        run: pnpm run lint
+
+      - name: Check types
+        run: pnpm run typecheck
 
       - name: Run tests
         run: pnpm run test
 
-  run-lint:
-    runs-on: blacksmith-2vcpu-ubuntu-2404
-
-    needs: [install-cache]
-
-    steps:
-      - name: Checkout Commit
-        uses: actions/checkout@v6
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v6
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Restore dependencies
-        uses: actions/cache@v5
-        id: cache-dependencies
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run lint
-        run: pnpm run lint
-
-  run-check-format:
-    runs-on: blacksmith-2vcpu-ubuntu-2404
-
-    needs: [install-cache]
-
-    steps:
-      - name: Checkout Commit
-        uses: actions/checkout@v6
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v6
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Restore dependencies
-        uses: actions/cache@v5
-        id: cache-dependencies
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run check-format
-        run: pnpm run check-format
-
   build:
     runs-on: blacksmith-2vcpu-ubuntu-2404
 
-    needs: [install-cache, type-check, unit-tests, run-lint, run-check-format]
+    needs: [deployment-check, validate]
+    if: needs.deployment-check.outputs.deploy == 'true'
 
     env:
       SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -292,15 +166,7 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
-
-      - name: Restore dependencies
-        uses: actions/cache@v5
-        id: cache-dependencies
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-
+          cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
