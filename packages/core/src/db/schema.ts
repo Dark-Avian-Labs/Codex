@@ -4,12 +4,6 @@ import { CENTRAL_DB_PATH } from '../config.js';
 
 let centralDb: Database.Database | null = null;
 
-function migrateUsersDropPasswordHash(db: Database.Database): void {
-  const cols = db.prepare(`PRAGMA table_info(users)`).all() as { name: string }[];
-  if (!cols.some((c) => c.name === 'password_hash')) return;
-  db.exec(`ALTER TABLE users DROP COLUMN password_hash`);
-}
-
 export function createCentralSchema(db: Database.Database): void {
   db.pragma('foreign_keys = ON');
   db.exec(`
@@ -35,7 +29,6 @@ export function createCentralSchema(db: Database.Database): void {
     );
     CREATE INDEX IF NOT EXISTS idx_sessions_expire ON sessions(expire);
   `);
-  migrateUsersDropPasswordHash(db);
 }
 
 export function getCentralDb(): Database.Database {
