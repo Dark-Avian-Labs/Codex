@@ -54,25 +54,6 @@ if (envPath) {
 }
 
 export const APP_NAME = 'Corpus';
-export const AUTH_LOCKOUT_FILE = path.resolve(
-  process.env.AUTH_LOCKOUT_FILE ?? './data/auth-lockout.json',
-);
-const _authMaxAttempts = parseInt(process.env.AUTH_MAX_ATTEMPTS ?? '5', 10);
-export const AUTH_MAX_ATTEMPTS =
-  Number.isInteger(_authMaxAttempts) && _authMaxAttempts > 0 ? _authMaxAttempts : 5;
-
-const _authLockoutMinutes = parseInt(process.env.AUTH_LOCKOUT_MINUTES ?? '15', 10);
-export const AUTH_LOCKOUT_MINUTES =
-  Number.isInteger(_authLockoutMinutes) && _authLockoutMinutes > 0 ? _authLockoutMinutes : 15;
-
-const _authAttemptWindowMinutes = parseInt(process.env.AUTH_ATTEMPT_WINDOW_MINUTES ?? '15', 10);
-export const AUTH_ATTEMPT_WINDOW_MINUTES =
-  Number.isFinite(_authAttemptWindowMinutes) &&
-  Number.isInteger(_authAttemptWindowMinutes) &&
-  _authAttemptWindowMinutes > 0
-    ? _authAttemptWindowMinutes
-    : 15;
-export const AUTH_ATTEMPT_WINDOW_SECONDS = AUTH_ATTEMPT_WINDOW_MINUTES * 60;
 
 const _centralDbPath = process.env.CENTRAL_DB_PATH?.trim();
 if (!_centralDbPath) {

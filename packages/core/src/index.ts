@@ -1,9 +1,6 @@
 export {
   APP_NAME,
   resolveEnvFilePath,
-  AUTH_LOCKOUT_FILE,
-  AUTH_MAX_ATTEMPTS,
-  AUTH_LOCKOUT_MINUTES,
   CENTRAL_DB_PATH,
   COOKIE_DOMAIN,
   BASE_HOST,
@@ -11,20 +8,12 @@ export {
   AUTH_SERVICE_URL,
 } from './config.js';
 export { createCentralSchema, getCentralDb } from './db/schema.js';
-export type { CentralUser } from './db/queries.js';
 export {
-  getClientIP,
-  isLockedOut,
-  getLockoutRemaining,
-  attemptLogin,
-  createUser,
-  deleteUser,
-  changePassword,
-  getAllUsers,
   getGamesForUser,
   hasAccess,
   grantGameAccess,
   setUserGameAccess,
+  getAllUsers,
   isAuthenticated,
   isAdmin,
 } from './auth.js';

@@ -64,12 +64,11 @@
   },
   "engines": {
     "node": ">=25.0.0",
-    "pnpm": ">=10.0.0"
+    "pnpm": ">=11.0.0-rc.0"
   },
-  "packageManager": "pnpm@10.33.0",
+  "packageManager": "pnpm@11.0.0-rc.0",
   "pnpm": {
     "onlyBuiltDependencies": [
-      "argon2",
       "better-sqlite3"
     ],
     "overrides": {
