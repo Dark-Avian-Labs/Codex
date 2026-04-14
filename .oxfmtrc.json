@@ -43,6 +43,7 @@
     "tmp/**",
     "out/**",
     "pnpm-lock.yaml",
+    "**/pnpm-lock.yaml",
     "pnpm-workspace.yaml"
   ],
 
