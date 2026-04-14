@@ -31,12 +31,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: |
-          if [ "${{ github.actor }}" = "dependabot[bot]" ]; then
-            pnpm install --no-frozen-lockfile
-          else
-            pnpm install --frozen-lockfile
-          fi
+        run: pnpm install --frozen-lockfile
 
       - name: Check formatting
         run: pnpm run check-format
