@@ -10,12 +10,14 @@ env:
 on:
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate:
     runs-on: blacksmith-2vcpu-ubuntu-2404
-
-    env:
-      DOTENV_PRIVATE_KEY_DEVELOPMENT: ${{ secrets.DOTENV_PRIVATE_KEY_DEVELOPMENT }}
+    timeout-minutes: 10
 
     steps:
       - name: Checkout code
@@ -43,6 +45,8 @@ jobs:
         run: pnpm run typecheck
 
       - name: Prepare test environment
+        env:
+          DOTENV_PRIVATE_KEY_DEVELOPMENT: ${{ secrets.DOTENV_PRIVATE_KEY_DEVELOPMENT }}
         run: |
           if [ -n "${DOTENV_PRIVATE_KEY_DEVELOPMENT:-}" ]; then
             echo "USE_DOTENVX=true" >> "$GITHUB_ENV"
@@ -63,6 +67,8 @@ jobs:
           fi
 
       - name: Build project
+        env:
+          DOTENV_PRIVATE_KEY_DEVELOPMENT: ${{ secrets.DOTENV_PRIVATE_KEY_DEVELOPMENT }}
         run: |
           if [ "$USE_DOTENVX" = "true" ]; then
             pnpm exec dotenvx run --strict -f .env.development -- pnpm run build
@@ -71,6 +77,8 @@ jobs:
           fi
 
       - name: Run tests
+        env:
+          DOTENV_PRIVATE_KEY_DEVELOPMENT: ${{ secrets.DOTENV_PRIVATE_KEY_DEVELOPMENT }}
         run: |
           if [ "$USE_DOTENVX" = "true" ]; then
             pnpm exec dotenvx run --strict -f .env.development -- pnpm run test

@@ -34,6 +34,7 @@ concurrency:
 jobs:
   deployment-check:
     runs-on: blacksmith-2vcpu-ubuntu-2404
+    timeout-minutes: 10
 
     outputs:
       deploy: ${{ steps.decide.outputs.deploy }}
@@ -47,11 +48,11 @@ jobs:
       - name: Check if changes require deployment
         id: decide
         shell: bash
+        env:
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
         run: |
           set -euo pipefail
-
-          BEFORE="${{ github.event.before }}"
-          AFTER="${{ github.sha }}"
 
           if [ -z "$BEFORE" ] || ! git cat-file -e "$BEFORE"^{commit} 2>/dev/null; then
             echo "deploy=true" >> "$GITHUB_OUTPUT"
@@ -97,14 +98,9 @@ jobs:
           echo "deploy=false" >> "$GITHUB_OUTPUT"
           echo "Reason: Only devDependencies or lockfile changed"
 
-      - name: Debug
-        run: |
-          echo "Deploy decision: ${{ steps.decide.outputs.deploy }}"
-          echo "Before: ${{ github.event.before }}"
-          echo "After: ${{ github.sha }}"
-
   validate:
     runs-on: blacksmith-2vcpu-ubuntu-2404
+    timeout-minutes: 10
 
     needs: deployment-check
     if: needs.deployment-check.outputs.deploy == 'true'
@@ -140,20 +136,12 @@ jobs:
       - name: Run tests
         run: pnpm run test
 
-  build:
+  build-and-deploy:
     runs-on: blacksmith-2vcpu-ubuntu-2404
+    timeout-minutes: 10
 
     needs: [deployment-check, validate]
     if: needs.deployment-check.outputs.deploy == 'true'
-
-    env:
-      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-      SERVER_KNOWN_HOST: ${{ secrets.SERVER_KNOWN_HOST }}
-      SERVER_PATH: ${{ secrets.SERVER_PATH }}
-      SERVER_USER: ${{ secrets.SERVER_USER }}
-      SERVER_HOST: ${{ secrets.SERVER_HOST }}
-      SERVER_SSH_PORT: ${{ secrets.SERVER_SSH_PORT }}
-      DOTENV_PRIVATE_KEY_PRODUCTION: ${{ secrets.DOTENV_PRIVATE_KEY_PRODUCTION }}
 
     steps:
       - name: Checkout Commit
@@ -172,6 +160,8 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build project
+        env:
+          DOTENV_PRIVATE_KEY_PRODUCTION: ${{ secrets.DOTENV_PRIVATE_KEY_PRODUCTION }}
         run: |
           if [ -z "$DOTENV_PRIVATE_KEY_PRODUCTION" ]; then
             echo "ERROR: DOTENV_PRIVATE_KEY_PRODUCTION secret is missing or empty."
@@ -179,12 +169,14 @@ jobs:
           fi
           pnpm exec dotenvx run --strict -f .env.production -- pnpm run build
 
-      - name: List built files (debug)
-        run: |
-          ls -la dist/
-          if [ -d dist/static ]; then ls -la dist/static/; fi
-
       - name: Setup SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SERVER_KNOWN_HOST: ${{ secrets.SERVER_KNOWN_HOST }}
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_PATH: ${{ secrets.SERVER_PATH }}
+          SERVER_SSH_PORT: ${{ secrets.SERVER_SSH_PORT }}
         run: |
           require_non_empty() {
             name="$1"
@@ -232,6 +224,8 @@ jobs:
           echo "$SERVER_KNOWN_HOST" >> ~/.ssh/known_hosts
 
       - name: Prepare deployment
+        env:
+          DOTENV_PRIVATE_KEY_PRODUCTION: ${{ secrets.DOTENV_PRIVATE_KEY_PRODUCTION }}
         run: |
           mkdir -p /tmp/deploy
           cp -r dist/ /tmp/deploy/
@@ -247,12 +241,12 @@ jobs:
           cd /tmp/deploy && pnpm install --frozen-lockfile --prod
 
       - name: Deploy to server
+        env:
+          SERVER_SSH_PORT: ${{ secrets.SERVER_SSH_PORT }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_PATH: ${{ secrets.SERVER_PATH }}
         run: |
-          STACK_PATH="$SERVER_STACK_PATH"
-          if [ -z "$STACK_PATH" ]; then
-            STACK_PATH="$(dirname "$SERVER_PATH")"
-          fi
-
           rsync -av --no-times --delete \
                 --exclude='.env' \
                 --exclude='.env.local' \
@@ -264,7 +258,7 @@ jobs:
                 --omit-dir-times \
                 -e "ssh -p $SERVER_SSH_PORT -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes -o UserKnownHostsFile=~/.ssh/known_hosts" \
                 /tmp/deploy/ \
-                $SERVER_USER@$SERVER_HOST:$SERVER_PATH/
+                "$SERVER_USER@$SERVER_HOST:$SERVER_PATH/"
 
           rsync -av --no-times \
                 --chmod=F600 \
@@ -273,16 +267,12 @@ jobs:
                 /tmp/deploy/.env.keys \
                 "$SERVER_USER@$SERVER_HOST:$SERVER_PATH/.env.keys"
 
-          if [ -f dark-avian-labs.config.cjs ]; then
-            rsync -av --no-times \
-                  --chmod=F640 \
-                  --omit-dir-times \
-                  -e "ssh -p $SERVER_SSH_PORT -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes -o UserKnownHostsFile=~/.ssh/known_hosts" \
-                  dark-avian-labs.config.cjs \
-                  "$SERVER_USER@$SERVER_HOST:${STACK_PATH}/"
-          fi
-
       - name: Update permissions
+        env:
+          SERVER_SSH_PORT: ${{ secrets.SERVER_SSH_PORT }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_PATH: ${{ secrets.SERVER_PATH }}
         run: |
           ssh -p "$SERVER_SSH_PORT" -i ~/.ssh/deploy_key \
               -o StrictHostKeyChecking=yes -o UserKnownHostsFile=~/.ssh/known_hosts \
@@ -290,11 +280,15 @@ jobs:
               "/usr/local/bin/pm2-chown-tree $SERVER_PATH/"
 
       - name: Restart PM2
+        env:
+          SERVER_SSH_PORT: ${{ secrets.SERVER_SSH_PORT }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
         run: |
           ssh -p "$SERVER_SSH_PORT" -i ~/.ssh/deploy_key \
               -o StrictHostKeyChecking=yes \
               -o UserKnownHostsFile=~/.ssh/known_hosts \
-              $SERVER_USER@$SERVER_HOST \
+              "$SERVER_USER@$SERVER_HOST" \
               "/usr/local/bin/pm2-restart-safe Corpus"
 
       - name: Cleanup SSH key

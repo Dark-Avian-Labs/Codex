@@ -24,7 +24,6 @@
   },
   "dependencies": {
     "@dotenvx/dotenvx": "catalog:",
-    "argon2": "catalog:",
     "better-sqlite3": "catalog:",
     "express": "catalog:",
     "express-session": "catalog:",
