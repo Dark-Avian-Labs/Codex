@@ -1,5 +1,7 @@
 @import 'tailwindcss';
 @import '@fontsource-variable/inter';
+@import '@fontsource-variable/geist';
+@import '@fontsource-variable/geist-mono';
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -11,6 +13,11 @@
 @source '../../games/epic7/assets/**/*.{js,ts,jsx,tsx}';
 
 @theme {
+  --font-sans:
+    'Geist Variable', Geist, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  --font-mono:
+    'Geist Mono Variable', 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
   --color-foreground: oklch(98.4% 0.004 264);
   --color-muted: oklch(82% 0.015 286);
 
@@ -39,6 +46,8 @@
 }
 
 :root {
+  --font-brand:
+    'Inter Variable', Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
   --header-offset: 280px;
   --theme-mode: dark;
   --color-foreground: oklch(98.4% 0.004 264);
@@ -149,8 +158,6 @@ html:not(.dark) .invert-on-light {
   }
 
   body {
-    --font-sans:
-      'Inter Variable', Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
     font-family: var(--font-sans);
     margin: 0;
     color: var(--color-foreground);
@@ -372,7 +379,7 @@ html:not(.dark) .invert-on-light {
   .brand-lockup__title {
     margin: 0;
     min-width: 0;
-    font-family: var(--font-sans);
+    font-family: var(--font-brand);
     font-size: clamp(1.35rem, 2.4vw, 2.25rem);
     line-height: 1.2;
     font-weight: 700;

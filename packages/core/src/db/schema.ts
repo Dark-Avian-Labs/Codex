@@ -32,9 +32,30 @@ export function createCentralSchema(db: Database.Database): void {
 }
 
 export function getCentralDb(): Database.Database {
-  if (centralDb === null) {
-    centralDb = new Database(CENTRAL_DB_PATH);
-    centralDb.pragma('foreign_keys = ON');
+  if (centralDb) {
+    return centralDb;
+  }
+  let opened: Database.Database | undefined;
+  try {
+    opened = new Database(CENTRAL_DB_PATH);
+    opened.pragma('foreign_keys = ON');
+    const result = opened.prepare('PRAGMA journal_mode = WAL;').get() as
+      | { journal_mode?: string }
+      | undefined;
+    if (result?.journal_mode?.toLowerCase() !== 'wal') {
+      throw new Error(`Unexpected journal_mode: ${result?.journal_mode ?? 'unknown'}`);
+    }
+    centralDb = opened;
+  } catch (error) {
+    console.error('Failed to open central DB or enable WAL mode:', error);
+    if (opened) {
+      const dbToClose = opened;
+      opened = undefined;
+      if (typeof dbToClose.close === 'function') {
+        dbToClose.close();
+      }
+    }
+    throw error;
   }
   return centralDb;
 }

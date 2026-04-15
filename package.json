@@ -1,6 +1,6 @@
 {
   "name": "corpus",
-  "version": "3.1.2",
+  "version": "3.2.0",
   "private": true,
   "description": "Corpus - game collection tracker",
   "license": "GPL-3.0-or-later",
@@ -29,6 +29,8 @@
     "@corpus/game-epic7": "workspace:*",
     "@corpus/game-warframe": "workspace:*",
     "@dotenvx/dotenvx": "catalog:",
+    "@fontsource-variable/geist": "catalog:",
+    "@fontsource-variable/geist-mono": "catalog:",
     "@fontsource-variable/inter": "catalog:",
     "better-sqlite3": "catalog:",
     "better-sqlite3-session-store": "catalog:",

@@ -31,6 +31,7 @@ const WarframeAdminPage = lazyNamed(
   () => import('../features/admin/WarframeAdminPage'),
   'WarframeAdminPage',
 );
+const NotFoundPage = lazyNamed(() => import('../features/not-found/NotFoundPage'), 'NotFoundPage');
 
 function RouteFallback() {
   return (
@@ -163,7 +164,7 @@ export function AppRoutes() {
               path={APP_PATHS.admin}
               element={<Navigate to={APP_PATHS.epic7Admin} replace />}
             />
-            <Route path="*" element={<Navigate to={APP_PATHS.legal} replace />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes>
       </Suspense>
