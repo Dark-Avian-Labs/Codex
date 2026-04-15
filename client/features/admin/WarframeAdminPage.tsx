@@ -154,13 +154,13 @@ function SyncFromParametricReportBody({
 
       <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
         <dt className="text-muted">New rows added</dt>
-        <dd className="font-medium tabular-nums">{summary.added}</dd>
+        <dd className="font-mono font-medium tabular-nums">{summary.added}</dd>
         <dt className="text-muted">Rows removed / merged out</dt>
-        <dd className="font-medium tabular-nums">{summary.deleted}</dd>
+        <dd className="font-mono font-medium tabular-nums">{summary.deleted}</dd>
         <dt className="text-muted">Marked unavailable</dt>
-        <dd className="font-medium tabular-nums">{summary.markedUnavailable}</dd>
+        <dd className="font-mono font-medium tabular-nums">{summary.markedUnavailable}</dd>
         <dt className="text-muted">Mismatched (still on sheet)</dt>
-        <dd className="font-medium tabular-nums">{summary.mismatched}</dd>
+        <dd className="font-mono font-medium tabular-nums">{summary.mismatched}</dd>
       </dl>
 
       {cleanupRemoved > 0 || cleanupReview > 0 ? (

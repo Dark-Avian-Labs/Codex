@@ -7,7 +7,7 @@ export {
   GAME_HOSTS,
   AUTH_SERVICE_URL,
 } from './config.js';
-export { createCentralSchema, getCentralDb } from './db/schema.js';
+export { createCentralSchema, getCentralDb, closeCentralDb } from './db/schema.js';
 export {
   getGamesForUser,
   hasAccess,
