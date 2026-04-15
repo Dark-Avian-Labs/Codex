@@ -1,4 +1,4 @@
-import { createDbSingleton } from '@corpus/core';
+import { createDbSingleton } from '@codex/core';
 import type Database from 'better-sqlite3';
 
 import { EPIC7_DB_PATH } from '../config.js';
@@ -118,7 +118,6 @@ function ensureUniqueBaseNameIndexes(db: Database.Database): UniqueIndexStatus {
   }
   const artifactTableExists = hasTable(db, 'base_artifacts');
   if (artifactTableExists) {
-    status.idx_base_artifacts_name_unique = 'created';
     const artifactDup = db
       .prepare('SELECT name FROM base_artifacts GROUP BY name HAVING COUNT(*) > 1 LIMIT 1')
       .get() as { name: string } | undefined;
@@ -128,9 +127,18 @@ function ensureUniqueBaseNameIndexes(db: Database.Database): UniqueIndexStatus {
         `[epic7 schema] Skipping unique index idx_base_artifacts_name_unique: duplicate name in base_artifacts: ${JSON.stringify(artifactDup.name)}`,
       );
     } else {
-      db.exec(
-        'CREATE UNIQUE INDEX IF NOT EXISTS idx_base_artifacts_name_unique ON base_artifacts(name)',
-      );
+      try {
+        db.exec(
+          'CREATE UNIQUE INDEX IF NOT EXISTS idx_base_artifacts_name_unique ON base_artifacts(name)',
+        );
+        status.idx_base_artifacts_name_unique = 'created';
+      } catch (error) {
+        status.idx_base_artifacts_name_unique = 'failed';
+        console.error(
+          '[epic7 schema] Failed to create unique index idx_base_artifacts_name_unique:',
+          error,
+        );
+      }
     }
   }
   return status;

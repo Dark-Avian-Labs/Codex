@@ -1,7 +1,7 @@
 {
-  "name": "@corpus/game-epic7",
+  "name": "@codex/game-epic7",
   "version": "3.2.0",
-  "description": "Corpus Epic7 game module",
+  "description": "Codex Epic7 game module",
   "license": "GPL-3.0-or-later",
   "type": "module",
   "main": "dist/index.js",
@@ -19,7 +19,7 @@
     "check-format": "oxfmt --check ."
   },
   "dependencies": {
-    "@corpus/core": "workspace:*",
+    "@codex/core": "workspace:*",
     "better-sqlite3": "catalog:",
     "express": "catalog:"
   },

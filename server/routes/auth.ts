@@ -1,4 +1,4 @@
-import { getGamesForUser, requireAuthApi } from '@corpus/core';
+import { getGamesForUser, requireAuthApi } from '@codex/core';
 import { Router } from 'express';
 
 import { buildAuthLoginUrl, buildAuthLogoutUrl, proxyAuthLogout } from '../auth/remoteAuth.js';

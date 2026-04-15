@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import type { GameModule, GameMountOptions } from '@corpus/core';
+import type { GameModule, GameMountOptions } from '@codex/core';
 import express, { type Application } from 'express';
 
 import { EPIC7_DB_PATH } from './config.js';

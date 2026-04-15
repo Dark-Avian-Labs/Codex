@@ -15,7 +15,7 @@ function computeAppPublicBaseUrlFromDomainParts(): string | null {
   const subdomain =
     process.env.APP_SUBDOMAIN?.trim().toLowerCase() ||
     process.env.APP_ID?.trim().toLowerCase() ||
-    'corpus';
+    'codex';
   return `${protocol}://${subdomain}.${baseDomain}`;
 }
 

@@ -98,7 +98,7 @@ const tableScrollStyle = {
   '--header-offset': '430px',
 } as CSSProperties;
 
-function SyncFromParametricReportModal({
+function SyncFromArmoryReportModal({
   open,
   result,
   onClose,
@@ -116,7 +116,7 @@ function SyncFromParametricReportModal({
     >
       {!result ? (
         <>
-          <h2 id="warframe-sync-report-title">Parametric sync</h2>
+          <h2 id="warframe-sync-report-title">Armory sync</h2>
           <p className="text-muted text-sm">No report data.</p>
           <div className="modal-actions">
             <button type="button" onClick={onClose}>
@@ -125,13 +125,13 @@ function SyncFromParametricReportModal({
           </div>
         </>
       ) : (
-        <SyncFromParametricReportBody result={result} onClose={onClose} />
+        <SyncFromArmoryReportBody result={result} onClose={onClose} />
       )}
     </Modal>
   );
 }
 
-function SyncFromParametricReportBody({
+function SyncFromArmoryReportBody({
   result,
   onClose,
 }: {
@@ -146,10 +146,10 @@ function SyncFromParametricReportBody({
 
   return (
     <>
-      <h2 id="warframe-sync-report-title">Parametric sync complete</h2>
+      <h2 id="warframe-sync-report-title">Armory sync complete</h2>
       <p className="text-muted mt-2 text-sm leading-relaxed">
-        Worksheet rows were reconciled against Parametric&apos;s database (same item names your
-        tracker uses). Totals below are across all Corpus users who own these worksheets.
+        Worksheet rows were reconciled against Armory&apos;s database (same item names your tracker
+        uses). Totals below are across all Codex users who own these worksheets.
       </p>
 
       <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
@@ -191,7 +191,7 @@ function SyncFromParametricReportBody({
 
       {totalMovement === 0 && cleanupRemoved === 0 && cleanupReview === 0 ? (
         <p className="text-muted mt-4 text-sm">
-          No changes were necessary — Corpus already matched Parametric for every user.
+          No changes were necessary — Codex already matched Armory for every user.
         </p>
       ) : (
         <div className="mt-4 max-h-[min(50vh,22rem)] space-y-4 overflow-y-auto border-t border-[var(--color-glass-border)] pt-4">
@@ -241,7 +241,7 @@ function SyncFromParametricReportBody({
                         {ws.mismatched.length > 0 ? (
                           <li>
                             <span className="text-[var(--color-foreground)]">
-                              Not in Parametric list ({ws.mismatched.length} rows)
+                              Not in Armory list ({ws.mismatched.length} rows)
                             </span>{' '}
                             — still on this worksheet; highlighted in the table until you remove or
                             fix them.
@@ -461,7 +461,7 @@ export function WarframeAdminPage() {
         onClick={() => void handleSync()}
         disabled={runningSync}
       >
-        {runningSync ? 'Syncing...' : 'Sync From Parametric'}
+        {runningSync ? 'Syncing...' : 'Sync From Armory'}
       </button>,
     );
     return () => {
@@ -488,7 +488,7 @@ export function WarframeAdminPage() {
 
   return (
     <section className="space-y-4">
-      <SyncFromParametricReportModal
+      <SyncFromArmoryReportModal
         open={syncReportOpen}
         result={lastSyncReport}
         onClose={closeSyncReport}

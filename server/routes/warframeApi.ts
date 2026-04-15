@@ -1,7 +1,7 @@
 import fs from 'fs';
 
-import { requireGameAccess } from '@corpus/core';
-import { validateBody } from '@corpus/core/validation';
+import { requireGameAccess } from '@codex/core';
+import { validateBody } from '@codex/core/validation';
 import {
   HELMINTH_VALUES,
   VALID_STATUSES,
@@ -15,7 +15,7 @@ import {
   warframeEditRowSchema,
   warframeQueries as q,
   warframeUpdateSchema,
-} from '@corpus/game-warframe';
+} from '@codex/game-warframe';
 import { Router, type Request, type Response } from 'express';
 
 import { requireAdmin } from '../auth/middleware.js';

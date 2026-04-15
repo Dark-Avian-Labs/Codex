@@ -1,1 +1,1 @@
-export { getCentralDb, closeCentralDb } from '@corpus/core';
+export { getCentralDb, closeCentralDb } from '@codex/core';

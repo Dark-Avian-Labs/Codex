@@ -1,4 +1,4 @@
-import { isPrimeVariantName, normalizeDisplayName, resolveCanonicalKey, stripPrimeSuffix } from '@corpus/game-warframe';
+import { isPrimeVariantName, normalizeDisplayName, resolveCanonicalKey, stripPrimeSuffix } from '@codex/game-warframe';
 import { describe, expect, it } from 'vitest';
 
 describe('warframe sync canonicalization', () => {

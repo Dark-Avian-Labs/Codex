@@ -11,7 +11,7 @@ export function HomePage() {
   return (
     <div className="space-y-5">
       <GlassCard className="p-6">
-        <h1 className="mb-2 text-2xl font-semibold">Corpus</h1>
+        <h1 className="mb-2 text-2xl font-semibold">Codex</h1>
         <p className="text-muted text-sm">
           Select a game workspace to manage your collection and progress.
         </p>

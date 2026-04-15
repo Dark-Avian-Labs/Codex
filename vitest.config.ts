@@ -5,7 +5,7 @@ import { defineConfig } from 'vitest/config';
 
 const testEnvDefaults = {
   NODE_ENV: 'test',
-  CENTRAL_DB_PATH: path.join(os.tmpdir(), 'corpus-vitest-central.db'),
+  CENTRAL_DB_PATH: path.join(os.tmpdir(), 'codex-vitest-central.db'),
   COOKIE_DOMAIN: 'localhost',
   BASE_HOST: 'localhost',
   AUTH_SERVICE_URL: 'https://example.com',

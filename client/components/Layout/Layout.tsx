@@ -146,13 +146,13 @@ export function Layout() {
     const path = location.pathname;
     let faviconHref = '/favicon.ico';
     if (path.startsWith(APP_PATHS.warframe)) {
-      document.title = 'Corpus - Warframe';
+      document.title = 'Codex - Warframe';
       faviconHref = warframeFavicon;
     } else if (path.startsWith(APP_PATHS.epic7)) {
-      document.title = 'Corpus - Epic7';
+      document.title = 'Codex - Epic7';
       faviconHref = epic7Favicon;
     } else {
-      document.title = 'Corpus';
+      document.title = 'Codex';
     }
     let favicon = document.querySelector<HTMLLinkElement>('link[rel~="icon"]');
     if (!favicon) {

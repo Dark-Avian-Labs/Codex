@@ -1,7 +1,7 @@
 import fs from 'fs';
 
-import { isAdmin } from '@corpus/core';
-import { validateBody } from '@corpus/core/validation';
+import { isAdmin } from '@codex/core';
+import { validateBody } from '@codex/core/validation';
 import type { Request, Response } from 'express';
 
 import {

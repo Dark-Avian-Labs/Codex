@@ -8,7 +8,7 @@ function readTrimmedEnv(value: string | undefined, fallback: string): string {
 
 export const APP_DISPLAY_NAME = readTrimmedEnv(
   import.meta.env.VITE_APP_NAME as string | undefined,
-  'Corpus',
+  'Codex',
 );
 
 export const LEGAL_ENTITY_NAME = readTrimmedEnv(
@@ -37,5 +37,5 @@ export const LEGAL_PAGE_URL = isSafeRelativePath ? resolvedLegalPageUrl : '/auth
 
 export const SEARCH_PLACEHOLDER = readTrimmedEnv(
   import.meta.env.VITE_SEARCH_PLACEHOLDER as string | undefined,
-  'Search Corpus...',
+  'Search Codex...',
 );

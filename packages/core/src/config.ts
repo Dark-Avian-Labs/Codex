@@ -53,7 +53,7 @@ if (envPath) {
   }
 }
 
-export const APP_NAME = 'Corpus';
+export const APP_NAME = 'Codex';
 
 const _centralDbPath = process.env.CENTRAL_DB_PATH?.trim();
 if (!_centralDbPath) {

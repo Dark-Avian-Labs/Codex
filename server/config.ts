@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import { resolveEnvFilePath } from '@corpus/core';
+import { resolveEnvFilePath } from '@codex/core';
 import { config as loadEnv } from '@dotenvx/dotenvx';
 
 const envPath = resolveEnvFilePath(process.cwd());
@@ -20,7 +20,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const PROJECT_ROOT = path.resolve(__dirname, '..', '..');
 
 export const DATA_DIR = path.join(PROJECT_ROOT, 'data');
-function requireAbsolutePathEnv(name: 'CENTRAL_DB_PATH' | 'PARAMETRIC_DB_PATH'): string {
+function requireAbsolutePathEnv(name: 'CENTRAL_DB_PATH' | 'ARMORY_DB_PATH'): string {
   const value = process.env[name]?.trim();
   if (!value) {
     throw new Error(`${name} must be set to an absolute shared SQLite path.`);
@@ -32,13 +32,13 @@ function requireAbsolutePathEnv(name: 'CENTRAL_DB_PATH' | 'PARAMETRIC_DB_PATH'):
 }
 
 export const CENTRAL_DB_PATH = requireAbsolutePathEnv('CENTRAL_DB_PATH');
-export const PARAMETRIC_DB_PATH = requireAbsolutePathEnv('PARAMETRIC_DB_PATH');
+export const ARMORY_DB_PATH = requireAbsolutePathEnv('ARMORY_DB_PATH');
 
 const _port = parseInt(process.env.PORT || '3001', 10);
 export const PORT = Number.isFinite(_port) && _port > 0 ? _port : 3001;
 export const HOST = process.env.HOST || '0.0.0.0';
-export const APP_NAME = process.env.APP_NAME?.trim() || 'Corpus';
-export const APP_ID = process.env.APP_ID?.trim() || 'corpus';
+export const APP_NAME = process.env.APP_NAME?.trim() || 'Codex';
+export const APP_ID = process.env.APP_ID?.trim() || 'codex';
 export const NODE_ENV = process.env.NODE_ENV || 'production';
 
 export const SESSION_SECRET = process.env.SESSION_SECRET?.trim() || '';
@@ -123,11 +123,11 @@ if (!AUTH_SERVICE_URL || !AUTH_SERVICE_URL.startsWith('https://')) {
 }
 
 export const SESSION_COOKIE_NAME =
-  process.env.SESSION_COOKIE_NAME?.trim() || 'darkavianlabs.corpus.sid';
+  process.env.SESSION_COOKIE_NAME?.trim() || 'darkavianlabs.codex.sid';
 export const SHARED_THEME_COOKIE = 'dal.theme.mode';
 
 export function ensureDataDirs(): void {
   fs.mkdirSync(DATA_DIR, { recursive: true });
   fs.mkdirSync(path.dirname(CENTRAL_DB_PATH), { recursive: true });
-  fs.mkdirSync(path.dirname(PARAMETRIC_DB_PATH), { recursive: true });
+  fs.mkdirSync(path.dirname(ARMORY_DB_PATH), { recursive: true });
 }

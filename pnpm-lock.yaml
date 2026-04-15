@@ -294,13 +294,13 @@ importers:
 
   .:
     dependencies:
-      '@corpus/core':
+      '@codex/core':
         specifier: workspace:*
         version: link:packages/core
-      '@corpus/game-epic7':
+      '@codex/game-epic7':
         specifier: workspace:*
         version: link:packages/games/epic7
-      '@corpus/game-warframe':
+      '@codex/game-warframe':
         specifier: workspace:*
         version: link:packages/games/warframe
       '@dotenvx/dotenvx':
@@ -440,7 +440,7 @@ importers:
 
   packages/games/epic7:
     dependencies:
-      '@corpus/core':
+      '@codex/core':
         specifier: workspace:*
         version: link:../../core
       better-sqlite3:
@@ -465,7 +465,7 @@ importers:
 
   packages/games/warframe:
     dependencies:
-      '@corpus/core':
+      '@codex/core':
         specifier: workspace:*
         version: link:../../core
       better-sqlite3:

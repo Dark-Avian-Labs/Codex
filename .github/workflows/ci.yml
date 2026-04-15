@@ -1,4 +1,4 @@
-name: Corpus CI/CD
+name: Codex CI/CD
 
 permissions:
   contents: read
@@ -289,7 +289,7 @@ jobs:
               -o StrictHostKeyChecking=yes \
               -o UserKnownHostsFile=~/.ssh/known_hosts \
               "$SERVER_USER@$SERVER_HOST" \
-              "/usr/local/bin/pm2-restart-safe Corpus"
+              "/usr/local/bin/pm2-restart-safe Codex"
 
       - name: Cleanup SSH key
         if: always()

@@ -1,7 +1,7 @@
 import fs from 'fs';
 
-import { requireGameAccess } from '@corpus/core';
-import { validateBody } from '@corpus/core/validation';
+import { requireGameAccess } from '@codex/core';
+import { validateBody } from '@codex/core/validation';
 import {
   ARTIFACT_CLASSES,
   ARTIFACT_GAUGE_MAX,
@@ -26,7 +26,7 @@ import {
   epic7UpdateHeroDetailsSchema,
   epic7UpdateHeroSchema,
   getEpic7Db,
-} from '@corpus/game-epic7';
+} from '@codex/game-epic7';
 import { Router, type Request, type Response } from 'express';
 
 import { requireAdmin } from '../auth/middleware.js';

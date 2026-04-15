@@ -1,8 +1,8 @@
 {
-  "name": "corpus",
+  "name": "codex",
   "version": "3.2.0",
   "private": true,
-  "description": "Corpus - game collection tracker",
+  "description": "Codex - game collection tracker",
   "license": "GPL-3.0-or-later",
   "workspaces": [
     "packages/core",
@@ -12,9 +12,9 @@
   "type": "module",
   "scripts": {
     "typecheck": "pnpm run typecheck:server && pnpm run typecheck:client",
-    "typecheck:server": "pnpm --filter @corpus/core --filter @corpus/game-warframe --filter @corpus/game-epic7 run --if-present build && tsc -p tsconfig.server.json --noEmit",
+    "typecheck:server": "pnpm --filter @codex/core --filter @codex/game-warframe --filter @codex/game-epic7 run --if-present build && tsc -p tsconfig.server.json --noEmit",
     "typecheck:client": "tsc -p tsconfig.json --noEmit",
-    "build": "pnpm --filter @corpus/core --filter @corpus/game-warframe --filter @corpus/game-epic7 run --if-present build && pnpm run typecheck && tsc -p tsconfig.server.json && vite build",
+    "build": "pnpm --filter @codex/core --filter @codex/game-warframe --filter @codex/game-epic7 run --if-present build && pnpm run typecheck && tsc -p tsconfig.server.json && vite build",
     "start": "node dist/server/index.js",
     "validate": "node run-quality-checks.mjs",
     "test": "vitest run",
@@ -25,9 +25,9 @@
     "check-format": "oxfmt --check ."
   },
   "dependencies": {
-    "@corpus/core": "workspace:*",
-    "@corpus/game-epic7": "workspace:*",
-    "@corpus/game-warframe": "workspace:*",
+    "@codex/core": "workspace:*",
+    "@codex/game-epic7": "workspace:*",
+    "@codex/game-warframe": "workspace:*",
     "@dotenvx/dotenvx": "catalog:",
     "@fontsource-variable/geist": "catalog:",
     "@fontsource-variable/geist-mono": "catalog:",

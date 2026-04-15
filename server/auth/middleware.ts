@@ -2,7 +2,7 @@ import {
   requireAuth as coreRequireAuth,
   requireAuthApi as coreRequireAuthApi,
   requireAdmin as coreRequireAdmin,
-} from '@corpus/core';
+} from '@codex/core';
 import type { NextFunction, Request, Response } from 'express';
 
 import { buildAuthLoginUrl } from './remoteAuth.js';
