@@ -1,8 +1,10 @@
 import { useEffect } from 'react';
 
+import { LEGAL_PAGE_URL } from '../../app/config';
+
 export function LegalPage() {
   useEffect(() => {
-    window.location.replace('/auth/legal');
+    window.location.replace(LEGAL_PAGE_URL);
   }, []);
 
   return (
