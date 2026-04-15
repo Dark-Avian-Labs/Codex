@@ -1,7 +1,7 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import type { GameModule, GameMountOptions } from '@corpus/core';
+import type { GameModule, GameMountOptions } from '@codex/core';
 import express, { type Application } from 'express';
 
 import { WARFRAME_DB_PATH } from './config.js';

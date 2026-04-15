@@ -1,6 +1,6 @@
 import fs from 'fs';
 
-import { validateBody } from '@corpus/core/validation';
+import { validateBody } from '@codex/core/validation';
 import type { Request, Response } from 'express';
 
 import {

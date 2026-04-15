@@ -1,14 +1,14 @@
-import { warframeQueries as q } from '@corpus/game-warframe';
+import { warframeQueries as q } from '@codex/game-warframe';
 import {
   isPrimeVariantName,
   normalizeDisplayName,
   normalizeNameForKey,
   resolveCanonicalKey as resolveCanonicalKeyWithAliases,
   stripPrimeSuffix,
-} from '@corpus/game-warframe';
+} from '@codex/game-warframe';
 import Database from 'better-sqlite3';
 
-import { PARAMETRIC_DB_PATH } from '../config.js';
+import { ARMORY_DB_PATH } from '../config.js';
 
 const WORKSHEET_NAMES = [
   'Warframes',
@@ -185,8 +185,8 @@ function isModularMainComponent(row: WeaponSourceRow): boolean {
   return false;
 }
 
-function loadModularWeaponNames(parametricDb: Database.Database): Set<string> {
-  const modularRows = parametricDb
+function loadModularWeaponNames(armoryDb: Database.Database): Set<string> {
+  const modularRows = armoryDb
     .prepare(
       "SELECT name, unique_name FROM weapons WHERE product_category IN ('ModularPrimary', 'ModularSecondary', 'Amps') AND name IS NOT NULL AND slot IS NOT NULL AND TRIM(slot) <> ''",
     )
@@ -216,14 +216,11 @@ function isCompanionModularMainComponent(row: WeaponSourceRow): boolean {
   return false;
 }
 
-function loadCompanionNames(parametricDb: Database.Database): Set<string> {
+function loadCompanionNames(armoryDb: Database.Database): Set<string> {
   const companionNames = new Set(
-    loadNames(
-      parametricDb,
-      "SELECT name FROM companions WHERE name IS NOT NULL AND TRIM(name) <> ''",
-    ),
+    loadNames(armoryDb, "SELECT name FROM companions WHERE name IS NOT NULL AND TRIM(name) <> ''"),
   );
-  const modularCompanionRows = parametricDb
+  const modularCompanionRows = armoryDb
     .prepare(
       "SELECT name, unique_name FROM weapons WHERE product_category = 'Pistols' AND slot IS NULL AND name IS NOT NULL AND unique_name IS NOT NULL AND (LOWER(unique_name) LIKE '%/moapetparts/%' OR LOWER(unique_name) LIKE '%/zanukapetparts/%')",
     )
@@ -239,72 +236,72 @@ function loadCompanionNames(parametricDb: Database.Database): Set<string> {
 }
 
 function ensureWorksheetExistsForSync(
-  corpusDb: Database.Database,
+  codexDb: Database.Database,
   userId: number,
   worksheet: WorksheetName,
   execute: boolean,
 ): { id: number; name: string; display_order: number } | undefined {
-  const existing = q.getWorksheetByName(corpusDb, userId, worksheet);
+  const existing = q.getWorksheetByName(codexDb, userId, worksheet);
   if (existing) return existing;
   if (!execute) return undefined;
 
-  const existingWorksheets = q.getWorksheets(corpusDb, userId);
+  const existingWorksheets = q.getWorksheets(codexDb, userId);
   const displayOrder =
     existingWorksheets.reduce(
       (maxOrder, sheet) => Math.max(maxOrder, sheet.display_order ?? Number.MIN_SAFE_INTEGER),
       -1,
     ) + 1;
-  const worksheetId = q.createWorksheet(corpusDb, userId, worksheet, displayOrder);
-  q.addColumn(corpusDb, worksheetId, userId, 'Normal', 0);
-  q.addColumn(corpusDb, worksheetId, userId, 'Prime', 1);
+  const worksheetId = q.createWorksheet(codexDb, userId, worksheet, displayOrder);
+  q.addColumn(codexDb, worksheetId, userId, 'Normal', 0);
+  q.addColumn(codexDb, worksheetId, userId, 'Prime', 1);
   if (worksheet === 'Warframes') {
-    q.addColumn(corpusDb, worksheetId, userId, 'Helminth', 2);
+    q.addColumn(codexDb, worksheetId, userId, 'Helminth', 2);
   }
-  return q.getWorksheetByName(corpusDb, userId, worksheet);
+  return q.getWorksheetByName(codexDb, userId, worksheet);
 }
 
-function loadWorksheetSource(parametricDb: Database.Database): Record<WorksheetName, Set<string>> {
+function loadWorksheetSource(armoryDb: Database.Database): Record<WorksheetName, Set<string>> {
   const warframes = new Set(
-    loadNames(parametricDb, "SELECT name FROM warframes WHERE product_category = 'Suits'"),
+    loadNames(armoryDb, "SELECT name FROM warframes WHERE product_category = 'Suits'"),
   );
   const accessories = new Set(
     loadNames(
-      parametricDb,
+      armoryDb,
       "SELECT name FROM warframes WHERE product_category IN ('SpaceSuits', 'MechSuits')",
     ),
   );
   const primary = new Set(
     loadNames(
-      parametricDb,
+      armoryDb,
       "SELECT name FROM weapons WHERE product_category = 'LongGuns' AND slot IS NOT NULL AND TRIM(slot) <> ''",
     ),
   );
   const secondary = new Set(
     loadNames(
-      parametricDb,
+      armoryDb,
       "SELECT name FROM weapons WHERE product_category = 'Pistols' AND slot IS NOT NULL AND TRIM(slot) <> ''",
     ),
   );
   const melee = new Set(
     loadNames(
-      parametricDb,
+      armoryDb,
       "SELECT name FROM weapons WHERE product_category = 'Melee' AND slot IS NOT NULL AND TRIM(slot) <> ''",
     ),
   );
   const archwing = new Set(
     loadNames(
-      parametricDb,
+      armoryDb,
       "SELECT name FROM weapons WHERE product_category IN ('SpaceGuns', 'SpaceMelee') AND slot IS NOT NULL AND TRIM(slot) <> ''",
     ),
   );
   const companionWeapons = new Set(
     loadNames(
-      parametricDb,
+      armoryDb,
       "SELECT name FROM weapons WHERE product_category = 'SentinelWeapons' AND slot IS NOT NULL AND TRIM(slot) <> ''",
     ),
   );
-  const modular = loadModularWeaponNames(parametricDb);
-  const companions = loadCompanionNames(parametricDb);
+  const modular = loadModularWeaponNames(armoryDb);
+  const companions = loadCompanionNames(armoryDb);
 
   return {
     Warframes: warframes,
@@ -322,11 +319,11 @@ function loadWorksheetSource(parametricDb: Database.Database): Record<WorksheetN
 function appendCurrentSpecialItemPlacements(
   sourceByWorksheet: Record<WorksheetName, Set<string>>,
   currentRowsByWorksheet: Map<WorksheetName, string[]>,
-  parametricDb: Database.Database,
+  armoryDb: Database.Database,
 ): void {
   const specialNames = new Set(
     loadNames(
-      parametricDb,
+      armoryDb,
       "SELECT name FROM weapons WHERE product_category = 'SpecialItems' AND name IS NOT NULL AND slot IS NOT NULL AND TRIM(slot) <> ''",
     ),
   );
@@ -422,14 +419,14 @@ function resolveVariantColumns(columns: Array<{ id: number; name: string }>): Va
 }
 
 function reconcileVariantAvailability(params: {
-  corpusDb: Database.Database;
+  codexDb: Database.Database;
   userId: number;
   rowId: number;
   desiredEntry: DesiredEntry;
   variantColumns: VariantColumns;
   execute: boolean;
 }): boolean {
-  const { corpusDb, userId, rowId, desiredEntry, variantColumns, execute } = params;
+  const { codexDb, userId, rowId, desiredEntry, variantColumns, execute } = params;
   const targetValuesByColumn = new Map<number, '' | 'Unavailable'>();
   if (!desiredEntry.hasBaseVariant) {
     for (const columnId of variantColumns.baseColumnIds) {
@@ -453,7 +450,7 @@ function reconcileVariantAvailability(params: {
 
   let hasChange = false;
   for (const [columnId, targetValue] of targetValuesByColumn.entries()) {
-    const currentValue = q.getCellValue(corpusDb, rowId, columnId, userId) ?? '';
+    const currentValue = q.getCellValue(codexDb, rowId, columnId, userId) ?? '';
     const nextValue =
       targetValue === 'Unavailable'
         ? 'Unavailable'
@@ -465,7 +462,7 @@ function reconcileVariantAvailability(params: {
     }
     hasChange = true;
     if (execute) {
-      q.adminUpdateCell(corpusDb, rowId, columnId, nextValue, userId);
+      q.adminUpdateCell(codexDb, rowId, columnId, nextValue, userId);
     }
   }
 
@@ -493,7 +490,7 @@ function rowHasUserProgress(
 }
 
 function cleanupDuplicateVariantRows(params: {
-  corpusDb: Database.Database;
+  codexDb: Database.Database;
   userId: number;
   sheetId: number;
   worksheet: WorksheetName;
@@ -503,8 +500,8 @@ function cleanupDuplicateVariantRows(params: {
   deletedRows: CleanupCandidate[];
   requiresConfirmationRows: CleanupCandidate[];
 } {
-  const { corpusDb, userId, sheetId, worksheet, execute } = params;
-  const worksheetData = q.getWorksheetData(corpusDb, sheetId, userId);
+  const { codexDb, userId, sheetId, worksheet, execute } = params;
+  const worksheetData = q.getWorksheetData(codexDb, sheetId, userId);
   if (!worksheetData) {
     return {
       deletedItemNames: [],
@@ -564,7 +561,7 @@ function cleanupDuplicateVariantRows(params: {
         continue;
       }
       if (execute) {
-        q.deleteRow(corpusDb, row.id, userId);
+        q.deleteRow(codexDb, row.id, userId);
       }
       deletedRows.push(candidate);
     }
@@ -584,7 +581,7 @@ type RunSyncOptions = {
 };
 
 export function runWarframeSync(
-  corpusDb: Database.Database,
+  codexDb: Database.Database,
   options: RunSyncOptions,
 ): WarframeSyncResult {
   if (
@@ -594,13 +591,13 @@ export function runWarframeSync(
     throw new Error('A valid initiating admin user id is required for execute mode.');
   }
   const mode = options.execute ? 'execute' : 'preview';
-  const parametricDb = new Database(PARAMETRIC_DB_PATH, {
+  const armoryDb = new Database(ARMORY_DB_PATH, {
     readonly: true,
     fileMustExist: true,
   });
   try {
-    const sourceByWorksheet = loadWorksheetSource(parametricDb);
-    const userIds = options.userIds ?? q.getWorksheetUserIds(corpusDb);
+    const sourceByWorksheet = loadWorksheetSource(armoryDb);
+    const userIds = options.userIds ?? q.getWorksheetUserIds(codexDb);
     const users: UserSyncResult[] = [];
     const summary = {
       added: 0,
@@ -615,9 +612,9 @@ export function runWarframeSync(
       const sourceByWorksheetForUser = cloneWorksheetSource(sourceByWorksheet);
       const currentRowsByWorksheet = new Map<WorksheetName, string[]>();
       for (const worksheet of WORKSHEET_NAMES) {
-        const sheet = ensureWorksheetExistsForSync(corpusDb, userId, worksheet, options.execute);
+        const sheet = ensureWorksheetExistsForSync(codexDb, userId, worksheet, options.execute);
         if (!sheet) continue;
-        const rows = q.getWorksheetRows(corpusDb, sheet.id, userId);
+        const rows = q.getWorksheetRows(codexDb, sheet.id, userId);
         currentRowsByWorksheet.set(
           worksheet,
           rows.map((row) => row.item_name),
@@ -626,16 +623,16 @@ export function runWarframeSync(
       appendCurrentSpecialItemPlacements(
         sourceByWorksheetForUser,
         currentRowsByWorksheet,
-        parametricDb,
+        armoryDb,
       );
 
       const worksheetResults: WorksheetSyncResult[] = [];
       for (const worksheet of WORKSHEET_NAMES) {
-        const sheet = ensureWorksheetExistsForSync(corpusDb, userId, worksheet, options.execute);
+        const sheet = ensureWorksheetExistsForSync(codexDb, userId, worksheet, options.execute);
         if (!sheet) continue;
         const desired = createDesiredEntries(worksheet, sourceByWorksheetForUser[worksheet]);
-        let rows = q.getWorksheetRows(corpusDb, sheet.id, userId);
-        const columns = q.getWorksheetColumns(corpusDb, sheet.id, userId);
+        let rows = q.getWorksheetRows(codexDb, sheet.id, userId);
+        const columns = q.getWorksheetColumns(codexDb, sheet.id, userId);
         const variantColumns = resolveVariantColumns(columns);
 
         const existingByKey = new Map<string, typeof rows>();
@@ -656,10 +653,10 @@ export function runWarframeSync(
         const added: string[] = [];
         if (options.execute) {
           for (const name of toAdd) {
-            q.addRowWithEmptyValues(corpusDb, sheet.id, userId, name);
+            q.addRowWithEmptyValues(codexDb, sheet.id, userId, name);
             added.push(name);
           }
-          rows = q.getWorksheetRows(corpusDb, sheet.id, userId);
+          rows = q.getWorksheetRows(codexDb, sheet.id, userId);
         }
 
         const deleted: string[] = [];
@@ -675,13 +672,13 @@ export function runWarframeSync(
             normalizedItemName !== row.item_name &&
             resolveCanonicalKey(normalizedItemName) === resolveCanonicalKey(row.item_name);
           if (didNormalizeKitgunName && options.execute) {
-            q.editRow(corpusDb, row.id, userId, normalizedItemName, {});
+            q.editRow(codexDb, row.id, userId, normalizedItemName, {});
           }
           const effectiveItemName = didNormalizeKitgunName ? normalizedItemName : row.item_name;
 
           if (DISCARDED_ROWS.has(effectiveItemName)) {
             if (options.execute) {
-              q.deleteRow(corpusDb, row.id, userId);
+              q.deleteRow(codexDb, row.id, userId);
             }
             deleted.push(effectiveItemName);
             continue;
@@ -693,7 +690,7 @@ export function runWarframeSync(
             continue;
           }
           const didMarkUnavailable = reconcileVariantAvailability({
-            corpusDb,
+            codexDb,
             userId,
             rowId: row.id,
             desiredEntry,
@@ -706,7 +703,7 @@ export function runWarframeSync(
         }
 
         const cleanup = cleanupDuplicateVariantRows({
-          corpusDb,
+          codexDb,
           userId,
           sheetId: sheet.id,
           worksheet,
@@ -747,6 +744,6 @@ export function runWarframeSync(
       },
     };
   } finally {
-    parametricDb.close();
+    armoryDb.close();
   }
 }

@@ -1,4 +1,4 @@
-# Corpus
+# Codex
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![Cursor](https://img.shields.io/badge/Cursor-IDE-141414?logo=cursor&logoColor=white)](https://cursor.com)
@@ -8,7 +8,7 @@
 ![Vite](https://img.shields.io/badge/Vite-8.x-646CFF?logo=vite&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.x-06B6D4?logo=tailwindcss&logoColor=white)
 
-Corpus is a table-based collection tracker for games. Support for each game lives in workspace packages (Epic7 with a manually curated list, Warframe backed by data synced from Parametric). The app uses the central Auth service for login, access control, and profile settings.
+Codex is a table-based collection tracker for games. Support for each game lives in workspace packages (Epic7 with a manually curated list, Warframe backed by data synced from Armory). The app uses the central Auth service for login, access control, and profile settings.
 
 ## Requirements
 
@@ -67,24 +67,24 @@ Use one key per environment to reduce blast radius.
 | `SECURE_COOKIES`                    | Optional; defaults to on in production.                                     |
 | `BASE_DOMAIN`                       | Required. Apex domain (e.g. `example.com`).                                 |
 | `BASE_PROTOCOL`                     | `http` or `https` (invalid values fall back to `https` with a warning).     |
-| `APP_ID`                            | Corpus app id (default: `corpus`).                                          |
+| `APP_ID`                            | Codex app id (default: `codex`).                                            |
 | `APP_SUBDOMAIN`                     | Public host subdomain (default: `APP_ID`). Used to build the public URL.    |
 | `AUTH_SERVICE_URL`                  | Required. Shared Auth base URL (`https://…`).                               |
 | `CENTRAL_DB_PATH`                   | **Required absolute path** to the shared Auth SQLite database.              |
-| `PARAMETRIC_DB_PATH`                | **Required absolute path** to the shared Parametric SQLite database.        |
+| `ARMORY_DB_PATH`                    | **Required absolute path** to the shared Armory SQLite database.            |
 | `WARFRAME_DB_PATH`, `EPIC7_DB_PATH` | Per-game SQLite paths (defaults under `./data/` if unset in game packages). |
 | `COOKIE_DOMAIN`                     | Optional; normalized to a leading-dot cookie domain.                        |
-| `SESSION_COOKIE_NAME`               | Session cookie name for Corpus.                                             |
-| `GAME_HOSTS`                        | Optional `host=gameId` pairs for routing (see `@corpus/core` config).       |
+| `SESSION_COOKIE_NAME`               | Session cookie name for Codex.                                              |
+| `GAME_HOSTS`                        | Optional `host=gameId` pairs for routing (see `@codex/core` config).        |
 | `ALLOWED_APP_ORIGINS`               | Optional; used with CORS configuration in the server.                       |
 
 Client `VITE_*` variables are listed in `.env.example`.
 
 ### Shared SQLite deployment notes
 
-- `CENTRAL_DB_PATH` and `PARAMETRIC_DB_PATH` must be absolute paths on the host or inside the Corpus runtime container.
+- `CENTRAL_DB_PATH` and `ARMORY_DB_PATH` must be absolute paths on the host or inside the Codex runtime container.
 - Avoid relative `../other-service/...` paths; mount shared volumes explicitly for each service.
-- Corpus opens the central DB in WAL mode; keep a single writer boundary for schema changes and avoid multi-host writes on network filesystems that do not honor SQLite locking.
+- Codex opens the central DB in WAL mode; keep a single writer boundary for schema changes and avoid multi-host writes on network filesystems that do not honor SQLite locking.
 
 ## Scripts
 

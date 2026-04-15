@@ -1,4 +1,4 @@
-import { createCentralSchema } from '@corpus/core';
+import { createCentralSchema } from '@codex/core';
 
 import { getCentralDb } from './connection.js';
 

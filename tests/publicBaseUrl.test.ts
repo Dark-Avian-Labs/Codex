@@ -58,12 +58,12 @@ describe('getAppPublicBaseUrl', () => {
   it('prefers explicit APP_PUBLIC_BASE_URL', async () => {
     await withEnvOverrides(
       {
-        APP_PUBLIC_BASE_URL: 'https://corpus.example.com/',
+        APP_PUBLIC_BASE_URL: 'https://codex.example.com/',
         COOKIE_DOMAIN: '.example.com',
-        BASE_HOST: 'corpus.example.com',
+        BASE_HOST: 'codex.example.com',
       },
       (getAppPublicBaseUrl) => {
-        expect(getAppPublicBaseUrl()).toBe('https://corpus.example.com');
+        expect(getAppPublicBaseUrl()).toBe('https://codex.example.com');
       },
     );
   });
@@ -73,13 +73,13 @@ describe('getAppPublicBaseUrl', () => {
         APP_PUBLIC_BASE_URL: undefined,
         BASE_DOMAIN: 'example.com',
         BASE_PROTOCOL: 'https',
-        APP_SUBDOMAIN: 'corpus',
+        APP_SUBDOMAIN: 'codex',
         COOKIE_DOMAIN: '.example.com',
-        BASE_HOST: 'corpus.example.com',
+        BASE_HOST: 'codex.example.com',
         AUTH_SERVICE_URL: 'https://auth.example.com',
       },
       (getAppPublicBaseUrl) => {
-        expect(getAppPublicBaseUrl()).toBe('https://corpus.example.com');
+        expect(getAppPublicBaseUrl()).toBe('https://codex.example.com');
       },
     );
   });
@@ -90,16 +90,16 @@ describe('getAppPublicBaseUrl', () => {
         APP_PUBLIC_BASE_URL: undefined,
         BASE_DOMAIN: 'example.com',
         BASE_PROTOCOL: undefined,
-        APP_SUBDOMAIN: 'corpus',
+        APP_SUBDOMAIN: 'codex',
         APP_ID: undefined,
         COOKIE_DOMAIN: '.example.com',
-        BASE_HOST: 'corpus.example.com',
+        BASE_HOST: 'codex.example.com',
         AUTH_SERVICE_URL: 'https://auth.example.com',
       },
       (getAppPublicBaseUrl) => {
         const url = getAppPublicBaseUrl();
         expect(url.startsWith('https')).toBe(true);
-        expect(url).toBe('https://corpus.example.com');
+        expect(url).toBe('https://codex.example.com');
       },
     );
   });
@@ -122,7 +122,7 @@ describe('getAppPublicBaseUrl', () => {
     );
   });
 
-  it('defaults subdomain to corpus when APP_SUBDOMAIN and APP_ID are missing', async () => {
+  it('defaults subdomain to codex when APP_SUBDOMAIN and APP_ID are missing', async () => {
     await withEnvOverrides(
       {
         APP_PUBLIC_BASE_URL: undefined,
@@ -131,11 +131,11 @@ describe('getAppPublicBaseUrl', () => {
         APP_SUBDOMAIN: undefined,
         APP_ID: undefined,
         COOKIE_DOMAIN: '.example.com',
-        BASE_HOST: 'corpus.example.com',
+        BASE_HOST: 'codex.example.com',
         AUTH_SERVICE_URL: 'https://auth.example.com',
       },
       (getAppPublicBaseUrl) => {
-        expect(getAppPublicBaseUrl()).toBe('https://corpus.example.com');
+        expect(getAppPublicBaseUrl()).toBe('https://codex.example.com');
       },
     );
   });
@@ -146,9 +146,9 @@ describe('getAppPublicBaseUrl', () => {
         APP_PUBLIC_BASE_URL: undefined,
         BASE_DOMAIN: 'example.com',
         BASE_PROTOCOL: 'ftp',
-        APP_SUBDOMAIN: 'corpus',
+        APP_SUBDOMAIN: 'codex',
         COOKIE_DOMAIN: '.example.com',
-        BASE_HOST: 'corpus.example.com',
+        BASE_HOST: 'codex.example.com',
         AUTH_SERVICE_URL: 'https://auth.example.com',
       },
       (getAppPublicBaseUrl) => {
@@ -166,7 +166,7 @@ describe('getAppPublicBaseUrl', () => {
         APP_SUBDOMAIN: undefined,
         APP_ID: undefined,
         COOKIE_DOMAIN: '.example.com',
-        BASE_HOST: 'corpus.example.com',
+        BASE_HOST: 'codex.example.com',
         AUTH_SERVICE_URL: 'https://auth.example.com',
       },
       (getAppPublicBaseUrl) => {
@@ -179,7 +179,7 @@ describe('getAppPublicBaseUrl', () => {
       {
         APP_PUBLIC_BASE_URL: 'not-a-valid-url',
         COOKIE_DOMAIN: '.example.com',
-        BASE_HOST: 'corpus.example.com',
+        BASE_HOST: 'codex.example.com',
         AUTH_SERVICE_URL: 'https://auth.example.com',
       },
       (getAppPublicBaseUrl) => {
@@ -190,9 +190,9 @@ describe('getAppPublicBaseUrl', () => {
   it('rejects non-https APP_PUBLIC_BASE_URL in production', async () => {
     await withEnvOverrides(
       {
-        APP_PUBLIC_BASE_URL: 'http://corpus.example.com/',
+        APP_PUBLIC_BASE_URL: 'http://codex.example.com/',
         COOKIE_DOMAIN: '.example.com',
-        BASE_HOST: 'corpus.example.com',
+        BASE_HOST: 'codex.example.com',
         AUTH_SERVICE_URL: 'https://auth.example.com',
         NODE_ENV: 'production',
       },
@@ -205,14 +205,14 @@ describe('getAppPublicBaseUrl', () => {
   it('allows non-https APP_PUBLIC_BASE_URL in development', async () => {
     await withEnvOverrides(
       {
-        APP_PUBLIC_BASE_URL: 'http://corpus.example.com/',
+        APP_PUBLIC_BASE_URL: 'http://codex.example.com/',
         COOKIE_DOMAIN: '.example.com',
-        BASE_HOST: 'corpus.example.com',
+        BASE_HOST: 'codex.example.com',
         AUTH_SERVICE_URL: 'https://auth.example.com',
         NODE_ENV: 'development',
       },
       (getAppPublicBaseUrl) => {
-        expect(getAppPublicBaseUrl()).toBe('http://corpus.example.com');
+        expect(getAppPublicBaseUrl()).toBe('http://codex.example.com');
       },
     );
   });

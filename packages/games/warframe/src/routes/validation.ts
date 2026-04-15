@@ -1,4 +1,4 @@
-import { positiveInt, z } from '@corpus/core/validation';
+import { positiveInt, z } from '@codex/core/validation';
 
 export const updateSchema = z.object({
   row_id: positiveInt,

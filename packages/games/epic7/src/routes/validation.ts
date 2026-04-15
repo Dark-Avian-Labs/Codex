@@ -1,4 +1,4 @@
-import { optionalPositiveInt, positiveInt, z, zodEnum } from '@corpus/core/validation';
+import { optionalPositiveInt, positiveInt, z, zodEnum } from '@codex/core/validation';
 
 import {
   ARTIFACT_CLASSES,

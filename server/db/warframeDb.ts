@@ -1,3 +1,3 @@
-import { getWarframeDb, warframeQueries } from '@corpus/game-warframe';
+import { getWarframeDb, warframeQueries } from '@codex/game-warframe';
 
 export { getWarframeDb, warframeQueries };

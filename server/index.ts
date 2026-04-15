@@ -1,9 +1,9 @@
 import { createRequire } from 'module';
 import path from 'path';
 
-import { requireAuth, requireAdmin } from '@corpus/core';
-import { getEpic7Db } from '@corpus/game-epic7';
-import { getWarframeDb } from '@corpus/game-warframe';
+import { requireAuth, requireAdmin } from '@codex/core';
+import { getEpic7Db } from '@codex/game-epic7';
+import { getWarframeDb } from '@codex/game-warframe';
 import cookieParser from 'cookie-parser';
 import { csrfSync } from 'csrf-sync';
 import express, { type Request, type Response } from 'express';

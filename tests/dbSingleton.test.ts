@@ -12,7 +12,7 @@ describe('createDbSingleton', () => {
   let dbPath: string;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'corpus-test-'));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'codex-test-'));
     dbPath = path.join(tmpDir, 'test.db');
   });
 

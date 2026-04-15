@@ -1,7 +1,7 @@
 {
-  "name": "@corpus/core",
+  "name": "@codex/core",
   "version": "3.2.0",
-  "description": "Corpus core: auth, session, central DB, middleware",
+  "description": "Codex core: auth, session, central DB, middleware",
   "license": "GPL-3.0-or-later",
   "type": "module",
   "main": "dist/index.js",

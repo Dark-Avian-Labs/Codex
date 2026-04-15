@@ -1,4 +1,4 @@
-name: Corpus PR Checks
+name: Codex PR Checks
 
 permissions:
   contents: read
@@ -53,13 +53,13 @@ jobs:
           else
             echo "USE_DOTENVX=false" >> "$GITHUB_ENV"
             cp .github/ci.env.development .env.development
-            DB_ROOT="${RUNNER_TEMP}/corpus-ci-db"
+            DB_ROOT="${RUNNER_TEMP}/codex-ci-db"
             mkdir -p "$DB_ROOT"
             {
               echo ""
               echo "# CI-only absolute DB paths (core rejects relative CENTRAL_DB_PATH)"
               echo "CENTRAL_DB_PATH=${DB_ROOT}/central.test.db"
-              echo "PARAMETRIC_DB_PATH=${DB_ROOT}/parametric.test.db"
+              echo "ARMORY_DB_PATH=${DB_ROOT}/armory.test.db"
               echo "WARFRAME_DB_PATH=${DB_ROOT}/warframe.test.db"
               echo "EPIC7_DB_PATH=${DB_ROOT}/epic7.test.db"
             } >> .env.development

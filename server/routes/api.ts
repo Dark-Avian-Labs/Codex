@@ -6,7 +6,7 @@ import { warframeApiRouter } from './warframeApi.js';
 export const apiRouter = Router();
 
 apiRouter.get('/status', (_req, res) => {
-  res.json({ ok: true, app: 'corpus' });
+  res.json({ ok: true, app: 'codex' });
 });
 
 apiRouter.use('/warframe', warframeApiRouter);
