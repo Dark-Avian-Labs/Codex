@@ -269,7 +269,7 @@ app.get('/login', publicPageLimiter, (req, res) => {
   res.redirect(buildAuthLoginUrl(req, '/'));
 });
 app.get('/legal', publicPageLimiter, (_req, res) => {
-  res.sendFile(clientIndexPath);
+  res.redirect(`${AUTH_SERVICE_URL}/legal`);
 });
 async function clearLocalSessionAndRedirectToAuthLogout(
   req: Request,
