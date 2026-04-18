@@ -193,10 +193,6 @@ jobs:
           require_non_empty "SERVER_USER" "$SERVER_USER"
           require_non_empty "SERVER_PATH" "$SERVER_PATH"
 
-          if [ -n "${RSYNC_DEST:-}" ]; then
-            require_non_empty "RSYNC_DEST" "$RSYNC_DEST"
-          fi
-
           case "$SERVER_PATH" in
             ""|"/"|"."|".."|"~"|"~/"|"/home"|"/root")
               echo "ERROR: SERVER_PATH has unsafe value: '$SERVER_PATH'"
@@ -213,10 +209,6 @@ jobs:
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          if [ -z "$SERVER_KNOWN_HOST" ]; then
-            echo "ERROR: SERVER_KNOWN_HOST secret is missing or empty."
-            exit 1
-          fi
           if [ -z "$SERVER_SSH_PORT" ]; then
             echo "ERROR: SERVER_SSH_PORT secret is missing or empty."
             exit 1
