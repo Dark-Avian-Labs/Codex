@@ -2,7 +2,7 @@
   "name": "@codex/game-warframe",
   "version": "3.3.0",
   "description": "Codex Warframe game module",
-  "license": "GPL-3.0-or-later",
+  "license": "MIT",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
