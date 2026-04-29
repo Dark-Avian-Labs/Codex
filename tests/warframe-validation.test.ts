@@ -10,6 +10,12 @@ import {
 
 describe('Warframe validation schemas', () => {
   describe('updateSchema', () => {
+    it('rejects structurally invalid bodies (upgrade / client bugs)', () => {
+      expect(updateSchema.safeParse({ row_id: [], column_id: 1, value: 'x' }).success).toBe(false);
+      expect(updateSchema.safeParse({ row_id: 1, column_id: {}, value: 'x' }).success).toBe(false);
+      expect(updateSchema.safeParse({ row_id: Number.NaN, column_id: 1 }).success).toBe(false);
+    });
+
     it('accepts valid input', () => {
       const r = updateSchema.safeParse({
         row_id: 1,

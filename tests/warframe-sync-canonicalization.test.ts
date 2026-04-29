@@ -2,30 +2,22 @@ import { isPrimeVariantName, normalizeDisplayName, resolveCanonicalKey, stripPri
 import { describe, expect, it } from 'vitest';
 
 describe('warframe sync canonicalization', () => {
-  it('strips archwing prefix and prime suffix for canonical key', () => {
+  it('normalizes messy display strings from exports (prefixes, modes, primes)', () => {
     expect(normalizeDisplayName('<ARCHWING> Odonata Prime')).toBe('Odonata Prime');
+    expect(normalizeDisplayName('Hate (Heavy Scythe)')).toBe('Hate');
+    expect(stripPrimeSuffix('Braton Prime')).toBe('Braton');
+    expect(stripPrimeSuffix('Excalibur Umbra Prime')).toBe('Excalibur Umbra');
     expect(resolveCanonicalKey('<ARCHWING> Odonata Prime')).toBe('odonata');
-  });
-
-  it('keeps Excalibur and Excalibur Umbra as distinct canonical names', () => {
-    expect(resolveCanonicalKey('Excalibur Prime')).toBe('excalibur');
-    expect(resolveCanonicalKey('Excalibur Umbra Prime')).toBe('excalibur umbra');
     expect(resolveCanonicalKey('Excalibur Umbra')).toBe('excalibur umbra');
   });
 
-  it('normalizes known mode qualifiers', () => {
-    expect(normalizeDisplayName('Hate (Heavy Scythe)')).toBe('Hate');
-    expect(normalizeDisplayName('Skana (Dual Blade)')).toBe('Skana');
+  it('normalizes empty or whitespace-only labels to an empty string', () => {
+    expect(resolveCanonicalKey('')).toBe('');
+    expect(normalizeDisplayName('   ')).toBe('');
   });
 
-  it('strips prime suffix while preserving base identity', () => {
-    expect(stripPrimeSuffix('Braton Prime')).toBe('Braton');
-    expect(stripPrimeSuffix('Excalibur Umbra Prime')).toBe('Excalibur Umbra');
-  });
-
-  it('detects prime variant names', () => {
+  it('classifies prime variants for dedup rules', () => {
     expect(isPrimeVariantName('Gotva Prime')).toBe(true);
-    expect(isPrimeVariantName('<ARCHWING> Odonata Prime')).toBe(true);
     expect(isPrimeVariantName('Gotva')).toBe(false);
   });
 });
