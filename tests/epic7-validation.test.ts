@@ -20,6 +20,11 @@ import {
 
 describe('Epic7 validation schemas', () => {
   describe('updateHeroSchema', () => {
+    it('rejects non-coercible or structurally invalid ids', () => {
+      expect(updateHeroSchema.safeParse({ hero_id: {}, rating: 'S' }).success).toBe(false);
+      expect(updateHeroSchema.safeParse({ hero_id: Number.NaN, rating: 'A' }).success).toBe(false);
+    });
+
     it('accepts valid input', () => {
       const r = updateHeroSchema.safeParse({ hero_id: 1, rating: 'SSS' });
       expect(r.success).toBe(true);
@@ -52,6 +57,10 @@ describe('Epic7 validation schemas', () => {
   });
 
   describe('updateArtifactSchema', () => {
+    it('rejects non-numeric gauge_level from bad form data', () => {
+      expect(updateArtifactSchema.safeParse({ artifact_id: 1, gauge_level: 'not-a-number' }).success).toBe(false);
+    });
+
     it('accepts valid input', () => {
       const r = updateArtifactSchema.safeParse({
         artifact_id: 3,

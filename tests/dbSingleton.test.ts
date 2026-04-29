@@ -2,12 +2,22 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-import Database from 'better-sqlite3';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createDbSingleton } from '../packages/core/src/db/singleton.js';
 
-describe('createDbSingleton', () => {
+let sqliteNativeAvailable = false;
+try {
+  const mod = await import('better-sqlite3');
+  const Database = mod.default ?? mod;
+  const probe = new Database(':memory:');
+  probe.close();
+  sqliteNativeAvailable = true;
+} catch {
+  sqliteNativeAvailable = false;
+}
+
+describe.skipIf(!sqliteNativeAvailable)('createDbSingleton', () => {
   let tmpDir: string;
   let dbPath: string;
 
@@ -53,7 +63,7 @@ describe('createDbSingleton', () => {
     getDb();
     expect(onOpen).toHaveBeenCalledTimes(1);
     expect(onOpen).toHaveBeenCalledWith(db);
-    expect(onOpen.mock.calls[0]![0]).toBeInstanceOf(Database);
+    expect(onOpen.mock.calls[0]![0]).toBe(db);
     closeDb();
   });
 
