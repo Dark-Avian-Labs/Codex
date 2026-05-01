@@ -985,9 +985,25 @@ html:not(.dark) .invert-on-light {
 
   .stats-bar {
     display: flex;
+    align-items: center;
     gap: 20px;
     margin-bottom: 16px;
     flex-wrap: wrap;
+  }
+
+  .stats-bar-stats {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 20px;
+    min-width: 0;
+  }
+
+  .stats-bar-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: auto;
   }
 
   .stat {
@@ -996,10 +1012,6 @@ html:not(.dark) .invert-on-light {
     gap: 8px;
     font-size: 14px;
     color: var(--color-muted);
-  }
-
-  .stat-option {
-    margin-left: auto;
   }
 
   .stat-value {
