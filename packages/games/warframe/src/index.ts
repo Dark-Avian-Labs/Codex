@@ -83,3 +83,8 @@ export {
   stripPrimeSuffix,
 } from './displayName.js';
 export { WARFRAME_MARKET_API_DOCS_URL, warframeMarketItemSellUrl } from './marketUrls.js';
+export {
+  type VariantColumns,
+  resolveVariantColumns,
+  worksheetHasNormalAndPrimeColumns,
+} from './variantColumns.js';
