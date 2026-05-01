@@ -20,6 +20,7 @@ export interface DataRow {
   id: number;
   name: string;
   values: Record<number, string>;
+  market_href?: string | null;
 }
 
 export interface WorksheetData {
@@ -32,6 +33,7 @@ export interface WorksheetRowRecord {
   id: number;
   item_name: string;
   display_order: number;
+  market_href?: string | null;
 }
 
 const HELMINTH_COLUMN_NAME = 'Helminth';
@@ -127,7 +129,7 @@ export function getWorksheetRows(
 ): WorksheetRowRecord[] {
   return db
     .prepare(
-      `SELECT r.id, r.item_name, r.display_order
+      `SELECT r.id, r.item_name, r.display_order, r.market_href
        FROM rows r
        JOIN worksheets w ON r.worksheet_id = w.id
        WHERE w.id = ? AND w.user_id = ?
@@ -194,7 +196,7 @@ export function getWorksheetData(
   const columns = getWorksheetColumns(db, worksheetId, userId);
   const rows = db
     .prepare(
-      `SELECT r.id, r.item_name as name, r.display_order
+      `SELECT r.id, r.item_name as name, r.display_order, r.market_href
        FROM rows r
        JOIN worksheets w ON r.worksheet_id = w.id
        WHERE w.id = ? AND w.user_id = ?
@@ -204,6 +206,7 @@ export function getWorksheetData(
     id: number;
     name: string;
     display_order: number;
+    market_href: string | null;
   }[];
 
   const cellRows = db
@@ -229,6 +232,7 @@ export function getWorksheetData(
   const dataRows: DataRow[] = rows.map((r) => ({
     id: r.id,
     name: r.name,
+    market_href: r.market_href,
     values: columns.reduce<Record<number, string>>((acc, col) => {
       acc[col.id] = cellLookup[r.id]?.[col.id] ?? '';
       return acc;

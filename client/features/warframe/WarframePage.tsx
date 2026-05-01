@@ -10,10 +10,12 @@ type Row = {
   name?: string;
   item_name?: string;
   values?: Record<string, string>;
+  market_href?: string | null;
 };
 type WorksheetData = { columns: Column[]; rows: Row[] };
 type WarframeSettings = {
   hide_completed: boolean;
+  market_links: boolean;
 };
 type ExitRowPhase = 'fill' | 'push';
 
@@ -88,6 +90,28 @@ function isRowCompleted(row: Row, columns: Column[]): boolean {
   return (row.values?.[String(helminthColumn.id)] ?? '') === 'Yes';
 }
 
+function ChainGlyph({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+      width={14}
+      height={14}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      aria-hidden
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M13.828 10.172a4 4 0 010 5.656l-3 3a4 4 0 01-5.656-5.656l1.415-1.414m5.656 5.656L15 15M10.172 13.828a4 4 0 010-5.656l3-3a4 4 0 015.656 5.656l-1.415 1.414m-5.656 5.656L9 9"
+      />
+    </svg>
+  );
+}
+
 export function WarframePage() {
   const { setHeaderCenter, setHeaderActions } = useLayoutSlots();
   const [worksheets, setWorksheets] = useState<Worksheet[]>([]);
@@ -95,6 +119,7 @@ export function WarframePage() {
   const [data, setData] = useState<WorksheetData>({ columns: [], rows: [] });
   const [search, setSearch] = useState('');
   const [hideCompleted, setHideCompleted] = useState(false);
+  const [marketLinks, setMarketLinks] = useState(false);
   const [exitingRows, setExitingRows] = useState<Record<number, ExitRowPhase>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -183,6 +208,7 @@ export function WarframePage() {
     const body = (await response.json()) as Partial<WarframeSettings> | null;
     return {
       hide_completed: Boolean(body?.hide_completed),
+      market_links: Boolean(body?.market_links),
     };
   }, []);
 
@@ -222,6 +248,7 @@ export function WarframePage() {
           return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB);
         });
       setHideCompleted(settings.hide_completed);
+      setMarketLinks(settings.market_links);
       setWorksheets(items);
       setWorksheetId(items[0]?.id ?? null);
     } catch {
@@ -441,6 +468,30 @@ export function WarframePage() {
     [hideCompleted],
   );
 
+  const handleMarketLinksChange = useCallback(
+    async (nextValue: boolean): Promise<void> => {
+      const previousValue = marketLinks;
+      setMarketLinks(nextValue);
+      try {
+        const response = await apiFetch('/api/warframe/settings', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ market_links: nextValue }),
+        });
+        const body = (await response.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+        if (!response.ok || body?.error) {
+          throw new Error(body?.error || 'Failed to save Warframe settings');
+        }
+      } catch {
+        setMarketLinks(previousValue);
+        setError('Failed to save "Market links" setting.');
+      }
+    },
+    [marketLinks],
+  );
+
   useEffect(() => {
     setHeaderActions(null);
   }, [setHeaderActions]);
@@ -557,6 +608,29 @@ export function WarframePage() {
             </span>
           </button>
         </div>
+        <div className="stat stat-option">
+          <button
+            type="button"
+            onClick={() => {
+              void handleMarketLinksChange(!marketLinks);
+            }}
+            aria-pressed={marketLinks}
+            className="border-glass-border text-muted hover:border-glass-border-hover hover:bg-glass-hover hover:text-foreground inline-flex cursor-pointer items-center gap-2 rounded-lg border px-2.5 py-1.5 text-sm transition-[color,background-color,border-color,box-shadow] duration-200"
+            title='Toggle "Market links"'
+          >
+            <span>Market links</span>
+            <span
+              className={`inline-flex h-5 w-5 items-center justify-center rounded text-xs font-bold transition-colors ${
+                marketLinks
+                  ? 'bg-success/20 text-success hover:bg-success/30'
+                  : 'bg-muted/10 text-muted/40 hover:bg-muted/20'
+              }`}
+              aria-hidden="true"
+            >
+              {marketLinks ? '\u2713' : '\u2715'}
+            </span>
+          </button>
+        </div>
       </div>
       <div className="table-container">
         <div className="table-scroll" style={tableScrollStyle}>
@@ -591,7 +665,36 @@ export function WarframePage() {
 
                 return (
                   <tr key={row.id} className={rowClassName}>
-                    <td className="item-name">{row.name || row.item_name || 'Unnamed'}</td>
+                    <td className="item-name">
+                      <div className="flex items-center gap-1.5">
+                        <span className="min-w-0 flex-1">
+                          {row.name || row.item_name || 'Unnamed'}
+                        </span>
+                        {marketLinks ? (
+                          row.market_href ? (
+                            <a
+                              href={row.market_href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary hover:text-primary/90 shrink-0"
+                              aria-label={`Warframe Market sell listings for ${row.name || row.item_name || 'item'}`}
+                              title="Open Warframe Market"
+                            >
+                              <ChainGlyph />
+                            </a>
+                          ) : (
+                            <span
+                              className="status-btn unavailable inline-flex shrink-0 cursor-not-allowed px-1.5 py-0.5"
+                              aria-disabled="true"
+                              title="Not listed on Warframe Market"
+                              aria-label={`No Warframe Market listing for ${row.name || row.item_name || 'item'}`}
+                            >
+                              <ChainGlyph />
+                            </span>
+                          )
+                        ) : null}
+                      </div>
+                    </td>
                     {data.columns.map((column) => {
                       const value = row.values?.[String(column.id)] ?? '';
                       return (

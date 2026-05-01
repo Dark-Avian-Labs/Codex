@@ -314,8 +314,8 @@ catalogs:
       specifier: ^4.1.5
       version: 4.1.5
     zod:
-      specifier: ^4.3.6
-      version: 4.3.6
+      specifier: ^4.4.1
+      version: 4.4.1
 
 overrides:
   glob: ^13.0.6
@@ -453,7 +453,7 @@ importers:
         version: 1.19.0
       zod:
         specifier: 'catalog:'
-        version: 4.3.6
+        version: 4.4.1
     devDependencies:
       '@types/better-sqlite3':
         specifier: 'catalog:'
@@ -2022,8 +2022,8 @@ packages:
     resolution: {integrity: sha512-CzhO+pFNo8ajLM2d2IW/R93ipy99LWjtwblvC1RsoSUMZgyLbYFr221TnSNT7GjGdYui6P459mw9JH/g/zW2ug==}
     engines: {node: '>=18'}
 
-  zod@4.3.6:
-    resolution: {integrity: sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg==}
+  zod@4.4.1:
+    resolution: {integrity: sha512-a6ENMBBGZBsnlSebQ/eKCguSBeGKSf4O7BPnqVPmYGtpBYI7VSqoVqw+QcB7kPRjbqPwhYTpFbVj/RqNz/CT0Q==}
 
 snapshots:
 
@@ -3297,4 +3297,4 @@ snapshots:
 
   yoctocolors@2.1.2: {}
 
-  zod@4.3.6: {}
+  zod@4.4.1: {}

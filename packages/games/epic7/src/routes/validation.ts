@@ -29,14 +29,14 @@ export const addHeroSchema = z.object({
   class: heroClass,
   element,
   star_rating: starRating,
-  base_hero_id: optionalPositiveInt,
+  base_hero_id: optionalPositiveInt.optional(),
 });
 
 export const addArtifactSchema = z.object({
   name: z.string().trim().min(1, 'Name is required.'),
   class: artifactClass,
   star_rating: starRating,
-  base_artifact_id: optionalPositiveInt,
+  base_artifact_id: optionalPositiveInt.optional(),
 });
 
 export const deleteHeroSchema = z.object({

@@ -91,6 +91,7 @@ async function getDbOrFail(res: Response): Promise<ReturnType<typeof getWarframe
 
 const ALLOWED_UPDATE_VALUES = ['', 'Obtained', 'Complete'];
 const SETTING_HIDE_COMPLETED = 'hide_completed';
+const SETTING_MARKET_LINKS = 'market_links';
 
 type ValidateColumnValuesInvalidEntry = {
   column_id: string;
@@ -177,14 +178,19 @@ warframeApiRouter.get('/settings', (req, res) => {
     if (!db) return;
     try {
       ensureWarframeUserSettingsTable(db);
-      const row = db
-        .prepare(
-          `SELECT setting_value FROM user_settings
-           WHERE user_id = ? AND setting_key = ?`,
-        )
-        .get(userId, SETTING_HIDE_COMPLETED) as { setting_value: string } | undefined;
+      const sel = db.prepare(
+        `SELECT setting_value FROM user_settings
+         WHERE user_id = ? AND setting_key = ?`,
+      );
+      const hideRow = sel.get(userId, SETTING_HIDE_COMPLETED) as
+        | { setting_value: string }
+        | undefined;
+      const marketRow = sel.get(userId, SETTING_MARKET_LINKS) as
+        | { setting_value: string }
+        | undefined;
       res.status(200).json({
-        hide_completed: row?.setting_value === '1',
+        hide_completed: hideRow?.setting_value === '1',
+        market_links: marketRow?.setting_value === '1',
       });
     } catch (error) {
       console.error('Failed to load Warframe settings:', error);
@@ -202,21 +208,37 @@ warframeApiRouter.patch('/settings', (req, res) => {
       res.status(401).json({ error: 'Unauthorized' });
       return;
     }
-    if (typeof req.body?.hide_completed !== 'boolean') {
-      res.status(400).json({ error: 'hide_completed must be a boolean.' });
+    const hideProvided = typeof req.body?.hide_completed === 'boolean';
+    const marketProvided = typeof req.body?.market_links === 'boolean';
+    if (!hideProvided && !marketProvided) {
+      res.status(400).json({
+        error: 'Provide at least one of hide_completed, market_links as a boolean.',
+      });
       return;
     }
     const db = await getDbOrFail(res);
     if (!db) return;
     try {
       ensureWarframeUserSettingsTable(db);
-      db.prepare(
+      const readSetting = (key: string): boolean => {
+        const row = db
+          .prepare(`SELECT setting_value FROM user_settings WHERE user_id = ? AND setting_key = ?`)
+          .get(userId, key) as { setting_value: string } | undefined;
+        return row?.setting_value === '1';
+      };
+      let hideCompleted = readSetting(SETTING_HIDE_COMPLETED);
+      let marketLinks = readSetting(SETTING_MARKET_LINKS);
+      if (hideProvided) hideCompleted = req.body.hide_completed as boolean;
+      if (marketProvided) marketLinks = req.body.market_links as boolean;
+      const upsert = db.prepare(
         `INSERT INTO user_settings (user_id, setting_key, setting_value, updated_at)
          VALUES (?, ?, ?, datetime('now'))
          ON CONFLICT(user_id, setting_key) DO UPDATE SET
            setting_value = excluded.setting_value,
            updated_at = datetime('now')`,
-      ).run(userId, SETTING_HIDE_COMPLETED, req.body.hide_completed ? '1' : '0');
+      );
+      upsert.run(userId, SETTING_HIDE_COMPLETED, hideCompleted ? '1' : '0');
+      upsert.run(userId, SETTING_MARKET_LINKS, marketLinks ? '1' : '0');
       res.status(200).json({ success: true });
     } catch (error) {
       console.error('Failed to save Warframe settings:', error);

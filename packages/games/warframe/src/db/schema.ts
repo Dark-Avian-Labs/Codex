@@ -34,6 +34,7 @@ export function createSchema(db: Database.Database, confirmReset: boolean): void
       worksheet_id INTEGER NOT NULL,
       item_name TEXT NOT NULL,
       display_order INTEGER NOT NULL DEFAULT 0,
+      market_href TEXT,
       FOREIGN KEY (worksheet_id) REFERENCES worksheets(id) ON DELETE CASCADE
     );
 
@@ -55,5 +56,14 @@ export function createSchema(db: Database.Database, confirmReset: boolean): void
   `);
 }
 
-const { getDb, closeDb } = createDbSingleton(WARFRAME_DB_PATH);
+export function ensureWarframeRowMarketHrefColumn(db: Database.Database): void {
+  const cols = db.prepare(`PRAGMA table_info(rows)`).all() as { name: string }[];
+  if (!cols.some((c) => c.name === 'market_href')) {
+    db.exec('ALTER TABLE rows ADD COLUMN market_href TEXT');
+  }
+}
+
+const { getDb, closeDb } = createDbSingleton(WARFRAME_DB_PATH, {
+  onOpen: ensureWarframeRowMarketHrefColumn,
+});
 export { getDb, closeDb };

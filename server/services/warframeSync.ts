@@ -129,6 +129,38 @@ function resolveCanonicalKey(value: string): string {
   return resolveCanonicalKeyWithAliases(value, MATCH_NAME_ALIASES);
 }
 
+function refreshWorksheetMarketHrefs(
+  codexDb: Database.Database,
+  armoryDb: Database.Database,
+  userId: number,
+  worksheetId: number,
+  worksheet: WorksheetName,
+): void {
+  try {
+    const sel = armoryDb.prepare(
+      `SELECT market_href FROM warframe_market_links WHERE canonical_key = ? AND worksheet_category = ?`,
+    );
+    const rows = q.getWorksheetRows(codexDb, worksheetId, userId);
+    const stmt = codexDb.prepare('UPDATE rows SET market_href = ? WHERE id = ?');
+    const tx = codexDb.transaction(() => {
+      for (const row of rows) {
+        const effectiveName =
+          worksheet === 'Modular Weapons' ? stripKitgunPrimarySuffix(row.item_name) : row.item_name;
+        const key = resolveCanonicalKey(effectiveName);
+        const hit = sel.get(key, worksheet) as { market_href: string | null } | undefined;
+        stmt.run(hit?.market_href ?? null, row.id);
+      }
+    });
+    tx();
+  } catch (e) {
+    const err = e instanceof Error ? e : new Error(String(e));
+    console.warn(
+      `[Warframe sync] market href refresh failed: userId=${userId}, worksheetId=${worksheetId}, worksheet=${worksheet}`,
+      err.stack ?? err.message,
+    );
+  }
+}
+
 function getSpecialPrimeVariantBaseName(value: string): string | undefined {
   return SPECIAL_PRIME_VARIANT_BASE_NAME.get(normalizeNameForKey(value));
 }
@@ -714,6 +746,10 @@ export function runWarframeSync(
         }
         cleanupDeletedRows.push(...cleanup.deletedRows);
         cleanupRequiresConfirmationRows.push(...cleanup.requiresConfirmationRows);
+
+        if (options.execute) {
+          refreshWorksheetMarketHrefs(codexDb, armoryDb, userId, sheet.id, worksheet);
+        }
 
         worksheetResults.push({
           worksheet,
