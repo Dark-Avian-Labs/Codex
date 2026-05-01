@@ -11,6 +11,8 @@ type Row = {
   item_name?: string;
   values?: Record<string, string>;
   market_href?: string | null;
+  market_href_normal?: string | null;
+  market_href_prime?: string | null;
 };
 type WorksheetData = { columns: Column[]; rows: Row[] };
 type WarframeSettings = {
@@ -333,6 +335,14 @@ export function WarframePage() {
     });
   }, [data.columns, data.rows, hideCompleted, search, exitingRows]);
 
+  const hasDualVariantColumns = useMemo(() => {
+    const nonHelminth = data.columns.filter((column) => column.name !== 'Helminth');
+    return (
+      nonHelminth.some((column) => /prime/i.test(column.name)) &&
+      nonHelminth.some((column) => !/prime/i.test(column.name))
+    );
+  }, [data.columns]);
+
   const stats = useMemo(() => {
     const byColumn: Record<string, { total: number; complete: number; obtained: number }> = {};
     for (const column of data.columns) {
@@ -487,9 +497,13 @@ export function WarframePage() {
       } catch {
         setMarketLinks(previousValue);
         setError('Failed to save "Market links" setting.');
+        return;
+      }
+      if (nextValue && worksheetId !== null) {
+        void loadWorksheetData(worksheetId);
       }
     },
-    [marketLinks],
+    [marketLinks, worksheetId, loadWorksheetData],
   );
 
   useEffect(() => {
@@ -641,11 +655,16 @@ export function WarframePage() {
                 <col
                   key={`col-${column.id}`}
                   style={{
-                    width: column.name === 'Helminth' ? '150px' : '200px',
+                    width:
+                      column.name === 'Helminth'
+                        ? '150px'
+                        : hasDualVariantColumns && marketLinks
+                          ? '248px'
+                          : '200px',
                   }}
                 />
               ))}
-              {marketLinks ? <col style={{ width: '96px' }} /> : null}
+              {marketLinks && !hasDualVariantColumns ? <col style={{ width: '96px' }} /> : null}
             </colgroup>
             <thead>
               <tr>
@@ -655,7 +674,9 @@ export function WarframePage() {
                     {column.name}
                   </th>
                 ))}
-                {marketLinks ? <th className="text-center">Market</th> : null}
+                {marketLinks && !hasDualVariantColumns ? (
+                  <th className="text-center">Market</th>
+                ) : null}
               </tr>
             </thead>
             <tbody>
@@ -670,27 +691,67 @@ export function WarframePage() {
                     <td className="item-name">{row.name || row.item_name || 'Unnamed'}</td>
                     {data.columns.map((column) => {
                       const value = row.values?.[String(column.id)] ?? '';
+                      const rowLabel = row.name || row.item_name || 'item';
+                      const showInlineMarket =
+                        marketLinks && hasDualVariantColumns && column.name !== 'Helminth';
+                      const variantHref = showInlineMarket
+                        ? /prime/i.test(column.name)
+                          ? row.market_href_prime
+                          : row.market_href_normal
+                        : undefined;
+
+                      const statusButton = (
+                        <button
+                          type="button"
+                          className={statusClass(value, column.name)}
+                          onClick={() => {
+                            void handleToggle(row, column);
+                          }}
+                          aria-label={`${column.name} status for ${rowLabel}`}
+                          disabled={value === 'Unavailable'}
+                        >
+                          {column.name === 'Helminth'
+                            ? value === 'Yes'
+                              ? '✓'
+                              : '—'
+                            : value || '—'}
+                        </button>
+                      );
+
                       return (
                         <td key={`${row.id}-${column.id}`} className="status-cell">
-                          <button
-                            type="button"
-                            className={statusClass(value, column.name)}
-                            onClick={() => {
-                              void handleToggle(row, column);
-                            }}
-                            aria-label={`${column.name} status for ${row.name || row.item_name || 'item'}`}
-                            disabled={value === 'Unavailable'}
-                          >
-                            {column.name === 'Helminth'
-                              ? value === 'Yes'
-                                ? '✓'
-                                : '—'
-                              : value || '—'}
-                          </button>
+                          {showInlineMarket ? (
+                            <div className="status-cell-inner">
+                              {statusButton}
+                              {variantHref ? (
+                                <a
+                                  href={variantHref}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="status-btn helminth-btn empty text-primary hover:text-primary/90 inline-flex shrink-0 no-underline"
+                                  aria-label={`Warframe Market (${column.name}) for ${rowLabel}`}
+                                  title="Open Warframe Market"
+                                >
+                                  <ChainGlyph />
+                                </a>
+                              ) : (
+                                <span
+                                  className="status-btn helminth-btn unavailable inline-flex shrink-0 cursor-not-allowed"
+                                  aria-disabled="true"
+                                  title="Not listed on Warframe Market"
+                                  aria-label={`No Warframe Market listing (${column.name}) for ${rowLabel}`}
+                                >
+                                  <ChainGlyph />
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            statusButton
+                          )}
                         </td>
                       );
                     })}
-                    {marketLinks ? (
+                    {marketLinks && !hasDualVariantColumns ? (
                       <td className="status-cell">
                         {row.market_href ? (
                           <a

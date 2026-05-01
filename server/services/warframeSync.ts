@@ -4,7 +4,9 @@ import {
   normalizeDisplayName,
   normalizeNameForKey,
   resolveCanonicalKey as resolveCanonicalKeyWithAliases,
+  resolveVariantColumns,
   stripPrimeSuffix,
+  type VariantColumns,
 } from '@codex/game-warframe';
 import Database from 'better-sqlite3';
 
@@ -130,11 +132,6 @@ type CleanupCandidate = {
   canonicalKey: string;
 };
 
-type VariantColumns = {
-  baseColumnIds: number[];
-  primeColumnIds: number[];
-};
-
 function resolveCanonicalKey(value: string): string {
   return resolveCanonicalKeyWithAliases(value, MATCH_NAME_ALIASES);
 }
@@ -152,10 +149,12 @@ function refreshWorksheetMarketHrefs(
 ): MarketHrefRefreshResult {
   try {
     const sel = armoryDb.prepare(
-      `SELECT market_href FROM warframe_market_links WHERE canonical_key = ? AND worksheet_category = ?`,
+      `SELECT market_href, market_href_prime FROM warframe_market_links WHERE canonical_key = ? AND worksheet_category = ?`,
     );
     const rows = q.getWorksheetRows(codexDb, worksheetId, userId);
-    const stmt = codexDb.prepare('UPDATE rows SET market_href = ? WHERE id = ?');
+    const stmt = codexDb.prepare(
+      'UPDATE rows SET market_href = ?, market_href_prime = ? WHERE id = ?',
+    );
     let rowsProcessed = 0;
     let rowsWithHref = 0;
     const tx = codexDb.transaction(() => {
@@ -163,11 +162,17 @@ function refreshWorksheetMarketHrefs(
         const effectiveName =
           worksheet === 'Modular Weapons' ? stripKitgunPrimarySuffix(row.item_name) : row.item_name;
         const key = resolveCanonicalKey(effectiveName);
-        const hit = sel.get(key, worksheet) as { market_href: string | null } | undefined;
+        const hit = sel.get(key, worksheet) as
+          | { market_href: string | null; market_href_prime: string | null }
+          | undefined;
         const href = hit?.market_href ?? null;
-        stmt.run(href, row.id);
+        const hrefPrime = hit?.market_href_prime ?? null;
+        stmt.run(href, hrefPrime, row.id);
         rowsProcessed += 1;
-        if (typeof href === 'string' && href.trim().length > 0) {
+        const hasAny =
+          (typeof href === 'string' && href.trim().length > 0) ||
+          (typeof hrefPrime === 'string' && hrefPrime.trim().length > 0);
+        if (hasAny) {
           rowsWithHref += 1;
         }
       }
@@ -457,20 +462,6 @@ function createDesiredEntries(
   }
 
   return desired;
-}
-
-function resolveVariantColumns(columns: Array<{ id: number; name: string }>): VariantColumns {
-  const baseColumnIds: number[] = [];
-  const primeColumnIds: number[] = [];
-  for (const column of columns) {
-    if (column.name === 'Helminth') continue;
-    if (/prime/i.test(column.name)) {
-      primeColumnIds.push(column.id);
-      continue;
-    }
-    baseColumnIds.push(column.id);
-  }
-  return { baseColumnIds, primeColumnIds };
 }
 
 function reconcileVariantAvailability(params: {

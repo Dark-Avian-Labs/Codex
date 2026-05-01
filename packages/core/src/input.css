@@ -885,11 +885,20 @@ html:not(.dark) .invert-on-light {
     text-align: center;
   }
 
+  .status-cell-inner {
+    display: inline-flex;
+    max-width: 100%;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
   .status-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     min-width: 90px;
+    max-width: 90px;
     height: 29px;
     min-height: 29px;
     max-height: 29px;
@@ -949,6 +958,9 @@ html:not(.dark) .invert-on-light {
 
   .helminth-btn {
     min-width: 48px;
+    max-width: 48px;
+    padding-left: 0;
+    padding-right: 0;
   }
 
   .helminth-btn.yes {
