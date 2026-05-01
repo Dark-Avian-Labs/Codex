@@ -21,6 +21,15 @@ type WorksheetSyncResult = {
   markedUnavailable: string[];
   mismatched: number[];
 };
+type MarketLinkSyncPayload =
+  | { ran: false }
+  | {
+      ran: true;
+      rowsProcessed: number;
+      rowsWithLink: number;
+      failedWorksheets: Array<{ userId: number; worksheet: string }>;
+    };
+
 type SyncResult = {
   users: Array<{
     userId: number;
@@ -48,6 +57,7 @@ type SyncResult = {
       canonicalKey: string;
     }>;
   };
+  marketLinkSync?: MarketLinkSyncPayload;
 };
 
 const NAME_PREVIEW_LIMIT = 10;
@@ -139,10 +149,18 @@ function SyncFromArmoryReportBody({
   onClose: () => void;
 }) {
   const { summary, cleanup, users } = result;
+  const marketLinkSync = result.marketLinkSync ?? { ran: false as const };
   const totalMovement =
     summary.added + summary.deleted + summary.markedUnavailable + summary.mismatched;
   const cleanupRemoved = cleanup?.deleted ?? 0;
   const cleanupReview = cleanup?.requiresConfirmation ?? 0;
+  const marketHadSuccessfulRefresh =
+    marketLinkSync.ran && (marketLinkSync.rowsProcessed > 0 || marketLinkSync.rowsWithLink > 0);
+  const marketHadNoActivity =
+    !marketLinkSync.ran ||
+    (marketLinkSync.rowsProcessed === 0 &&
+      marketLinkSync.rowsWithLink === 0 &&
+      marketLinkSync.failedWorksheets.length === 0);
 
   return (
     <>
@@ -161,6 +179,39 @@ function SyncFromArmoryReportBody({
         <dd className="font-mono font-medium tabular-nums">{summary.markedUnavailable}</dd>
         <dt className="text-muted">Mismatched (still on sheet)</dt>
         <dd className="font-mono font-medium tabular-nums">{summary.mismatched}</dd>
+        <dt className="text-muted">Warframe Market links (from Armory)</dt>
+        <dd className="text-sm leading-snug">
+          {!marketLinkSync.ran ? (
+            <span className="text-muted">Not run</span>
+          ) : marketLinkSync.failedWorksheets.length > 0 &&
+            marketLinkSync.rowsProcessed === 0 &&
+            marketLinkSync.rowsWithLink === 0 ? (
+            <span className="text-amber-400">
+              Import failed for every worksheet — check server logs.
+            </span>
+          ) : (
+            <>
+              <span className="font-mono font-medium text-[var(--color-foreground)] tabular-nums">
+                {marketLinkSync.rowsWithLink}
+              </span>{' '}
+              <span className="text-muted">
+                row{marketLinkSync.rowsWithLink === 1 ? '' : 's'} with a market URL (
+                {marketLinkSync.rowsProcessed} Codex rows updated)
+              </span>
+              {marketLinkSync.failedWorksheets.length > 0 ? (
+                <span className="mt-1 block text-amber-400">
+                  {marketLinkSync.failedWorksheets.length} worksheet
+                  {marketLinkSync.failedWorksheets.length === 1 ? '' : 's'} could not be refreshed
+                  (User{' '}
+                  {marketLinkSync.failedWorksheets
+                    .map((f) => `${f.userId} · ${f.worksheet}`)
+                    .join('; ')}
+                  ).
+                </span>
+              ) : null}
+            </>
+          )}
+        </dd>
       </dl>
 
       {cleanupRemoved > 0 || cleanupReview > 0 ? (
@@ -189,9 +240,17 @@ function SyncFromArmoryReportBody({
         </div>
       ) : null}
 
-      {totalMovement === 0 && cleanupRemoved === 0 && cleanupReview === 0 ? (
+      {totalMovement === 0 && cleanupRemoved === 0 && cleanupReview === 0 && marketHadNoActivity ? (
         <p className="text-muted mt-4 text-sm">
           No changes were necessary — Codex already matched Armory for every user.
+        </p>
+      ) : totalMovement === 0 &&
+        cleanupRemoved === 0 &&
+        cleanupReview === 0 &&
+        marketHadSuccessfulRefresh ? (
+        <p className="text-muted mt-4 text-sm">
+          No worksheet row changes — Warframe Market links were still refreshed from Armory (
+          {marketLinkSync.rowsWithLink} with URLs, {marketLinkSync.rowsProcessed} rows updated).
         </p>
       ) : (
         <div className="mt-4 max-h-[min(50vh,22rem)] space-y-4 overflow-y-auto border-t border-[var(--color-glass-border)] pt-4">
@@ -512,6 +571,10 @@ export function WarframeAdminPage() {
           {cleanup && cleanup.requiresConfirmation > 0 ? (
             <span>Cleanup Review Needed: {cleanup.requiresConfirmation}</span>
           ) : null}
+          <span className="text-muted">
+            Market links: Armory URLs are written only when you run full &quot;Sync From
+            Armory&quot; (not this preview).
+          </span>
         </div>
       ) : null}
       {cleanup && cleanup.requiresConfirmationRows.length > 0 ? (

@@ -110,7 +110,17 @@ export type WarframeSyncResult = {
     deletedRows: CleanupCandidate[];
     requiresConfirmationRows: CleanupCandidate[];
   };
+  marketLinkSync: WarframeMarketLinkSyncSummary;
 };
+
+export type WarframeMarketLinkSyncSummary =
+  | { ran: false }
+  | {
+      ran: true;
+      rowsProcessed: number;
+      rowsWithLink: number;
+      failedWorksheets: Array<{ userId: number; worksheet: WorksheetName }>;
+    };
 
 type CleanupCandidate = {
   userId: number;
@@ -129,35 +139,48 @@ function resolveCanonicalKey(value: string): string {
   return resolveCanonicalKeyWithAliases(value, MATCH_NAME_ALIASES);
 }
 
+type MarketHrefRefreshResult =
+  | { ok: true; rowsProcessed: number; rowsWithHref: number }
+  | { ok: false; error: string };
+
 function refreshWorksheetMarketHrefs(
   codexDb: Database.Database,
   armoryDb: Database.Database,
   userId: number,
   worksheetId: number,
   worksheet: WorksheetName,
-): void {
+): MarketHrefRefreshResult {
   try {
     const sel = armoryDb.prepare(
       `SELECT market_href FROM warframe_market_links WHERE canonical_key = ? AND worksheet_category = ?`,
     );
     const rows = q.getWorksheetRows(codexDb, worksheetId, userId);
     const stmt = codexDb.prepare('UPDATE rows SET market_href = ? WHERE id = ?');
+    let rowsProcessed = 0;
+    let rowsWithHref = 0;
     const tx = codexDb.transaction(() => {
       for (const row of rows) {
         const effectiveName =
           worksheet === 'Modular Weapons' ? stripKitgunPrimarySuffix(row.item_name) : row.item_name;
         const key = resolveCanonicalKey(effectiveName);
         const hit = sel.get(key, worksheet) as { market_href: string | null } | undefined;
-        stmt.run(hit?.market_href ?? null, row.id);
+        const href = hit?.market_href ?? null;
+        stmt.run(href, row.id);
+        rowsProcessed += 1;
+        if (typeof href === 'string' && href.trim().length > 0) {
+          rowsWithHref += 1;
+        }
       }
     });
     tx();
+    return { ok: true, rowsProcessed, rowsWithHref };
   } catch (e) {
     const err = e instanceof Error ? e : new Error(String(e));
     console.warn(
       `[Warframe sync] market href refresh failed: userId=${userId}, worksheetId=${worksheetId}, worksheet=${worksheet}`,
       err.stack ?? err.message,
     );
+    return { ok: false, error: err.message };
   }
 }
 
@@ -639,6 +662,9 @@ export function runWarframeSync(
     };
     const cleanupDeletedRows: CleanupCandidate[] = [];
     const cleanupRequiresConfirmationRows: CleanupCandidate[] = [];
+    const marketLinkFailed: Array<{ userId: number; worksheet: WorksheetName }> = [];
+    let marketRowsProcessed = 0;
+    let marketRowsWithHref = 0;
 
     for (const userId of userIds) {
       const sourceByWorksheetForUser = cloneWorksheetSource(sourceByWorksheet);
@@ -748,7 +774,13 @@ export function runWarframeSync(
         cleanupRequiresConfirmationRows.push(...cleanup.requiresConfirmationRows);
 
         if (options.execute) {
-          refreshWorksheetMarketHrefs(codexDb, armoryDb, userId, sheet.id, worksheet);
+          const mr = refreshWorksheetMarketHrefs(codexDb, armoryDb, userId, sheet.id, worksheet);
+          if (mr.ok) {
+            marketRowsProcessed += mr.rowsProcessed;
+            marketRowsWithHref += mr.rowsWithHref;
+          } else {
+            marketLinkFailed.push({ userId, worksheet });
+          }
         }
 
         worksheetResults.push({
@@ -778,6 +810,14 @@ export function runWarframeSync(
         deletedRows: cleanupDeletedRows,
         requiresConfirmationRows: cleanupRequiresConfirmationRows,
       },
+      marketLinkSync: options.execute
+        ? {
+            ran: true,
+            rowsProcessed: marketRowsProcessed,
+            rowsWithLink: marketRowsWithHref,
+            failedWorksheets: marketLinkFailed,
+          }
+        : { ran: false },
     };
   } finally {
     armoryDb.close();

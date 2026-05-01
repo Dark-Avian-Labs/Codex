@@ -573,19 +573,21 @@ export function WarframePage() {
         ))}
       </div>
       <div className="stats-bar">
-        {stats.map((entry) => (
-          <div key={entry.name} className="stat">
-            <span>{entry.name}:</span>
-            <span className="stat-value stat-complete">{entry.complete}</span>
-            <span>/</span>
-            <span className="stat-value">{entry.total}</span>
-            <span>({entry.percent}%)</span>
-            {entry.obtained > 0 ? (
-              <span className="stat-value stat-obtained">+{entry.obtained}</span>
-            ) : null}
-          </div>
-        ))}
-        <div className="stat stat-option">
+        <div className="stats-bar-stats">
+          {stats.map((entry) => (
+            <div key={entry.name} className="stat">
+              <span>{entry.name}:</span>
+              <span className="stat-value stat-complete">{entry.complete}</span>
+              <span>/</span>
+              <span className="stat-value">{entry.total}</span>
+              <span>({entry.percent}%)</span>
+              {entry.obtained > 0 ? (
+                <span className="stat-value stat-obtained">+{entry.obtained}</span>
+              ) : null}
+            </div>
+          ))}
+        </div>
+        <div className="stats-bar-actions">
           <button
             type="button"
             onClick={() => {
@@ -607,8 +609,6 @@ export function WarframePage() {
               {hideCompleted ? '\u2713' : '\u2715'}
             </span>
           </button>
-        </div>
-        <div className="stat stat-option">
           <button
             type="button"
             onClick={() => {
@@ -645,6 +645,7 @@ export function WarframePage() {
                   }}
                 />
               ))}
+              {marketLinks ? <col style={{ width: '96px' }} /> : null}
             </colgroup>
             <thead>
               <tr>
@@ -654,6 +655,7 @@ export function WarframePage() {
                     {column.name}
                   </th>
                 ))}
+                {marketLinks ? <th className="text-center">Market</th> : null}
               </tr>
             </thead>
             <tbody>
@@ -665,36 +667,7 @@ export function WarframePage() {
 
                 return (
                   <tr key={row.id} className={rowClassName}>
-                    <td className="item-name">
-                      <div className="flex items-center gap-1.5">
-                        <span className="min-w-0 flex-1">
-                          {row.name || row.item_name || 'Unnamed'}
-                        </span>
-                        {marketLinks ? (
-                          row.market_href ? (
-                            <a
-                              href={row.market_href}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-primary hover:text-primary/90 shrink-0"
-                              aria-label={`Warframe Market sell listings for ${row.name || row.item_name || 'item'}`}
-                              title="Open Warframe Market"
-                            >
-                              <ChainGlyph />
-                            </a>
-                          ) : (
-                            <span
-                              className="status-btn unavailable inline-flex shrink-0 cursor-not-allowed px-1.5 py-0.5"
-                              aria-disabled="true"
-                              title="Not listed on Warframe Market"
-                              aria-label={`No Warframe Market listing for ${row.name || row.item_name || 'item'}`}
-                            >
-                              <ChainGlyph />
-                            </span>
-                          )
-                        ) : null}
-                      </div>
-                    </td>
+                    <td className="item-name">{row.name || row.item_name || 'Unnamed'}</td>
                     {data.columns.map((column) => {
                       const value = row.values?.[String(column.id)] ?? '';
                       return (
@@ -717,6 +690,31 @@ export function WarframePage() {
                         </td>
                       );
                     })}
+                    {marketLinks ? (
+                      <td className="status-cell">
+                        {row.market_href ? (
+                          <a
+                            href={row.market_href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="status-btn empty text-primary hover:text-primary/90 inline-flex shrink-0 no-underline"
+                            aria-label={`Warframe Market sell listings for ${row.name || row.item_name || 'item'}`}
+                            title="Open Warframe Market"
+                          >
+                            <ChainGlyph />
+                          </a>
+                        ) : (
+                          <span
+                            className="status-btn unavailable inline-flex shrink-0 cursor-not-allowed"
+                            aria-disabled="true"
+                            title="Not listed on Warframe Market"
+                            aria-label={`No Warframe Market listing for ${row.name || row.item_name || 'item'}`}
+                          >
+                            <ChainGlyph />
+                          </span>
+                        )}
+                      </td>
+                    ) : null}
                   </tr>
                 );
               })}
