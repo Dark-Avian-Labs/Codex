@@ -1,3 +1,4 @@
+import { isHelminthNonSubsumableItemName } from '@codex/game-warframe/helminth-exceptions';
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 
 import { useLayoutSlots } from '../../components/Layout/useLayoutSlots';
@@ -49,15 +50,34 @@ const tableScrollStyle = {
   '--header-offset': '320px',
 } as CSSProperties;
 
+function rowItemLabel(row: Row): string {
+  return row.name || row.item_name || '';
+}
+
+function isHelminthNonSubsumableRow(row: Row): boolean {
+  return isHelminthNonSubsumableItemName(rowItemLabel(row));
+}
+
+function helminthCellGlyph(value: string, row: Row): string {
+  if (value === 'Yes') return '\u2713';
+  if (value === 'Unavailable' || isHelminthNonSubsumableRow(row)) return '\u2717';
+  return '\u2014';
+}
+
 function nextStatus(current: string, columnName: string): string {
   const cycle = columnName === 'Helminth' ? HELMINTH_CYCLE : STATUS_CYCLE;
   const idx = cycle.indexOf(current);
   return cycle[(idx + 1 + cycle.length) % cycle.length];
 }
 
-function statusClass(value: string, columnName: string): string {
+function statusClass(value: string, columnName: string, row?: Row): string {
   if (columnName === 'Helminth') {
-    return value === 'Yes' ? 'status-btn helminth-btn yes' : 'status-btn helminth-btn empty';
+    if (row && isHelminthNonSubsumableRow(row)) {
+      return 'status-btn helminth-btn unavailable';
+    }
+    if (value === 'Yes') return 'status-btn helminth-btn yes';
+    if (value === 'Unavailable') return 'status-btn helminth-btn unavailable';
+    return 'status-btn helminth-btn empty';
   }
   return `status-btn ${value.toLowerCase() || 'empty'}`;
 }
@@ -89,7 +109,11 @@ function isRowCompleted(row: Row, columns: Column[]): boolean {
     return true;
   }
 
-  return (row.values?.[String(helminthColumn.id)] ?? '') === 'Yes';
+  const helminthValue = row.values?.[String(helminthColumn.id)] ?? '';
+  if (isHelminthNonSubsumableItemName(rowItemLabel(row))) {
+    return helminthValue === 'Unavailable' || helminthValue === '';
+  }
+  return helminthValue === 'Yes';
 }
 
 function ChainGlyph({ className }: { className?: string }) {
@@ -383,6 +407,9 @@ export function WarframePage() {
   async function handleToggle(row: Row, column: Column): Promise<void> {
     const oldValue = row.values?.[String(column.id)] ?? '';
     if (oldValue === 'Unavailable') {
+      return;
+    }
+    if (column.name === 'Helminth' && isHelminthNonSubsumableRow(row)) {
       return;
     }
     const value = nextStatus(oldValue, column.name);
@@ -700,20 +727,28 @@ export function WarframePage() {
                           : row.market_href_normal
                         : undefined;
 
+                      const helminthLocked =
+                        column.name === 'Helminth' && isHelminthNonSubsumableRow(row);
+                      const helminthAria =
+                        column.name === 'Helminth'
+                          ? value === 'Yes'
+                            ? `Helminth subsumed for ${rowLabel}`
+                            : value === 'Unavailable' || helminthLocked
+                              ? `Helminth not applicable for ${rowLabel}`
+                              : `Helminth not completed for ${rowLabel}`
+                          : `${column.name} status for ${rowLabel}`;
                       const statusButton = (
                         <button
                           type="button"
-                          className={statusClass(value, column.name)}
+                          className={statusClass(value, column.name, row)}
                           onClick={() => {
                             void handleToggle(row, column);
                           }}
-                          aria-label={`${column.name} status for ${rowLabel}`}
-                          disabled={value === 'Unavailable'}
+                          aria-label={helminthAria}
+                          disabled={value === 'Unavailable' || helminthLocked}
                         >
                           {column.name === 'Helminth'
-                            ? value === 'Yes'
-                              ? '✓'
-                              : '—'
+                            ? helminthCellGlyph(value, row)
                             : value || '—'}
                         </button>
                       );

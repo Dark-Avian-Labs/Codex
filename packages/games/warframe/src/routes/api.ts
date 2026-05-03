@@ -13,6 +13,7 @@ import {
 } from '../config.js';
 import * as q from '../db/queries.js';
 import { getDb } from '../db/schema.js';
+import { isValidHelminthCellValue } from '../helminthExceptions.js';
 import {
   addRowSchema,
   adminUpdateSchema,
@@ -65,6 +66,7 @@ export type ValidateColumnValuesInvalidEntry = {
 function validateColumnValues(
   valuesRaw: Record<string, string>,
   columns: { id: number; name: string }[],
+  itemNameForHelminth?: string,
 ): {
   valid: Record<number, string>;
   invalid: ValidateColumnValuesInvalidEntry[];
@@ -92,14 +94,20 @@ function validateColumnValues(
       });
       continue;
     }
-    const isValid = col.name === 'Helminth' ? isHelminthValue(v) : isValidStatus(v);
+    const isValid =
+      col.name === 'Helminth'
+        ? itemNameForHelminth !== undefined
+          ? isValidHelminthCellValue(itemNameForHelminth, v)
+          : isHelminthValue(v)
+        : isValidStatus(v);
     if (!isValid) {
       invalid.push({
         column_id: k,
         value: v,
         reason:
           col.name === 'Helminth' ? 'invalid value for Helminth column' : 'invalid status value',
-        allowed: col.name === 'Helminth' ? [...HELMINTH_VALUES] : [...VALID_STATUSES],
+        allowed:
+          col.name === 'Helminth' ? [...HELMINTH_VALUES, 'Unavailable'] : [...VALID_STATUSES],
       });
     } else {
       valid[id] = v;
@@ -181,7 +189,12 @@ export async function handleUpdate(req: Request, res: Response): Promise<void> {
       return;
     }
     if (isHelminth) {
-      if (!isHelminthValue(value)) {
+      const itemName = q.getRowItemName(db, rowId, userId);
+      if (!itemName) {
+        jsonError(res, 'Row not found.');
+        return;
+      }
+      if (!isValidHelminthCellValue(itemName, value)) {
         jsonError(res, 'Invalid value for Helminth.');
         return;
       }
@@ -225,7 +238,7 @@ export async function handleAddRow(req: Request, res: Response): Promise<void> {
       res.status(403).json({ error: 'Worksheet not found or access denied.' });
       return;
     }
-    const { valid: values, invalid } = validateColumnValues(valuesRaw, columns);
+    const { valid: values, invalid } = validateColumnValues(valuesRaw, columns, itemName);
     if (invalid.length > 0) {
       res.status(400).json({
         error: 'Invalid column/value(s).',
@@ -258,7 +271,14 @@ export async function handleEditRow(req: Request, res: Response): Promise<void> 
       return;
     }
     const columns = q.getWorksheetColumns(db, worksheetId, userId);
-    const { valid: values, invalid } = validateColumnValues(valuesRaw, columns);
+    const existingName = q.getRowItemName(db, rowId, userId) ?? '';
+    const itemNameForHelminth =
+      itemName !== null && itemName.trim() !== '' ? itemName.trim() : existingName;
+    const { valid: values, invalid } = validateColumnValues(
+      valuesRaw,
+      columns,
+      itemNameForHelminth,
+    );
     if (invalid.length > 0) {
       res.status(400).json({
         error: 'Invalid column/value(s).',
