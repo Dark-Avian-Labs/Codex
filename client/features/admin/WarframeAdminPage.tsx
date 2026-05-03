@@ -1,3 +1,4 @@
+import { isHelminthNonSubsumableItemName } from '@codex/game-warframe/helminth-exceptions';
 import { type CSSProperties, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useLayoutSlots } from '../../components/Layout/useLayoutSlots';
@@ -325,16 +326,34 @@ function SyncFromArmoryReportBody({
   );
 }
 
-function statusClass(value: string, columnName: string): string {
+function statusClass(value: string, columnName: string, rowDisplayName?: string): string {
   if (columnName === 'Helminth') {
-    return value === 'Yes' ? 'status-btn helminth-btn yes' : 'status-btn helminth-btn empty';
+    if (value === 'Yes') return 'status-btn helminth-btn yes';
+    if (
+      value === 'Unavailable' ||
+      (rowDisplayName !== undefined && isHelminthNonSubsumableItemName(rowDisplayName))
+    ) {
+      return 'status-btn helminth-btn unavailable';
+    }
+    return 'status-btn helminth-btn empty';
   }
   return `status-btn ${value.toLowerCase() || 'empty'}`;
 }
 
-function cellDisplay(value: string | undefined, columnName: string): string {
-  if (columnName === 'Helminth' && value === 'Yes') {
-    return '✓';
+function cellDisplay(
+  value: string | undefined,
+  columnName: string,
+  rowDisplayName?: string,
+): string {
+  if (columnName === 'Helminth') {
+    if (value === 'Yes') return '\u2713';
+    if (
+      value === 'Unavailable' ||
+      (rowDisplayName && isHelminthNonSubsumableItemName(rowDisplayName))
+    ) {
+      return 'X';
+    }
+    return '\u2014';
   }
   return value || '—';
 }
@@ -655,11 +674,11 @@ export function WarframeAdminPage() {
                           <td key={`${row.id}-${column.id}`} className="status-cell">
                             <button
                               type="button"
-                              className={statusClass(value ?? '', column.name)}
+                              className={statusClass(value ?? '', column.name, displayName)}
                               disabled
                               aria-label={`${column.name} status for ${displayName}`}
                             >
-                              {cellDisplay(value, column.name)}
+                              {cellDisplay(value, column.name, displayName)}
                             </button>
                           </td>
                         );

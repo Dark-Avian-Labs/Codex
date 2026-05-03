@@ -8,6 +8,7 @@ import {
   WARFRAME_DB_PATH,
   getWarframeDb,
   isHelminthValue,
+  isValidHelminthCellValue,
   isValidStatus,
   warframeAddRowSchema,
   warframeAdminUpdateSchema,
@@ -103,6 +104,7 @@ type ValidateColumnValuesInvalidEntry = {
 function validateColumnValues(
   valuesRaw: Record<string, string>,
   columns: { id: number; name: string }[],
+  itemNameForHelminth?: string,
 ): {
   valid: Record<number, string>;
   invalid: ValidateColumnValuesInvalidEntry[];
@@ -130,14 +132,20 @@ function validateColumnValues(
       });
       continue;
     }
-    const validValue = col.name === 'Helminth' ? isHelminthValue(value) : isValidStatus(value);
+    const validValue =
+      col.name === 'Helminth'
+        ? itemNameForHelminth !== undefined
+          ? isValidHelminthCellValue(itemNameForHelminth, value)
+          : isHelminthValue(value)
+        : isValidStatus(value);
     if (!validValue) {
       invalid.push({
         column_id: key,
         value,
         reason:
           col.name === 'Helminth' ? 'invalid value for Helminth column' : 'invalid status value',
-        allowed: col.name === 'Helminth' ? [...HELMINTH_VALUES] : [...VALID_STATUSES],
+        allowed:
+          col.name === 'Helminth' ? [...HELMINTH_VALUES, 'Unavailable'] : [...VALID_STATUSES],
       });
     } else {
       valid[id] = value;
@@ -307,7 +315,12 @@ warframeApiRouter.patch('/cells', (req, res) => {
         return;
       }
       if (isHelminth) {
-        if (!isHelminthValue(data.value)) {
+        const itemName = q.getRowItemName(db, data.row_id, userId);
+        if (!itemName) {
+          res.status(400).json({ error: 'Row not found.' });
+          return;
+        }
+        if (!isValidHelminthCellValue(itemName, data.value)) {
           res.status(400).json({ error: 'Invalid value for Helminth.' });
           return;
         }
@@ -354,7 +367,7 @@ warframeApiRouter.post('/rows', (req, res) => {
         res.status(403).json({ error: 'Worksheet not found or access denied.' });
         return;
       }
-      const { valid, invalid } = validateColumnValues(data.values, columns);
+      const { valid, invalid } = validateColumnValues(data.values, columns, data.item_name);
       if (invalid.length > 0) {
         res.status(400).json({ error: 'Invalid column/value(s).', invalid });
         return;
@@ -396,7 +409,12 @@ warframeApiRouter.patch('/rows/:rowId', (req, res) => {
         return;
       }
       const columns = q.getWorksheetColumns(db, worksheetId, userId);
-      const { valid, invalid } = validateColumnValues(data.values, columns);
+      const existingName = q.getRowItemName(db, data.row_id, userId) ?? '';
+      const itemNameForHelminth =
+        data.item_name !== null && data.item_name.trim() !== ''
+          ? data.item_name.trim()
+          : existingName;
+      const { valid, invalid } = validateColumnValues(data.values, columns, itemNameForHelminth);
       if (invalid.length > 0) {
         res.status(400).json({ error: 'Invalid column/value(s).', invalid });
         return;

@@ -2,6 +2,10 @@ import Database from 'better-sqlite3';
 
 import { isHelminthValue, isValidStatus } from '../config.js';
 import { normalizeDisplayName } from '../displayName.js';
+import {
+  isHelminthNonSubsumableItemName,
+  isValidHelminthCellValue,
+} from '../helminthExceptions.js';
 
 export interface Worksheet {
   id: number;
@@ -125,6 +129,21 @@ export function getRowWorksheetId(
   return row?.worksheet_id ?? null;
 }
 
+export function getRowItemName(
+  db: Database.Database,
+  rowId: number,
+  userId: number,
+): string | null {
+  const row = db
+    .prepare(
+      `SELECT r.item_name FROM rows r
+       JOIN worksheets w ON r.worksheet_id = w.id
+       WHERE r.id = ? AND w.user_id = ?`,
+    )
+    .get(rowId, userId) as { item_name: string } | undefined;
+  return row?.item_name ?? null;
+}
+
 export function getWorksheetRows(
   db: Database.Database,
   worksheetId: number,
@@ -166,7 +185,7 @@ export function ensureHelminthColumn(
   const insertColumn = db.prepare(
     'INSERT INTO columns (worksheet_id, name, display_order) VALUES (?, ?, ?)',
   );
-  const selRows = db.prepare('SELECT id FROM rows WHERE worksheet_id = ?');
+  const selRows = db.prepare('SELECT id, item_name FROM rows WHERE worksheet_id = ?');
   const insertCell = db.prepare(
     'INSERT INTO cell_values (row_id, column_id, value) VALUES (?, ?, ?)',
   );
@@ -181,9 +200,10 @@ export function ensureHelminthColumn(
     const displayOrder = (maxOrder?.max_order ?? -1) + 1;
     const colResult = insertColumn.run(worksheetId, HELMINTH_COLUMN_NAME, displayOrder);
     const columnId = Number(colResult.lastInsertRowid);
-    const rows = selRows.all(worksheetId) as { id: number }[];
+    const rows = selRows.all(worksheetId) as { id: number; item_name: string }[];
     for (const r of rows) {
-      insertCell.run(r.id, columnId, '');
+      const initial = isHelminthNonSubsumableItemName(r.item_name) ? 'Unavailable' : '';
+      insertCell.run(r.id, columnId, initial);
     }
   })();
 }
@@ -267,9 +287,11 @@ export function updateCell(
 ): number {
   const row = db
     .prepare(
-      'SELECT r.id, r.worksheet_id FROM rows r JOIN worksheets w ON r.worksheet_id = w.id WHERE r.id = ? AND w.user_id = ?',
+      `SELECT r.id, r.worksheet_id, r.item_name FROM rows r
+       JOIN worksheets w ON r.worksheet_id = w.id
+       WHERE r.id = ? AND w.user_id = ?`,
     )
-    .get(rowId, userId) as { id: number; worksheet_id: number } | undefined;
+    .get(rowId, userId) as { id: number; worksheet_id: number; item_name: string } | undefined;
   if (!row) throw new Error('Row not found');
   const col = db
     .prepare(
@@ -284,7 +306,7 @@ export function updateCell(
   const columnName = col.name ?? '';
   const sanitizedValue =
     columnName === HELMINTH_COLUMN_NAME
-      ? isHelminthValue(value)
+      ? isValidHelminthCellValue(row.item_name, value)
         ? value
         : (() => {
             throw new Error('Invalid value for Helminth column');
@@ -346,7 +368,11 @@ export function addRow(
     for (const col of worksheetColumns) {
       let v = values[col.id] ?? '';
       if (col.name === HELMINTH_COLUMN_NAME) {
-        if (!isHelminthValue(v)) v = '';
+        if (isHelminthNonSubsumableItemName(itemName)) {
+          v = 'Unavailable';
+        } else if (!isHelminthValue(v)) {
+          v = '';
+        }
       } else if (!isValidStatus(v)) {
         v = '';
       }
@@ -366,10 +392,15 @@ export function editRow(
 ): boolean {
   const row = db
     .prepare(
-      'SELECT r.id, r.worksheet_id FROM rows r JOIN worksheets w ON r.worksheet_id = w.id WHERE r.id = ? AND w.user_id = ?',
+      `SELECT r.id, r.worksheet_id, r.item_name FROM rows r
+       JOIN worksheets w ON r.worksheet_id = w.id
+       WHERE r.id = ? AND w.user_id = ?`,
     )
-    .get(rowId, userId) as { id: number; worksheet_id: number } | undefined;
+    .get(rowId, userId) as { id: number; worksheet_id: number; item_name: string } | undefined;
   if (!row) return false;
+
+  const resolvedItemName =
+    itemName !== null && itemName.trim() !== '' ? itemName.trim() : (row.item_name ?? '');
 
   const columnIds = Object.keys(values)
     .map((k) => parseInt(k, 10))
@@ -410,7 +441,7 @@ export function editRow(
       if (!col) continue;
       const v =
         col.name === HELMINTH_COLUMN_NAME
-          ? isHelminthValue(value)
+          ? isValidHelminthCellValue(resolvedItemName, value)
             ? value
             : ''
           : isValidStatus(value)
@@ -459,9 +490,11 @@ export function adminUpdateCell(
 ): number {
   const row = db
     .prepare(
-      'SELECT r.id, r.worksheet_id FROM rows r JOIN worksheets w ON r.worksheet_id = w.id WHERE r.id = ? AND w.user_id = ?',
+      `SELECT r.id, r.worksheet_id, r.item_name FROM rows r
+       JOIN worksheets w ON r.worksheet_id = w.id
+       WHERE r.id = ? AND w.user_id = ?`,
     )
-    .get(rowId, userId) as { id: number; worksheet_id: number } | undefined;
+    .get(rowId, userId) as { id: number; worksheet_id: number; item_name: string } | undefined;
   if (!row) throw new Error('Row not found');
   const col = getColumnById(db, columnId, userId);
   if (!col) throw new Error('Column not found');
@@ -469,7 +502,10 @@ export function adminUpdateCell(
     // prettier-ignore
     throw new Error('Column does not belong to row\'s worksheet');
   }
-  const valid = col.name === HELMINTH_COLUMN_NAME ? isHelminthValue(value) : isValidStatus(value);
+  const valid =
+    col.name === HELMINTH_COLUMN_NAME
+      ? isValidHelminthCellValue(row.item_name, value)
+      : isValidStatus(value);
   if (!valid) throw new Error('Invalid status value');
   const result = db
     .prepare(
@@ -530,6 +566,33 @@ export function addRowWithEmptyValues(
   itemName: string,
 ): number {
   return addRow(db, worksheetId, userId, itemName, {});
+}
+
+export function ensureHelminthNonSubsumableCells(
+  db: Database.Database,
+  worksheetId: number,
+  userId: number,
+): void {
+  const ws = getWorksheetById(db, worksheetId, userId);
+  if (!ws || ws.name !== WARFRAMES_WORKSHEET_NAME) return;
+  const columns = getWorksheetColumns(db, worksheetId, userId);
+  const helminthCol = columns.find((c) => c.name === HELMINTH_COLUMN_NAME);
+  if (!helminthCol) return;
+  const rows = getWorksheetRows(db, worksheetId, userId);
+  const upsert = db.prepare(
+    `INSERT INTO cell_values (row_id, column_id, value)
+     VALUES (?, ?, ?)
+     ON CONFLICT(row_id, column_id) DO UPDATE SET value = excluded.value`,
+  );
+  const tx = db.transaction(() => {
+    for (const r of rows) {
+      if (!isHelminthNonSubsumableItemName(r.item_name)) continue;
+      const current = getCellValue(db, r.id, helminthCol.id, userId) ?? '';
+      if (current === 'Unavailable') continue;
+      upsert.run(r.id, helminthCol.id, 'Unavailable');
+    }
+  });
+  tx();
 }
 
 export function setRowUnavailable(db: Database.Database, rowId: number, userId: number): boolean {

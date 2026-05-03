@@ -60,6 +60,11 @@ export const warframeGame: GameModule = {
 };
 
 export {
+  HELMINTH_NON_SUBSUMABLE_ITEM_NAMES,
+  isHelminthNonSubsumableItemName,
+  isValidHelminthCellValue,
+} from './helminthExceptions.js';
+export {
   HELMINTH_VALUES,
   VALID_STATUSES,
   WARFRAME_DB_PATH,

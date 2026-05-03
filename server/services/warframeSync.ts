@@ -774,6 +774,10 @@ export function runWarframeSync(
           }
         }
 
+        if (worksheet === 'Warframes' && options.execute) {
+          q.ensureHelminthNonSubsumableCells(codexDb, sheet.id, userId);
+        }
+
         worksheetResults.push({
           worksheet,
           added: options.execute ? added : toAdd,
