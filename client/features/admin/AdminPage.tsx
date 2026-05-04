@@ -1,5 +1,6 @@
 import { type ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 
+import { MaterialSymbol } from '../../components/ui/MaterialSymbol';
 import { apiFetch } from '../../utils/api';
 import { useAuth } from '../auth/AuthContext';
 
@@ -302,7 +303,7 @@ export function AdminPage() {
             aria-label="Clear search"
             onClick={() => setSearch('')}
           >
-            &times;
+            <MaterialSymbol name="close" style={{ fontSize: 18 }} />
           </button>
         </div>
         <div className="filter-group" role="group" aria-label="Filter by class">

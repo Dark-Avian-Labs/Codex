@@ -2,6 +2,7 @@ import { isHelminthNonSubsumableItemName } from '@codex/game-warframe/helminth-e
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 
 import { useLayoutSlots } from '../../components/Layout/useLayoutSlots';
+import { MaterialSymbol } from '../../components/ui/MaterialSymbol';
 import { apiFetch } from '../../utils/api';
 
 type Worksheet = { id: number; name: string };
@@ -114,28 +115,6 @@ function isRowCompleted(row: Row, columns: Column[]): boolean {
     return helminthValue === 'Unavailable' || helminthValue === '';
   }
   return helminthValue === 'Yes';
-}
-
-function ChainGlyph({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      xmlns="http://www.w3.org/2000/svg"
-      width={14}
-      height={14}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      aria-hidden
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M13.828 10.172a4 4 0 010 5.656l-3 3a4 4 0 01-5.656-5.656l1.415-1.414m5.656 5.656L15 15M10.172 13.828a4 4 0 010-5.656l3-3a4 4 0 015.656 5.656l-1.415 1.414m-5.656 5.656L9 9"
-      />
-    </svg>
-  );
 }
 
 export function WarframePage() {
@@ -554,7 +533,7 @@ export function WarframePage() {
           aria-label="Clear search"
           onClick={() => setSearch('')}
         >
-          &times;
+          <MaterialSymbol name="close" className="leading-none" style={{ fontSize: 18 }} />
         </button>
       </div>,
     );
@@ -647,7 +626,16 @@ export function WarframePage() {
               }`}
               aria-hidden="true"
             >
-              {hideCompleted ? '\u2713' : '\u2715'}
+              {hideCompleted ? (
+                <MaterialSymbol
+                  name="check"
+                  filled
+                  className="leading-none"
+                  style={{ fontSize: 15 }}
+                />
+              ) : (
+                <MaterialSymbol name="close" className="leading-none" style={{ fontSize: 15 }} />
+              )}
             </span>
           </button>
           <button
@@ -668,7 +656,16 @@ export function WarframePage() {
               }`}
               aria-hidden="true"
             >
-              {marketLinks ? '\u2713' : '\u2715'}
+              {marketLinks ? (
+                <MaterialSymbol
+                  name="check"
+                  filled
+                  className="leading-none"
+                  style={{ fontSize: 15 }}
+                />
+              ) : (
+                <MaterialSymbol name="close" className="leading-none" style={{ fontSize: 15 }} />
+              )}
             </span>
           </button>
         </div>
@@ -767,7 +764,11 @@ export function WarframePage() {
                                   aria-label={`Warframe Market (${column.name}) for ${rowLabel}`}
                                   title="Open Warframe Market"
                                 >
-                                  <ChainGlyph />
+                                  <MaterialSymbol
+                                    name="link_2"
+                                    className="leading-none"
+                                    style={{ fontSize: 15 }}
+                                  />
                                 </a>
                               ) : (
                                 <span
@@ -776,7 +777,11 @@ export function WarframePage() {
                                   title="Not listed on Warframe Market"
                                   aria-label={`No Warframe Market listing (${column.name}) for ${rowLabel}`}
                                 >
-                                  <ChainGlyph />
+                                  <MaterialSymbol
+                                    name="link_2"
+                                    className="leading-none"
+                                    style={{ fontSize: 15 }}
+                                  />
                                 </span>
                               )}
                             </div>
@@ -797,7 +802,11 @@ export function WarframePage() {
                             aria-label={`Warframe Market sell listings for ${row.name || row.item_name || 'item'}`}
                             title="Open Warframe Market"
                           >
-                            <ChainGlyph />
+                            <MaterialSymbol
+                              name="link_2"
+                              className="leading-none"
+                              style={{ fontSize: 15 }}
+                            />
                           </a>
                         ) : (
                           <span
@@ -806,7 +815,11 @@ export function WarframePage() {
                             title="Not listed on Warframe Market"
                             aria-label={`No Warframe Market listing for ${row.name || row.item_name || 'item'}`}
                           >
-                            <ChainGlyph />
+                            <MaterialSymbol
+                              name="link_2"
+                              className="leading-none"
+                              style={{ fontSize: 15 }}
+                            />
                           </span>
                         )}
                       </td>

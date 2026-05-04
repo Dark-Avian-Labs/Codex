@@ -18,6 +18,7 @@ import { APP_PATHS } from '../../app/paths';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../features/auth/AuthContext';
 import { getProfileIconSrc } from '../../utils/profileIcons';
+import { MaterialSymbol } from '../ui/MaterialSymbol';
 import { Menu } from '../ui/Menu';
 export type LayoutOutletContext = {
   setHeaderCenter: (node: ReactNode | null) => void;
@@ -216,7 +217,11 @@ export function Layout() {
               aria-label={`Switch to ${mode === 'dark' ? 'light' : 'dark'} mode`}
               title={`Switch to ${mode === 'dark' ? 'light' : 'dark'} mode`}
             >
-              <span aria-hidden="true">{mode === 'dark' ? '☀' : '☾'}</span>
+              {mode === 'dark' ? (
+                <MaterialSymbol name="light_mode" filled />
+              ) : (
+                <MaterialSymbol name="dark_mode" filled />
+              )}
             </button>
 
             <div ref={menuRef} className="relative">

@@ -9,6 +9,7 @@ import {
 } from 'react';
 
 import { useLayoutSlots } from '../../components/Layout/useLayoutSlots';
+import { MaterialSymbol } from '../../components/ui/MaterialSymbol';
 import { Modal } from '../../components/ui/Modal';
 import { apiFetch } from '../../utils/api';
 
@@ -823,7 +824,7 @@ export function Epic7Page() {
           aria-label="Clear search"
           onClick={() => setSearch('')}
         >
-          &times;
+          <MaterialSymbol name="close" style={{ fontSize: 18 }} />
         </button>
       </div>,
     );
@@ -875,7 +876,10 @@ export function Epic7Page() {
                       }
                     }}
                   >
-                    {account.account_name}
+                    {isActive ? (
+                      <MaterialSymbol name="arrow_left_alt" style={{ fontSize: 18 }} />
+                    ) : null}
+                    <span>{account.account_name}</span>
                   </button>
                 );
               })
@@ -1166,7 +1170,7 @@ export function Epic7Page() {
                         onClick={() => openEditItemModal(row)}
                         aria-label={`Edit ${row.name}`}
                       >
-                        ✎
+                        <MaterialSymbol name="edit" />
                       </button>
                       <button
                         type="button"
@@ -1183,7 +1187,7 @@ export function Epic7Page() {
                         }}
                         aria-label={`Delete ${row.name}`}
                       >
-                        🗑
+                        <MaterialSymbol name="delete" />
                       </button>
                     </td>
                   ) : null}

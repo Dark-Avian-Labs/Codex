@@ -2,6 +2,7 @@ import { isHelminthNonSubsumableItemName } from '@codex/game-warframe/helminth-e
 import { type CSSProperties, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useLayoutSlots } from '../../components/Layout/useLayoutSlots';
+import { MaterialSymbol } from '../../components/ui/MaterialSymbol';
 import { Modal } from '../../components/ui/Modal';
 import { apiFetch } from '../../utils/api';
 import { useAuth } from '../auth/AuthContext';
@@ -522,7 +523,7 @@ export function WarframeAdminPage() {
           aria-label="Clear search"
           onClick={() => setSearch('')}
         >
-          &times;
+          <MaterialSymbol name="close" style={{ fontSize: 18 }} />
         </button>
       </div>,
     );
