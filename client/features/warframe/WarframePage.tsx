@@ -533,7 +533,7 @@ export function WarframePage() {
           aria-label="Clear search"
           onClick={() => setSearch('')}
         >
-          <MaterialSymbol name="close" style={{ fontSize: 18 }} />
+          <MaterialSymbol name="close" className="leading-none" style={{ fontSize: 18 }} />
         </button>
       </div>,
     );
