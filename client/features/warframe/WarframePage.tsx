@@ -938,12 +938,9 @@ export function WarframePage() {
                               onClick={(event) => {
                                 const current = row.advanced_progress?.level ?? 0;
                                 const max = row.advanced_relevance?.max_level ?? 30;
+                                const rect = event.currentTarget.getBoundingClientRect();
                                 const direction =
-                                  event.clientY <
-                                  event.currentTarget.getBoundingClientRect().top +
-                                    event.currentTarget.getBoundingClientRect().height / 2
-                                    ? 1
-                                    : -1;
+                                  event.clientY < rect.top + rect.height / 2 ? 1 : -1;
                                 const next = clamp(current + direction, 0, max);
                                 void handleAdvancedPatch(row, { level: next });
                               }}
@@ -967,12 +964,9 @@ export function WarframePage() {
                               disabled={!row.advanced_relevance?.valence}
                               onClick={(event) => {
                                 const current = row.advanced_progress?.valence_percent ?? 30;
+                                const rect = event.currentTarget.getBoundingClientRect();
                                 const direction =
-                                  event.clientY <
-                                  event.currentTarget.getBoundingClientRect().top +
-                                    event.currentTarget.getBoundingClientRect().height / 2
-                                    ? 1
-                                    : -1;
+                                  event.clientY < rect.top + rect.height / 2 ? 1 : -1;
                                 const next = clamp(current + direction, 30, 60);
                                 void handleAdvancedPatch(row, { valence_percent: next });
                               }}
