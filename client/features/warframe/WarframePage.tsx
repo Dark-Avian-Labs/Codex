@@ -1019,12 +1019,12 @@ export function WarframePage() {
               <col style={{ width: 'auto' }} />
               {advancedMode ? (
                 <>
-                  <col style={{ width: '130px' }} />
-                  <col style={{ width: '180px' }} />
-                  <col style={{ width: '96px' }} />
-                  <col style={{ width: '96px' }} />
-                  <col style={{ width: '96px' }} />
-                  <col style={{ width: '96px' }} />
+                  <col style={{ width: '136px' }} />
+                  <col style={{ width: '136px' }} />
+                  <col style={{ width: '136px' }} />
+                  <col style={{ width: '136px' }} />
+                  <col style={{ width: '136px' }} />
+                  <col style={{ width: '136px' }} />
                 </>
               ) : (
                 data.columns.map((column) => (
@@ -1078,7 +1078,15 @@ export function WarframePage() {
 
                 return (
                   <tr key={row.id} className={rowClassName}>
-                    <td className="item-name">{row.name || row.item_name || 'Unnamed'}</td>
+                    <td className="item-name">
+                      {row.name || row.item_name || 'Unnamed'}
+                      {advancedMode ? (
+                        <div className="text-muted mt-1 flex flex-col gap-1 text-[10px] leading-none">
+                          <span>Normal</span>
+                          <span>Prime</span>
+                        </div>
+                      ) : null}
+                    </td>
                     {advancedMode ? (
                       <>
                         <td className="status-cell">
@@ -1130,9 +1138,6 @@ export function WarframePage() {
                                     aria-label={`${isPrime ? 'Prime' : 'Normal'} level for ${row.name || row.item_name || 'item'}`}
                                   >
                                     <span className="inline-flex items-center gap-1.5">
-                                      <span className="text-[10px] opacity-70">
-                                        {isPrime ? 'P' : 'N'}
-                                      </span>
                                       <span>{current}</span>
                                       <span className="inline-flex flex-col text-[9px] leading-[0.7] opacity-80">
                                         <span>▲</span>
@@ -1194,9 +1199,6 @@ export function WarframePage() {
                                     aria-label={`${isPrime ? 'Prime' : 'Normal'} valence for ${row.name || row.item_name || 'item'}`}
                                   >
                                     <span className="inline-flex items-center gap-1.5">
-                                      <span className="text-[10px] opacity-70">
-                                        {isPrime ? 'P' : 'N'}
-                                      </span>
                                       <span>{current}</span>
                                       <span className="inline-flex flex-col text-[9px] leading-[0.7] opacity-80">
                                         <span>▲</span>
@@ -1242,13 +1244,18 @@ export function WarframePage() {
                                       >['normal']
                                     ],
                                   );
+                                  const lockedPrimeAuto =
+                                    isPrime &&
+                                    (field === 'has_element' || field === 'has_orokin') &&
+                                    Boolean(row.advanced_relevance?.has_prime_variant);
+                                  const interactive = relevant && !lockedPrimeAuto;
                                   const key = isPrime ? `${field}_prime` : field;
                                   return (
                                     <button
                                       key={`${row.id}-${key}`}
                                       type="button"
-                                      className={`${advancedToggleClass(checked, relevant)} min-w-[82px] px-2 py-1 text-xs`}
-                                      disabled={!relevant}
+                                      className={`${advancedToggleClass(checked, interactive)} min-w-[82px] px-2 py-1 text-xs`}
+                                      disabled={!interactive}
                                       onClick={() => {
                                         void handleAdvancedPatch(row, {
                                           [key]: !checked,
@@ -1266,10 +1273,7 @@ export function WarframePage() {
                                       aria-label={`${isPrime ? 'Prime' : 'Normal'} ${field.replace('has_', '')} for ${row.name || row.item_name || 'item'}`}
                                     >
                                       <span className="inline-flex items-center gap-1.5">
-                                        <span className="text-[10px] opacity-70">
-                                          {isPrime ? 'P' : 'N'}
-                                        </span>
-                                        <span>{advancedToggleGlyph(checked, relevant)}</span>
+                                        <span>{advancedToggleGlyph(checked, interactive)}</span>
                                       </span>
                                     </button>
                                   );
