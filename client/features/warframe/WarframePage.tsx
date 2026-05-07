@@ -123,14 +123,26 @@ function statusClass(value: string, columnName: string, row?: Row): string {
   return `status-btn ${value.toLowerCase() || 'empty'}`;
 }
 
-function advancedToggleClass(checked: boolean, relevant: boolean): string {
-  if (!relevant) return 'status-btn helminth-btn unavailable';
+function advancedToggleClass(
+  checked: boolean,
+  interactive: boolean,
+  lockedActive?: boolean,
+): string {
+  if (lockedActive && checked) {
+    return 'status-btn helminth-btn yes cursor-default border-success/35 bg-success/10 text-success/80';
+  }
+  if (!interactive) return 'status-btn helminth-btn unavailable';
   if (checked) return 'status-btn helminth-btn yes';
   return 'status-btn helminth-btn empty';
 }
 
-function advancedToggleGlyph(checked: boolean, relevant: boolean): string {
-  if (!relevant) return '\u2717';
+function advancedToggleGlyph(
+  checked: boolean,
+  interactive: boolean,
+  lockedActive?: boolean,
+): string {
+  if (lockedActive && checked) return '\u2713';
+  if (!interactive) return '\u2717';
   if (checked) return '\u2713';
   return '\u2014';
 }
@@ -1019,12 +1031,13 @@ export function WarframePage() {
               <col style={{ width: 'auto' }} />
               {advancedMode ? (
                 <>
-                  <col style={{ width: '136px' }} />
-                  <col style={{ width: '136px' }} />
-                  <col style={{ width: '136px' }} />
-                  <col style={{ width: '136px' }} />
-                  <col style={{ width: '136px' }} />
-                  <col style={{ width: '136px' }} />
+                  <col style={{ width: '64px' }} />
+                  <col style={{ width: '128px' }} />
+                  <col style={{ width: '128px' }} />
+                  <col style={{ width: '128px' }} />
+                  <col style={{ width: '128px' }} />
+                  <col style={{ width: '128px' }} />
+                  <col style={{ width: '128px' }} />
                 </>
               ) : (
                 data.columns.map((column) => (
@@ -1050,6 +1063,9 @@ export function WarframePage() {
                 <th>Name</th>
                 {advancedMode ? (
                   <>
+                    <th className="text-muted text-center text-xs font-normal" aria-label="Variant">
+                      &nbsp;
+                    </th>
                     <th className="text-center">Level</th>
                     <th className="text-center">Valence</th>
                     <th className="text-center">Ele Vice</th>
@@ -1078,17 +1094,21 @@ export function WarframePage() {
 
                 return (
                   <tr key={row.id} className={rowClassName}>
-                    <td className="item-name">
-                      {row.name || row.item_name || 'Unnamed'}
-                      {advancedMode ? (
-                        <div className="text-muted mt-1 flex flex-col gap-1 text-[10px] leading-none">
-                          <span>Normal</span>
-                          <span>Prime</span>
-                        </div>
-                      ) : null}
-                    </td>
+                    <td className="item-name">{row.name || row.item_name || 'Unnamed'}</td>
                     {advancedMode ? (
                       <>
+                        <td className="status-cell align-middle">
+                          <div className="status-cell-inner justify-end pr-1">
+                            <div className="text-muted flex flex-col gap-1 text-end text-[10px] leading-tight">
+                              <span className="flex min-h-[29px] items-center justify-end">
+                                Normal
+                              </span>
+                              <span className="flex min-h-[29px] items-center justify-end">
+                                Prime
+                              </span>
+                            </div>
+                          </div>
+                        </td>
                         <td className="status-cell">
                           <div className="status-cell-inner justify-center">
                             <div className="flex flex-col gap-1">
@@ -1249,13 +1269,16 @@ export function WarframePage() {
                                     (field === 'has_element' || field === 'has_orokin') &&
                                     Boolean(row.advanced_relevance?.has_prime_variant);
                                   const interactive = relevant && !lockedPrimeAuto;
+                                  const lockedOrokinPrimeAuto =
+                                    lockedPrimeAuto && field === 'has_orokin' && checked;
                                   const key = isPrime ? `${field}_prime` : field;
                                   return (
                                     <button
                                       key={`${row.id}-${key}`}
                                       type="button"
-                                      className={`${advancedToggleClass(checked, interactive)} min-w-[82px] px-2 py-1 text-xs`}
+                                      className={`${advancedToggleClass(checked, interactive, lockedOrokinPrimeAuto)} min-w-[82px] px-2 py-1 text-xs`}
                                       disabled={!interactive}
+                                      tabIndex={lockedOrokinPrimeAuto ? -1 : undefined}
                                       onClick={() => {
                                         void handleAdvancedPatch(row, {
                                           [key]: !checked,
@@ -1273,7 +1296,13 @@ export function WarframePage() {
                                       aria-label={`${isPrime ? 'Prime' : 'Normal'} ${field.replace('has_', '')} for ${row.name || row.item_name || 'item'}`}
                                     >
                                       <span className="inline-flex items-center gap-1.5">
-                                        <span>{advancedToggleGlyph(checked, interactive)}</span>
+                                        <span>
+                                          {advancedToggleGlyph(
+                                            checked,
+                                            interactive,
+                                            lockedOrokinPrimeAuto,
+                                          )}
+                                        </span>
                                       </span>
                                     </button>
                                   );
