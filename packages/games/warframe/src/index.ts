@@ -67,6 +67,9 @@ export {
 export {
   HELMINTH_VALUES,
   VALID_STATUSES,
+  VALENCE_COMPLETE_THRESHOLD,
+  VALENCE_PERCENT_MAX_STORED,
+  VALENCE_PERCENT_MIN,
   WARFRAME_DB_PATH,
   isHelminthValue,
   isValidStatus,
@@ -95,6 +98,7 @@ export {
   worksheetHasNormalAndPrimeColumns,
 } from './variantColumns.js';
 export {
+  ABSOLUTE_MAX_ADVANCED_LEVEL,
   type AdvancedRowRelevance,
   isArcaneRelevant,
   isExilusRelevant,

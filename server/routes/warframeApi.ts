@@ -27,32 +27,17 @@ export const warframeApiRouter = Router();
 
 warframeApiRouter.use(requireGameAccess('warframe'));
 
+function positiveIntegerUserId(value: unknown): number | null {
+  if (typeof value !== 'number' || !Number.isInteger(value) || value <= 0) return null;
+  return value;
+}
+
 function extractUserIdFromRequest(req: Request): number | null {
-  const userFromSessionSnake = (req.session as { user_id?: unknown })?.user_id;
-  if (
-    typeof userFromSessionSnake === 'number' &&
-    Number.isInteger(userFromSessionSnake) &&
-    userFromSessionSnake > 0
-  ) {
-    return userFromSessionSnake;
-  }
-  const userFromSessionCamel = (req.session as { userId?: unknown })?.userId;
-  if (
-    typeof userFromSessionCamel === 'number' &&
-    Number.isInteger(userFromSessionCamel) &&
-    userFromSessionCamel > 0
-  ) {
-    return userFromSessionCamel;
-  }
-  const userFromReqUser = (req as { user?: { id?: unknown } }).user?.id;
-  if (
-    typeof userFromReqUser === 'number' &&
-    Number.isInteger(userFromReqUser) &&
-    userFromReqUser > 0
-  ) {
-    return userFromReqUser;
-  }
-  return null;
+  const fromSnake = positiveIntegerUserId((req.session as { user_id?: unknown })?.user_id);
+  if (fromSnake !== null) return fromSnake;
+  const fromCamel = positiveIntegerUserId((req.session as { userId?: unknown })?.userId);
+  if (fromCamel !== null) return fromCamel;
+  return positiveIntegerUserId((req as { user?: { id?: unknown } }).user?.id);
 }
 
 function getUserId(req: Request): number {
@@ -91,7 +76,7 @@ async function getDbOrFail(res: Response): Promise<ReturnType<typeof getWarframe
   }
 }
 
-const ALLOWED_UPDATE_VALUES = ['', 'Obtained', 'Complete'];
+const CELL_PATCH_ALLOWED_STATUSES = VALID_STATUSES.filter((status) => status !== 'Unavailable');
 const SETTING_HIDE_COMPLETED = 'hide_completed';
 const SETTING_MARKET_LINKS = 'market_links';
 const SETTING_ADVANCED_MODE = 'advanced_mode';
@@ -345,7 +330,7 @@ warframeApiRouter.patch('/cells', (req, res) => {
           return;
         }
       } else {
-        if (!ALLOWED_UPDATE_VALUES.includes(data.value)) {
+        if (!(CELL_PATCH_ALLOWED_STATUSES as readonly string[]).includes(data.value)) {
           res.status(400).json({ error: 'Invalid status value.' });
           return;
         }
@@ -543,7 +528,11 @@ warframeApiRouter.patch('/admin/cells', requireAdmin, (req, res) => {
 
 warframeApiRouter.get('/admin/sync-preview', requireAdmin, (req, res) => {
   void (async () => {
-    const userId = extractUserIdFromRequest(req)!;
+    const userId = extractUserIdFromRequest(req);
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
     const db = await getDbOrFail(res);
     if (!db) return;
     try {

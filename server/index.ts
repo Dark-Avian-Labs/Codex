@@ -84,7 +84,9 @@ ensureGameSchemasReady();
 const app = express();
 if (TRUST_PROXY) app.set('trust proxy', 1);
 if (NODE_ENV === 'production' && SECURE_COOKIES && !TRUST_PROXY) {
-  throw new Error('TRUST_PROXY must be enabled in production with secure cookies.');
+  throw new Error(
+    'TRUST_PROXY must be enabled in production with secure cookies so Express trusts X-Forwarded-* headers behind your TLS terminator. Set TRUST_PROXY=1 (or enable trust proxy in config) when deploying behind a reverse proxy.',
+  );
 }
 
 app.use(helmet());
@@ -112,11 +114,24 @@ const RATE_LIMIT_SKIP_PATHS = new Set([
 ]);
 const RATE_LIMIT_SKIP_PATTERNS = [/^\/assets\/.+\.(?:css|js|png|jpe?g|gif|webp|svg|ico|woff2?)$/i];
 
-const baselineLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 1200,
-  standardHeaders: true,
-  legacyHeaders: false,
+const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
+const BASELINE_RATE_LIMIT_MAX = 1200;
+const STATIC_ASSET_RATE_LIMIT_MAX = 5000;
+
+function createRateLimiter(
+  max: number,
+  options?: { skip?: (req: Request) => boolean },
+): ReturnType<typeof rateLimit> {
+  return rateLimit({
+    windowMs: RATE_LIMIT_WINDOW_MS,
+    max,
+    standardHeaders: true,
+    legacyHeaders: false,
+    ...(options?.skip ? { skip: options.skip } : {}),
+  });
+}
+
+const baselineLimiter = createRateLimiter(BASELINE_RATE_LIMIT_MAX, {
   skip: (req) =>
     RATE_LIMIT_SKIP_PATHS.has(req.path) ||
     RATE_LIMIT_SKIP_PATTERNS.some((pattern) => pattern.test(req.path)),
@@ -263,18 +278,8 @@ app.use('/api', (_req, res) => {
   res.status(404).json({ error: 'Not found' });
 });
 
-const publicPageLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 1200,
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-const staticAssetLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 5000,
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+const publicPageLimiter = createRateLimiter(BASELINE_RATE_LIMIT_MAX);
+const staticAssetLimiter = createRateLimiter(STATIC_ASSET_RATE_LIMIT_MAX);
 
 const clientDir = path.join(PROJECT_ROOT, 'dist', 'client');
 const clientIndexPath = path.join(clientDir, 'index.html');
