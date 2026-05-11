@@ -208,39 +208,71 @@ html:not(.dark) .invert-on-light {
     grid-area: 1 / 1;
   }
 
-  /*
-   * Diagonal band reveals background2 over background1. Soft stops approximate a short fade
-   * along the wave front without blending mismatched glyphs (still reads as a shimmer).
-   */
-  .bg-art__layer--alt {
-    --bg-art-wave-soft: 7%;
+  .bg-art--wave {
+    --bg-art-wave-angle: 128deg;
+    --bg-art-wave-band: 5%;
+    --bg-art-wave-feather: 2%;
+    --bg-art-wave-size: 230% 230%;
+    --bg-art-wave-duration: 22s;
+  }
 
-    -webkit-mask-image: linear-gradient(
-      128deg,
-      transparent 0%,
-      transparent calc(42% - var(--bg-art-wave-soft)),
-      rgba(0, 0, 0, 0.35) calc(46% - var(--bg-art-wave-soft)),
-      #000 50%,
-      rgba(0, 0, 0, 0.35) calc(54% + var(--bg-art-wave-soft)),
-      transparent calc(58% + var(--bg-art-wave-soft)),
-      transparent 100%
-    );
-    -webkit-mask-size: 260% 260%;
+  .bg-art--wave .bg-art__layer {
+    -webkit-mask-size: var(--bg-art-wave-size);
     -webkit-mask-repeat: no-repeat;
+    mask-size: var(--bg-art-wave-size);
+    mask-repeat: no-repeat;
+    animation: bg-art-wave-sweep var(--bg-art-wave-duration) ease-in-out infinite;
+    will-change: mask-position;
+  }
+
+  .bg-art__layer--base {
+    -webkit-mask-image: linear-gradient(
+      var(--bg-art-wave-angle),
+      #000 0%,
+      #000 calc(50% - var(--bg-art-wave-band) - var(--bg-art-wave-feather)),
+      rgba(0, 0, 0, 0.5) calc(50% - var(--bg-art-wave-band)),
+      transparent calc(50% - var(--bg-art-wave-band) / 2),
+      transparent calc(50% + var(--bg-art-wave-band) / 2),
+      rgba(0, 0, 0, 0.5) calc(50% + var(--bg-art-wave-band)),
+      #000 calc(50% + var(--bg-art-wave-band) + var(--bg-art-wave-feather)),
+      #000 100%
+    );
     mask-image: linear-gradient(
-      128deg,
+      var(--bg-art-wave-angle),
+      #000 0%,
+      #000 calc(50% - var(--bg-art-wave-band) - var(--bg-art-wave-feather)),
+      rgba(0, 0, 0, 0.5) calc(50% - var(--bg-art-wave-band)),
+      transparent calc(50% - var(--bg-art-wave-band) / 2),
+      transparent calc(50% + var(--bg-art-wave-band) / 2),
+      rgba(0, 0, 0, 0.5) calc(50% + var(--bg-art-wave-band)),
+      #000 calc(50% + var(--bg-art-wave-band) + var(--bg-art-wave-feather)),
+      #000 100%
+    );
+  }
+
+  .bg-art__layer--alt {
+    -webkit-mask-image: linear-gradient(
+      var(--bg-art-wave-angle),
       transparent 0%,
-      transparent calc(42% - var(--bg-art-wave-soft)),
-      rgba(0, 0, 0, 0.35) calc(46% - var(--bg-art-wave-soft)),
-      #000 50%,
-      rgba(0, 0, 0, 0.35) calc(54% + var(--bg-art-wave-soft)),
-      transparent calc(58% + var(--bg-art-wave-soft)),
+      transparent calc(50% - var(--bg-art-wave-band) - var(--bg-art-wave-feather)),
+      rgba(0, 0, 0, 0.5) calc(50% - var(--bg-art-wave-band)),
+      #000 calc(50% - var(--bg-art-wave-band) / 2),
+      #000 calc(50% + var(--bg-art-wave-band) / 2),
+      rgba(0, 0, 0, 0.5) calc(50% + var(--bg-art-wave-band)),
+      transparent calc(50% + var(--bg-art-wave-band) + var(--bg-art-wave-feather)),
       transparent 100%
     );
-    mask-size: 260% 260%;
-    mask-repeat: no-repeat;
-    animation: bg-art-wave-sweep 24s ease-in-out infinite;
-    will-change: mask-position;
+    mask-image: linear-gradient(
+      var(--bg-art-wave-angle),
+      transparent 0%,
+      transparent calc(50% - var(--bg-art-wave-band) - var(--bg-art-wave-feather)),
+      rgba(0, 0, 0, 0.5) calc(50% - var(--bg-art-wave-band)),
+      #000 calc(50% - var(--bg-art-wave-band) / 2),
+      #000 calc(50% + var(--bg-art-wave-band) / 2),
+      rgba(0, 0, 0, 0.5) calc(50% + var(--bg-art-wave-band)),
+      transparent calc(50% + var(--bg-art-wave-band) + var(--bg-art-wave-feather)),
+      transparent 100%
+    );
   }
 
   @keyframes bg-art-wave-sweep {
@@ -257,8 +289,13 @@ html:not(.dark) .invert-on-light {
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .bg-art__layer--alt {
+    .bg-art--wave .bg-art__layer {
       animation: none;
+      -webkit-mask-image: none;
+      mask-image: none;
+    }
+
+    .bg-art__layer--alt {
       opacity: 0;
     }
   }
