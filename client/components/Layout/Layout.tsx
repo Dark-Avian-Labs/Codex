@@ -9,7 +9,6 @@ import {
 } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 
-import bgArt from '../../../packages/core/assets/background.txt?raw';
 import feathers from '../../../packages/core/assets/feathers.png';
 import epic7Favicon from '../../../packages/games/epic7/favicon.ico';
 import warframeFavicon from '../../../packages/games/warframe/favicon.ico';
@@ -20,6 +19,7 @@ import { useAuth } from '../../features/auth/AuthContext';
 import { useStaleBundlePrompt } from '../../hooks/useStaleBundlePrompt';
 import { MaterialSymbol } from '../ui/MaterialSymbol';
 import { Menu } from '../ui/Menu';
+import { AsciiWaveBackground } from './AsciiWaveBackground';
 export type LayoutOutletContext = {
   setHeaderCenter: (node: ReactNode | null) => void;
   setHeaderActions: (node: ReactNode | null) => void;
@@ -192,9 +192,7 @@ export function Layout() {
       <a href="#main-content" className="skip-link">
         Skip to main content
       </a>
-      <div className="bg-art" aria-hidden="true">
-        {bgArt}
-      </div>
+      <AsciiWaveBackground />
       <header className="relative z-30 h-[100px] px-6">
         <div className="mx-auto grid h-full w-full max-w-[1900px] grid-cols-[1fr_auto_1fr] items-center gap-4">
           <div className="flex w-fit max-w-full min-w-0 flex-col gap-0.5 justify-self-start">
