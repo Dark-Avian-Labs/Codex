@@ -35,6 +35,8 @@ export function isNecramechItem(itemName: string): boolean {
   return NECRAMECH_NAMES.has(itemName.trim());
 }
 
+export const ABSOLUTE_MAX_ADVANCED_LEVEL = 40;
+
 export function maxLevelForRow(worksheetName: string, itemName: string): number {
   if (isValenceRelevant(itemName)) return 40;
   if (MAX_RANK_40_EXACT_NAMES.has(itemName.trim())) return 40;

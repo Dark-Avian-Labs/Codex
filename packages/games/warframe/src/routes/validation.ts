@@ -1,5 +1,8 @@
 import { positiveInt, z } from '@codex/core/validation';
 
+import { ABSOLUTE_MAX_ADVANCED_LEVEL } from '../advancedRules.js';
+import { VALENCE_PERCENT_MAX_STORED, VALENCE_PERCENT_MIN } from '../config.js';
+
 export const updateSchema = z.object({
   row_id: positiveInt,
   column_id: positiveInt,
@@ -27,10 +30,22 @@ export const adminUpdateSchema = updateSchema;
 export const updateAdvancedProgressSchema = z
   .object({
     row_id: positiveInt,
-    level: z.number().int().min(0).max(40).optional(),
-    level_prime: z.number().int().min(0).max(40).optional(),
-    valence_percent: z.number().int().min(25).max(60).nullable().optional(),
-    valence_percent_prime: z.number().int().min(25).max(60).nullable().optional(),
+    level: z.number().int().min(0).max(ABSOLUTE_MAX_ADVANCED_LEVEL).optional(),
+    level_prime: z.number().int().min(0).max(ABSOLUTE_MAX_ADVANCED_LEVEL).optional(),
+    valence_percent: z
+      .number()
+      .int()
+      .min(VALENCE_PERCENT_MIN)
+      .max(VALENCE_PERCENT_MAX_STORED)
+      .nullable()
+      .optional(),
+    valence_percent_prime: z
+      .number()
+      .int()
+      .min(VALENCE_PERCENT_MIN)
+      .max(VALENCE_PERCENT_MAX_STORED)
+      .nullable()
+      .optional(),
     has_element: z.boolean().optional(),
     has_element_prime: z.boolean().optional(),
     has_orokin: z.boolean().optional(),

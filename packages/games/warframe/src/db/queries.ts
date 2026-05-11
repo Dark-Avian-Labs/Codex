@@ -1,7 +1,13 @@
 import Database from 'better-sqlite3';
 
 import { resolveAdvancedRowRelevance } from '../advancedRules.js';
-import { isHelminthValue, isValidStatus } from '../config.js';
+import {
+  VALENCE_COMPLETE_THRESHOLD,
+  VALENCE_PERCENT_MAX_STORED,
+  VALENCE_PERCENT_MIN,
+  isHelminthValue,
+  isValidStatus,
+} from '../config.js';
 import { normalizeDisplayName } from '../displayName.js';
 import {
   isHelminthNonSubsumableItemName,
@@ -55,8 +61,6 @@ export interface WorksheetRowRecord {
 
 const HELMINTH_COLUMN_NAME = 'Helminth';
 const WARFRAMES_WORKSHEET_NAME = 'Warframes';
-const VALENCE_COMPLETE_THRESHOLD = 58;
-
 type AdvancedProgressRow = {
   row_id: number;
   level: number;
@@ -121,8 +125,8 @@ function clamp(value: number, min: number, max: number): number {
 }
 
 function normalizeValence(value: number): number {
-  const clamped = clamp(Math.trunc(value), 25, 60);
-  return clamped >= VALENCE_COMPLETE_THRESHOLD ? 60 : clamped;
+  const clamped = clamp(Math.trunc(value), VALENCE_PERCENT_MIN, VALENCE_PERCENT_MAX_STORED);
+  return clamped >= VALENCE_COMPLETE_THRESHOLD ? VALENCE_PERCENT_MAX_STORED : clamped;
 }
 
 function rowHasVariant(
@@ -180,7 +184,7 @@ export function resolveAdvancedProgressState(
       relevance.valence && source.valence_percent !== null && source.valence_percent !== undefined
         ? normalizeValence(source.valence_percent)
         : relevance.valence
-          ? 25
+          ? VALENCE_PERCENT_MIN
           : null;
     let hasElement = source.has_element === 1;
     let hasOrokin = source.has_orokin === 1;
