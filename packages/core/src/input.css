@@ -185,14 +185,82 @@ html:not(.dark) .invert-on-light {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    z-index: 0;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .bg-art__layer {
+    margin: 0;
     white-space: pre;
     font-family: 'Courier New', Courier, monospace;
     font-size: 10px;
     line-height: 1.2;
     color: oklch(100% 0 0 / 0.05);
-    z-index: 0;
-    pointer-events: none;
-    user-select: none;
+  }
+
+  .bg-art--wave {
+    display: grid;
+    place-items: center;
+  }
+
+  .bg-art--wave .bg-art__layer {
+    grid-area: 1 / 1;
+  }
+
+  /*
+   * Diagonal band reveals background2 over background1. Soft stops approximate a short fade
+   * along the wave front without blending mismatched glyphs (still reads as a shimmer).
+   */
+  .bg-art__layer--alt {
+    --bg-art-wave-soft: 7%;
+
+    -webkit-mask-image: linear-gradient(
+      128deg,
+      transparent 0%,
+      transparent calc(42% - var(--bg-art-wave-soft)),
+      rgba(0, 0, 0, 0.35) calc(46% - var(--bg-art-wave-soft)),
+      #000 50%,
+      rgba(0, 0, 0, 0.35) calc(54% + var(--bg-art-wave-soft)),
+      transparent calc(58% + var(--bg-art-wave-soft)),
+      transparent 100%
+    );
+    -webkit-mask-size: 260% 260%;
+    -webkit-mask-repeat: no-repeat;
+    mask-image: linear-gradient(
+      128deg,
+      transparent 0%,
+      transparent calc(42% - var(--bg-art-wave-soft)),
+      rgba(0, 0, 0, 0.35) calc(46% - var(--bg-art-wave-soft)),
+      #000 50%,
+      rgba(0, 0, 0, 0.35) calc(54% + var(--bg-art-wave-soft)),
+      transparent calc(58% + var(--bg-art-wave-soft)),
+      transparent 100%
+    );
+    mask-size: 260% 260%;
+    mask-repeat: no-repeat;
+    animation: bg-art-wave-sweep 24s ease-in-out infinite;
+    will-change: mask-position;
+  }
+
+  @keyframes bg-art-wave-sweep {
+    0%,
+    100% {
+      -webkit-mask-position: 115% -18%;
+      mask-position: 115% -18%;
+    }
+
+    50% {
+      -webkit-mask-position: -18% 115%;
+      mask-position: -18% 115%;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bg-art__layer--alt {
+      animation: none;
+      opacity: 0;
+    }
   }
 
   .btn {
