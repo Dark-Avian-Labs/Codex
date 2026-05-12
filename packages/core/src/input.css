@@ -2,6 +2,7 @@
 @import '@fontsource-variable/inter';
 @import '@fontsource-variable/geist';
 @import '@fontsource-variable/geist-mono';
+@import '@fontsource-variable/cascadia-mono';
 @import '@fontsource-variable/material-symbols-rounded';
 
 @custom-variant dark (&:where(.dark, .dark *));
@@ -57,6 +58,16 @@
 
   --color-accent-weak: color-mix(in oklab, var(--color-accent) 10%, transparent);
   --color-accent-weak-2: color-mix(in oklab, var(--color-accent) 20%, transparent);
+  --font-cascadia-mono: 'Cascadia Mono Variable', 'Cascadia Mono', ui-monospace, monospace;
+  --bg-art-font-size: 11px;
+  --bg-art-line-height: 13px;
+  --ascii-opacity: 0.05;
+  --ascii-canvas-fg: color-mix(
+    in oklab,
+    var(--color-foreground) calc(var(--ascii-opacity) * 100%),
+    transparent
+  );
+  --ascii-canvas-fg-bright: color-mix(in oklab, var(--color-foreground) 12%, transparent);
 }
 
 html:not(.dark) {
@@ -76,6 +87,8 @@ html:not(.dark) {
   --color-bg-end: oklch(98.4% 0.004 264);
   --color-bg-glow: oklch(68% 0.03 252 / 0.28);
   --shadow-panel: 0 8px 28px oklch(21% 0.04 266 / 0.16);
+  --ascii-opacity: 0.1;
+  --ascii-canvas-fg-bright: color-mix(in oklab, var(--color-foreground) 18%, transparent);
 }
 
 html.dark {
@@ -190,95 +203,8 @@ html:not(.dark) .invert-on-light {
     user-select: none;
   }
 
-  .bg-art__layer {
-    margin: 0;
-    white-space: pre;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 10px;
-    line-height: 1.2;
-    color: oklch(100% 0 0 / 0.05);
-  }
-
-  .bg-art--wave {
-    display: grid;
-    place-items: center;
-    --bg-art-wave-angle: 135deg;
-    --bg-art-wave-p: 0;
-    --bg-art-wave-half: 1%;
-    --bg-art-wave-feather: 0.25%;
-  }
-
-  .bg-art--wave .bg-art__layer {
-    grid-area: 1 / 1;
-    -webkit-mask-size: 100% 100%;
-    -webkit-mask-repeat: no-repeat;
-    mask-size: 100% 100%;
-    mask-repeat: no-repeat;
-  }
-
-  .bg-art__layer--base {
-    -webkit-mask-image: linear-gradient(
-      var(--bg-art-wave-angle),
-      #000 0%,
-      #000 calc(var(--bg-art-wave-p) * 100% - var(--bg-art-wave-half) - var(--bg-art-wave-feather)),
-      rgba(0, 0, 0, 0.45) calc(var(--bg-art-wave-p) * 100% - var(--bg-art-wave-half)),
-      transparent calc(var(--bg-art-wave-p) * 100% - var(--bg-art-wave-half) * 0.5),
-      transparent calc(var(--bg-art-wave-p) * 100% + var(--bg-art-wave-half) * 0.5),
-      rgba(0, 0, 0, 0.45) calc(var(--bg-art-wave-p) * 100% + var(--bg-art-wave-half)),
-      #000 calc(var(--bg-art-wave-p) * 100% + var(--bg-art-wave-half) + var(--bg-art-wave-feather)),
-      #000 100%
-    );
-    mask-image: linear-gradient(
-      var(--bg-art-wave-angle),
-      #000 0%,
-      #000 calc(var(--bg-art-wave-p) * 100% - var(--bg-art-wave-half) - var(--bg-art-wave-feather)),
-      rgba(0, 0, 0, 0.45) calc(var(--bg-art-wave-p) * 100% - var(--bg-art-wave-half)),
-      transparent calc(var(--bg-art-wave-p) * 100% - var(--bg-art-wave-half) * 0.5),
-      transparent calc(var(--bg-art-wave-p) * 100% + var(--bg-art-wave-half) * 0.5),
-      rgba(0, 0, 0, 0.45) calc(var(--bg-art-wave-p) * 100% + var(--bg-art-wave-half)),
-      #000 calc(var(--bg-art-wave-p) * 100% + var(--bg-art-wave-half) + var(--bg-art-wave-feather)),
-      #000 100%
-    );
-  }
-
-  .bg-art__layer--alt {
-    -webkit-mask-image: linear-gradient(
-      var(--bg-art-wave-angle),
-      transparent 0%,
-      transparent
-        calc(var(--bg-art-wave-p) * 100% - var(--bg-art-wave-half) - var(--bg-art-wave-feather)),
-      rgba(0, 0, 0, 0.55) calc(var(--bg-art-wave-p) * 100% - var(--bg-art-wave-half)),
-      #000 calc(var(--bg-art-wave-p) * 100% - var(--bg-art-wave-half) * 0.5),
-      #000 calc(var(--bg-art-wave-p) * 100% + var(--bg-art-wave-half) * 0.5),
-      rgba(0, 0, 0, 0.55) calc(var(--bg-art-wave-p) * 100% + var(--bg-art-wave-half)),
-      transparent
-        calc(var(--bg-art-wave-p) * 100% + var(--bg-art-wave-half) + var(--bg-art-wave-feather)),
-      transparent 100%
-    );
-    mask-image: linear-gradient(
-      var(--bg-art-wave-angle),
-      transparent 0%,
-      transparent
-        calc(var(--bg-art-wave-p) * 100% - var(--bg-art-wave-half) - var(--bg-art-wave-feather)),
-      rgba(0, 0, 0, 0.55) calc(var(--bg-art-wave-p) * 100% - var(--bg-art-wave-half)),
-      #000 calc(var(--bg-art-wave-p) * 100% - var(--bg-art-wave-half) * 0.5),
-      #000 calc(var(--bg-art-wave-p) * 100% + var(--bg-art-wave-half) * 0.5),
-      rgba(0, 0, 0, 0.55) calc(var(--bg-art-wave-p) * 100% + var(--bg-art-wave-half)),
-      transparent
-        calc(var(--bg-art-wave-p) * 100% + var(--bg-art-wave-half) + var(--bg-art-wave-feather)),
-      transparent 100%
-    );
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .bg-art--wave .bg-art__layer {
-      -webkit-mask-image: none;
-      mask-image: none;
-    }
-
-    .bg-art__layer--alt {
-      opacity: 0;
-    }
+  .bg-art canvas {
+    display: block;
   }
 
   .btn {
