@@ -29,6 +29,7 @@
     "@codex/game-epic7": "workspace:*",
     "@codex/game-warframe": "workspace:*",
     "@dotenvx/dotenvx": "catalog:",
+    "@fontsource-variable/cascadia-mono": "catalog:",
     "@fontsource-variable/geist": "catalog:",
     "@fontsource-variable/geist-mono": "catalog:",
     "@fontsource-variable/inter": "catalog:",

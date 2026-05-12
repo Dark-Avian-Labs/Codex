@@ -8,6 +8,7 @@ catalog:
   "@dotenvx/dotenvx": ^1.65.0
   "@fontsource-variable/geist": ^5.2.8
   "@fontsource-variable/geist-mono": ^5.2.7
+  "@fontsource-variable/cascadia-mono": ^5.2.2
   "@fontsource-variable/inter": ^5.2.8
   "@fontsource-variable/material-symbols-rounded": ^5.2.44
   "@tailwindcss/vite": ^4.3.0
