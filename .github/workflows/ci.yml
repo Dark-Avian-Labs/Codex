@@ -129,7 +129,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --no-frozen-lockfile
 
       - name: Bump version
         run: pnpm exec semantic-release
@@ -169,7 +169,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --no-frozen-lockfile
 
       - name: Check formatting
         run: pnpm run check-format
@@ -206,7 +206,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --no-frozen-lockfile
 
       - name: Build project
         env:
@@ -279,7 +279,7 @@ jobs:
           printf 'DOTENV_PRIVATE_KEY_PRODUCTION=%s\n' "$DOTENV_PRIVATE_KEY_PRODUCTION" > /tmp/deploy/.env.keys
           chmod 600 /tmp/deploy/.env.keys
           test -s /tmp/deploy/.env.keys || { echo "ERROR: Failed to create .env.keys in deployment bundle."; exit 1; }
-          cd /tmp/deploy && pnpm install --prod
+          cd /tmp/deploy && pnpm install --prod --no-frozen-lockfile
 
       - name: Deploy to server
         env:
