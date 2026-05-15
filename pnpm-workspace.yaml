@@ -5,7 +5,7 @@ packages:
 allowBuilds:
   better-sqlite3: true
 catalog:
-  "@dotenvx/dotenvx": ^1.65.0
+  "@dotenvx/dotenvx": ^1.65.2
   "@fontsource-variable/geist": ^5.2.8
   "@fontsource-variable/geist-mono": ^5.2.7
   "@fontsource-variable/cascadia-mono": ^5.2.2
