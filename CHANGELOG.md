@@ -245,3 +245,7 @@ Rules:
 - **v1.48.4** `fix` [#196](https://github.com/Dark-Avian-Labs/Codex/pull/196): Warframe market links
 - **v1.48.5** `fix` [#198](https://github.com/Dark-Avian-Labs/Codex/pull/198): Colors
 - **v1.48.6** `chore` [#199](https://github.com/Dark-Avian-Labs/Codex/pull/199): Update dependencies
+- **v1.48.7** `chore` [#200](https://github.com/Dark-Avian-Labs/Codex/pull/200): version reset to 1.0.0 in package.json
+- **v1.48.8** `chore` [#201](https://github.com/Dark-Avian-Labs/Codex/pull/201): replace PNG assets with SVG; update icon imports
+- **v1.48.9** `chore` [#202](https://github.com/Dark-Avian-Labs/Codex/pull/202): update oxfmt and oxlint
+- **v1.48.10** `chore`: Update dependencies
