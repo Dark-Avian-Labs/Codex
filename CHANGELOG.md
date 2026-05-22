@@ -10,16 +10,15 @@ Historical entries through the current release were **backfilled from merged PR 
 
 ## Pull requests (oldest → newest)
 
-
 - **v1.0.1** `chore(deps-dev)` [#3](https://github.com/Dark-Avian-Labs/Codex/pull/3): bump @eslint/js from 9.39.2 to 10.0.1
 - **v1.0.2** `chore(deps-dev)` [#2](https://github.com/Dark-Avian-Labs/Codex/pull/2): bump eslint from 9.39.2 to 10.0.0
 - **v1.0.3** `chore(deps-dev)` [#1](https://github.com/Dark-Avian-Labs/Codex/pull/1): bump @types/node from 25.2.0 to 25.2.2 in the development-dependencies group
-- **v1.0.4** `chore` [#4](https://github.com/Dark-Avian-Labs/Codex/pull/4): Feat  tailwind css
+- **v1.0.4** `chore` [#4](https://github.com/Dark-Avian-Labs/Codex/pull/4): Feat tailwind css
 - **v1.0.5** `chore` [#5](https://github.com/Dark-Avian-Labs/Codex/pull/5): fix some css
-- **v1.0.6** `chore` [#6](https://github.com/Dark-Avian-Labs/Codex/pull/6): Feat  adding vite, zod and vitest
+- **v1.0.6** `chore` [#6](https://github.com/Dark-Avian-Labs/Codex/pull/6): Feat adding vite, zod and vitest
 - **v1.0.7** `style` [#7](https://github.com/Dark-Avian-Labs/Codex/pull/7): add table-layout fixed to improve table rendering in input.css
 - **v1.1.0** `fix` [#8](https://github.com/Dark-Avian-Labs/Codex/pull/8): update loading message colspan in tables for better responsivene…
-- **v1.1.1** `chore` [#9](https://github.com/Dark-Avian-Labs/Codex/pull/9): Feat  better styling
+- **v1.1.1** `chore` [#9](https://github.com/Dark-Avian-Labs/Codex/pull/9): Feat better styling
 - **v1.1.2** `chore` [#10](https://github.com/Dark-Avian-Labs/Codex/pull/10): update ESLint configuration to use eslint-plugin-import-x and …
 - **v1.1.3** `chore` [#11](https://github.com/Dark-Avian-Labs/Codex/pull/11): update ESLint configuration to use eslint-plugin-import-x and …
 - **v1.1.4** `chore(deps-dev)` [#12](https://github.com/Dark-Avian-Labs/Codex/pull/12): bump eslint-plugin-n from 17.23.2 to 17.24.0 in the development-dependencies group
@@ -29,12 +28,12 @@ Historical entries through the current release were **backfilled from merged PR 
 - **v1.1.8** `chore(deps-dev)` [#1](https://github.com/Dark-Avian-Labs/Codex/pull/1): bump @types/node from 25.2.0 to 25.2.2 in the development-dependencies group
 - **v1.1.9** `chore(deps-dev)` [#2](https://github.com/Dark-Avian-Labs/Codex/pull/2): bump eslint from 9.39.2 to 10.0.0
 - **v1.1.10** `chore(deps-dev)` [#3](https://github.com/Dark-Avian-Labs/Codex/pull/3): bump @eslint/js from 9.39.2 to 10.0.1
-- **v1.1.11** `chore` [#4](https://github.com/Dark-Avian-Labs/Codex/pull/4): Feat  tailwind css
+- **v1.1.11** `chore` [#4](https://github.com/Dark-Avian-Labs/Codex/pull/4): Feat tailwind css
 - **v1.1.12** `chore` [#5](https://github.com/Dark-Avian-Labs/Codex/pull/5): fix some css
-- **v1.1.13** `chore` [#6](https://github.com/Dark-Avian-Labs/Codex/pull/6): Feat  adding vite, zod and vitest
+- **v1.1.13** `chore` [#6](https://github.com/Dark-Avian-Labs/Codex/pull/6): Feat adding vite, zod and vitest
 - **v1.1.14** `style` [#7](https://github.com/Dark-Avian-Labs/Codex/pull/7): add table-layout fixed to improve table rendering in input.css
 - **v1.1.15** `fix` [#8](https://github.com/Dark-Avian-Labs/Codex/pull/8): update loading message colspan in tables for better responsivene…
-- **v1.1.16** `chore` [#9](https://github.com/Dark-Avian-Labs/Codex/pull/9): Feat  better styling
+- **v1.1.16** `chore` [#9](https://github.com/Dark-Avian-Labs/Codex/pull/9): Feat better styling
 - **v1.1.17** `chore` [#10](https://github.com/Dark-Avian-Labs/Codex/pull/10): update ESLint configuration to use eslint-plugin-import-x and …
 - **v1.1.18** `chore` [#11](https://github.com/Dark-Avian-Labs/Codex/pull/11): update ESLint configuration to use eslint-plugin-import-x and …
 - **v1.1.19** `chore(deps-dev)` [#16](https://github.com/Dark-Avian-Labs/Codex/pull/16): bump eslint from 9.39.3 to 10.0.2
@@ -72,12 +71,12 @@ Historical entries through the current release were **backfilled from merged PR 
 - **v1.5.5** `fix` [#35](https://github.com/Dark-Avian-Labs/Codex/pull/35): logout
 - **v1.5.6** `chore` [#36](https://github.com/Dark-Avian-Labs/Codex/pull/36): update CI workflows to use environment variables for SSH configuration
 - **v1.5.7** `fix` [#37](https://github.com/Dark-Avian-Labs/Codex/pull/37): styling, counting
-- **v1.5.8** `chore` [#4](https://github.com/Dark-Avian-Labs/Codex/pull/4): Feat  tailwind css
+- **v1.5.8** `chore` [#4](https://github.com/Dark-Avian-Labs/Codex/pull/4): Feat tailwind css
 - **v1.5.9** `chore` [#5](https://github.com/Dark-Avian-Labs/Codex/pull/5): fix some css
-- **v1.5.10** `chore` [#6](https://github.com/Dark-Avian-Labs/Codex/pull/6): Feat  adding vite, zod and vitest
+- **v1.5.10** `chore` [#6](https://github.com/Dark-Avian-Labs/Codex/pull/6): Feat adding vite, zod and vitest
 - **v1.5.11** `style` [#7](https://github.com/Dark-Avian-Labs/Codex/pull/7): add table-layout fixed to improve table rendering in input.css
 - **v1.5.12** `fix` [#8](https://github.com/Dark-Avian-Labs/Codex/pull/8): update loading message colspan in tables for better responsivene…
-- **v1.5.13** `chore` [#9](https://github.com/Dark-Avian-Labs/Codex/pull/9): Feat  better styling
+- **v1.5.13** `chore` [#9](https://github.com/Dark-Avian-Labs/Codex/pull/9): Feat better styling
 - **v1.5.14** `chore` [#10](https://github.com/Dark-Avian-Labs/Codex/pull/10): update ESLint configuration to use eslint-plugin-import-x and …
 - **v1.5.15** `chore` [#11](https://github.com/Dark-Avian-Labs/Codex/pull/11): update ESLint configuration to use eslint-plugin-import-x and …
 - **v1.5.16** `chore(deps-dev)` [#12](https://github.com/Dark-Avian-Labs/Codex/pull/12): bump eslint-plugin-n from 17.23.2 to 17.24.0 in the development-dependencies group
