@@ -244,3 +244,4 @@ Historical entries through the current release were **backfilled from merged PR 
 - **v1.48.13** `fix` [#206](https://github.com/Dark-Avian-Labs/Codex/pull/206): enhance Orokin auto-completion logic for Warframe
 - **v1.48.14** `chore` [#207](https://github.com/Dark-Avian-Labs/Codex/pull/207): update CHANGELOG and enhance stale update banner styles
 - **v1.48.15** `chore`: Merge pull request #212 from Dark-Avian-Labs:chore--update-CI-workflow-with-automatic-changelog-creation
+- **v1.49.0** `chore`: Merge pull request #213 from Dark-Avian-Labs:feat--integrate-Clerk-for-authentication-and-user-management
