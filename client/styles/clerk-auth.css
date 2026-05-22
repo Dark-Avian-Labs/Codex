@@ -351,12 +351,18 @@ html.dark.ui-shadow .clerk-auth-shell .clerk-secured-strip {
   backdrop-filter: blur(8px);
 }
 
+.clerk-profile-card-box {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
 .clerk-profile-card {
   --clerk-profile-shell-bg: oklch(25% 0.02 286 / 0.97);
   --clerk-profile-shell-blur: blur(16px) saturate(1.15);
   --clerk-profile-content-bg: oklch(22% 0.02 286 / 0.94);
   --clerk-profile-content-blur: blur(24px) saturate(1.25);
-  border: 1px solid var(--color-glass-border);
+  border: 1px solid var(--color-glass-border) !important;
   box-shadow: var(--shadow-panel);
   overflow: hidden;
   isolation: isolate;
@@ -385,13 +391,26 @@ html.ui-shadow:not(.dark) .clerk-profile-card {
 }
 
 .clerk-profile-navbar {
-  border-right: 1px solid var(--color-glass-divider);
+  position: relative;
+  border: none !important;
   background: var(--clerk-profile-shell-bg) !important;
+}
+
+.clerk-profile-navbar::after {
+  content: '';
+  position: absolute;
+  top: 1rem;
+  right: 0;
+  bottom: 1rem;
+  width: 1px;
+  background: var(--color-glass-divider);
+  pointer-events: none;
 }
 
 .clerk-profile-scroll,
 .clerk-profile-page {
   background: var(--clerk-profile-content-bg) !important;
+  border: none !important;
   backdrop-filter: var(--clerk-profile-content-blur);
   -webkit-backdrop-filter: var(--clerk-profile-content-blur);
 }
