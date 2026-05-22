@@ -4,6 +4,8 @@ export type GameAppMetadata = {
   url: string;
 };
 
+export const CODEX_GAMES = ['warframe', 'epic7'] as const;
+
 const gameMetadataRegistry = new Map<string, GameAppMetadata>();
 
 export function registerGame(gameId: string, metadata: GameAppMetadata): void {
@@ -20,14 +22,14 @@ export const unknownGameMetadata: GameAppMetadata = {
   url: '/',
 };
 
-registerGame('epic7', {
-  label: 'Epic Seven',
-  subtitle: 'Collection tracker',
-  url: '/epic7',
-});
-
 registerGame('warframe', {
   label: 'Warframe',
   subtitle: 'Inventory tracker',
   url: '/warframe',
+});
+
+registerGame('epic7', {
+  label: 'Epic Seven',
+  subtitle: 'Collection tracker',
+  url: '/epic7',
 });

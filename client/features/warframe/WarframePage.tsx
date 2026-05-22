@@ -11,6 +11,7 @@ type Row = {
   id: number;
   name?: string;
   item_name?: string;
+  orphaned?: boolean;
   values?: Record<string, string>;
   market_href?: string | null;
   market_href_normal?: string | null;
@@ -1189,6 +1190,8 @@ export function WarframePage() {
                   showAllVariants,
                 );
                 const rowClassName = `${isCompletedRow ? 'warframe-completed-row ' : ''}${
+                  row.orphaned ? 'sync-mismatch-row ' : ''
+                }${
                   exitingRows[row.id] === 'fill' ? 'warframe-row-exit-fill ' : ''
                 }${exitingRows[row.id] === 'push' ? 'warframe-row-exit-push' : ''}`.trim();
                 const visibleVariants = advancedVariantsVisible(row, showAllVariants);

@@ -364,7 +364,7 @@ function cellDisplay(
 export function WarframeAdminPage() {
   const { auth } = useAuth();
   const { setHeaderCenter, setHeaderActions } = useLayoutSlots();
-  const isAdmin = auth.status === 'ok' && auth.user.isAdmin;
+  const isAdmin = auth.status === 'ok' && auth.isCodexAdmin;
   const [worksheets, setWorksheets] = useState<Worksheet[]>([]);
   const [worksheetId, setWorksheetId] = useState<number | null>(null);
   const [data, setData] = useState<WorksheetData>({ columns: [], rows: [] });

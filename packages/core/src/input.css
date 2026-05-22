@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import '../../../client/styles/clerk-auth.css';
 @import '@fontsource-variable/inter';
 @import '@fontsource-variable/geist';
 @import '@fontsource-variable/geist-mono';
@@ -51,6 +52,7 @@
   --font-brand:
     'Inter Variable', Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
   --header-offset: 280px;
+  --app-chrome-height: 220px;
   --theme-mode: dark;
   --color-foreground: oklch(98.4% 0.004 264);
   --color-glass: oklch(100% 0 0 / 0.024);
@@ -193,6 +195,10 @@ html:not(.dark) .invert-on-light {
   body.modal-open #root {
     filter: blur(4px);
     transition: filter 0.2s ease;
+  }
+
+  .min-h-page-content {
+    min-height: calc(100vh - var(--app-chrome-height, 220px));
   }
 
   .bg-art {

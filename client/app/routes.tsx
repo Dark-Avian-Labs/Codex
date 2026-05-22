@@ -32,6 +32,12 @@ const WarframeAdminPage = lazyNamed(
   'WarframeAdminPage',
 );
 const NotFoundPage = lazyNamed(() => import('../features/not-found/NotFoundPage'), 'NotFoundPage');
+const CodexLandingPage = lazyNamed(
+  () => import('../features/auth/CodexLandingPage'),
+  'CodexLandingPage',
+);
+const SignInPage = lazyNamed(() => import('../features/auth/SignInPage'), 'SignInPage');
+const SignUpPage = lazyNamed(() => import('../features/auth/SignUpPage'), 'SignUpPage');
 
 function RouteFallback() {
   return (
@@ -120,8 +126,11 @@ export function AppRoutes() {
         <Routes>
           <Route element={<Layout />}>
             <Route path={APP_PATHS.legal} element={<LegalPage />} />
+            <Route path={APP_PATHS.signIn} element={<SignInPage />} />
+            <Route path={APP_PATHS.signUp} element={<SignUpPage />} />
+            <Route path={APP_PATHS.home} element={<CodexLandingPage />} />
             <Route
-              path={APP_PATHS.home}
+              path="/home"
               element={
                 <RequireAuth>
                   <HomePage />

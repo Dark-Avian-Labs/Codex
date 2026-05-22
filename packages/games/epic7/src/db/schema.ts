@@ -1,4 +1,4 @@
-import { createDbSingleton } from '@codex/core';
+import { createDbSingleton, ensureClerkUserIdColumn } from '@codex/core';
 import type Database from 'better-sqlite3';
 
 import { EPIC7_DB_PATH } from '../config.js';
@@ -146,6 +146,9 @@ function ensureUniqueBaseNameIndexes(db: Database.Database): UniqueIndexStatus {
 
 const { getDb, closeDb } = createDbSingleton(EPIC7_DB_PATH, {
   pragmas: ['journal_mode = WAL'],
-  onOpen: (db: Database.Database) => ensureUniqueBaseNameIndexes(db),
+  onOpen: (db: Database.Database) => {
+    ensureClerkUserIdColumn(db, 'game_accounts');
+    ensureUniqueBaseNameIndexes(db);
+  },
 });
 export { getDb, closeDb };

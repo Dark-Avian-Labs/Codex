@@ -1,12 +1,3 @@
-export type AppRoleAssignment = { app_id: string; role: 'user' | 'admin' };
-
-export interface UserSummary {
-  id: number;
-  username: string;
-  isAdmin: boolean;
-  app: string;
-}
-
 export interface AppSummary {
   id: string;
   label: string;
@@ -17,14 +8,18 @@ export interface AppSummary {
 export type AuthErrorDetail = Error | string | { message: string; code?: string };
 
 export type AuthState =
-  | { status: 'loading'; user: null; apps: AppSummary[] }
-  | { status: 'unauthenticated'; user: null; apps: AppSummary[] }
-  | { status: 'forbidden'; user: null; apps: AppSummary[] }
+  | { status: 'loading'; userId: null; isCodexAdmin: false; apps: AppSummary[] }
+  | { status: 'unauthenticated'; userId: null; isCodexAdmin: false; apps: AppSummary[] }
   | {
-      status: 'rate_limited';
-      user: null;
+      status: 'ok';
+      userId: string;
+      isCodexAdmin: boolean;
       apps: AppSummary[];
-      rateLimitedUntilMs: number;
     }
-  | { status: 'ok'; user: UserSummary; apps: AppSummary[] }
-  | { status: 'error'; user: null; apps: AppSummary[]; error: AuthErrorDetail };
+  | {
+      status: 'error';
+      userId: null;
+      isCodexAdmin: false;
+      apps: AppSummary[];
+      error: AuthErrorDetail;
+    };

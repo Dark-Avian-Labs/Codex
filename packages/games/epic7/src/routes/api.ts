@@ -31,13 +31,13 @@ import {
 } from './validation.js';
 
 function session(req: Request): {
-  user_id?: number;
+  clerk_user_id?: string;
   account_id?: number | null;
   account_name?: string | null;
   is_admin?: boolean;
 } {
   return req.session as unknown as {
-    user_id?: number;
+    clerk_user_id?: string;
     account_id?: number | null;
     account_name?: string | null;
     is_admin?: boolean;
@@ -313,14 +313,14 @@ export function handleUpdateArtifactDetails(req: Request, res: Response): void {
 }
 
 export function handleAccounts(req: Request, res: Response): void {
-  const userId = session(req).user_id;
-  if (!userId) {
+  const clerkUserId = session(req).clerk_user_id;
+  if (!clerkUserId) {
     err(res, 'Unauthorized', 401);
     return;
   }
   const db = getDbOrFail(res);
   if (!db) return;
-  const accounts = q.getUserAccountsForApi(db, userId);
+  const accounts = q.getUserAccountsForApi(db, clerkUserId);
   let currentId = session(req).account_id ?? null;
   if (currentId == null && accounts.length > 0) {
     const firstActive = accounts.find((a) => a.is_active === 1);
@@ -349,8 +349,8 @@ export function handleSwitchAccount(req: Request, res: Response): void {
     err(res, 'POST method required.', 405);
     return;
   }
-  const userId = session(req).user_id;
-  if (!userId) {
+  const clerkUserId = session(req).clerk_user_id;
+  if (!clerkUserId) {
     err(res, 'Unauthorized', 401);
     return;
   }
@@ -359,12 +359,12 @@ export function handleSwitchAccount(req: Request, res: Response): void {
   const accountId = data.account_id;
   const db = getDbOrFail(res);
   if (!db) return;
-  const account = q.getGameAccountByIdAndUser(db, accountId, userId);
+  const account = q.getGameAccountByIdAndUser(db, accountId, clerkUserId);
   if (!account) {
     err(res, 'Account not found.');
     return;
   }
-  q.setActiveAccount(db, userId, accountId);
+  q.setActiveAccount(db, clerkUserId, accountId);
   const s = req.session as unknown as {
     account_id?: number;
     account_name?: string;
@@ -382,8 +382,8 @@ export function handleAddAccount(req: Request, res: Response): void {
     err(res, 'POST method required.', 405);
     return;
   }
-  const userId = session(req).user_id;
-  if (!userId) {
+  const clerkUserId = session(req).clerk_user_id;
+  if (!clerkUserId) {
     err(res, 'Unauthorized', 401);
     return;
   }
@@ -392,14 +392,14 @@ export function handleAddAccount(req: Request, res: Response): void {
   const name = data.account_name;
   const db = getDbOrFail(res);
   if (!db) return;
-  const existing = q.getAccountByNameAndUser(db, userId, name);
+  const existing = q.getAccountByNameAndUser(db, clerkUserId, name);
   if (existing) {
     err(res, 'An account with this name already exists.');
     return;
   }
-  const accountsBefore = q.getGameAccountsByUserId(db, userId);
+  const accountsBefore = q.getGameAccountsByUserId(db, clerkUserId);
   const isFirst = accountsBefore.length === 0;
-  const accountId = q.createGameAccount(db, userId, name, isFirst);
+  const accountId = q.createGameAccount(db, clerkUserId, name, isFirst);
   if (isFirst) {
     const s = req.session as unknown as {
       account_id?: number;
@@ -418,8 +418,8 @@ export function handleDeleteAccount(req: Request, res: Response): void {
     err(res, 'POST method required.', 405);
     return;
   }
-  const userId = session(req).user_id;
-  if (!userId) {
+  const clerkUserId = session(req).clerk_user_id;
+  if (!clerkUserId) {
     err(res, 'Unauthorized', 401);
     return;
   }
@@ -428,11 +428,11 @@ export function handleDeleteAccount(req: Request, res: Response): void {
   const accountId = data.account_id;
   const db = getDbOrFail(res);
   if (!db) return;
-  if (!q.deleteGameAccount(db, accountId, userId)) {
+  if (!q.deleteGameAccount(db, accountId, clerkUserId)) {
     err(res, 'Account not found.');
     return;
   }
-  const accounts = q.getGameAccountsByUserId(db, userId);
+  const accounts = q.getGameAccountsByUserId(db, clerkUserId);
   const stillCurrent = session(req).account_id === accountId;
   const s = req.session as unknown as {
     account_id?: number | null;
@@ -451,7 +451,7 @@ export function handleDeleteAccount(req: Request, res: Response): void {
 export function handleUserInfo(req: Request, res: Response): void {
   const s = session(req);
   json(res, {
-    user_id: s.user_id ?? null,
+    clerk_user_id: s.clerk_user_id ?? null,
     username: (req.session as unknown as { username?: string }).username ?? null,
     is_admin: !!s.is_admin,
     account_id: s.account_id ?? null,

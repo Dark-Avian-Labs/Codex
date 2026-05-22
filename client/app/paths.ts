@@ -1,5 +1,7 @@
 export const APP_PATHS = {
   home: '/',
+  signIn: '/sign-in',
+  signUp: '/sign-up',
   warframe: '/warframe',
   warframeAdmin: '/warframe/admin',
   epic7: '/epic7',

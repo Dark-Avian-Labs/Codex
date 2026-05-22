@@ -6,12 +6,11 @@ import { defineConfig } from 'vitest/config';
 const testEnvDefaults = {
   NODE_ENV: 'test',
   SESSION_SECRET: 'codex-dev-only-session-secret-32ch',
-  CENTRAL_DB_PATH: path.join(os.tmpdir(), 'codex-vitest-central.db'),
+  SESSION_DB_PATH: path.join(os.tmpdir(), 'codex-vitest-session.db'),
   ARMORY_DB_PATH: path.join(os.tmpdir(), 'codex-vitest-armory.db'),
   COOKIE_DOMAIN: 'localhost',
   BASE_HOST: 'localhost',
   BASE_DOMAIN: 'example.com',
-  AUTH_SERVICE_URL: 'https://example.com',
 } as const;
 
 export default defineConfig({

@@ -1,6 +1,6 @@
 import fs from 'fs';
 
-import { requireGameAccess } from '@codex/core';
+import { ensureClerkUserIdColumn, requireCodexAdmin } from '@codex/core';
 import { validateBody } from '@codex/core/validation';
 import {
   HELMINTH_VALUES,
@@ -18,9 +18,9 @@ import {
   warframeQueries as q,
   warframeUpdateSchema,
 } from '@codex/game-warframe';
-import { Router, type Request, type Response } from 'express';
+import { Router, type Response } from 'express';
 
-import { requireGameAdmin } from '../auth/middleware.js';
+import { requireClerkUserId } from '../auth/clerkUser.js';
 import { log } from '../logger.js';
 import { provisionWarframeUserIfNeeded } from '../services/warframeProvision.js';
 import { runWarframeSync } from '../services/warframeSync.js';
@@ -28,39 +28,31 @@ import { runWarframeSyncGuarded, SyncAlreadyRunningError } from '../services/war
 
 export const warframeApiRouter = Router();
 
-warframeApiRouter.use(requireGameAccess('warframe'));
-
-function positiveIntegerUserId(value: unknown): number | null {
-  if (typeof value !== 'number' || !Number.isInteger(value) || value <= 0) return null;
-  return value;
-}
-
-function extractUserIdFromRequest(req: Request): number | null {
-  const fromSnake = positiveIntegerUserId((req.session as { user_id?: unknown })?.user_id);
-  if (fromSnake !== null) return fromSnake;
-  const fromCamel = positiveIntegerUserId((req.session as { userId?: unknown })?.userId);
-  if (fromCamel !== null) return fromCamel;
-  return positiveIntegerUserId((req as { user?: { id?: unknown } }).user?.id);
-}
-
-function getUserId(req: Request): number {
-  const userId = extractUserIdFromRequest(req);
-  if (!userId) {
-    throw new Error('Authenticated user id missing from request.');
-  }
-  return userId;
-}
-
 function ensureWarframeUserSettingsTable(db: ReturnType<typeof getWarframeDb>): void {
   db.exec(`
     CREATE TABLE IF NOT EXISTS user_settings (
-      user_id INTEGER NOT NULL,
+      clerk_user_id TEXT NOT NULL,
       setting_key TEXT NOT NULL,
       setting_value TEXT NOT NULL,
       updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-      PRIMARY KEY (user_id, setting_key)
+      PRIMARY KEY (clerk_user_id, setting_key)
     );
   `);
+  const cols = db.prepare('PRAGMA table_info(user_settings)').all() as { name: string }[];
+  if (cols.some((c) => c.name === 'user_id') && !cols.some((c) => c.name === 'clerk_user_id')) {
+    db.exec('ALTER TABLE user_settings RENAME TO user_settings_legacy');
+    ensureClerkUserIdColumn(db, 'user_settings_legacy');
+    ensureWarframeUserSettingsTable(db);
+    db.exec(`
+      INSERT INTO user_settings (clerk_user_id, setting_key, setting_value, updated_at)
+      SELECT clerk_user_id, setting_key, setting_value, updated_at
+      FROM user_settings_legacy
+      WHERE clerk_user_id IS NOT NULL
+      ON CONFLICT(clerk_user_id, setting_key) DO UPDATE SET
+        setting_value = excluded.setting_value,
+        updated_at = excluded.updated_at
+    `);
+  }
 }
 
 async function getDbOrFail(res: Response): Promise<ReturnType<typeof getWarframeDb> | null> {
@@ -147,16 +139,16 @@ function validateColumnValues(
 
 warframeApiRouter.get('/worksheets', (req, res) => {
   void (async () => {
-    const userId = extractUserIdFromRequest(req);
-    if (!userId) {
+    const clerkUserId = requireClerkUserId(req);
+    if (!clerkUserId) {
       res.status(401).json({ error: 'Unauthorized' });
       return;
     }
     const db = await getDbOrFail(res);
     if (!db) return;
     try {
-      provisionWarframeUserIfNeeded(db, userId);
-      const worksheets = await q.getWorksheets(db, userId);
+      provisionWarframeUserIfNeeded(db, clerkUserId);
+      const worksheets = await q.getWorksheets(db, clerkUserId);
       res.status(200).json({ worksheets });
     } catch (error) {
       console.error('Failed to fetch worksheets:', error);
@@ -167,8 +159,8 @@ warframeApiRouter.get('/worksheets', (req, res) => {
 
 warframeApiRouter.get('/settings', (req, res) => {
   void (async () => {
-    const userId = extractUserIdFromRequest(req);
-    if (!userId) {
+    const clerkUserId = requireClerkUserId(req);
+    if (!clerkUserId) {
       res.status(401).json({ error: 'Unauthorized' });
       return;
     }
@@ -178,18 +170,18 @@ warframeApiRouter.get('/settings', (req, res) => {
       ensureWarframeUserSettingsTable(db);
       const sel = db.prepare(
         `SELECT setting_value FROM user_settings
-         WHERE user_id = ? AND setting_key = ?`,
+         WHERE clerk_user_id = ? AND setting_key = ?`,
       );
-      const hideRow = sel.get(userId, SETTING_HIDE_COMPLETED) as
+      const hideRow = sel.get(clerkUserId, SETTING_HIDE_COMPLETED) as
         | { setting_value: string }
         | undefined;
-      const marketRow = sel.get(userId, SETTING_MARKET_LINKS) as
+      const marketRow = sel.get(clerkUserId, SETTING_MARKET_LINKS) as
         | { setting_value: string }
         | undefined;
-      const advancedRow = sel.get(userId, SETTING_ADVANCED_MODE) as
+      const advancedRow = sel.get(clerkUserId, SETTING_ADVANCED_MODE) as
         | { setting_value: string }
         | undefined;
-      const showAllVariantsRow = sel.get(userId, SETTING_SHOW_ALL_VARIANTS) as
+      const showAllVariantsRow = sel.get(clerkUserId, SETTING_SHOW_ALL_VARIANTS) as
         | { setting_value: string }
         | undefined;
       res.status(200).json({
@@ -207,8 +199,8 @@ warframeApiRouter.get('/settings', (req, res) => {
 
 warframeApiRouter.patch('/settings', (req, res) => {
   void (async () => {
-    const userId = extractUserIdFromRequest(req);
-    if (!userId) {
+    const clerkUserId = requireClerkUserId(req);
+    if (!clerkUserId) {
       res.status(401).json({ error: 'Unauthorized' });
       return;
     }
@@ -229,8 +221,10 @@ warframeApiRouter.patch('/settings', (req, res) => {
       ensureWarframeUserSettingsTable(db);
       const readSetting = (key: string): boolean => {
         const row = db
-          .prepare(`SELECT setting_value FROM user_settings WHERE user_id = ? AND setting_key = ?`)
-          .get(userId, key) as { setting_value: string } | undefined;
+          .prepare(
+            `SELECT setting_value FROM user_settings WHERE clerk_user_id = ? AND setting_key = ?`,
+          )
+          .get(clerkUserId, key) as { setting_value: string } | undefined;
         return row?.setting_value === '1';
       };
       let hideCompleted = readSetting(SETTING_HIDE_COMPLETED);
@@ -242,16 +236,16 @@ warframeApiRouter.patch('/settings', (req, res) => {
       if (advancedProvided) advancedMode = req.body.advanced_mode as boolean;
       if (showAllVariantsProvided) showAllVariants = req.body.show_all_variants as boolean;
       const upsert = db.prepare(
-        `INSERT INTO user_settings (user_id, setting_key, setting_value, updated_at)
+        `INSERT INTO user_settings (clerk_user_id, setting_key, setting_value, updated_at)
          VALUES (?, ?, ?, datetime('now'))
-         ON CONFLICT(user_id, setting_key) DO UPDATE SET
+         ON CONFLICT(clerk_user_id, setting_key) DO UPDATE SET
            setting_value = excluded.setting_value,
            updated_at = datetime('now')`,
       );
-      upsert.run(userId, SETTING_HIDE_COMPLETED, hideCompleted ? '1' : '0');
-      upsert.run(userId, SETTING_MARKET_LINKS, marketLinks ? '1' : '0');
-      upsert.run(userId, SETTING_ADVANCED_MODE, advancedMode ? '1' : '0');
-      upsert.run(userId, SETTING_SHOW_ALL_VARIANTS, showAllVariants ? '1' : '0');
+      upsert.run(clerkUserId, SETTING_HIDE_COMPLETED, hideCompleted ? '1' : '0');
+      upsert.run(clerkUserId, SETTING_MARKET_LINKS, marketLinks ? '1' : '0');
+      upsert.run(clerkUserId, SETTING_ADVANCED_MODE, advancedMode ? '1' : '0');
+      upsert.run(clerkUserId, SETTING_SHOW_ALL_VARIANTS, showAllVariants ? '1' : '0');
       res.status(200).json({ success: true });
     } catch (error) {
       console.error('Failed to save Warframe settings:', error);
@@ -262,8 +256,8 @@ warframeApiRouter.patch('/settings', (req, res) => {
 
 warframeApiRouter.get('/worksheets/:worksheetId', (req, res) => {
   void (async () => {
-    const userId = extractUserIdFromRequest(req);
-    if (!userId) {
+    const clerkUserId = requireClerkUserId(req);
+    if (!clerkUserId) {
       res.status(401).json({ error: 'Unauthorized' });
       return;
     }
@@ -275,7 +269,7 @@ warframeApiRouter.get('/worksheets/:worksheetId', (req, res) => {
     const db = await getDbOrFail(res);
     if (!db) return;
     try {
-      const data = await q.getWorksheetData(db, worksheetId, userId);
+      const data = await q.getWorksheetData(db, worksheetId, clerkUserId);
       if (!data) {
         res.status(404).json({ error: 'Worksheet not found.' });
         return;
@@ -294,8 +288,8 @@ warframeApiRouter.get('/worksheets/:worksheetId', (req, res) => {
 
 warframeApiRouter.patch('/cells', (req, res) => {
   void (async () => {
-    const userId = extractUserIdFromRequest(req);
-    if (!userId) {
+    const clerkUserId = requireClerkUserId(req);
+    if (!clerkUserId) {
       res.status(401).json({ error: 'Unauthorized' });
       return;
     }
@@ -304,19 +298,19 @@ warframeApiRouter.patch('/cells', (req, res) => {
     const db = await getDbOrFail(res);
     if (!db) return;
     try {
-      const col = q.getColumnById(db, data.column_id, userId);
+      const col = q.getColumnById(db, data.column_id, clerkUserId);
       if (!col) {
         res.status(400).json({ error: 'Column not found or access denied.' });
         return;
       }
       const isHelminth = col.name === 'Helminth';
-      const current = q.getCellValue(db, data.row_id, data.column_id, userId);
+      const current = q.getCellValue(db, data.row_id, data.column_id, clerkUserId);
       if (current === data.value) {
         res.status(200).json({ success: true, value: data.value });
         return;
       }
       if (isHelminth) {
-        const itemName = q.getRowItemName(db, data.row_id, userId);
+        const itemName = q.getRowItemName(db, data.row_id, clerkUserId);
         if (!itemName) {
           res.status(400).json({ error: 'Row not found.' });
           return;
@@ -335,7 +329,7 @@ warframeApiRouter.patch('/cells', (req, res) => {
           return;
         }
       }
-      const changes = q.updateCell(db, data.row_id, data.column_id, data.value, userId);
+      const changes = q.updateCell(db, data.row_id, data.column_id, data.value, clerkUserId);
       if (changes <= 0) {
         res.status(404).json({ error: 'Update failed: row or column not updated.' });
         return;
@@ -351,8 +345,8 @@ warframeApiRouter.patch('/cells', (req, res) => {
 
 warframeApiRouter.patch('/advanced-progress', (req, res) => {
   void (async () => {
-    const userId = extractUserIdFromRequest(req);
-    if (!userId) {
+    const clerkUserId = requireClerkUserId(req);
+    if (!clerkUserId) {
       res.status(401).json({ error: 'Unauthorized' });
       return;
     }
@@ -361,7 +355,7 @@ warframeApiRouter.patch('/advanced-progress', (req, res) => {
     const db = await getDbOrFail(res);
     if (!db) return;
     try {
-      const next = q.updateRowAdvancedProgress(db, data.row_id, userId, {
+      const next = q.updateRowAdvancedProgress(db, data.row_id, clerkUserId, {
         level: data.level,
         level_prime: data.level_prime,
         valence_percent: data.valence_percent,
@@ -386,8 +380,8 @@ warframeApiRouter.patch('/advanced-progress', (req, res) => {
 
 warframeApiRouter.post('/rows', (req, res) => {
   void (async () => {
-    const userId = extractUserIdFromRequest(req);
-    if (!userId) {
+    const clerkUserId = requireClerkUserId(req);
+    if (!clerkUserId) {
       res.status(401).json({ error: 'Unauthorized' });
       return;
     }
@@ -396,7 +390,7 @@ warframeApiRouter.post('/rows', (req, res) => {
     const db = await getDbOrFail(res);
     if (!db) return;
     try {
-      const columns = q.getWorksheetColumns(db, data.worksheet_id, userId);
+      const columns = q.getWorksheetColumns(db, data.worksheet_id, clerkUserId);
       if (columns.length === 0) {
         res.status(403).json({ error: 'Worksheet not found or access denied.' });
         return;
@@ -407,7 +401,7 @@ warframeApiRouter.post('/rows', (req, res) => {
         return;
       }
       try {
-        const rowId = q.addRow(db, data.worksheet_id, userId, data.item_name, valid);
+        const rowId = q.addRow(db, data.worksheet_id, clerkUserId, data.item_name, valid);
         res.status(201).json({ success: true, row_id: rowId });
       } catch (error) {
         console.error('Failed to add row:', error);
@@ -424,8 +418,8 @@ warframeApiRouter.post('/rows', (req, res) => {
 
 warframeApiRouter.patch('/rows/:rowId', (req, res) => {
   void (async () => {
-    const userId = extractUserIdFromRequest(req);
-    if (!userId) {
+    const clerkUserId = requireClerkUserId(req);
+    if (!clerkUserId) {
       res.status(401).json({ error: 'Unauthorized' });
       return;
     }
@@ -438,13 +432,13 @@ warframeApiRouter.patch('/rows/:rowId', (req, res) => {
     const db = await getDbOrFail(res);
     if (!db) return;
     try {
-      const worksheetId = q.getRowWorksheetId(db, data.row_id, userId);
+      const worksheetId = q.getRowWorksheetId(db, data.row_id, clerkUserId);
       if (worksheetId === null) {
         res.status(404).json({ error: 'Row not found.' });
         return;
       }
-      const columns = q.getWorksheetColumns(db, worksheetId, userId);
-      const existingName = q.getRowItemName(db, data.row_id, userId) ?? '';
+      const columns = q.getWorksheetColumns(db, worksheetId, clerkUserId);
+      const existingName = q.getRowItemName(db, data.row_id, clerkUserId) ?? '';
       const itemNameForHelminth =
         data.item_name !== null && data.item_name.trim() !== ''
           ? data.item_name.trim()
@@ -454,7 +448,7 @@ warframeApiRouter.patch('/rows/:rowId', (req, res) => {
         res.status(400).json({ error: 'Invalid column/value(s).', invalid });
         return;
       }
-      const ok = q.editRow(db, data.row_id, userId, data.item_name, valid);
+      const ok = q.editRow(db, data.row_id, clerkUserId, data.item_name, valid);
       if (!ok) {
         res.status(404).json({ error: 'Row not found.' });
         return;
@@ -469,8 +463,8 @@ warframeApiRouter.patch('/rows/:rowId', (req, res) => {
 
 warframeApiRouter.delete('/rows/:rowId', (req, res) => {
   void (async () => {
-    const userId = extractUserIdFromRequest(req);
-    if (!userId) {
+    const clerkUserId = requireClerkUserId(req);
+    if (!clerkUserId) {
       res.status(401).json({ error: 'Unauthorized' });
       return;
     }
@@ -479,7 +473,7 @@ warframeApiRouter.delete('/rows/:rowId', (req, res) => {
     const db = await getDbOrFail(res);
     if (!db) return;
     try {
-      const ok = q.deleteRow(db, data.row_id, userId);
+      const ok = q.deleteRow(db, data.row_id, clerkUserId);
       if (!ok) {
         res.status(404).json({ error: 'Row not found.' });
         return;
@@ -492,14 +486,20 @@ warframeApiRouter.delete('/rows/:rowId', (req, res) => {
   })();
 });
 
-warframeApiRouter.patch('/admin/cells', requireGameAdmin, (req, res) => {
+warframeApiRouter.patch('/admin/cells', requireCodexAdmin, (req, res) => {
   void (async () => {
     const data = validateBody(warframeAdminUpdateSchema, req.body, res);
     if (!data) return;
     const db = await getDbOrFail(res);
     if (!db) return;
     try {
-      const result = q.adminUpdateCell(db, data.row_id, data.column_id, data.value, getUserId(req));
+      const result = q.adminUpdateCell(
+        db,
+        data.row_id,
+        data.column_id,
+        data.value,
+        requireClerkUserId(req),
+      );
       if (result <= 0) {
         res.status(404).json({ error: 'Row or column not updated.' });
         return;
@@ -513,10 +513,10 @@ warframeApiRouter.patch('/admin/cells', requireGameAdmin, (req, res) => {
   })();
 });
 
-warframeApiRouter.get('/admin/sync-preview', requireGameAdmin, (req, res) => {
+warframeApiRouter.get('/admin/sync-preview', requireCodexAdmin, (req, res) => {
   void (async () => {
-    const userId = extractUserIdFromRequest(req);
-    if (!userId) {
+    const clerkUserId = requireClerkUserId(req);
+    if (!clerkUserId) {
       res.status(401).json({ error: 'Unauthorized' });
       return;
     }
@@ -526,7 +526,7 @@ warframeApiRouter.get('/admin/sync-preview', requireGameAdmin, (req, res) => {
       const result = await runWarframeSyncGuarded(() =>
         runWarframeSync(db, {
           execute: false,
-          userIds: [userId],
+          clerkUserIds: [clerkUserId],
         }),
       );
       res.status(200).json(result);
@@ -543,9 +543,9 @@ warframeApiRouter.get('/admin/sync-preview', requireGameAdmin, (req, res) => {
   })();
 });
 
-warframeApiRouter.post('/admin/sync-source', requireGameAdmin, (req, res) => {
+warframeApiRouter.post('/admin/sync-source', requireCodexAdmin, (req, res) => {
   void (async () => {
-    const adminUserId = extractUserIdFromRequest(req);
+    const adminUserId = requireClerkUserId(req);
     if (!adminUserId) {
       res.status(401).json({ error: 'Unauthorized' });
       return;
@@ -553,11 +553,11 @@ warframeApiRouter.post('/admin/sync-source', requireGameAdmin, (req, res) => {
     const db = await getDbOrFail(res);
     if (!db) return;
     try {
-      log('info', 'Starting Warframe sync execution', { userId: adminUserId });
+      log('info', 'Starting Warframe sync execution', { clerkUserId: adminUserId });
       const result = await runWarframeSyncGuarded(() =>
         runWarframeSync(db, {
           execute: true,
-          initiatedByUserId: adminUserId,
+          initiatedByClerkUserId: adminUserId,
         }),
       );
       res.status(200).json(result);
@@ -567,7 +567,7 @@ warframeApiRouter.post('/admin/sync-source', requireGameAdmin, (req, res) => {
         return;
       }
       log('error', 'Failed to execute Warframe sync', {
-        userId: adminUserId,
+        clerkUserId: adminUserId,
         err: error instanceof Error ? error.message : String(error),
       });
       res.status(500).json({ error: 'Failed to execute Warframe sync.' });

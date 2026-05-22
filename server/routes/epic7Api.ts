@@ -1,4 +1,4 @@
-import { requireGameAccess } from '@codex/core';
+import { requireCodexAdmin } from '@codex/core';
 import { validateBody } from '@codex/core/validation';
 import {
   ARTIFACT_GAUGE_MAX,
@@ -23,18 +23,13 @@ import {
 } from '@codex/game-epic7';
 import { Router, type Request, type Response } from 'express';
 
-import { requireGameAdmin } from '../auth/middleware.js';
+import { requireClerkUserId } from '../auth/clerkUser.js';
 import { isEpic7DbAvailable } from '../epic7DbState.js';
 import { log } from '../logger.js';
 
 export const epic7ApiRouter = Router();
 
-epic7ApiRouter.use(requireGameAccess('epic7'));
-
 type Epic7Session = {
-  user_id?: number;
-  username?: string;
-  is_admin?: boolean;
   account_id?: number | null;
   account_name?: string | null;
 };
@@ -70,12 +65,12 @@ function getDbOrFail(res: Response): ReturnType<typeof getEpic7Db> | null {
 
 type Epic7Database = ReturnType<typeof getEpic7Db>;
 
-function resolveAccountId(db: Epic7Database, req: Request, userId: number): number | null {
+function resolveAccountId(db: Epic7Database, req: Request, clerkUserId: string): number | null {
   const fromSession = session(req).account_id;
   if (typeof fromSession === 'number' && fromSession > 0) {
     return fromSession;
   }
-  const accounts = q.getUserAccountsForApi(db, userId);
+  const accounts = q.getUserAccountsForApi(db, clerkUserId);
   const active = accounts.find((account) => account.is_active === 1);
   return active?.id ?? null;
 }
@@ -112,12 +107,8 @@ epic7ApiRouter.get('/worksheets', (_req, res) => {
 
 epic7ApiRouter.get('/heroes', (req, res) => {
   runWithDb(res, (db) => {
-    const userId = session(req).user_id;
-    if (!userId) {
-      err(res, 'Unauthorized', 401);
-      return;
-    }
-    const accountId = resolveAccountId(db, req, userId);
+    const clerkUserId = requireClerkUserId(req);
+    const accountId = resolveAccountId(db, req, clerkUserId);
     if (!accountId) {
       err(res, 'No game account selected. Please create one first.');
       return;
@@ -131,12 +122,8 @@ epic7ApiRouter.get('/heroes', (req, res) => {
 
 epic7ApiRouter.get('/artifacts', (req, res) => {
   runWithDb(res, (db) => {
-    const userId = session(req).user_id;
-    if (!userId) {
-      err(res, 'Unauthorized', 401);
-      return;
-    }
-    const accountId = resolveAccountId(db, req, userId);
+    const clerkUserId = requireClerkUserId(req);
+    const accountId = resolveAccountId(db, req, clerkUserId);
     if (!accountId) {
       err(res, 'No game account selected. Please create one first.');
       return;
@@ -151,12 +138,8 @@ epic7ApiRouter.get('/artifacts', (req, res) => {
 });
 
 function requireAccountId(db: Epic7Database, req: Request, res: Response): number | null {
-  const userId = session(req).user_id;
-  if (!userId) {
-    err(res, 'Unauthorized', 401);
-    return null;
-  }
-  const accountId = resolveAccountId(db, req, userId);
+  const clerkUserId = requireClerkUserId(req);
+  const accountId = resolveAccountId(db, req, clerkUserId);
   if (!accountId) {
     err(res, 'No game account selected. Please create one first.');
     return null;
@@ -326,12 +309,8 @@ epic7ApiRouter.delete('/artifacts/:artifactId', (req, res) => {
 
 epic7ApiRouter.get('/accounts', (req, res) => {
   runWithDb(res, (db) => {
-    const userId = session(req).user_id;
-    if (!userId) {
-      err(res, 'Unauthorized', 401);
-      return;
-    }
-    const accounts = q.getUserAccountsForApi(db, userId);
+    const clerkUserId = requireClerkUserId(req);
+    const accounts = q.getUserAccountsForApi(db, clerkUserId);
     const active = accounts.find((account) => account.is_active === 1);
     const currentId = session(req).account_id ?? active?.id ?? null;
     json(res, {
@@ -348,19 +327,15 @@ epic7ApiRouter.get('/accounts', (req, res) => {
 
 epic7ApiRouter.post('/accounts/switch', (req, res) => {
   runWithDb(res, (db) => {
-    const userId = session(req).user_id;
-    if (!userId) {
-      err(res, 'Unauthorized', 401);
-      return;
-    }
+    const clerkUserId = requireClerkUserId(req);
     const data = validateBody(epic7SwitchAccountSchema, req.body, res);
     if (!data) return;
-    const account = q.getGameAccountByIdAndUser(db, data.account_id, userId);
+    const account = q.getGameAccountByIdAndUser(db, data.account_id, clerkUserId);
     if (!account) {
       err(res, 'Account not found.');
       return;
     }
-    q.setActiveAccount(db, userId, data.account_id);
+    q.setActiveAccount(db, clerkUserId, data.account_id);
     patchEpic7Session(req, { account_id: account.id, account_name: account.account_name });
     json(res, {
       success: true,
@@ -371,21 +346,17 @@ epic7ApiRouter.post('/accounts/switch', (req, res) => {
 
 epic7ApiRouter.post('/accounts', (req, res) => {
   runWithDb(res, (db) => {
-    const userId = session(req).user_id;
-    if (!userId) {
-      err(res, 'Unauthorized', 401);
-      return;
-    }
+    const clerkUserId = requireClerkUserId(req);
     const data = validateBody(epic7AddAccountSchema, req.body, res);
     if (!data) return;
-    const existing = q.getAccountByNameAndUser(db, userId, data.account_name);
+    const existing = q.getAccountByNameAndUser(db, clerkUserId, data.account_name);
     if (existing) {
       err(res, 'An account with this name already exists.');
       return;
     }
-    const accountsBefore = q.getGameAccountsByUserId(db, userId);
+    const accountsBefore = q.getGameAccountsByUserId(db, clerkUserId);
     const isFirst = accountsBefore.length === 0;
-    const accountId = q.createGameAccount(db, userId, data.account_name, isFirst);
+    const accountId = q.createGameAccount(db, clerkUserId, data.account_name, isFirst);
     q.seedAccountHeroesFromBase(db, accountId);
     q.seedAccountArtifactsFromBase(db, accountId);
     if (isFirst) {
@@ -397,11 +368,7 @@ epic7ApiRouter.post('/accounts', (req, res) => {
 
 epic7ApiRouter.patch('/accounts/:accountId', (req, res) => {
   runWithDb(res, (db) => {
-    const userId = session(req).user_id;
-    if (!userId) {
-      err(res, 'Unauthorized', 401);
-      return;
-    }
+    const clerkUserId = requireClerkUserId(req);
     const data = validateBody(
       epic7UpdateAccountSchema,
       {
@@ -411,17 +378,17 @@ epic7ApiRouter.patch('/accounts/:accountId', (req, res) => {
       res,
     );
     if (!data) return;
-    const existingById = q.getGameAccountByIdAndUser(db, data.account_id, userId);
+    const existingById = q.getGameAccountByIdAndUser(db, data.account_id, clerkUserId);
     if (!existingById) {
       err(res, 'Account not found.', 404);
       return;
     }
-    const duplicate = q.getAccountByNameAndUser(db, userId, data.account_name);
+    const duplicate = q.getAccountByNameAndUser(db, clerkUserId, data.account_name);
     if (duplicate && duplicate.id !== data.account_id) {
       err(res, 'An account with this name already exists.');
       return;
     }
-    if (!q.updateGameAccountName(db, data.account_id, userId, data.account_name)) {
+    if (!q.updateGameAccountName(db, data.account_id, clerkUserId, data.account_name)) {
       err(res, 'Failed to update account name.');
       return;
     }
@@ -437,22 +404,18 @@ epic7ApiRouter.patch('/accounts/:accountId', (req, res) => {
 
 epic7ApiRouter.delete('/accounts/:accountId', (req, res) => {
   runWithDb(res, (db) => {
-    const userId = session(req).user_id;
-    if (!userId) {
-      err(res, 'Unauthorized', 401);
-      return;
-    }
+    const clerkUserId = requireClerkUserId(req);
     const data = validateBody(
       epic7DeleteAccountSchema,
       { account_id: Number(req.params.accountId) },
       res,
     );
     if (!data) return;
-    if (!q.deleteGameAccount(db, data.account_id, userId)) {
+    if (!q.deleteGameAccount(db, data.account_id, clerkUserId)) {
       err(res, 'Account not found.');
       return;
     }
-    const accounts = q.getGameAccountsByUserId(db, userId);
+    const accounts = q.getGameAccountsByUserId(db, clerkUserId);
     const stillCurrent = session(req).account_id === data.account_id;
     if (stillCurrent && accounts.length > 0) {
       patchEpic7Session(req, {
@@ -469,15 +432,13 @@ epic7ApiRouter.delete('/accounts/:accountId', (req, res) => {
 epic7ApiRouter.get('/user', (req, res) => {
   const s = session(req);
   json(res, {
-    user_id: s.user_id ?? null,
-    username: s.username ?? null,
-    is_admin: !!s.is_admin,
+    userId: requireClerkUserId(req),
     account_id: s.account_id ?? null,
     account_name: s.account_name ?? null,
   });
 });
 
-epic7ApiRouter.get('/admin/base/heroes', requireGameAdmin, (_req, res) => {
+epic7ApiRouter.get('/admin/base/heroes', requireCodexAdmin, (_req, res) => {
   runWithDb(res, (db) => {
     const heroes = db
       .prepare(
@@ -488,7 +449,7 @@ epic7ApiRouter.get('/admin/base/heroes', requireGameAdmin, (_req, res) => {
   });
 });
 
-epic7ApiRouter.get('/admin/base/artifacts', requireGameAdmin, (_req, res) => {
+epic7ApiRouter.get('/admin/base/artifacts', requireCodexAdmin, (_req, res) => {
   runWithDb(res, (db) => {
     const artifacts = db
       .prepare(
@@ -499,7 +460,7 @@ epic7ApiRouter.get('/admin/base/artifacts', requireGameAdmin, (_req, res) => {
   });
 });
 
-epic7ApiRouter.post('/admin/base/heroes', requireGameAdmin, (req, res) => {
+epic7ApiRouter.post('/admin/base/heroes', requireCodexAdmin, (req, res) => {
   runWithDb(res, (db) => {
     const data = validateBody(epic7AdminAddBaseHeroSchema, req.body, res);
     if (!data) return;
@@ -537,7 +498,7 @@ epic7ApiRouter.post('/admin/base/heroes', requireGameAdmin, (req, res) => {
   });
 });
 
-epic7ApiRouter.post('/admin/base/artifacts', requireGameAdmin, (req, res) => {
+epic7ApiRouter.post('/admin/base/artifacts', requireCodexAdmin, (req, res) => {
   runWithDb(res, (db) => {
     const data = validateBody(epic7AdminAddBaseArtifactSchema, req.body, res);
     if (!data) return;
@@ -574,7 +535,7 @@ epic7ApiRouter.post('/admin/base/artifacts', requireGameAdmin, (req, res) => {
   });
 });
 
-epic7ApiRouter.delete('/admin/base/heroes/:heroId', requireGameAdmin, (req, res) => {
+epic7ApiRouter.delete('/admin/base/heroes/:heroId', requireCodexAdmin, (req, res) => {
   runWithDb(res, (db) => {
     const data = validateBody(
       epic7AdminDeleteBaseHeroSchema,
@@ -591,7 +552,7 @@ epic7ApiRouter.delete('/admin/base/heroes/:heroId', requireGameAdmin, (req, res)
   });
 });
 
-epic7ApiRouter.delete('/admin/base/artifacts/:artifactId', requireGameAdmin, (req, res) => {
+epic7ApiRouter.delete('/admin/base/artifacts/:artifactId', requireCodexAdmin, (req, res) => {
   runWithDb(res, (db) => {
     const data = validateBody(
       epic7AdminDeleteBaseArtifactSchema,

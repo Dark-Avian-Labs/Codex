@@ -69,7 +69,7 @@ function renderStars(count: number): string | ReactNode {
 
 export function AdminPage() {
   const { auth } = useAuth();
-  const isAdmin = auth.status === 'ok' && Boolean(auth.user?.isAdmin);
+  const isAdmin = auth.status === 'ok' && auth.isCodexAdmin;
   const [tab, setTab] = useState<'heroes' | 'artifacts'>('heroes');
   const [baseHeroes, setBaseHeroes] = useState<BaseHero[]>([]);
   const [baseArtifacts, setBaseArtifacts] = useState<BaseArtifact[]>([]);

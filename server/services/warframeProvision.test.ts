@@ -1,6 +1,8 @@
 import type Database from 'better-sqlite3';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+const TEST_CLERK_ID = 'user_test123';
+
 const mocks = vi.hoisted(() => ({
   getWorksheets: vi.fn<typeof import('@codex/game-warframe').warframeQueries.getWorksheets>(),
   runWarframeSync: vi.fn(),
@@ -38,7 +40,7 @@ describe('provisionWarframeUserIfNeeded', () => {
 
   it('does nothing when the user already has worksheets', () => {
     mocks.getWorksheets.mockReturnValue([{ id: 1, name: 'Warframes', display_order: 0 }]);
-    provisionWarframeUserIfNeeded(codexDb, 7);
+    provisionWarframeUserIfNeeded(codexDb, TEST_CLERK_ID);
     expect(mocks.runWarframeSync).not.toHaveBeenCalled();
     expect(mocks.ensureWarframeWorksheetsForUser).not.toHaveBeenCalled();
   });
@@ -46,11 +48,11 @@ describe('provisionWarframeUserIfNeeded', () => {
   it('runs Armory sync when the Armory database is available', () => {
     mocks.getWorksheets.mockReturnValueOnce([]).mockReturnValueOnce([{ id: 1, name: 'Warframes', display_order: 0 }]);
     mocks.existsSync.mockReturnValue(true);
-    provisionWarframeUserIfNeeded(codexDb, 42);
+    provisionWarframeUserIfNeeded(codexDb, TEST_CLERK_ID);
     expect(mocks.runWarframeSync).toHaveBeenCalledWith(codexDb, {
       execute: true,
-      userIds: [42],
-      initiatedByUserId: 42,
+      clerkUserIds: [TEST_CLERK_ID],
+      initiatedByClerkUserId: TEST_CLERK_ID,
     });
     expect(mocks.ensureWarframeWorksheetsForUser).not.toHaveBeenCalled();
   });
@@ -58,17 +60,17 @@ describe('provisionWarframeUserIfNeeded', () => {
   it('creates empty worksheets when Armory sync is unavailable', () => {
     mocks.getWorksheets.mockReturnValue([]);
     mocks.existsSync.mockReturnValue(false);
-    provisionWarframeUserIfNeeded(codexDb, 42);
+    provisionWarframeUserIfNeeded(codexDb, TEST_CLERK_ID);
     expect(mocks.runWarframeSync).not.toHaveBeenCalled();
-    expect(mocks.ensureWarframeWorksheetsForUser).toHaveBeenCalledWith(codexDb, 42);
+    expect(mocks.ensureWarframeWorksheetsForUser).toHaveBeenCalledWith(codexDb, TEST_CLERK_ID);
   });
 
   it('creates empty worksheets when sync leaves the user without worksheets', () => {
     mocks.getWorksheets.mockReturnValue([]);
     mocks.existsSync.mockReturnValue(true);
     mocks.runWarframeSync.mockImplementation(() => undefined);
-    provisionWarframeUserIfNeeded(codexDb, 42);
+    provisionWarframeUserIfNeeded(codexDb, TEST_CLERK_ID);
     expect(mocks.runWarframeSync).toHaveBeenCalled();
-    expect(mocks.ensureWarframeWorksheetsForUser).toHaveBeenCalledWith(codexDb, 42);
+    expect(mocks.ensureWarframeWorksheetsForUser).toHaveBeenCalledWith(codexDb, TEST_CLERK_ID);
   });
 });

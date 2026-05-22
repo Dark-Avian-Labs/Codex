@@ -64,36 +64,40 @@ function isValidArtifactGaugeLevel(level: number): boolean {
   return Number.isInteger(level) && level >= 0 && level <= ARTIFACT_GAUGE_MAX;
 }
 
-export function getGameAccountsByUserId(db: Database.Database, userId: number): GameAccount[] {
+export function getGameAccountsByUserId(db: Database.Database, clerkUserId: string): GameAccount[] {
   return db
     .prepare(
-      'SELECT id, account_name, is_active, created_at FROM game_accounts WHERE user_id = ? ORDER BY is_active DESC, id ASC',
+      'SELECT id, account_name, is_active, created_at FROM game_accounts WHERE clerk_user_id = ? ORDER BY is_active DESC, id ASC',
     )
-    .all(userId) as GameAccount[];
+    .all(clerkUserId) as GameAccount[];
 }
 
 export function getGameAccountByIdAndUser(
   db: Database.Database,
   accountId: number,
-  userId: number,
+  clerkUserId: string,
 ): { id: number; account_name: string } | undefined {
   return db
-    .prepare('SELECT id, account_name FROM game_accounts WHERE id = ? AND user_id = ?')
-    .get(accountId, userId) as { id: number; account_name: string } | undefined;
+    .prepare('SELECT id, account_name FROM game_accounts WHERE id = ? AND clerk_user_id = ?')
+    .get(accountId, clerkUserId) as { id: number; account_name: string } | undefined;
 }
 
-export function setActiveAccount(db: Database.Database, userId: number, accountId: number): void {
+export function setActiveAccount(
+  db: Database.Database,
+  clerkUserId: string,
+  accountId: number,
+): void {
   const transaction = db.transaction(() => {
     const exists = db
-      .prepare('SELECT id FROM game_accounts WHERE id = ? AND user_id = ?')
-      .get(accountId, userId);
+      .prepare('SELECT id FROM game_accounts WHERE id = ? AND clerk_user_id = ?')
+      .get(accountId, clerkUserId);
     if (!exists) {
       throw new Error('Account not found or does not belong to user');
     }
-    db.prepare('UPDATE game_accounts SET is_active = 0 WHERE user_id = ?').run(userId);
+    db.prepare('UPDATE game_accounts SET is_active = 0 WHERE clerk_user_id = ?').run(clerkUserId);
     const r = db
-      .prepare('UPDATE game_accounts SET is_active = 1 WHERE id = ? AND user_id = ?')
-      .run(accountId, userId);
+      .prepare('UPDATE game_accounts SET is_active = 1 WHERE id = ? AND clerk_user_id = ?')
+      .run(accountId, clerkUserId);
     if (r.changes === 0) {
       throw new Error('Failed to set active account');
     }
@@ -103,52 +107,52 @@ export function setActiveAccount(db: Database.Database, userId: number, accountI
 
 export function createGameAccount(
   db: Database.Database,
-  userId: number,
+  clerkUserId: string,
   accountName: string,
   isFirst: boolean,
 ): number {
   const r = db
-    .prepare('INSERT INTO game_accounts (user_id, account_name, is_active) VALUES (?, ?, ?)')
-    .run(userId, accountName, isFirst ? 1 : 0);
+    .prepare('INSERT INTO game_accounts (clerk_user_id, account_name, is_active) VALUES (?, ?, ?)')
+    .run(clerkUserId, accountName, isFirst ? 1 : 0);
   return Number(r.lastInsertRowid);
 }
 
 export function getAccountByNameAndUser(
   db: Database.Database,
-  userId: number,
+  clerkUserId: string,
   name: string,
 ): { id: number } | undefined {
   return db
-    .prepare('SELECT id FROM game_accounts WHERE user_id = ? AND account_name = ?')
-    .get(userId, name) as { id: number } | undefined;
+    .prepare('SELECT id FROM game_accounts WHERE clerk_user_id = ? AND account_name = ?')
+    .get(clerkUserId, name) as { id: number } | undefined;
 }
 
 export function deleteGameAccount(
   db: Database.Database,
   accountId: number,
-  userId: number,
+  clerkUserId: string,
 ): boolean {
   const r = db
-    .prepare('DELETE FROM game_accounts WHERE id = ? AND user_id = ?')
-    .run(accountId, userId);
+    .prepare('DELETE FROM game_accounts WHERE id = ? AND clerk_user_id = ?')
+    .run(accountId, clerkUserId);
   return r.changes > 0;
 }
 
 export function updateGameAccountName(
   db: Database.Database,
   accountId: number,
-  userId: number,
+  clerkUserId: string,
   accountName: string,
 ): boolean {
   const r = db
-    .prepare('UPDATE game_accounts SET account_name = ? WHERE id = ? AND user_id = ?')
-    .run(accountName, accountId, userId);
+    .prepare('UPDATE game_accounts SET account_name = ? WHERE id = ? AND clerk_user_id = ?')
+    .run(accountName, accountId, clerkUserId);
   return r.changes > 0;
 }
 
 export function getUserAccountsForApi(
   db: Database.Database,
-  userId: number,
+  clerkUserId: string,
 ): {
   id: number;
   account_name: string;
@@ -157,9 +161,9 @@ export function getUserAccountsForApi(
 }[] {
   return db
     .prepare(
-      'SELECT id, account_name, is_active, created_at FROM game_accounts WHERE user_id = ? ORDER BY created_at ASC',
+      'SELECT id, account_name, is_active, created_at FROM game_accounts WHERE clerk_user_id = ? ORDER BY created_at ASC',
     )
-    .all(userId) as {
+    .all(clerkUserId) as {
     id: number;
     account_name: string;
     is_active: number;

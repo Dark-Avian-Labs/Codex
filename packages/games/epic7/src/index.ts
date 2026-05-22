@@ -61,13 +61,13 @@ export const epic7Game: GameModule = {
     app.use(`${base}/assets`, express.static(assetsPath));
   },
 
-  async applyDefaultsForNewUser(userId: number): Promise<void> {
+  async applyDefaultsForNewUser(clerkUserId: string): Promise<void> {
     try {
       const dbInstance = getDb();
       const run = dbInstance.transaction(() => {
-        const accounts = getGameAccountsByUserId(dbInstance, userId);
+        const accounts = getGameAccountsByUserId(dbInstance, clerkUserId);
         if (accounts.length > 0) return;
-        const accountId = createGameAccount(dbInstance, userId, 'Default', true);
+        const accountId = createGameAccount(dbInstance, clerkUserId, 'Default', true);
         seedAccountHeroesFromBase(dbInstance, accountId);
         seedAccountArtifactsFromBase(dbInstance, accountId);
       });

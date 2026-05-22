@@ -1,0 +1,348 @@
+.clerk-auth-shell {
+  --clerk-otp-size: 44px;
+  --clerk-otp-gap: 8px;
+  --clerk-btn-height: 40px;
+  --clerk-focus-ring:
+    0 0 0 2px color-mix(in oklab, var(--color-bg-start) 40%, transparent),
+    0 0 0 4px var(--color-glass-active);
+}
+
+.clerk-auth-shell
+  :is(.cl-rootBox, .cl-root, .cl-cardBox, .cl-card-box, .cl-card, .cl-card-inner, .cl-main) {
+  width: 100%;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+.clerk-auth-shell
+  :is(.cl-logoBox, .cl-logoImage, .cl-header, .cl-headerTitle, .cl-headerSubtitle, .cl-navbar) {
+  display: none !important;
+}
+
+.clerk-auth-shell :is(.cl-field-label, .cl-formFieldLabel) {
+  color: var(--color-muted);
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.clerk-auth-shell :is(.cl-field-input, .cl-formFieldInput) {
+  width: 100%;
+  min-height: var(--clerk-btn-height);
+  padding: 10px 12px;
+  font-size: 14px;
+  color: var(--color-foreground);
+  background: var(--color-glass-hover) !important;
+  border: 1px solid var(--color-glass-active) !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.clerk-auth-shell :is(.cl-field-input, .cl-formFieldInput):focus {
+  border-color: var(--color-glass-active) !important;
+  outline: none;
+}
+
+.clerk-auth-shell :is(.cl-field-input, .cl-formFieldInput):focus-visible {
+  border-color: var(--color-glass-border-hover) !important;
+  box-shadow: var(--clerk-focus-ring) !important;
+}
+
+.clerk-auth-shell .cl-otp-field {
+  width: 100%;
+}
+
+.clerk-auth-shell .cl-otp-inputs {
+  display: grid !important;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--clerk-otp-gap);
+  width: 100%;
+}
+
+.clerk-auth-shell .cl-otp-cell-wrap {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  flex: none !important;
+}
+
+.clerk-auth-shell .cl-otp-cell {
+  box-sizing: border-box !important;
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: var(--clerk-otp-size) !important;
+  min-height: var(--clerk-otp-size) !important;
+  max-height: var(--clerk-otp-size) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  font-size: 1.125rem !important;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  line-height: var(--clerk-otp-size) !important;
+  text-align: center;
+  color: var(--color-foreground) !important;
+  background: var(--color-glass-hover) !important;
+  border: 1px solid var(--color-glass-active) !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+  outline: none;
+}
+
+.clerk-auth-shell .cl-otp-cell:focus-visible {
+  border-color: var(--color-glass-border-hover) !important;
+  box-shadow: var(--clerk-focus-ring) !important;
+}
+
+.clerk-auth-shell .cl-otp-cell[data-feedback='success'] {
+  border-color: color-mix(in oklab, var(--color-success) 45%, var(--color-glass-active)) !important;
+}
+
+.clerk-auth-shell .cl-otp-cell[data-feedback='error'] {
+  border-color: color-mix(in oklab, var(--color-danger) 45%, var(--color-glass-active)) !important;
+}
+
+.clerk-auth-shell .cl-dal-btn {
+  width: 100%;
+  min-height: var(--clerk-btn-height);
+  margin-top: 4px;
+  padding: 0 16px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--color-accent) !important;
+  background: color-mix(in oklab, var(--color-accent) 10%, transparent) !important;
+  border: 1px solid var(--color-accent) !important;
+  border-radius: 1rem !important;
+  box-shadow: none !important;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.clerk-auth-shell .cl-dal-btn:hover {
+  background: color-mix(in oklab, var(--color-accent) 18%, transparent) !important;
+  border-color: var(--color-accent) !important;
+  color: var(--color-accent) !important;
+}
+
+.clerk-auth-shell .cl-dal-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--clerk-focus-ring) !important;
+}
+
+.clerk-auth-shell .cl-dal-btn::after {
+  display: none !important;
+}
+
+.clerk-auth-shell :is(.cl-btn-block-text, .cl-btn-block-arrow) {
+  color: var(--color-accent) !important;
+  background: transparent !important;
+}
+
+.clerk-auth-shell .cl-back-link {
+  color: var(--color-accent) !important;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.clerk-auth-shell .cl-back-link:hover {
+  text-decoration: underline;
+}
+
+.clerk-auth-shell .cl-divider-row {
+  margin: 1rem 0;
+  gap: 12px;
+}
+
+.clerk-auth-shell .cl-divider-line {
+  flex: 1;
+  height: 1px;
+  background: var(--color-glass-divider) !important;
+}
+
+.clerk-auth-shell .cl-divider-text {
+  color: var(--color-muted);
+  font-size: 12px;
+  text-transform: lowercase;
+}
+
+.clerk-auth-shell .cl-social-row {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.clerk-auth-shell .cl-social-btn {
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px !important;
+  padding: 0 !important;
+  border-radius: 999px !important;
+  border: 1px solid var(--color-glass-border) !important;
+  background: var(--color-glass) !important;
+  color: var(--color-foreground) !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(12px);
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    transform 0.15s ease;
+}
+
+.clerk-auth-shell .cl-social-btn:hover {
+  border-color: var(--color-glass-border-hover) !important;
+  background: color-mix(in oklab, var(--color-glass-hover) 85%, transparent) !important;
+  transform: translateY(-1px);
+}
+
+.clerk-auth-shell .cl-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: 1.25rem;
+  padding: 0;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.clerk-auth-shell .cl-footer-action {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  background: transparent !important;
+  border: none !important;
+}
+
+.clerk-auth-shell :is(.cl-footer-link, .cl-footer-text) {
+  font-size: 14px;
+  background: transparent !important;
+  border: none !important;
+}
+
+.clerk-auth-shell .cl-footer-link {
+  color: var(--color-accent) !important;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.clerk-auth-shell .cl-footer-link:hover {
+  text-decoration: underline;
+}
+
+.clerk-auth-shell .cl-footer-text {
+  color: var(--color-muted);
+}
+
+.clerk-auth-shell .cl-footer [class*='cl-internal'] {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  background: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.clerk-auth-shell .clerk-secured-strip {
+  display: inline-flex;
+  flex-flow: row wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 7px 16px;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--color-muted) !important;
+  border-radius: 999px;
+  border: 1px solid var(--color-glass-border) !important;
+  background: var(--color-glass) !important;
+  background-image: none !important;
+  backdrop-filter: blur(12px) saturate(1.15);
+  box-shadow:
+    inset 0 1px 0 oklch(100% 0 0 / 0.1),
+    inset 0 -1px 0 oklch(0% 0 0 / 0.08);
+}
+
+.clerk-auth-shell .clerk-secured-strip * {
+  border: none !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+.clerk-auth-shell .clerk-secured-link {
+  color: var(--color-muted) !important;
+  text-decoration: none;
+  opacity: 0.9;
+}
+
+.clerk-auth-shell .clerk-secured-link:hover {
+  color: var(--color-foreground) !important;
+}
+
+.clerk-auth-shell .clerk-secured-strip [class*='development'] {
+  color: color-mix(in oklab, var(--color-warning) 70%, var(--color-muted)) !important;
+  font-weight: 500;
+}
+
+html.dark.ui-shadow .clerk-auth-shell .clerk-secured-strip {
+  backdrop-filter: blur(10px) saturate(1.1);
+  box-shadow:
+    inset 0 1px 0 oklch(100% 0 0 / 0.06),
+    inset 0 -1px 0 oklch(0% 0 0 / 0.2);
+}
+
+.clerk-auth-shell .cl-footer > div:last-child:not(:first-child) {
+  display: inline-flex;
+  flex-flow: row wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 7px 16px;
+  font-size: 11px;
+  border-radius: 999px;
+  border: 1px solid var(--color-glass-border) !important;
+  background: var(--color-glass) !important;
+  background-image: none !important;
+}
+
+.clerk-auth-shell .cl-footer > div:last-child:not(:first-child) * {
+  border: none !important;
+  background: transparent !important;
+  background-image: none !important;
+}
+
+.clerk-auth-shell .cl-footer > div:last-child:not(:first-child) [class*='development'] {
+  color: color-mix(in oklab, var(--color-warning) 70%, var(--color-muted)) !important;
+}
+
+.clerk-auth-shell .cl-identity-preview {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--color-glass-border);
+  background: var(--color-glass-hover);
+}

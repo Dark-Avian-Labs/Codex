@@ -7,8 +7,11 @@ import { ARMORY_DB_PATH } from '../config.js';
 import { log } from '../logger.js';
 import { ensureWarframeWorksheetsForUser, runWarframeSync } from './warframeSync.js';
 
-export function provisionWarframeUserIfNeeded(codexDb: Database.Database, userId: number): void {
-  if (q.getWorksheets(codexDb, userId).length > 0) {
+export function provisionWarframeUserIfNeeded(
+  codexDb: Database.Database,
+  clerkUserId: string,
+): void {
+  if (q.getWorksheets(codexDb, clerkUserId).length > 0) {
     return;
   }
 
@@ -17,19 +20,19 @@ export function provisionWarframeUserIfNeeded(codexDb: Database.Database, userId
     try {
       runWarframeSync(codexDb, {
         execute: true,
-        userIds: [userId],
-        initiatedByUserId: userId,
+        clerkUserIds: [clerkUserId],
+        initiatedByClerkUserId: clerkUserId,
       });
       provisionedBySync = true;
     } catch (err) {
       log('warn', 'Warframe auto-provision sync failed', {
-        userId,
+        clerkUserId,
         err: err instanceof Error ? err.message : String(err),
       });
     }
   }
 
-  if (!provisionedBySync || q.getWorksheets(codexDb, userId).length === 0) {
-    ensureWarframeWorksheetsForUser(codexDb, userId);
+  if (!provisionedBySync || q.getWorksheets(codexDb, clerkUserId).length === 0) {
+    ensureWarframeWorksheetsForUser(codexDb, clerkUserId);
   }
 }
