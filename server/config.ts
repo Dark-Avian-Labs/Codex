@@ -2,19 +2,35 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import { resolveEnvFilePath } from '@codex/core';
+import { normalizeClerkEnv, resolveEnvFilePath } from '@codex/core';
 import { config as loadEnv } from '@dotenvx/dotenvx';
 
-const envPath = resolveEnvFilePath(process.cwd());
-const shouldLoadEnv = Boolean(envPath) && process.env.NODE_ENV == null;
-if (shouldLoadEnv && envPath) {
+const projectRoot = process.cwd();
+const envKeysPath = path.join(projectRoot, '.env.keys');
+if (fs.existsSync(envKeysPath)) {
+  try {
+    loadEnv({ path: envKeysPath });
+  } catch (error) {
+    console.error(`[Config] Failed to load environment keys from "${envKeysPath}".`, error);
+    throw error;
+  }
+}
+
+const envPath = resolveEnvFilePath(projectRoot);
+if (envPath) {
   try {
     loadEnv({ path: envPath });
   } catch (error) {
     console.error(`[Config] Failed to load environment via loadEnv from "${envPath}".`, error);
     throw error;
   }
+} else {
+  console.debug(
+    `[Config] No env file resolved (envPath is null); skipping loadEnv for cwd "${projectRoot}".`,
+  );
 }
+
+normalizeClerkEnv();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const PROJECT_ROOT = path.resolve(__dirname, '..', '..');

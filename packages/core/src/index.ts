@@ -19,6 +19,7 @@ export {
 } from './db/schema.js';
 export { isAppAdmin, metadataFromSessionClaims, APP_ADMIN_ROLE } from './auth/clerk.js';
 export type { AppMetadata } from './auth/clerk.js';
+export { isEncryptedEnvValue, normalizeClerkEnv } from './auth/clerkEnv.js';
 export { ensureClerkUserIdColumn, LEGACY_USER_ID_TO_CLERK } from './auth/migrateClerkUserId.js';
 export type { AuthSession } from './auth.js';
 export {

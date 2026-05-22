@@ -3,6 +3,8 @@ import path from 'path';
 
 import { config as loadEnv } from '@dotenvx/dotenvx';
 
+import { normalizeClerkEnv } from './auth/clerkEnv.js';
+
 const projectRoot = process.cwd();
 export function resolveEnvFilePath(rootPath: string): string | null {
   const normalizedNodeEnv = (process.env.NODE_ENV ?? '').trim().toLowerCase();
@@ -35,6 +37,18 @@ export function resolveEnvFilePath(rootPath: string): string | null {
 }
 
 const skipDotenvx = process.env.USE_DOTENVX === 'false';
+if (!skipDotenvx) {
+  const envKeysPath = path.join(projectRoot, '.env.keys');
+  if (fs.existsSync(envKeysPath)) {
+    try {
+      loadEnv({ path: envKeysPath });
+    } catch (error) {
+      console.error(`[Core Config] Failed to load environment keys from "${envKeysPath}".`, error);
+      throw error;
+    }
+  }
+}
+
 const envPath = skipDotenvx ? null : resolveEnvFilePath(projectRoot);
 if (envPath) {
   try {
@@ -52,6 +66,8 @@ if (envPath) {
     );
   }
 }
+
+normalizeClerkEnv();
 
 export const APP_NAME = 'Codex';
 export const CODEX_APP_ID = process.env.APP_ID?.trim().toLowerCase() || 'codex';
