@@ -247,3 +247,4 @@ Historical entries through the current release were **backfilled from merged PR 
 - **v1.49.0** `chore`: Merge pull request #213 from Dark-Avian-Labs:feat--integrate-Clerk-for-authentication-and-user-management
 - **v1.49.1** `chore`: Merge pull request #214 from Dark-Avian-Labs:fix--CSP
 - **v1.49.2** `chore`: Merge pull request #215 from Dark-Avian-Labs:fix--routing
+- **v1.49.3** `chore`: Merge pull request #220 from Dark-Avian-Labs/fix--styling
