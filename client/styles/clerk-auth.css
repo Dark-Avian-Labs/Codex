@@ -362,13 +362,42 @@ html.dark.ui-shadow .clerk-auth-shell .clerk-secured-strip {
   --clerk-profile-shell-blur: blur(16px) saturate(1.15);
   --clerk-profile-content-bg: oklch(22% 0.02 286 / 0.94);
   --clerk-profile-content-blur: blur(24px) saturate(1.25);
-  border: 1px solid var(--color-glass-border) !important;
-  box-shadow: var(--shadow-panel);
+  position: relative;
   overflow: hidden;
   isolation: isolate;
+  border-radius: 20px;
+  border: 1px solid var(--color-glass-border) !important;
+  box-shadow:
+    var(--shadow-panel),
+    inset 0 1px 0 oklch(100% 0 0 / 0.14),
+    inset 0 -1px 0 oklch(0% 0 0 / 0.12);
   background: var(--clerk-profile-shell-bg) !important;
   backdrop-filter: var(--clerk-profile-shell-blur);
   -webkit-backdrop-filter: var(--clerk-profile-shell-blur);
+}
+
+.clerk-profile-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    linear-gradient(
+        90deg,
+        transparent,
+        color-mix(in oklab, var(--color-foreground) 16%, transparent),
+        transparent
+      )
+      top center / 80% 1px no-repeat,
+    linear-gradient(
+        transparent 0%,
+        color-mix(in oklab, var(--color-foreground) 16%, transparent) 14%,
+        color-mix(in oklab, var(--color-foreground) 8%, transparent) 60%,
+        transparent 100%
+      )
+      left center / 1px 86% no-repeat;
 }
 
 html:not(.dark) .clerk-profile-card {
@@ -381,6 +410,14 @@ html.dark.ui-shadow .clerk-profile-card {
   --clerk-profile-content-bg: oklch(0% 0 0 / 0.84);
   --clerk-profile-shell-blur: blur(18px) saturate(1.2);
   --clerk-profile-content-blur: blur(28px) saturate(1.3);
+  box-shadow:
+    var(--shadow-panel),
+    inset 0 1px 0 oklch(100% 0 0 / 0.06),
+    inset 0 -1px 0 oklch(0% 0 0 / 0.4);
+}
+
+html.dark.ui-shadow .clerk-profile-card::before {
+  opacity: 0.38;
 }
 
 html.ui-shadow:not(.dark) .clerk-profile-card {
@@ -388,6 +425,14 @@ html.ui-shadow:not(.dark) .clerk-profile-card {
   --clerk-profile-content-bg: oklch(98.4% 0.004 264 / 0.9);
   --clerk-profile-shell-blur: blur(18px) saturate(1.15);
   --clerk-profile-content-blur: blur(28px) saturate(1.25);
+  box-shadow:
+    var(--shadow-panel),
+    inset 0 1px 0 oklch(100% 0 0 / 0.14),
+    inset 0 -1px 0 oklch(0% 0 0 / 0.12);
+}
+
+html.ui-shadow:not(.dark) .clerk-profile-card::before {
+  opacity: 0.55;
 }
 
 .clerk-profile-navbar {
