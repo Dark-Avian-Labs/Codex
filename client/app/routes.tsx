@@ -126,8 +126,8 @@ export function AppRoutes() {
         <Routes>
           <Route element={<Layout />}>
             <Route path={APP_PATHS.legal} element={<LegalPage />} />
-            <Route path={APP_PATHS.signIn} element={<SignInPage />} />
-            <Route path={APP_PATHS.signUp} element={<SignUpPage />} />
+            <Route path={`${APP_PATHS.signIn}/*`} element={<SignInPage />} />
+            <Route path={`${APP_PATHS.signUp}/*`} element={<SignUpPage />} />
             <Route path={APP_PATHS.home} element={<CodexLandingPage />} />
             <Route
               path="/home"

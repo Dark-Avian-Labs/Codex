@@ -329,7 +329,13 @@ app.get('/epic7/admin', publicPageLimiter, (_req, res) => {
 app.get('/sign-in', publicPageLimiter, (_req, res) => {
   res.sendFile(clientIndexPath);
 });
+app.get(/^\/sign-in\/.*$/, publicPageLimiter, (_req, res) => {
+  res.sendFile(clientIndexPath);
+});
 app.get('/sign-up', publicPageLimiter, (_req, res) => {
+  res.sendFile(clientIndexPath);
+});
+app.get(/^\/sign-up\/.*$/, publicPageLimiter, (_req, res) => {
   res.sendFile(clientIndexPath);
 });
 app.get('/warframe', publicPageLimiter, (_req, res) => {
