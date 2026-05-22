@@ -1,7 +1,7 @@
 import { createRequire } from 'module';
 import path from 'path';
 
-import { clerkMiddleware } from '@codex/core';
+import { clerkMiddleware, createAppHelmet } from '@codex/core';
 import { closeEpic7Db, getEpic7Db } from '@codex/game-epic7';
 import { closeWarframeDb, getWarframeDb } from '@codex/game-warframe';
 import cookieParser from 'cookie-parser';
@@ -9,7 +9,6 @@ import { csrfSync } from 'csrf-sync';
 import express, { type Request, type Response } from 'express';
 import { rateLimit } from 'express-rate-limit';
 import session from 'express-session';
-import helmet from 'helmet';
 
 import {
   APP_NAME,
@@ -88,7 +87,7 @@ if (NODE_ENV === 'production' && SECURE_COOKIES && !TRUST_PROXY) {
   );
 }
 
-app.use(helmet());
+app.use(createAppHelmet());
 app.use(requestIdMiddleware);
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));

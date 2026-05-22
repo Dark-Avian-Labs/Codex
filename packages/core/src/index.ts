@@ -33,6 +33,7 @@ export {
   requireAuthApi,
   redirectIfAuthenticated,
 } from './middleware/auth.js';
+export { createAppHelmet, getClerkFapiOrigin } from './middleware/helmetCsp.js';
 export type { ClerkAuthState } from './middleware/auth.js';
 export { getAppPublicBaseUrl } from './middleware/appPublicBaseUrl.js';
 export type { GameModule, GameMountOptions, GameTheme } from './types/game.js';

@@ -289,6 +289,9 @@ importers:
       express-session:
         specifier: 'catalog:'
         version: 1.19.0
+      helmet:
+        specifier: 'catalog:'
+        version: 8.1.0
       zod:
         specifier: 'catalog:'
         version: 4.4.3
