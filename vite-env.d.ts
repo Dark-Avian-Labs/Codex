@@ -12,6 +12,7 @@ interface ImportMetaEnv {
   readonly VITE_SEARCH_PLACEHOLDER?: string;
   readonly VITE_SHARED_THEME_COOKIE_DOMAIN?: string;
   readonly VITE_BASE_PATH?: string;
+  readonly VITE_SIBLING_APPS?: string;
 }
 
 interface ImportMeta {
