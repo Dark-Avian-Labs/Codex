@@ -13,8 +13,15 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import feathers from '../../../packages/core/assets/feathers.svg';
 import epic7Favicon from '../../../packages/games/epic7/favicon.ico';
 import warframeFavicon from '../../../packages/games/warframe/favicon.ico';
-import { APP_DISPLAY_NAME, APP_VERSION, LEGAL_ENTITY_NAME, LEGAL_PAGE_URL } from '../../app/config';
+import {
+  APP_DISPLAY_NAME,
+  APP_ID,
+  APP_VERSION,
+  LEGAL_ENTITY_NAME,
+  LEGAL_PAGE_URL,
+} from '../../app/config';
 import { APP_PATHS } from '../../app/paths';
+import { getSiblingAppLinks } from '../../app/siblingApps';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../features/auth/AuthContext';
 import { rememberLastGamePath } from '../../features/auth/authRedirect';
@@ -35,6 +42,7 @@ export function Layout() {
   const clerk = useClerk();
   const isLoggedIn = auth.status === 'ok' && auth.userId !== null;
   const isAdmin = auth.status === 'ok' && auth.isCodexAdmin;
+  const siblingAppLinks = getSiblingAppLinks(APP_ID);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -49,8 +57,11 @@ export function Layout() {
     if (!isLoggedIn) {
       return ['login'];
     }
-    return isAdmin ? ['profile', 'admin', 'logout'] : ['profile', 'logout'];
-  }, [isAdmin, isLoggedIn]);
+    const siblingIds = siblingAppLinks.map((app) => `sibling-${app.id}`);
+    return isAdmin
+      ? ['profile', ...siblingIds, 'admin', 'logout']
+      : ['profile', ...siblingIds, 'logout'];
+  }, [isAdmin, isLoggedIn, siblingAppLinks]);
   const menuItemIndexById = useMemo(() => {
     return new Map(menuItemIds.map((id, index) => [id, index]));
   }, [menuItemIds]);
@@ -284,6 +295,19 @@ export function Layout() {
                         >
                           Profile
                         </button>
+                        {siblingAppLinks.map((app) => (
+                          <a
+                            key={app.id}
+                            ref={nextMenuItemRef(`sibling-${app.id}`)}
+                            href={app.href}
+                            className="user-menu-item"
+                            role="menuitem"
+                            tabIndex={-1}
+                            onClick={() => setMenuOpen(false)}
+                          >
+                            {app.label}
+                          </a>
+                        ))}
                         {isAdmin ? (
                           <NavLink
                             ref={nextMenuItemRef('admin')}
