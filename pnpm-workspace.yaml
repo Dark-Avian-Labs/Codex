@@ -38,8 +38,8 @@ catalog:
   tailwind-merge: ^3.6.0
   tailwindcss: ^4.3.0
   typescript: ^6.0.3
-  vite: ^8.0.13
-  vitest: ^4.1.6
+  vite: ^8.0.14
+  vitest: ^4.1.7
   zod: ^4.4.3
 overrides:
   glob: ^13.0.6
