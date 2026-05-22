@@ -1,4 +1,4 @@
-import { createDbSingleton } from '@codex/core';
+import { createDbSingleton, ensureClerkUserIdColumn } from '@codex/core';
 import type Database from 'better-sqlite3';
 
 import { WARFRAME_DB_PATH } from '../config.js';
@@ -15,10 +15,10 @@ export function createSchema(db: Database.Database, confirmReset: boolean): void
   db.exec(`
     CREATE TABLE worksheets (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL,
+      clerk_user_id TEXT NOT NULL,
       name TEXT NOT NULL,
       display_order INTEGER NOT NULL DEFAULT 0,
-      UNIQUE(user_id, name)
+      UNIQUE(clerk_user_id, name)
     );
 
     CREATE TABLE columns (
@@ -49,7 +49,7 @@ export function createSchema(db: Database.Database, confirmReset: boolean): void
       UNIQUE(row_id, column_id)
     );
 
-    CREATE INDEX idx_worksheets_user ON worksheets(user_id);
+    CREATE INDEX idx_worksheets_clerk_user ON worksheets(clerk_user_id);
     CREATE INDEX idx_columns_worksheet ON columns(worksheet_id);
     CREATE INDEX idx_rows_worksheet ON rows(worksheet_id);
     CREATE INDEX idx_cell_values_row ON cell_values(row_id);
@@ -64,6 +64,29 @@ export function ensureWarframeRowMarketHrefColumns(db: Database.Database): void 
   }
   if (!cols.some((c) => c.name === 'market_href_prime')) {
     db.exec('ALTER TABLE rows ADD COLUMN market_href_prime TEXT');
+  }
+}
+
+export function ensureWarframeCatalogMasterTable(db: Database.Database): void {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS catalog_rows (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      worksheet_name TEXT NOT NULL,
+      canonical_key TEXT NOT NULL,
+      item_name TEXT NOT NULL,
+      display_order INTEGER NOT NULL DEFAULT 0,
+      market_href TEXT,
+      market_href_prime TEXT,
+      UNIQUE(worksheet_name, canonical_key)
+    );
+    CREATE INDEX IF NOT EXISTS idx_catalog_rows_worksheet ON catalog_rows(worksheet_name);
+  `);
+}
+
+export function ensureWarframeRowOrphanColumn(db: Database.Database): void {
+  const cols = db.prepare(`PRAGMA table_info(rows)`).all() as { name: string }[];
+  if (!cols.some((c) => c.name === 'orphaned')) {
+    db.exec('ALTER TABLE rows ADD COLUMN orphaned INTEGER NOT NULL DEFAULT 0');
   }
 }
 
@@ -99,7 +122,10 @@ export function ensureWarframeAdvancedProgressTable(db: Database.Database): void
 
 const { getDb, closeDb } = createDbSingleton(WARFRAME_DB_PATH, {
   onOpen: (db) => {
+    ensureClerkUserIdColumn(db, 'worksheets');
+    ensureWarframeCatalogMasterTable(db);
     ensureWarframeRowMarketHrefColumns(db);
+    ensureWarframeRowOrphanColumn(db);
     ensureWarframeAdvancedProgressTable(db);
   },
 });

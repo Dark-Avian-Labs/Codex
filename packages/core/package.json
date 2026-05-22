@@ -23,6 +23,7 @@
     "check-format": "oxfmt --check ."
   },
   "dependencies": {
+    "@clerk/express": "catalog:",
     "@dotenvx/dotenvx": "catalog:",
     "better-sqlite3": "catalog:",
     "express": "catalog:",

@@ -2,19 +2,35 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import { resolveEnvFilePath } from '@codex/core';
+import { normalizeClerkEnv, resolveEnvFilePath } from '@codex/core';
 import { config as loadEnv } from '@dotenvx/dotenvx';
 
-const envPath = resolveEnvFilePath(process.cwd());
-const shouldLoadEnv = Boolean(envPath) && process.env.NODE_ENV == null;
-if (shouldLoadEnv && envPath) {
+const projectRoot = process.cwd();
+const envKeysPath = path.join(projectRoot, '.env.keys');
+if (fs.existsSync(envKeysPath)) {
+  try {
+    loadEnv({ path: envKeysPath });
+  } catch (error) {
+    console.error(`[Config] Failed to load environment keys from "${envKeysPath}".`, error);
+    throw error;
+  }
+}
+
+const envPath = resolveEnvFilePath(projectRoot);
+if (envPath) {
   try {
     loadEnv({ path: envPath });
   } catch (error) {
     console.error(`[Config] Failed to load environment via loadEnv from "${envPath}".`, error);
     throw error;
   }
+} else {
+  console.debug(
+    `[Config] No env file resolved (envPath is null); skipping loadEnv for cwd "${projectRoot}".`,
+  );
 }
+
+normalizeClerkEnv();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const PROJECT_ROOT = path.resolve(__dirname, '..', '..');
@@ -34,19 +50,32 @@ function readPackageVersion(projectRoot: string): string {
 export const APP_VERSION = readPackageVersion(PROJECT_ROOT);
 
 export const DATA_DIR = path.join(PROJECT_ROOT, 'data');
-function requireAbsolutePathEnv(name: 'CENTRAL_DB_PATH' | 'ARMORY_DB_PATH'): string {
-  const value = process.env[name]?.trim();
-  if (!value) {
-    throw new Error(`${name} must be set to an absolute shared SQLite path.`);
+function requireAbsoluteSqlitePath(name: string, value: string | undefined): string {
+  const trimmed = value?.trim();
+  if (!trimmed) {
+    throw new Error(`${name} must be set to an absolute SQLite path.`);
   }
-  if (!path.isAbsolute(value)) {
-    throw new Error(`${name} must be absolute; relative sibling paths are not supported.`);
+  if (!path.isAbsolute(trimmed)) {
+    throw new Error(`${name} must be absolute; relative paths are not supported.`);
   }
-  return value;
+  return trimmed;
 }
 
-export const CENTRAL_DB_PATH = requireAbsolutePathEnv('CENTRAL_DB_PATH');
-export const ARMORY_DB_PATH = requireAbsolutePathEnv('ARMORY_DB_PATH');
+function resolveSessionDbPath(): string {
+  const session = process.env.SESSION_DB_PATH?.trim();
+  if (session) return requireAbsoluteSqlitePath('SESSION_DB_PATH', session);
+  const legacy = process.env.CENTRAL_DB_PATH?.trim();
+  if (legacy) return requireAbsoluteSqlitePath('CENTRAL_DB_PATH', legacy);
+  return path.join(DATA_DIR, 'session.db');
+}
+
+export const SESSION_DB_PATH = resolveSessionDbPath();
+
+export const CENTRAL_DB_PATH = SESSION_DB_PATH;
+export const ARMORY_DB_PATH = requireAbsoluteSqlitePath(
+  'ARMORY_DB_PATH',
+  process.env.ARMORY_DB_PATH,
+);
 
 const _port = parseInt(process.env.PORT || '3001', 10);
 export const PORT = Number.isFinite(_port) && _port > 0 ? _port : 3001;
@@ -134,10 +163,10 @@ if (configuredCookieDomain) {
 
 export const COOKIE_DOMAIN = resolvedCookieDomain;
 
-export const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL?.trim().replace(/\/+$/, '') || '';
-if (!AUTH_SERVICE_URL || !AUTH_SERVICE_URL.startsWith('https://')) {
-  throw new Error('AUTH_SERVICE_URL must be set and use https://');
-}
+export const LEGAL_PAGE_URL =
+  process.env.VITE_LEGAL_PAGE_URL?.trim() ||
+  process.env.LEGAL_PAGE_URL?.trim() ||
+  'https://darkavianlabs.com/legal/';
 
 export const SESSION_COOKIE_NAME =
   process.env.SESSION_COOKIE_NAME?.trim() || 'darkavianlabs.codex.sid';
@@ -145,6 +174,6 @@ export const SHARED_THEME_COOKIE = 'dal.theme.mode';
 
 export function ensureDataDirs(): void {
   fs.mkdirSync(DATA_DIR, { recursive: true });
-  fs.mkdirSync(path.dirname(CENTRAL_DB_PATH), { recursive: true });
+  fs.mkdirSync(path.dirname(SESSION_DB_PATH), { recursive: true });
   fs.mkdirSync(path.dirname(ARMORY_DB_PATH), { recursive: true });
 }

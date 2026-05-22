@@ -1,3 +1,4 @@
+import { useClerk } from '@clerk/react';
 import {
   useEffect,
   useLayoutEffect,
@@ -16,6 +17,8 @@ import { APP_DISPLAY_NAME, APP_VERSION, LEGAL_ENTITY_NAME, LEGAL_PAGE_URL } from
 import { APP_PATHS } from '../../app/paths';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../features/auth/AuthContext';
+import { rememberLastGamePath } from '../../features/auth/authRedirect';
+import { buildClerkAppearance } from '../../lib/clerkAppearance';
 import { MaterialSymbol } from '../ui/MaterialSymbol';
 import { Menu } from '../ui/Menu';
 import { AsciiWaveBackground } from './AsciiWaveBackground';
@@ -28,9 +31,10 @@ export type LayoutOutletContext = {
 export function Layout() {
   const { mode, toggleMode } = useTheme();
   const location = useLocation();
-  const { auth, logout } = useAuth();
-  const isLoggedIn = auth.status === 'ok' && auth.user !== null;
-  const isAdmin = auth.status === 'ok' && auth.user?.isAdmin === true;
+  const { auth } = useAuth();
+  const clerk = useClerk();
+  const isLoggedIn = auth.status === 'ok' && auth.userId !== null;
+  const isAdmin = auth.status === 'ok' && auth.isCodexAdmin;
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -63,6 +67,10 @@ export function Layout() {
     menuItemNodeMap.current[id] = node;
   };
   const nextMenuItemRef = (id: string) => setMenuItemRef(id);
+
+  useEffect(() => {
+    rememberLastGamePath(location.pathname);
+  }, [location.pathname]);
 
   useLayoutEffect(() => {
     if (!menuOpen) {
@@ -250,29 +258,32 @@ export function Layout() {
                   <div role="menu" onKeyDown={onMenuKeyDown}>
                     {!isLoggedIn ? (
                       <>
-                        <a
+                        <Link
                           ref={nextMenuItemRef('login')}
-                          href="/auth/login"
+                          to={APP_PATHS.signIn}
                           className="user-menu-item"
                           role="menuitem"
                           tabIndex={-1}
                           onClick={() => setMenuOpen(false)}
                         >
-                          Login
-                        </a>
+                          Sign in
+                        </Link>
                       </>
                     ) : (
                       <>
-                        <a
+                        <button
                           ref={nextMenuItemRef('profile')}
-                          href="/auth/profile"
-                          className="user-menu-item"
+                          className="user-menu-item text-left"
                           role="menuitem"
+                          type="button"
                           tabIndex={-1}
-                          onClick={() => setMenuOpen(false)}
+                          onClick={() => {
+                            setMenuOpen(false);
+                            clerk.openUserProfile({ appearance: buildClerkAppearance() });
+                          }}
                         >
                           Profile
-                        </a>
+                        </button>
                         {isAdmin ? (
                           <NavLink
                             ref={nextMenuItemRef('admin')}
@@ -293,9 +304,7 @@ export function Layout() {
                           tabIndex={-1}
                           onClick={() => {
                             setMenuOpen(false);
-                            void logout('/login').catch((err) => {
-                              console.error('[layout] Logout failed from user menu', err);
-                            });
+                            void clerk.signOut({ redirectUrl: '/' });
                           }}
                         >
                           Logout

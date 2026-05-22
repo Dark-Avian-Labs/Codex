@@ -57,8 +57,8 @@ jobs:
             mkdir -p "$DB_ROOT"
             {
               echo ""
-              echo "# CI-only absolute DB paths (core rejects relative CENTRAL_DB_PATH)"
-              echo "CENTRAL_DB_PATH=${DB_ROOT}/central.test.db"
+              echo "# CI-only absolute DB paths (core rejects relative SESSION_DB_PATH)"
+              echo "SESSION_DB_PATH=${DB_ROOT}/session.test.db"
               echo "ARMORY_DB_PATH=${DB_ROOT}/armory.test.db"
               echo "WARFRAME_DB_PATH=${DB_ROOT}/warframe.test.db"
               echo "EPIC7_DB_PATH=${DB_ROOT}/epic7.test.db"

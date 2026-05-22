@@ -70,7 +70,8 @@ Use one key per environment to reduce blast radius.
 | `APP_ID`                            | Codex app id (default: `codex`).                                            |
 | `APP_SUBDOMAIN`                     | Public host subdomain (default: `APP_ID`). Used to build the public URL.    |
 | `AUTH_SERVICE_URL`                  | Required. Shared Auth base URL (`https://…`).                               |
-| `CENTRAL_DB_PATH`                   | **Required absolute path** to the shared Auth SQLite database.              |
+| `SESSION_DB_PATH`                   | **Required absolute path** to Codex session SQLite (`session.db`).          |
+| `CENTRAL_DB_PATH`                   | Deprecated alias for `SESSION_DB_PATH`.                                     |
 | `ARMORY_DB_PATH`                    | **Required absolute path** to the shared Armory SQLite database.            |
 | `WARFRAME_DB_PATH`, `EPIC7_DB_PATH` | Per-game SQLite paths (defaults under `./data/` if unset in game packages). |
 | `COOKIE_DOMAIN`                     | Optional; normalized to a leading-dot cookie domain.                        |
@@ -82,7 +83,7 @@ Client `VITE_*` variables are listed in `.env.example`.
 
 ### Shared SQLite deployment notes
 
-- `CENTRAL_DB_PATH` and `ARMORY_DB_PATH` must be absolute paths on the host or inside the Codex runtime container.
+- `SESSION_DB_PATH` and `ARMORY_DB_PATH` must be absolute paths on the host or inside the Codex runtime container.
 - Avoid relative `../other-service/...` paths; mount shared volumes explicitly for each service.
 - Codex opens the central DB in WAL mode; keep a single writer boundary for schema changes and avoid multi-host writes on network filesystems that do not honor SQLite locking.
 

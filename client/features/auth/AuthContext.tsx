@@ -1,3 +1,4 @@
+import { useAuth as useClerkAuth } from '@clerk/react';
 import {
   createContext,
   useCallback,
@@ -9,43 +10,22 @@ import {
 } from 'react';
 
 import { apiFetch, clearCsrfToken } from '../../utils/api';
-import { isCodexGameAdmin } from './codexAdmin';
-import type { AppRoleAssignment, AuthErrorDetail, AuthState, UserSummary } from './types';
+import type { AppSummary, AuthErrorDetail, AuthState } from './types';
 
 interface AuthContextValue {
   auth: AuthState;
   refresh: () => Promise<void>;
-  logout: (next?: string) => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 const DEFAULT_AUTH_STATE: AuthState = {
   status: 'loading',
-  user: null,
+  userId: null,
+  isCodexAdmin: false,
   apps: [],
 };
-
-function isSafeRelativePath(next: string): boolean {
-  const trimmed = next.trim();
-  if (trimmed.length !== next.length) {
-    return false;
-  }
-  const hasControlCharacters = Array.from(trimmed).some((char) => {
-    const codePoint = char.codePointAt(0);
-    return typeof codePoint === 'number' && (codePoint <= 31 || codePoint === 127);
-  });
-  if (trimmed.includes('\\') || hasControlCharacters) {
-    return false;
-  }
-
-  return (
-    trimmed.startsWith('/') &&
-    !trimmed.startsWith('//') &&
-    !trimmed.includes('//') &&
-    !/^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(trimmed)
-  );
-}
 
 function toAuthErrorDetail(error: unknown): AuthErrorDetail {
   if (error instanceof Error || typeof error === 'string') {
@@ -53,128 +33,70 @@ function toAuthErrorDetail(error: unknown): AuthErrorDetail {
   }
   if (error && typeof error === 'object' && 'message' in error) {
     const message = (error as { message?: unknown }).message;
-    const code = (error as { code?: unknown }).code;
     if (typeof message === 'string') {
-      return {
-        message,
-        ...(typeof code === 'string' ? { code } : {}),
-      };
+      return { message };
     }
   }
   return { message: 'Unable to refresh authentication state.' };
 }
 
-async function getRetryAfterMs(response: Response): Promise<number | null> {
-  const header = response.headers.get('Retry-After');
-  if (header) {
-    const asSeconds = Number.parseInt(header, 10);
-    if (Number.isFinite(asSeconds) && asSeconds > 0) {
-      return asSeconds * 1000;
-    }
-    const asDate = Date.parse(header);
-    if (Number.isFinite(asDate)) {
-      const delta = asDate - Date.now();
-      if (delta > 0) return delta;
-    }
-  }
-
-  try {
-    const body = (await response.clone().json()) as {
-      auth_retry_after_sec?: number;
-      retry_after_sec?: number;
-    };
-    const sec = body.auth_retry_after_sec ?? body.retry_after_sec;
-    if (typeof sec === 'number' && Number.isFinite(sec) && sec > 0) {
-      return sec * 1000;
-    }
-  } catch {
-    // ignore
-  }
-
-  return null;
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const { isSignedIn, isLoaded } = useClerkAuth();
   const [auth, setAuth] = useState<AuthState>(DEFAULT_AUTH_STATE);
 
   const refresh = useCallback(async () => {
+    if (!isLoaded) return;
+    if (!isSignedIn) {
+      setAuth({ status: 'unauthenticated', userId: null, isCodexAdmin: false, apps: [] });
+      return;
+    }
     try {
       const response = await apiFetch('/api/auth/me');
       if (!response.ok) {
-        if (response.status === 429) {
-          const retryAfterMs = (await getRetryAfterMs(response)) ?? 30000;
-          setAuth({
-            status: 'rate_limited',
-            user: null,
-            apps: [],
-            rateLimitedUntilMs: Date.now() + retryAfterMs,
-          });
-          return;
-        }
-        setAuth({ status: 'unauthenticated', user: null, apps: [] });
+        setAuth({ status: 'unauthenticated', userId: null, isCodexAdmin: false, apps: [] });
         return;
       }
       const body = (await response.json()) as {
         authenticated?: boolean;
-        has_game_access?: boolean;
-        user?: {
-          id: number;
-          username: string;
-          is_admin: boolean;
-          app: string;
-        };
-        app_roles?: AppRoleAssignment[];
-        apps?: {
-          id: string;
-          label: string;
-          subtitle: string;
-          url: string;
-        }[];
+        userId?: string;
+        isCodexAdmin?: boolean;
+        apps?: AppSummary[];
       };
-      if (!body.authenticated || !body.user) {
-        setAuth({ status: 'unauthenticated', user: null, apps: [] });
+      if (!body.authenticated || !body.userId) {
+        setAuth({ status: 'unauthenticated', userId: null, isCodexAdmin: false, apps: [] });
         return;
       }
-      if (body.has_game_access === false) {
-        setAuth({
-          status: 'forbidden',
-          user: null,
-          apps: Array.isArray(body.apps) ? body.apps : [],
-        });
-        return;
-      }
-      const user: UserSummary = {
-        id: body.user.id,
-        username: body.user.username,
-        isAdmin: isCodexGameAdmin(body.user, body.app_roles),
-        app: body.user.app,
-      };
       setAuth({
         status: 'ok',
-        user,
+        userId: body.userId,
+        isCodexAdmin: body.isCodexAdmin === true,
         apps: Array.isArray(body.apps) ? body.apps : [],
       });
     } catch (error) {
       setAuth({
         status: 'error',
-        user: null,
+        userId: null,
+        isCodexAdmin: false,
         apps: [],
         error: toAuthErrorDetail(error),
       });
     }
-  }, []);
+  }, [isLoaded, isSignedIn]);
 
   useEffect(() => {
+    if (!isLoaded) {
+      setAuth(DEFAULT_AUTH_STATE);
+      return;
+    }
     void refresh();
-  }, [refresh]);
+  }, [isLoaded, isSignedIn, refresh]);
 
-  const logout = useCallback(async (next?: string) => {
-    const redirect = next && isSafeRelativePath(next) ? next : '/login';
+  const logout = useCallback(async () => {
     try {
       await apiFetch('/api/auth/logout', { method: 'POST' });
     } finally {
       clearCsrfToken();
-      window.location.href = redirect;
+      window.location.href = '/';
     }
   }, []);
 

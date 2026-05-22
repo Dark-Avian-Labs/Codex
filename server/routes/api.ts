@@ -1,9 +1,12 @@
+import { requireAuthApi } from '@codex/core';
 import { Router } from 'express';
 
 import { epic7ApiRouter } from './epic7Api.js';
 import { warframeApiRouter } from './warframeApi.js';
 
 export const apiRouter = Router();
+
+apiRouter.use(requireAuthApi);
 
 apiRouter.get('/status', (_req, res) => {
   res.json({ ok: true, app: 'codex' });

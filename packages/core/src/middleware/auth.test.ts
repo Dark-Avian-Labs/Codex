@@ -1,116 +1,22 @@
 import { describe, expect, it } from 'vitest';
 
-import { effectiveAppAdmin, type RemoteAuthState } from './auth.js';
+import { isAppAdmin } from '../auth/clerk.js';
 
-function state(partial: Partial<RemoteAuthState> & Pick<RemoteAuthState, 'authenticated' | 'user'>): RemoteAuthState {
-  return {
-    has_game_access: true,
-    permissions: [],
-    app_roles: [],
-    ...partial,
-  };
-}
-
-describe('effectiveAppAdmin', () => {
-  it('returns true for platform admins', () => {
-    expect(
-      effectiveAppAdmin(
-        state({
-          authenticated: true,
-          user: { id: 1, username: 'a', is_admin: true },
-        }),
-      ),
-    ).toBe(true);
+describe('isAppAdmin', () => {
+  it('returns true when app role is admin', () => {
+    expect(isAppAdmin({ apps: { codex: 'admin' } }, 'codex')).toBe(true);
   });
 
-  it('returns true for codex app role admin', () => {
-    expect(
-      effectiveAppAdmin(
-        state({
-          authenticated: true,
-          user: { id: 1, username: 'a', is_admin: false },
-          app_roles: [{ app_id: 'codex', role: 'admin' }],
-        }),
-      ),
-    ).toBe(true);
+  it('returns false for missing app key', () => {
+    expect(isAppAdmin({ apps: {} }, 'codex')).toBe(false);
+    expect(isAppAdmin(undefined, 'codex')).toBe(false);
   });
 
-  it('returns false for non-admin users', () => {
-    expect(
-      effectiveAppAdmin(
-        state({
-          authenticated: true,
-          user: { id: 1, username: 'a', is_admin: false },
-          app_roles: [{ app_id: 'codex', role: 'user' }],
-        }),
-      ),
-    ).toBe(false);
+  it('returns false for non-admin values', () => {
+    expect(isAppAdmin({ apps: { codex: 'user' } }, 'codex')).toBe(false);
   });
 
-  it('returns false when not authenticated', () => {
-    expect(
-      effectiveAppAdmin(
-        state({
-          authenticated: false,
-          user: null,
-        }),
-      ),
-    ).toBe(false);
-    expect(
-      effectiveAppAdmin(
-        state({
-          authenticated: false,
-          user: { id: 1, username: 'a', is_admin: true },
-          app_roles: [{ app_id: 'codex', role: 'admin' }],
-        }),
-      ),
-    ).toBe(false);
-  });
-
-  it('returns false for codex admin roles when checking a different app id', () => {
-    expect(
-      effectiveAppAdmin(
-        state({
-          authenticated: true,
-          user: { id: 1, username: 'a', is_admin: false },
-          app_roles: [{ app_id: 'codex', role: 'admin' }],
-        }),
-        'other-app',
-      ),
-    ).toBe(false);
-  });
-
-  it('returns true when admin role exists for the explicit app id', () => {
-    expect(
-      effectiveAppAdmin(
-        state({
-          authenticated: true,
-          user: { id: 1, username: 'a', is_admin: false },
-          app_roles: [{ app_id: 'other-app', role: 'admin' }],
-        }),
-        'other-app',
-      ),
-    ).toBe(true);
-  });
-
-  it('returns false when app_roles is empty or undefined', () => {
-    expect(
-      effectiveAppAdmin(
-        state({
-          authenticated: true,
-          user: { id: 1, username: 'a', is_admin: false },
-          app_roles: [],
-        }),
-      ),
-    ).toBe(false);
-    expect(
-      effectiveAppAdmin(
-        state({
-          authenticated: true,
-          user: { id: 1, username: 'a', is_admin: false },
-          app_roles: undefined,
-        }),
-      ),
-    ).toBe(false);
+  it('does not treat other apps as codex admin', () => {
+    expect(isAppAdmin({ apps: { armory: 'admin' } }, 'codex')).toBe(false);
   });
 });

@@ -1,1 +1,1 @@
-export { getCentralDb, closeCentralDb } from '@codex/core';
+export { getSessionDb, getCentralDb, closeSessionDb, closeCentralDb } from '@codex/core';

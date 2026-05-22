@@ -103,7 +103,7 @@ export type WorksheetSyncResult = {
 };
 
 export type UserSyncResult = {
-  userId: number;
+  clerkUserId: string;
   worksheets: WorksheetSyncResult[];
 };
 
@@ -131,11 +131,11 @@ export type WarframeMarketLinkSyncSummary =
       ran: true;
       rowsProcessed: number;
       rowsWithLink: number;
-      failedWorksheets: Array<{ userId: number; worksheet: WorksheetName }>;
+      failedWorksheets: Array<{ clerkUserId: string; worksheet: WorksheetName }>;
     };
 
 type CleanupCandidate = {
-  userId: number;
+  clerkUserId: string;
   worksheet: WorksheetName;
   rowId: number;
   itemName: string;
@@ -153,7 +153,7 @@ type MarketHrefRefreshResult =
 function refreshWorksheetMarketHrefs(
   codexDb: Database.Database,
   armoryDb: Database.Database,
-  userId: number,
+  clerkUserId: string,
   worksheetId: number,
   worksheet: WorksheetName,
 ): MarketHrefRefreshResult {
@@ -161,7 +161,7 @@ function refreshWorksheetMarketHrefs(
     const sel = armoryDb.prepare(
       `SELECT market_href, market_href_prime FROM warframe_market_links WHERE canonical_key = ? AND worksheet_category = ?`,
     );
-    const rows = q.getWorksheetRows(codexDb, worksheetId, userId);
+    const rows = q.getWorksheetRows(codexDb, worksheetId, clerkUserId);
     const stmt = codexDb.prepare(
       'UPDATE rows SET market_href = ?, market_href_prime = ? WHERE id = ?',
     );
@@ -196,7 +196,7 @@ function refreshWorksheetMarketHrefs(
   } catch (e) {
     const err = e instanceof Error ? e : new Error(String(e));
     console.warn(
-      `[Warframe sync] market href refresh failed: userId=${userId}, worksheetId=${worksheetId}, worksheet=${worksheet}`,
+      `[Warframe sync] market href refresh failed: clerkUserId=${clerkUserId}, worksheetId=${worksheetId}, worksheet=${worksheet}`,
       err.stack ?? err.message,
     );
     return { ok: false, error: err.message };
@@ -327,32 +327,35 @@ function loadKDriveNames(armoryDb: Database.Database): Set<string> {
 
 function ensureWorksheetExistsForSync(
   codexDb: Database.Database,
-  userId: number,
+  clerkUserId: string,
   worksheet: WorksheetName,
   execute: boolean,
 ): { id: number; name: string; display_order: number } | undefined {
-  const existing = q.getWorksheetByName(codexDb, userId, worksheet);
+  const existing = q.getWorksheetByName(codexDb, clerkUserId, worksheet);
   if (existing) return existing;
   if (!execute) return undefined;
 
-  const existingWorksheets = q.getWorksheets(codexDb, userId);
+  const existingWorksheets = q.getWorksheets(codexDb, clerkUserId);
   const displayOrder =
     existingWorksheets.reduce(
       (maxOrder, sheet) => Math.max(maxOrder, sheet.display_order ?? Number.MIN_SAFE_INTEGER),
       -1,
     ) + 1;
-  const worksheetId = q.createWorksheet(codexDb, userId, worksheet, displayOrder);
-  q.addColumn(codexDb, worksheetId, userId, 'Normal', 0);
-  q.addColumn(codexDb, worksheetId, userId, 'Prime', 1);
+  const worksheetId = q.createWorksheet(codexDb, clerkUserId, worksheet, displayOrder);
+  q.addColumn(codexDb, worksheetId, clerkUserId, 'Normal', 0);
+  q.addColumn(codexDb, worksheetId, clerkUserId, 'Prime', 1);
   if (worksheet === 'Warframes') {
-    q.addColumn(codexDb, worksheetId, userId, 'Helminth', 2);
+    q.addColumn(codexDb, worksheetId, clerkUserId, 'Helminth', 2);
   }
-  return q.getWorksheetByName(codexDb, userId, worksheet);
+  return q.getWorksheetByName(codexDb, clerkUserId, worksheet);
 }
 
-export function ensureWarframeWorksheetsForUser(codexDb: Database.Database, userId: number): void {
+export function ensureWarframeWorksheetsForUser(
+  codexDb: Database.Database,
+  clerkUserId: string,
+): void {
   for (const worksheet of WORKSHEET_NAMES) {
-    ensureWorksheetExistsForSync(codexDb, userId, worksheet, true);
+    ensureWorksheetExistsForSync(codexDb, clerkUserId, worksheet, true);
   }
 }
 
@@ -504,13 +507,13 @@ function createDesiredEntries(
 
 function reconcileVariantAvailability(params: {
   codexDb: Database.Database;
-  userId: number;
+  clerkUserId: string;
   rowId: number;
   desiredEntry: DesiredEntry;
   variantColumns: VariantColumns;
   execute: boolean;
 }): boolean {
-  const { codexDb, userId, rowId, desiredEntry, variantColumns, execute } = params;
+  const { codexDb, clerkUserId, rowId, desiredEntry, variantColumns, execute } = params;
   const targetValuesByColumn = new Map<number, '' | 'Unavailable'>();
   if (!desiredEntry.hasBaseVariant) {
     for (const columnId of variantColumns.baseColumnIds) {
@@ -534,7 +537,7 @@ function reconcileVariantAvailability(params: {
 
   let hasChange = false;
   for (const [columnId, targetValue] of targetValuesByColumn.entries()) {
-    const currentValue = q.getCellValue(codexDb, rowId, columnId, userId) ?? '';
+    const currentValue = q.getCellValue(codexDb, rowId, columnId, clerkUserId) ?? '';
     const nextValue =
       targetValue === 'Unavailable'
         ? 'Unavailable'
@@ -546,7 +549,7 @@ function reconcileVariantAvailability(params: {
     }
     hasChange = true;
     if (execute) {
-      q.adminUpdateCell(codexDb, rowId, columnId, nextValue, userId);
+      q.adminUpdateCell(codexDb, rowId, columnId, nextValue, clerkUserId);
     }
   }
 
@@ -575,7 +578,7 @@ function rowHasUserProgress(
 
 function cleanupDuplicateVariantRows(params: {
   codexDb: Database.Database;
-  userId: number;
+  clerkUserId: string;
   sheetId: number;
   worksheet: WorksheetName;
   execute: boolean;
@@ -584,8 +587,8 @@ function cleanupDuplicateVariantRows(params: {
   deletedRows: CleanupCandidate[];
   requiresConfirmationRows: CleanupCandidate[];
 } {
-  const { codexDb, userId, sheetId, worksheet, execute } = params;
-  const worksheetData = q.getWorksheetData(codexDb, sheetId, userId);
+  const { codexDb, clerkUserId, sheetId, worksheet, execute } = params;
+  const worksheetData = q.getWorksheetData(codexDb, sheetId, clerkUserId);
   if (!worksheetData) {
     return {
       deletedItemNames: [],
@@ -634,7 +637,7 @@ function cleanupDuplicateVariantRows(params: {
     for (const row of bucket) {
       if (row.id === keep?.id) continue;
       const candidate: CleanupCandidate = {
-        userId,
+        clerkUserId,
         worksheet,
         rowId: row.id,
         itemName: row.name,
@@ -645,7 +648,7 @@ function cleanupDuplicateVariantRows(params: {
         continue;
       }
       if (execute) {
-        q.deleteRow(codexDb, row.id, userId);
+        q.deleteRow(codexDb, row.id, clerkUserId);
       }
       deletedRows.push(candidate);
     }
@@ -660,9 +663,35 @@ function cleanupDuplicateVariantRows(params: {
 
 type RunSyncOptions = {
   execute: boolean;
-  userIds?: number[];
-  initiatedByUserId?: number;
+  clerkUserIds?: string[];
+  initiatedByClerkUserId?: string;
 };
+
+function syncCatalogMasterFromSource(
+  codexDb: Database.Database,
+  sourceByWorksheet: Record<WorksheetName, Set<string>>,
+  execute: boolean,
+): void {
+  if (!execute) return;
+  const upsert = codexDb.prepare(
+    `INSERT INTO catalog_rows (worksheet_name, canonical_key, item_name, display_order)
+     VALUES (?, ?, ?, ?)
+     ON CONFLICT(worksheet_name, canonical_key) DO UPDATE SET
+       item_name = excluded.item_name,
+       display_order = excluded.display_order`,
+  );
+  for (const worksheet of WORKSHEET_NAMES) {
+    let index = 0;
+    for (const name of sourceByWorksheet[worksheet] ?? []) {
+      upsert.run(worksheet, resolveCanonicalKey(name), name, index++);
+    }
+  }
+}
+
+function markRowOrphaned(codexDb: Database.Database, rowId: number, execute: boolean): void {
+  if (!execute) return;
+  codexDb.prepare('UPDATE rows SET orphaned = 1 WHERE id = ?').run(rowId);
+}
 
 export function runWarframeSync(
   codexDb: Database.Database,
@@ -670,7 +699,8 @@ export function runWarframeSync(
 ): WarframeSyncResult {
   if (
     options.execute &&
-    (!Number.isInteger(options.initiatedByUserId) || (options.initiatedByUserId ?? 0) <= 0)
+    (typeof options.initiatedByClerkUserId !== 'string' ||
+      options.initiatedByClerkUserId.trim() === '')
   ) {
     throw new Error('A valid initiating admin user id is required for execute mode.');
   }
@@ -681,7 +711,8 @@ export function runWarframeSync(
   });
   try {
     const sourceByWorksheet = loadWorksheetSource(armoryDb);
-    const userIds = options.userIds ?? q.getWorksheetUserIds(codexDb);
+    syncCatalogMasterFromSource(codexDb, sourceByWorksheet, options.execute);
+    const clerkUserIds = options.clerkUserIds ?? q.getWorksheetUserIds(codexDb);
     const users: UserSyncResult[] = [];
     const summary = {
       added: 0,
@@ -691,17 +722,22 @@ export function runWarframeSync(
     };
     const cleanupDeletedRows: CleanupCandidate[] = [];
     const cleanupRequiresConfirmationRows: CleanupCandidate[] = [];
-    const marketLinkFailed: Array<{ userId: number; worksheet: WorksheetName }> = [];
+    const marketLinkFailed: Array<{ clerkUserId: string; worksheet: WorksheetName }> = [];
     let marketRowsProcessed = 0;
     let marketRowsWithHref = 0;
 
-    for (const userId of userIds) {
+    for (const clerkUserId of clerkUserIds) {
       const sourceByWorksheetForUser = cloneWorksheetSource(sourceByWorksheet);
       const currentRowsByWorksheet = new Map<WorksheetName, string[]>();
       for (const worksheet of WORKSHEET_NAMES) {
-        const sheet = ensureWorksheetExistsForSync(codexDb, userId, worksheet, options.execute);
+        const sheet = ensureWorksheetExistsForSync(
+          codexDb,
+          clerkUserId,
+          worksheet,
+          options.execute,
+        );
         if (!sheet) continue;
-        const rows = q.getWorksheetRows(codexDb, sheet.id, userId);
+        const rows = q.getWorksheetRows(codexDb, sheet.id, clerkUserId);
         currentRowsByWorksheet.set(
           worksheet,
           rows.map((row) => row.item_name),
@@ -715,11 +751,16 @@ export function runWarframeSync(
 
       const worksheetResults: WorksheetSyncResult[] = [];
       for (const worksheet of WORKSHEET_NAMES) {
-        const sheet = ensureWorksheetExistsForSync(codexDb, userId, worksheet, options.execute);
+        const sheet = ensureWorksheetExistsForSync(
+          codexDb,
+          clerkUserId,
+          worksheet,
+          options.execute,
+        );
         if (!sheet) continue;
         const desired = createDesiredEntries(worksheet, sourceByWorksheetForUser[worksheet]);
-        let rows = q.getWorksheetRows(codexDb, sheet.id, userId);
-        const columns = q.getWorksheetColumns(codexDb, sheet.id, userId);
+        let rows = q.getWorksheetRows(codexDb, sheet.id, clerkUserId);
+        const columns = q.getWorksheetColumns(codexDb, sheet.id, clerkUserId);
         const variantColumns = resolveVariantColumns(columns);
 
         const existingByKey = new Map<string, typeof rows>();
@@ -740,10 +781,10 @@ export function runWarframeSync(
         const added: string[] = [];
         if (options.execute) {
           for (const name of toAdd) {
-            q.addRowWithEmptyValues(codexDb, sheet.id, userId, name);
+            q.addRowWithEmptyValues(codexDb, sheet.id, clerkUserId, name);
             added.push(name);
           }
-          rows = q.getWorksheetRows(codexDb, sheet.id, userId);
+          rows = q.getWorksheetRows(codexDb, sheet.id, clerkUserId);
         }
 
         const deleted: string[] = [];
@@ -759,13 +800,13 @@ export function runWarframeSync(
             normalizedItemName !== row.item_name &&
             resolveCanonicalKey(normalizedItemName) === resolveCanonicalKey(row.item_name);
           if (didNormalizeKitgunName && options.execute) {
-            q.editRow(codexDb, row.id, userId, normalizedItemName, {});
+            q.editRow(codexDb, row.id, clerkUserId, normalizedItemName, {});
           }
           const effectiveItemName = didNormalizeKitgunName ? normalizedItemName : row.item_name;
 
           if (DISCARDED_ROWS.has(effectiveItemName)) {
             if (options.execute) {
-              q.deleteRow(codexDb, row.id, userId);
+              q.deleteRow(codexDb, row.id, clerkUserId);
             }
             deleted.push(effectiveItemName);
             continue;
@@ -773,12 +814,16 @@ export function runWarframeSync(
           const key = resolveCanonicalKey(effectiveItemName);
           const desiredEntry = desired.get(key);
           if (!desiredEntry) {
+            markRowOrphaned(codexDb, row.id, options.execute);
             mismatched.push(row.id);
             continue;
           }
+          if (options.execute) {
+            codexDb.prepare('UPDATE rows SET orphaned = 0 WHERE id = ?').run(row.id);
+          }
           const didMarkUnavailable = reconcileVariantAvailability({
             codexDb,
-            userId,
+            clerkUserId,
             rowId: row.id,
             desiredEntry,
             variantColumns,
@@ -791,7 +836,7 @@ export function runWarframeSync(
 
         const cleanup = cleanupDuplicateVariantRows({
           codexDb,
-          userId,
+          clerkUserId,
           sheetId: sheet.id,
           worksheet,
           execute: options.execute,
@@ -803,17 +848,23 @@ export function runWarframeSync(
         cleanupRequiresConfirmationRows.push(...cleanup.requiresConfirmationRows);
 
         if (options.execute) {
-          const mr = refreshWorksheetMarketHrefs(codexDb, armoryDb, userId, sheet.id, worksheet);
+          const mr = refreshWorksheetMarketHrefs(
+            codexDb,
+            armoryDb,
+            clerkUserId,
+            sheet.id,
+            worksheet,
+          );
           if (mr.ok) {
             marketRowsProcessed += mr.rowsProcessed;
             marketRowsWithHref += mr.rowsWithHref;
           } else {
-            marketLinkFailed.push({ userId, worksheet });
+            marketLinkFailed.push({ clerkUserId, worksheet });
           }
         }
 
         if (worksheet === 'Warframes' && options.execute) {
-          q.ensureHelminthNonSubsumableCells(codexDb, sheet.id, userId);
+          q.ensureHelminthNonSubsumableCells(codexDb, sheet.id, clerkUserId);
         }
 
         worksheetResults.push({
@@ -830,7 +881,7 @@ export function runWarframeSync(
         summary.mismatched += mismatched.length;
       }
 
-      users.push({ userId, worksheets: worksheetResults });
+      users.push({ clerkUserId, worksheets: worksheetResults });
     }
 
     return {

@@ -1,7 +1,7 @@
 import { createRequire } from 'module';
 import path from 'path';
 
-import { requireAuth, requireAdmin } from '@codex/core';
+import { clerkMiddleware } from '@codex/core';
 import { closeEpic7Db, getEpic7Db } from '@codex/game-epic7';
 import { closeWarframeDb, getWarframeDb } from '@codex/game-warframe';
 import cookieParser from 'cookie-parser';
@@ -11,13 +11,11 @@ import { rateLimit } from 'express-rate-limit';
 import session from 'express-session';
 import helmet from 'helmet';
 
-import { pingAuthServiceHealth } from './auth/authHealth.js';
-import { buildAuthLoginUrl, proxyAuthLogout } from './auth/remoteAuth.js';
 import {
   APP_NAME,
   APP_PUBLIC_BASE_URL,
   APP_VERSION,
-  AUTH_SERVICE_URL,
+  LEGAL_PAGE_URL,
   COOKIE_DOMAIN,
   HOST,
   NODE_ENV,
@@ -29,8 +27,8 @@ import {
   TRUST_PROXY,
   ensureDataDirs,
 } from './config.js';
-import { ensureCentralSchema } from './db/centralSchema.js';
-import { closeCentralDb, getCentralDb } from './db/connection.js';
+import { closeSessionDb, getSessionDb } from './db/connection.js';
+import { ensureSessionSchema } from './db/sessionSchema.js';
 import { refreshEpic7DbAvailability } from './epic7DbState.js';
 import { getRequestId, requestIdMiddleware } from './http/requestId.js';
 import { log } from './logger.js';
@@ -52,8 +50,8 @@ const STATUS_TEXT: Record<number, string> = {
 };
 
 ensureDataDirs();
-ensureCentralSchema();
-const centralDb = getCentralDb();
+ensureSessionSchema();
+const sessionDb = getSessionDb();
 function assertTableExists(db: { prepare: (sql: string) => unknown }, tableName: string): void {
   const row = (
     db.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?") as {
@@ -95,6 +93,7 @@ app.use(requestIdMiddleware);
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(clerkMiddleware());
 
 const RATE_LIMIT_SKIP_PATHS = new Set([
   '/healthz',
@@ -141,7 +140,7 @@ const baselineLimiter = createRateLimiter(BASELINE_RATE_LIMIT_MAX, {
 app.use(baselineLimiter);
 
 const sessionStore = new SQLiteStore({
-  client: centralDb,
+  client: sessionDb,
   expired: { clear: true, intervalMs: 15 * 60 * 1000 },
 });
 
@@ -202,7 +201,7 @@ const defaultDevOrigins = IS_DEV_ENV
       'http://127.0.0.1:8080',
     ]
   : [];
-const configuredOrigins = [process.env.ALLOWED_APP_ORIGINS, AUTH_SERVICE_URL]
+const configuredOrigins = [process.env.ALLOWED_APP_ORIGINS]
   .filter((value): value is string => typeof value === 'string' && value.length > 0)
   .join(',');
 const originCandidates = configuredOrigins
@@ -303,89 +302,52 @@ app.get('/healthz', (_req, res) => {
 });
 app.get('/readyz', async (_req, res) => {
   try {
-    centralDb.prepare('SELECT 1').get();
+    sessionDb.prepare('SELECT 1').get();
     getWarframeDb().prepare('SELECT 1').get();
     getEpic7Db().prepare('SELECT 1').get();
-    const authOk = await pingAuthServiceHealth(AUTH_SERVICE_URL);
-    if (!authOk) {
-      res.status(503).json({ status: 'not_ready', app: APP_NAME, reason: 'auth_unavailable' });
-      return;
-    }
     res.json({ status: 'ready', app: APP_NAME });
   } catch {
     res.status(503).json({ status: 'not_ready', app: APP_NAME });
   }
 });
 
-app.get('/login', publicPageLimiter, (req, res) => {
-  res.redirect(buildAuthLoginUrl(req, '/'));
+app.get('/login', publicPageLimiter, (_req, res) => {
+  res.redirect('/sign-in');
 });
 app.get('/legal', publicPageLimiter, (_req, res) => {
-  res.redirect(`${AUTH_SERVICE_URL}/legal`);
-});
-async function clearLocalSessionAndRedirectToAuthLogout(
-  req: Request,
-  res: Response,
-): Promise<void> {
-  try {
-    const synced = await proxyAuthLogout(req, res);
-    if (!synced) {
-      console.warn('[Auth] Upstream logout sync failed.');
-    }
-  } catch (error) {
-    console.warn('[Auth] Upstream logout sync failed:', error);
-  }
-  req.session.destroy((err) => {
-    if (err) {
-      console.warn('[Session] Failed to destroy session during logout:', err);
-    }
-    res.clearCookie(SESSION_COOKIE_NAME, {
-      domain: COOKIE_DOMAIN,
-      httpOnly: true,
-      sameSite: SECURE_COOKIES ? 'none' : 'lax',
-      secure: SECURE_COOKIES,
-    });
-    res.redirect('/login');
-  });
-}
-app.post('/logout', publicPageLimiter, async (req, res) => {
-  await clearLocalSessionAndRedirectToAuthLogout(req, res);
-});
-app.get('/logout', publicPageLimiter, (_req, res) => {
-  res.set('Allow', 'POST');
-  res.status(405).json({ error: 'Use POST /logout' });
+  res.redirect(LEGAL_PAGE_URL);
 });
 
-app.get('/admin', publicPageLimiter, requireAdmin, (_req, res) => {
+app.get('/admin', publicPageLimiter, (_req, res) => {
   res.sendFile(clientIndexPath);
 });
-app.get('/warframe/admin', publicPageLimiter, requireAdmin, (_req, res) => {
+app.get('/warframe/admin', publicPageLimiter, (_req, res) => {
   res.sendFile(clientIndexPath);
 });
-app.get('/epic7/admin', publicPageLimiter, requireAdmin, (_req, res) => {
+app.get('/epic7/admin', publicPageLimiter, (_req, res) => {
   res.sendFile(clientIndexPath);
 });
-app.get('/warframe', publicPageLimiter, requireAuth, (_req, res) => {
+app.get('/sign-in', publicPageLimiter, (_req, res) => {
   res.sendFile(clientIndexPath);
 });
-app.get('/epic7', publicPageLimiter, requireAuth, (_req, res) => {
+app.get('/sign-up', publicPageLimiter, (_req, res) => {
   res.sendFile(clientIndexPath);
 });
-app.get('/', publicPageLimiter, requireAuth, (_req, res) => {
+app.get('/warframe', publicPageLimiter, (_req, res) => {
+  res.sendFile(clientIndexPath);
+});
+app.get('/epic7', publicPageLimiter, (_req, res) => {
+  res.sendFile(clientIndexPath);
+});
+app.get('/', publicPageLimiter, (_req, res) => {
   res.sendFile(clientIndexPath);
 });
 
-app.get('/auth/login', publicPageLimiter, (req, res) => {
-  res.redirect(buildAuthLoginUrl(req, '/'));
-});
-app.get('/auth/profile', publicPageLimiter, (_req, res) => {
-  res.redirect(`${AUTH_SERVICE_URL}/profile`);
-});
-app.get('/profile', publicPageLimiter, (_req, res) => {
-  res.redirect('/auth/profile');
+app.get('/auth/login', publicPageLimiter, (_req, res) => {
+  res.redirect('/sign-in');
 });
 app.get('/auth/legal', publicPageLimiter, (_req, res) => {
-  res.redirect(`${AUTH_SERVICE_URL}/legal`);
+  res.redirect(LEGAL_PAGE_URL);
 });
 
 app.use((err: unknown, _req: Request, res: Response, _next: express.NextFunction) => {
@@ -434,7 +396,7 @@ function shutdown(): void {
 
   function closeAndExit(exitCode: number): void {
     try {
-      closeCentralDb();
+      closeSessionDb();
       closeWarframeDb();
       closeEpic7Db();
     } catch (err) {

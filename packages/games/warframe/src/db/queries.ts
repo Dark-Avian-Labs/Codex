@@ -30,6 +30,7 @@ export interface Column {
 export interface DataRow {
   id: number;
   name: string;
+  orphaned?: boolean;
   values: Record<number, string>;
   market_href?: string | null;
   market_href_prime?: string | null;
@@ -284,136 +285,136 @@ export function resolveAdvancedProgressState(
   };
 }
 
-export function getWorksheets(db: Database.Database, userId: number): Worksheet[] {
+export function getWorksheets(db: Database.Database, clerkUserId: string): Worksheet[] {
   return db
     .prepare(
-      'SELECT id, name, display_order FROM worksheets WHERE user_id = ? ORDER BY display_order',
+      'SELECT id, name, display_order FROM worksheets WHERE clerk_user_id = ? ORDER BY display_order',
     )
-    .all(userId) as Worksheet[];
+    .all(clerkUserId) as Worksheet[];
 }
 
 export function getWorksheetById(
   db: Database.Database,
   id: number,
-  userId: number,
+  clerkUserId: string,
 ): (Worksheet & { display_order: number }) | undefined {
   return db
-    .prepare('SELECT id, name, display_order FROM worksheets WHERE id = ? AND user_id = ?')
-    .get(id, userId) as (Worksheet & { display_order: number }) | undefined;
+    .prepare('SELECT id, name, display_order FROM worksheets WHERE id = ? AND clerk_user_id = ?')
+    .get(id, clerkUserId) as (Worksheet & { display_order: number }) | undefined;
 }
 
 export function getWorksheetByName(
   db: Database.Database,
-  userId: number,
+  clerkUserId: string,
   worksheetName: string,
 ): (Worksheet & { display_order: number }) | undefined {
   return db
-    .prepare('SELECT id, name, display_order FROM worksheets WHERE user_id = ? AND name = ?')
-    .get(userId, worksheetName) as
+    .prepare('SELECT id, name, display_order FROM worksheets WHERE clerk_user_id = ? AND name = ?')
+    .get(clerkUserId, worksheetName) as
     | (Worksheet & {
         display_order: number;
       })
     | undefined;
 }
 
-export function getFirstWorksheetId(db: Database.Database, userId: number): number | null {
+export function getFirstWorksheetId(db: Database.Database, clerkUserId: string): number | null {
   const row = db
-    .prepare('SELECT id FROM worksheets WHERE user_id = ? ORDER BY display_order LIMIT 1')
-    .get(userId) as { id: number } | undefined;
+    .prepare('SELECT id FROM worksheets WHERE clerk_user_id = ? ORDER BY display_order LIMIT 1')
+    .get(clerkUserId) as { id: number } | undefined;
   return row?.id ?? null;
 }
 
 export function getColumnById(
   db: Database.Database,
   columnId: number,
-  userId: number,
+  clerkUserId: string,
 ): { id: number; name: string; worksheet_id: number } | undefined {
   return db
     .prepare(
       `SELECT c.id, c.name, c.worksheet_id FROM columns c
        JOIN worksheets w ON c.worksheet_id = w.id
-       WHERE c.id = ? AND w.user_id = ?`,
+       WHERE c.id = ? AND w.clerk_user_id = ?`,
     )
-    .get(columnId, userId) as { id: number; name: string; worksheet_id: number } | undefined;
+    .get(columnId, clerkUserId) as { id: number; name: string; worksheet_id: number } | undefined;
 }
 
 export function getWorksheetColumns(
   db: Database.Database,
   worksheetId: number,
-  userId: number,
+  clerkUserId: string,
 ): { id: number; name: string }[] {
   return db
     .prepare(
       `SELECT c.id, c.name FROM columns c
        JOIN worksheets w ON c.worksheet_id = w.id
-       WHERE w.id = ? AND w.user_id = ?
+       WHERE w.id = ? AND w.clerk_user_id = ?
        ORDER BY c.display_order`,
     )
-    .all(worksheetId, userId) as { id: number; name: string }[];
+    .all(worksheetId, clerkUserId) as { id: number; name: string }[];
 }
 
 export function getRowWorksheetId(
   db: Database.Database,
   rowId: number,
-  userId: number,
+  clerkUserId: string,
 ): number | null {
   const row = db
     .prepare(
       `SELECT r.worksheet_id FROM rows r
        JOIN worksheets w ON r.worksheet_id = w.id
-       WHERE r.id = ? AND w.user_id = ?`,
+       WHERE r.id = ? AND w.clerk_user_id = ?`,
     )
-    .get(rowId, userId) as { worksheet_id: number } | undefined;
+    .get(rowId, clerkUserId) as { worksheet_id: number } | undefined;
   return row?.worksheet_id ?? null;
 }
 
 export function getRowItemName(
   db: Database.Database,
   rowId: number,
-  userId: number,
+  clerkUserId: string,
 ): string | null {
   const row = db
     .prepare(
       `SELECT r.item_name FROM rows r
        JOIN worksheets w ON r.worksheet_id = w.id
-       WHERE r.id = ? AND w.user_id = ?`,
+       WHERE r.id = ? AND w.clerk_user_id = ?`,
     )
-    .get(rowId, userId) as { item_name: string } | undefined;
+    .get(rowId, clerkUserId) as { item_name: string } | undefined;
   return row?.item_name ?? null;
 }
 
 export function getWorksheetRows(
   db: Database.Database,
   worksheetId: number,
-  userId: number,
+  clerkUserId: string,
 ): WorksheetRowRecord[] {
   return db
     .prepare(
       `SELECT r.id, r.item_name, r.display_order, r.market_href, r.market_href_prime
        FROM rows r
        JOIN worksheets w ON r.worksheet_id = w.id
-       WHERE w.id = ? AND w.user_id = ?
+       WHERE w.id = ? AND w.clerk_user_id = ?
        ORDER BY r.display_order`,
     )
-    .all(worksheetId, userId) as WorksheetRowRecord[];
+    .all(worksheetId, clerkUserId) as WorksheetRowRecord[];
 }
 
-export function getWorksheetUserIds(db: Database.Database): number[] {
+export function getWorksheetUserIds(db: Database.Database): string[] {
   return (
-    db.prepare('SELECT DISTINCT user_id FROM worksheets ORDER BY user_id').all() as {
-      user_id: number;
+    db.prepare('SELECT DISTINCT clerk_user_id FROM worksheets ORDER BY clerk_user_id').all() as {
+      clerk_user_id: string;
     }[]
-  ).map((row) => row.user_id);
+  ).map((row) => row.clerk_user_id);
 }
 
 export function ensureHelminthColumn(
   db: Database.Database,
   worksheetId: number,
   worksheetName: string,
-  userId: number,
+  clerkUserId: string,
 ): void {
   if (worksheetName !== WARFRAMES_WORKSHEET_NAME) return;
-  const ws = getWorksheetById(db, worksheetId, userId);
+  const ws = getWorksheetById(db, worksheetId, clerkUserId);
   if (!ws) return;
 
   const selExisting = db.prepare('SELECT id FROM columns WHERE worksheet_id = ? AND name = ?');
@@ -449,28 +450,29 @@ export function ensureHelminthColumn(
 export function getWorksheetData(
   db: Database.Database,
   worksheetId: number,
-  userId: number,
+  clerkUserId: string,
   options?: { includeAdvanced?: boolean },
 ): WorksheetData | null {
   const includeAdvanced = options?.includeAdvanced !== false;
-  const worksheet = getWorksheetById(db, worksheetId, userId);
+  const worksheet = getWorksheetById(db, worksheetId, clerkUserId);
   if (!worksheet) return null;
 
-  const columns = getWorksheetColumns(db, worksheetId, userId);
+  const columns = getWorksheetColumns(db, worksheetId, clerkUserId);
   const rows = db
     .prepare(
-      `SELECT r.id, r.item_name as name, r.display_order, r.market_href, r.market_href_prime
+      `SELECT r.id, r.item_name as name, r.display_order, r.market_href, r.market_href_prime, r.orphaned
        FROM rows r
        JOIN worksheets w ON r.worksheet_id = w.id
-       WHERE w.id = ? AND w.user_id = ?
+       WHERE w.id = ? AND w.clerk_user_id = ?
        ORDER BY r.display_order`,
     )
-    .all(worksheetId, userId) as {
+    .all(worksheetId, clerkUserId) as {
     id: number;
     name: string;
     display_order: number;
     market_href: string | null;
     market_href_prime: string | null;
+    orphaned: number;
   }[];
 
   const cellRows = db
@@ -479,9 +481,9 @@ export function getWorksheetData(
        FROM cell_values cv
        JOIN rows r ON cv.row_id = r.id
        JOIN worksheets w ON r.worksheet_id = w.id
-       WHERE w.id = ? AND w.user_id = ?`,
+       WHERE w.id = ? AND w.clerk_user_id = ?`,
     )
-    .all(worksheetId, userId) as {
+    .all(worksheetId, clerkUserId) as {
     row_id: number;
     column_id: number;
     value: string;
@@ -496,6 +498,7 @@ export function getWorksheetData(
   const dataRows: DataRow[] = rows.map((r) => ({
     id: r.id,
     name: r.name,
+    orphaned: r.orphaned === 1,
     market_href: r.market_href,
     market_href_prime: r.market_href_prime,
     market_href_normal: r.market_href,
@@ -554,16 +557,18 @@ export function getWorksheetData(
 export function getRowAdvancedProgress(
   db: Database.Database,
   rowId: number,
-  userId: number,
+  clerkUserId: string,
 ): AdvancedProgressState | null {
   const row = db
     .prepare(
       `SELECT r.id, r.item_name, w.name as worksheet_name
        FROM rows r
        JOIN worksheets w ON r.worksheet_id = w.id
-       WHERE r.id = ? AND w.user_id = ?`,
+       WHERE r.id = ? AND w.clerk_user_id = ?`,
     )
-    .get(rowId, userId) as { id: number; item_name: string; worksheet_name: string } | undefined;
+    .get(rowId, clerkUserId) as
+    | { id: number; item_name: string; worksheet_name: string }
+    | undefined;
   if (!row) return null;
   const current = db
     .prepare(
@@ -572,9 +577,13 @@ export function getRowAdvancedProgress(
        WHERE row_id = ?`,
     )
     .get(rowId) as AdvancedProgressRow | undefined;
-  const columns = getWorksheetColumns(db, getRowWorksheetId(db, rowId, userId) ?? 0, userId);
+  const columns = getWorksheetColumns(
+    db,
+    getRowWorksheetId(db, rowId, clerkUserId) ?? 0,
+    clerkUserId,
+  );
   const rowValues = columns.reduce<Record<number, string>>((acc, column) => {
-    acc[column.id] = getCellValue(db, rowId, column.id, userId) ?? '';
+    acc[column.id] = getCellValue(db, rowId, column.id, clerkUserId) ?? '';
     return acc;
   }, {});
   const hasPrimeVariant = rowHasVariant(rowValues, columns, true);
@@ -584,7 +593,7 @@ export function getRowAdvancedProgress(
 export function updateRowAdvancedProgress(
   db: Database.Database,
   rowId: number,
-  userId: number,
+  clerkUserId: string,
   patch: AdvancedProgressPatch,
 ): AdvancedProgressState {
   const row = db
@@ -592,9 +601,11 @@ export function updateRowAdvancedProgress(
       `SELECT r.id, r.item_name, w.name as worksheet_name
        FROM rows r
        JOIN worksheets w ON r.worksheet_id = w.id
-       WHERE r.id = ? AND w.user_id = ?`,
+       WHERE r.id = ? AND w.clerk_user_id = ?`,
     )
-    .get(rowId, userId) as { id: number; item_name: string; worksheet_name: string } | undefined;
+    .get(rowId, clerkUserId) as
+    | { id: number; item_name: string; worksheet_name: string }
+    | undefined;
   if (!row) {
     throw new Error('Row not found');
   }
@@ -605,10 +616,10 @@ export function updateRowAdvancedProgress(
        WHERE row_id = ?`,
     )
     .get(rowId) as AdvancedProgressRow | undefined;
-  const worksheetId = getRowWorksheetId(db, rowId, userId);
-  const columns = worksheetId === null ? [] : getWorksheetColumns(db, worksheetId, userId);
+  const worksheetId = getRowWorksheetId(db, rowId, clerkUserId);
+  const columns = worksheetId === null ? [] : getWorksheetColumns(db, worksheetId, clerkUserId);
   const rowValues = columns.reduce<Record<number, string>>((acc, column) => {
-    acc[column.id] = getCellValue(db, rowId, column.id, userId) ?? '';
+    acc[column.id] = getCellValue(db, rowId, column.id, clerkUserId) ?? '';
     return acc;
   }, {});
   const hasPrimeVariant = rowHasVariant(rowValues, columns, true);
@@ -660,23 +671,23 @@ export function updateCell(
   rowId: number,
   columnId: number,
   value: string,
-  userId: number,
+  clerkUserId: string,
 ): number {
   const row = db
     .prepare(
       `SELECT r.id, r.worksheet_id, r.item_name FROM rows r
        JOIN worksheets w ON r.worksheet_id = w.id
-       WHERE r.id = ? AND w.user_id = ?`,
+       WHERE r.id = ? AND w.clerk_user_id = ?`,
     )
-    .get(rowId, userId) as { id: number; worksheet_id: number; item_name: string } | undefined;
+    .get(rowId, clerkUserId) as { id: number; worksheet_id: number; item_name: string } | undefined;
   if (!row) throw new Error('Row not found');
   const col = db
     .prepare(
       `SELECT c.id, c.name FROM columns c
        JOIN worksheets w ON c.worksheet_id = w.id
-       WHERE c.id = ? AND w.id = ? AND w.user_id = ?`,
+       WHERE c.id = ? AND w.id = ? AND w.clerk_user_id = ?`,
     )
-    .get(columnId, row.worksheet_id, userId) as { id: number; name: string } | undefined;
+    .get(columnId, row.worksheet_id, clerkUserId) as { id: number; name: string } | undefined;
   if (!col) {
     throw new Error('Column not found or does not belong to worksheet');
   }
@@ -707,29 +718,29 @@ export function getCellValue(
   db: Database.Database,
   rowId: number,
   columnId: number,
-  userId: number,
+  clerkUserId: string,
 ): string | undefined {
   const row = db
     .prepare(
       `SELECT cv.value FROM cell_values cv
        JOIN rows r ON cv.row_id = r.id
        JOIN worksheets w ON r.worksheet_id = w.id
-       WHERE cv.row_id = ? AND cv.column_id = ? AND w.user_id = ?`,
+       WHERE cv.row_id = ? AND cv.column_id = ? AND w.clerk_user_id = ?`,
     )
-    .get(rowId, columnId, userId) as { value: string } | undefined;
+    .get(rowId, columnId, clerkUserId) as { value: string } | undefined;
   return row?.value;
 }
 
 export function addRow(
   db: Database.Database,
   worksheetId: number,
-  userId: number,
+  clerkUserId: string,
   itemName: string,
   values: Record<number, string>,
 ): number {
-  const ws = getWorksheetById(db, worksheetId, userId);
+  const ws = getWorksheetById(db, worksheetId, clerkUserId);
   if (!ws) throw new Error('Worksheet not found');
-  const worksheetColumns = getWorksheetColumns(db, worksheetId, userId);
+  const worksheetColumns = getWorksheetColumns(db, worksheetId, clerkUserId);
   const insertCell = db.prepare(
     'INSERT INTO cell_values (row_id, column_id, value) VALUES (?, ?, ?)',
   );
@@ -763,7 +774,7 @@ export function addRow(
 export function editRow(
   db: Database.Database,
   rowId: number,
-  userId: number,
+  clerkUserId: string,
   itemName: string | null,
   values: Record<number, string>,
 ): boolean {
@@ -771,9 +782,9 @@ export function editRow(
     .prepare(
       `SELECT r.id, r.worksheet_id, r.item_name FROM rows r
        JOIN worksheets w ON r.worksheet_id = w.id
-       WHERE r.id = ? AND w.user_id = ?`,
+       WHERE r.id = ? AND w.clerk_user_id = ?`,
     )
-    .get(rowId, userId) as { id: number; worksheet_id: number; item_name: string } | undefined;
+    .get(rowId, clerkUserId) as { id: number; worksheet_id: number; item_name: string } | undefined;
   if (!row) return false;
 
   const resolvedItemName =
@@ -790,9 +801,9 @@ export function editRow(
       .prepare(
         `SELECT c.id, c.name, c.worksheet_id FROM columns c
          JOIN worksheets w ON c.worksheet_id = w.id
-         WHERE c.id IN (${placeholders}) AND w.user_id = ? AND c.worksheet_id = ?`,
+         WHERE c.id IN (${placeholders}) AND w.clerk_user_id = ? AND c.worksheet_id = ?`,
       )
-      .all(...columnIds, userId, row.worksheet_id) as {
+      .all(...columnIds, clerkUserId, row.worksheet_id) as {
       id: number;
       name: string;
       worksheet_id: number;
@@ -837,12 +848,12 @@ export function editRow(
   }
 }
 
-export function deleteRow(db: Database.Database, rowId: number, userId: number): boolean {
+export function deleteRow(db: Database.Database, rowId: number, clerkUserId: string): boolean {
   const row = db
     .prepare(
-      'SELECT r.id FROM rows r JOIN worksheets w ON r.worksheet_id = w.id WHERE r.id = ? AND w.user_id = ?',
+      'SELECT r.id FROM rows r JOIN worksheets w ON r.worksheet_id = w.id WHERE r.id = ? AND w.clerk_user_id = ?',
     )
-    .get(rowId, userId);
+    .get(rowId, clerkUserId);
   if (!row) return false;
   const transaction = db.transaction(() => {
     db.prepare('DELETE FROM cell_values WHERE row_id = ?').run(rowId);
@@ -863,17 +874,17 @@ export function adminUpdateCell(
   rowId: number,
   columnId: number,
   value: string,
-  userId: number,
+  clerkUserId: string,
 ): number {
   const row = db
     .prepare(
       `SELECT r.id, r.worksheet_id, r.item_name FROM rows r
        JOIN worksheets w ON r.worksheet_id = w.id
-       WHERE r.id = ? AND w.user_id = ?`,
+       WHERE r.id = ? AND w.clerk_user_id = ?`,
     )
-    .get(rowId, userId) as { id: number; worksheet_id: number; item_name: string } | undefined;
+    .get(rowId, clerkUserId) as { id: number; worksheet_id: number; item_name: string } | undefined;
   if (!row) throw new Error('Row not found');
-  const col = getColumnById(db, columnId, userId);
+  const col = getColumnById(db, columnId, clerkUserId);
   if (!col) throw new Error('Column not found');
   if (col.worksheet_id !== row.worksheet_id) {
     // prettier-ignore
@@ -896,24 +907,24 @@ export function adminUpdateCell(
 
 export function createWorksheet(
   db: Database.Database,
-  userId: number,
+  clerkUserId: string,
   name: string,
   displayOrder: number,
 ): number {
   const r = db
-    .prepare('INSERT INTO worksheets (user_id, name, display_order) VALUES (?, ?, ?)')
-    .run(userId, name, displayOrder);
+    .prepare('INSERT INTO worksheets (clerk_user_id, name, display_order) VALUES (?, ?, ?)')
+    .run(clerkUserId, name, displayOrder);
   return Number(r.lastInsertRowid);
 }
 
 export function addColumn(
   db: Database.Database,
   worksheetId: number,
-  userId: number,
+  clerkUserId: string,
   name: string,
   displayOrder: number,
 ): number {
-  const ws = getWorksheetById(db, worksheetId, userId);
+  const ws = getWorksheetById(db, worksheetId, clerkUserId);
   if (!ws) throw new Error('Worksheet not found');
   const r = db
     .prepare('INSERT INTO columns (worksheet_id, name, display_order) VALUES (?, ?, ?)')
@@ -924,11 +935,11 @@ export function addColumn(
 export function insertRowRecord(
   db: Database.Database,
   worksheetId: number,
-  userId: number,
+  clerkUserId: string,
   itemName: string,
   displayOrder: number,
 ): number {
-  const ws = getWorksheetById(db, worksheetId, userId);
+  const ws = getWorksheetById(db, worksheetId, clerkUserId);
   if (!ws) throw new Error('Worksheet not found');
   const r = db
     .prepare('INSERT INTO rows (worksheet_id, item_name, display_order) VALUES (?, ?, ?)')
@@ -939,23 +950,23 @@ export function insertRowRecord(
 export function addRowWithEmptyValues(
   db: Database.Database,
   worksheetId: number,
-  userId: number,
+  clerkUserId: string,
   itemName: string,
 ): number {
-  return addRow(db, worksheetId, userId, itemName, {});
+  return addRow(db, worksheetId, clerkUserId, itemName, {});
 }
 
 export function ensureHelminthNonSubsumableCells(
   db: Database.Database,
   worksheetId: number,
-  userId: number,
+  clerkUserId: string,
 ): void {
-  const ws = getWorksheetById(db, worksheetId, userId);
+  const ws = getWorksheetById(db, worksheetId, clerkUserId);
   if (!ws || ws.name !== WARFRAMES_WORKSHEET_NAME) return;
-  const columns = getWorksheetColumns(db, worksheetId, userId);
+  const columns = getWorksheetColumns(db, worksheetId, clerkUserId);
   const helminthCol = columns.find((c) => c.name === HELMINTH_COLUMN_NAME);
   if (!helminthCol) return;
-  const rows = getWorksheetRows(db, worksheetId, userId);
+  const rows = getWorksheetRows(db, worksheetId, clerkUserId);
   const upsert = db.prepare(
     `INSERT INTO cell_values (row_id, column_id, value)
      VALUES (?, ?, ?)
@@ -964,7 +975,7 @@ export function ensureHelminthNonSubsumableCells(
   const tx = db.transaction(() => {
     for (const r of rows) {
       if (!isHelminthNonSubsumableItemName(r.item_name)) continue;
-      const current = getCellValue(db, r.id, helminthCol.id, userId) ?? '';
+      const current = getCellValue(db, r.id, helminthCol.id, clerkUserId) ?? '';
       if (current === 'Unavailable') continue;
       upsert.run(r.id, helminthCol.id, 'Unavailable');
     }
@@ -972,10 +983,14 @@ export function ensureHelminthNonSubsumableCells(
   tx();
 }
 
-export function setRowUnavailable(db: Database.Database, rowId: number, userId: number): boolean {
-  const worksheetId = getRowWorksheetId(db, rowId, userId);
+export function setRowUnavailable(
+  db: Database.Database,
+  rowId: number,
+  clerkUserId: string,
+): boolean {
+  const worksheetId = getRowWorksheetId(db, rowId, clerkUserId);
   if (worksheetId === null) return false;
-  const columns = getWorksheetColumns(db, worksheetId, userId);
+  const columns = getWorksheetColumns(db, worksheetId, clerkUserId);
   const upsert = db.prepare(
     `INSERT INTO cell_values (row_id, column_id, value)
      VALUES (?, ?, ?)

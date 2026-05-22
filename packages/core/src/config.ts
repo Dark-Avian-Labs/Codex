@@ -3,6 +3,8 @@ import path from 'path';
 
 import { config as loadEnv } from '@dotenvx/dotenvx';
 
+import { normalizeClerkEnv } from './auth/clerkEnv.js';
+
 const projectRoot = process.cwd();
 export function resolveEnvFilePath(rootPath: string): string | null {
   const normalizedNodeEnv = (process.env.NODE_ENV ?? '').trim().toLowerCase();
@@ -35,6 +37,18 @@ export function resolveEnvFilePath(rootPath: string): string | null {
 }
 
 const skipDotenvx = process.env.USE_DOTENVX === 'false';
+if (!skipDotenvx) {
+  const envKeysPath = path.join(projectRoot, '.env.keys');
+  if (fs.existsSync(envKeysPath)) {
+    try {
+      loadEnv({ path: envKeysPath });
+    } catch (error) {
+      console.error(`[Core Config] Failed to load environment keys from "${envKeysPath}".`, error);
+      throw error;
+    }
+  }
+}
+
 const envPath = skipDotenvx ? null : resolveEnvFilePath(projectRoot);
 if (envPath) {
   try {
@@ -53,17 +67,23 @@ if (envPath) {
   }
 }
 
+normalizeClerkEnv();
+
 export const APP_NAME = 'Codex';
 export const CODEX_APP_ID = process.env.APP_ID?.trim().toLowerCase() || 'codex';
 
-const _centralDbPath = process.env.CENTRAL_DB_PATH?.trim();
-if (!_centralDbPath) {
-  throw new Error('CENTRAL_DB_PATH must be set to an absolute shared SQLite path.');
+const _sessionDbPath = process.env.SESSION_DB_PATH?.trim() || process.env.CENTRAL_DB_PATH?.trim();
+if (!_sessionDbPath) {
+  throw new Error(
+    'SESSION_DB_PATH must be set to an absolute SQLite path for express-session storage.',
+  );
 }
-if (!path.isAbsolute(_centralDbPath)) {
-  throw new Error('CENTRAL_DB_PATH must be absolute; relative sibling paths are not supported.');
+if (!path.isAbsolute(_sessionDbPath)) {
+  throw new Error('SESSION_DB_PATH must be absolute; relative paths are not supported.');
 }
-export const CENTRAL_DB_PATH = _centralDbPath;
+export const SESSION_DB_PATH = _sessionDbPath;
+
+export const CENTRAL_DB_PATH = SESSION_DB_PATH;
 
 const _COOKIE_DOMAIN = process.env.COOKIE_DOMAIN;
 if (!_COOKIE_DOMAIN) {
@@ -77,22 +97,7 @@ if (!_BASE_HOST) {
 }
 export const BASE_HOST: string = _BASE_HOST;
 
-export const AUTH_SERVICE_URL: string = (() => {
-  const value = (process.env.AUTH_SERVICE_URL ?? '').replace(/\/+$/, '');
-
-  try {
-    const parsed = new URL(value);
-    if (parsed.protocol !== 'https:' || !parsed.hostname) {
-      throw new Error();
-    }
-  } catch {
-    throw new Error(
-      'AUTH_SERVICE_URL must be a valid absolute https URL with a non-empty hostname.',
-    );
-  }
-
-  return value;
-})();
+export const AUTH_SERVICE_URL = '';
 
 export const GAME_HOSTS: Record<string, string> = (() => {
   const raw = process.env.GAME_HOSTS;

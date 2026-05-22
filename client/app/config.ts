@@ -18,11 +18,8 @@ export const LEGAL_ENTITY_NAME = readTrimmedEnv(
 
 let resolvedLegalPageUrl = readTrimmedEnv(
   import.meta.env.VITE_LEGAL_PAGE_URL as string | undefined,
-  '/auth/legal',
+  'https://darkavianlabs.com/legal/',
 );
-if (resolvedLegalPageUrl === '/legal') {
-  resolvedLegalPageUrl = '/auth/legal';
-}
 const lower = resolvedLegalPageUrl.toLowerCase();
 const isSafeRelativePath =
   resolvedLegalPageUrl.startsWith('/') &&
