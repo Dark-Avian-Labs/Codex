@@ -432,6 +432,10 @@ html.ui-shadow:not(.dark) .clerk-profile-backdrop .cl-cardBox {
   --clerk-profile-content-bg: oklch(98.4% 0.004 264 / 0.9);
   --clerk-profile-shell-blur: blur(18px) saturate(1.15);
   --clerk-profile-content-blur: blur(28px) saturate(1.25);
+  box-shadow:
+    var(--shadow-panel),
+    inset 0 1px 0 oklch(100% 0 0 / 0.14),
+    inset 0 -1px 0 oklch(0% 0 0 / 0.12);
 }
 
 html.ui-shadow:not(.dark) .clerk-profile-glass::before,
