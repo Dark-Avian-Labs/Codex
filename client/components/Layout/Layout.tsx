@@ -18,7 +18,7 @@ import { APP_PATHS } from '../../app/paths';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../features/auth/AuthContext';
 import { rememberLastGamePath } from '../../features/auth/authRedirect';
-import { buildClerkAppearance } from '../../lib/clerkAppearance';
+import { buildClerkProfileAppearance } from '../../lib/clerkAppearance';
 import { MaterialSymbol } from '../ui/MaterialSymbol';
 import { Menu } from '../ui/Menu';
 import { AsciiWaveBackground } from './AsciiWaveBackground';
@@ -279,7 +279,7 @@ export function Layout() {
                           tabIndex={-1}
                           onClick={() => {
                             setMenuOpen(false);
-                            clerk.openUserProfile({ appearance: buildClerkAppearance() });
+                            clerk.openUserProfile({ appearance: buildClerkProfileAppearance() });
                           }}
                         >
                           Profile
