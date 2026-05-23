@@ -21,6 +21,7 @@ export default defineConfig({
       'server/**/*.test.ts',
       'packages/core/src/**/*.test.ts',
       'client/**/*.test.ts',
+      'scripts/**/*.test.ts',
     ],
     testTimeout: 10_000,
     env: {

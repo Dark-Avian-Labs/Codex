@@ -4,7 +4,7 @@
 
 ### Overview
 
-Codex is a table-based game collection tracker (Warframe and Epic Seven). It is a pnpm workspace monorepo with packages under `packages/`. It uses the central Auth service for login and reads Armory's SQLite database for Warframe data sync.
+Codex is a table-based game collection tracker (Warframe and Epic Seven). It is a pnpm workspace monorepo with packages under `packages/`. It uses Clerk for authentication and reads Armory's SQLite database for Warframe data sync.
 
 ### Running the service
 
@@ -26,5 +26,5 @@ The server listens on port 3001 by default.
 - **`SESSION_DB_PATH` and `ARMORY_DB_PATH` must be absolute paths.** `SESSION_DB_PATH` is Codex-owned (`session.db` for CSRF / Epic7 session state). `ARMORY_DB_PATH` is the read-only Armory catalog. Example: `/var/www/applications/codex/data/session.db`.
 - **Game databases must be pre-created.** The Warframe and Epic7 SQLite databases need their schemas initialized before first start. The `onOpen` callbacks in the game packages assume tables already exist. Pre-create schemas using the SQL in `packages/games/warframe/src/db/schema.ts` and `packages/games/epic7/src/db/schema.ts`.
 - **Vite build picks up encrypted `.env.production`** for `VITE_BASE_PATH`, producing garbled asset paths. Fix by rebuilding the client with: `npx vite build --mode devbuild`.
-- **`AUTH_SERVICE_URL` must start with `https://`** even in dev. Use `https://auth.example.test` as a placeholder. Actual auth integration requires the Auth service to be reachable over HTTPS or a matching domain setup.
+- **Clerk keys are required in production.** Set `CLERK_SECRET_KEY` and `CLERK_PUBLISHABLE_KEY` (or `VITE_CLERK_PUBLISHABLE_KEY`). See `.env.example` for session-token metadata and admin role setup.
 - **CI env template** at `.github/ci.env.development` provides a good reference for all required env vars.
