@@ -34,7 +34,8 @@
     if (theme === 'dark') root.classList.add('dark');
 
     var ui = readCookie('dal.ui.style').trim();
-    if (ui !== 'prism' && ui !== 'shadow') {
+    if (ui === 'solid') ui = 'clear';
+    if (ui !== 'prism' && ui !== 'shadow' && ui !== 'clear') {
       try {
         ui = (localStorage.getItem('dal.ui.style') || '').trim();
       } catch (e) {
@@ -44,8 +45,9 @@
         ui = '';
       }
     }
-    if (ui !== 'prism' && ui !== 'shadow') ui = 'prism';
-    root.classList.remove('ui-prism', 'ui-shadow');
+    if (ui === 'solid') ui = 'clear';
+    if (ui !== 'prism' && ui !== 'shadow' && ui !== 'clear') ui = 'prism';
+    root.classList.remove('ui-prism', 'ui-shadow', 'ui-clear');
     root.classList.add('ui-' + ui);
   } catch {}
 })();

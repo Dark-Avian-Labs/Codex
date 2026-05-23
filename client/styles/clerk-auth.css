@@ -359,10 +359,10 @@ html.dark.ui-shadow .clerk-auth-shell .clerk-secured-strip {
 
 .clerk-profile-glass,
 .clerk-profile-backdrop .cl-cardBox {
-  --clerk-profile-shell-bg: oklch(25% 0.02 286 / 0.97);
-  --clerk-profile-shell-blur: blur(16px) saturate(1.15);
-  --clerk-profile-content-bg: oklch(22% 0.02 286 / 0.94);
-  --clerk-profile-content-blur: blur(24px) saturate(1.25);
+  --clerk-profile-shell-bg: var(--color-glass);
+  --clerk-profile-shell-blur: blur(12px) saturate(1.2);
+  --clerk-profile-content-bg: transparent;
+  --clerk-profile-content-blur: none;
   position: relative;
   overflow: hidden !important;
   isolation: isolate;
@@ -372,7 +372,7 @@ html.dark.ui-shadow .clerk-auth-shell .clerk-secured-strip {
     var(--shadow-panel),
     inset 0 1px 0 oklch(100% 0 0 / 0.14),
     inset 0 -1px 0 oklch(0% 0 0 / 0.12) !important;
-  background: var(--clerk-profile-shell-bg) !important;
+  background: color-mix(in oklab, var(--clerk-profile-shell-bg) 75%, transparent) !important;
   backdrop-filter: var(--clerk-profile-shell-blur);
   -webkit-backdrop-filter: var(--clerk-profile-shell-blur);
 }
@@ -404,16 +404,12 @@ html.dark.ui-shadow .clerk-auth-shell .clerk-secured-strip {
 
 html:not(.dark) .clerk-profile-glass,
 html:not(.dark) .clerk-profile-backdrop .cl-cardBox {
-  --clerk-profile-shell-bg: oklch(99% 0.005 264 / 0.97);
-  --clerk-profile-content-bg: oklch(97% 0.01 264 / 0.93);
+  background: color-mix(in oklab, var(--color-glass) 82%, transparent) !important;
 }
 
 html.dark.ui-shadow .clerk-profile-glass,
 html.dark.ui-shadow .clerk-profile-backdrop .cl-cardBox {
-  --clerk-profile-shell-bg: oklch(0% 0 0 / 0.9);
-  --clerk-profile-content-bg: oklch(0% 0 0 / 0.84);
-  --clerk-profile-shell-blur: blur(18px) saturate(1.2);
-  --clerk-profile-content-blur: blur(28px) saturate(1.3);
+  --clerk-profile-shell-blur: blur(10px) saturate(1.1);
   border-color: oklch(100% 0 0 / 0.16) !important;
   box-shadow:
     var(--shadow-panel),
@@ -428,10 +424,7 @@ html.dark.ui-shadow .clerk-profile-backdrop .cl-cardBox::before {
 
 html.ui-shadow:not(.dark) .clerk-profile-glass,
 html.ui-shadow:not(.dark) .clerk-profile-backdrop .cl-cardBox {
-  --clerk-profile-shell-bg: oklch(100% 0 0 / 0.94);
-  --clerk-profile-content-bg: oklch(98.4% 0.004 264 / 0.9);
-  --clerk-profile-shell-blur: blur(18px) saturate(1.15);
-  --clerk-profile-content-blur: blur(28px) saturate(1.25);
+  --clerk-profile-shell-blur: blur(14px) saturate(1.15);
   box-shadow:
     var(--shadow-panel),
     inset 0 1px 0 oklch(100% 0 0 / 0.14),
@@ -455,7 +448,7 @@ html.ui-shadow:not(.dark) .clerk-profile-backdrop .cl-cardBox::before {
 .clerk-profile-navbar {
   position: relative;
   border: none !important;
-  background: var(--clerk-profile-shell-bg) !important;
+  background: transparent !important;
 }
 
 .clerk-profile-navbar::after {
@@ -479,4 +472,33 @@ html.ui-shadow:not(.dark) .clerk-profile-backdrop .cl-cardBox::before {
 
 .clerk-profile-nav-btn[data-active='true'] {
   color: var(--color-accent);
+}
+
+html.ui-clear .clerk-profile-glass,
+html.ui-clear .clerk-profile-backdrop .cl-cardBox {
+  --clerk-profile-shell-blur: none;
+
+  border-radius: var(--radius-ui-lg) !important;
+  background: var(--color-glass) !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: var(--shadow-panel) !important;
+}
+
+html.ui-clear .clerk-profile-glass::before,
+html.ui-clear .clerk-profile-backdrop .cl-cardBox::before {
+  display: none;
+}
+
+html.ui-clear .clerk-profile-scroll,
+html.ui-clear .clerk-profile-page {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+html.ui-clear .clerk-auth-shell .clerk-secured-strip,
+html.ui-clear .cl-social-btn {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border-radius: var(--radius-ui);
 }
