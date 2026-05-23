@@ -1,11 +1,8 @@
-import fs from 'fs';
-
 import { warframeQueries as q } from '@codex/game-warframe';
 import type Database from 'better-sqlite3';
 
-import { ARMORY_DB_PATH } from '../config.js';
 import { log } from '../logger.js';
-import { ensureWarframeWorksheetsForUser, runWarframeSync } from './warframeSync.js';
+import { ensureWarframeWorksheetsForUser, provisionUserFromCatalogMaster } from './warframeSync.js';
 
 export function provisionWarframeUserIfNeeded(
   codexDb: Database.Database,
@@ -15,24 +12,9 @@ export function provisionWarframeUserIfNeeded(
     return;
   }
 
-  let provisionedBySync = false;
-  if (fs.existsSync(ARMORY_DB_PATH)) {
-    try {
-      runWarframeSync(codexDb, {
-        execute: true,
-        clerkUserIds: [clerkUserId],
-        initiatedByClerkUserId: clerkUserId,
-      });
-      provisionedBySync = true;
-    } catch (err) {
-      log('warn', 'Warframe auto-provision sync failed', {
-        clerkUserId,
-        err: err instanceof Error ? err.message : String(err),
-      });
-    }
-  }
-
-  if (!provisionedBySync || q.getWorksheets(codexDb, clerkUserId).length === 0) {
+  const provisionedFromMaster = provisionUserFromCatalogMaster(codexDb, clerkUserId);
+  if (!provisionedFromMaster) {
+    log('info', 'Warframe master catalog empty; created worksheet shells only', { clerkUserId });
     ensureWarframeWorksheetsForUser(codexDb, clerkUserId);
   }
 }

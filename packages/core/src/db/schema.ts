@@ -1,8 +1,1 @@
-export {
-  createSessionSchema,
-  createCentralSchema,
-  getSessionDb,
-  getCentralDb,
-  closeSessionDb,
-  closeCentralDb,
-} from './sessionSchema.js';
+export { createSessionSchema, getSessionDb, closeSessionDb } from './sessionSchema.js';

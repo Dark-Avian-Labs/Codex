@@ -6,12 +6,6 @@ import type { GameModule, GameMountOptions } from '@codex/core';
 import express, { type Application } from 'express';
 
 import { EPIC7_DB_PATH } from './config.js';
-import {
-  seedAccountHeroesFromBase,
-  seedAccountArtifactsFromBase,
-  getGameAccountsByUserId,
-  createGameAccount,
-} from './db/queries.js';
 import { getDb } from './db/schema.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -59,30 +53,6 @@ export const epic7Game: GameModule = {
       });
     });
     app.use(`${base}/assets`, express.static(assetsPath));
-  },
-
-  async applyDefaultsForNewUser(clerkUserId: string): Promise<void> {
-    try {
-      const dbInstance = getDb();
-      const run = dbInstance.transaction(() => {
-        const accounts = getGameAccountsByUserId(dbInstance, clerkUserId);
-        if (accounts.length > 0) return;
-        const accountId = createGameAccount(dbInstance, clerkUserId, 'Default', true);
-        seedAccountHeroesFromBase(dbInstance, accountId);
-        seedAccountArtifactsFromBase(dbInstance, accountId);
-      });
-      await run();
-    } catch (err) {
-      if (
-        err &&
-        typeof err === 'object' &&
-        'code' in err &&
-        (err as { code: string }).code === 'SQLITE_CONSTRAINT_UNIQUE'
-      ) {
-        return;
-      }
-      throw err;
-    }
   },
 };
 

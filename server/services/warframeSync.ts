@@ -150,59 +150,6 @@ type MarketHrefRefreshResult =
   | { ok: true; rowsProcessed: number; rowsWithHref: number }
   | { ok: false; error: string };
 
-function refreshWorksheetMarketHrefs(
-  codexDb: Database.Database,
-  armoryDb: Database.Database,
-  clerkUserId: string,
-  worksheetId: number,
-  worksheet: WorksheetName,
-): MarketHrefRefreshResult {
-  try {
-    const sel = armoryDb.prepare(
-      `SELECT market_href, market_href_prime FROM warframe_market_links WHERE canonical_key = ? AND worksheet_category = ?`,
-    );
-    const rows = q.getWorksheetRows(codexDb, worksheetId, clerkUserId);
-    const stmt = codexDb.prepare(
-      'UPDATE rows SET market_href = ?, market_href_prime = ? WHERE id = ?',
-    );
-    let rowsProcessed = 0;
-    let rowsWithHref = 0;
-    const tx = codexDb.transaction(() => {
-      for (const row of rows) {
-        const effectiveName =
-          worksheet === 'Modular Weapons' ? stripKitgunPrimarySuffix(row.item_name) : row.item_name;
-        const key = resolveCanonicalKey(effectiveName);
-        const hit = sel.get(key, worksheet) as
-          | { market_href: string | null; market_href_prime: string | null }
-          | undefined;
-        let href = hit?.market_href ?? null;
-        let hrefPrime = hit?.market_href_prime ?? null;
-        if (href && !hrefPrime && warframeMarketSellHrefUsesPrimeOnlyItemSlug(href)) {
-          hrefPrime = href;
-          href = null;
-        }
-        stmt.run(href, hrefPrime, row.id);
-        rowsProcessed += 1;
-        const hasAny =
-          (typeof href === 'string' && href.trim().length > 0) ||
-          (typeof hrefPrime === 'string' && hrefPrime.trim().length > 0);
-        if (hasAny) {
-          rowsWithHref += 1;
-        }
-      }
-    });
-    tx();
-    return { ok: true, rowsProcessed, rowsWithHref };
-  } catch (e) {
-    const err = e instanceof Error ? e : new Error(String(e));
-    console.warn(
-      `[Warframe sync] market href refresh failed: clerkUserId=${clerkUserId}, worksheetId=${worksheetId}, worksheet=${worksheet}`,
-      err.stack ?? err.message,
-    );
-    return { ok: false, error: err.message };
-  }
-}
-
 function getSpecialPrimeVariantBaseName(value: string): string | undefined {
   return SPECIAL_PRIME_VARIANT_BASE_NAME.get(normalizeNameForKey(value));
 }
@@ -688,6 +635,153 @@ function syncCatalogMasterFromSource(
   }
 }
 
+function refreshCatalogMasterMarketHrefs(
+  codexDb: Database.Database,
+  armoryDb: Database.Database,
+): { rowsProcessed: number; rowsWithHref: number } {
+  const sel = armoryDb.prepare(
+    `SELECT market_href, market_href_prime FROM warframe_market_links WHERE canonical_key = ? AND worksheet_category = ?`,
+  );
+  const masterRows = codexDb
+    .prepare(
+      `SELECT id, worksheet_name, canonical_key FROM catalog_rows ORDER BY worksheet_name, display_order`,
+    )
+    .all() as Array<{ id: number; worksheet_name: WorksheetName; canonical_key: string }>;
+  const stmt = codexDb.prepare(
+    'UPDATE catalog_rows SET market_href = ?, market_href_prime = ? WHERE id = ?',
+  );
+  let rowsProcessed = 0;
+  let rowsWithHref = 0;
+  const tx = codexDb.transaction(() => {
+    for (const row of masterRows) {
+      const hit = sel.get(row.canonical_key, row.worksheet_name) as
+        | { market_href: string | null; market_href_prime: string | null }
+        | undefined;
+      let href = hit?.market_href ?? null;
+      let hrefPrime = hit?.market_href_prime ?? null;
+      if (href && !hrefPrime && warframeMarketSellHrefUsesPrimeOnlyItemSlug(href)) {
+        hrefPrime = href;
+        href = null;
+      }
+      stmt.run(href, hrefPrime, row.id);
+      rowsProcessed += 1;
+      const hasAny =
+        (typeof href === 'string' && href.trim().length > 0) ||
+        (typeof hrefPrime === 'string' && hrefPrime.trim().length > 0);
+      if (hasAny) rowsWithHref += 1;
+    }
+  });
+  tx();
+  return { rowsProcessed, rowsWithHref };
+}
+
+function refreshUserRowMarketHrefsFromCatalog(
+  codexDb: Database.Database,
+  clerkUserId: string,
+  worksheetId: number,
+  worksheet: WorksheetName,
+): MarketHrefRefreshResult {
+  try {
+    const sel = codexDb.prepare(
+      `SELECT market_href, market_href_prime FROM catalog_rows WHERE worksheet_name = ? AND canonical_key = ?`,
+    );
+    const rows = q.getWorksheetRows(codexDb, worksheetId, clerkUserId);
+    const stmt = codexDb.prepare(
+      'UPDATE rows SET market_href = ?, market_href_prime = ? WHERE id = ?',
+    );
+    let rowsProcessed = 0;
+    let rowsWithHref = 0;
+    const tx = codexDb.transaction(() => {
+      for (const row of rows) {
+        const effectiveName =
+          worksheet === 'Modular Weapons' ? stripKitgunPrimarySuffix(row.item_name) : row.item_name;
+        const key = resolveCanonicalKey(effectiveName);
+        const hit = sel.get(worksheet, key) as
+          | { market_href: string | null; market_href_prime: string | null }
+          | undefined;
+        const href = hit?.market_href ?? null;
+        const hrefPrime = hit?.market_href_prime ?? null;
+        stmt.run(href, hrefPrime, row.id);
+        rowsProcessed += 1;
+        const hasAny =
+          (typeof href === 'string' && href.trim().length > 0) ||
+          (typeof hrefPrime === 'string' && hrefPrime.trim().length > 0);
+        if (hasAny) rowsWithHref += 1;
+      }
+    });
+    tx();
+    return { ok: true, rowsProcessed, rowsWithHref };
+  } catch (e) {
+    const err = e instanceof Error ? e : new Error(String(e));
+    console.warn(
+      `[Warframe sync] catalog market href refresh failed: clerkUserId=${clerkUserId}, worksheetId=${worksheetId}, worksheet=${worksheet}`,
+      err.stack ?? err.message,
+    );
+    return { ok: false, error: err.message };
+  }
+}
+
+export function provisionUserFromCatalogMaster(
+  codexDb: Database.Database,
+  clerkUserId: string,
+): boolean {
+  type CatalogRow = {
+    worksheet_name: WorksheetName;
+    canonical_key: string;
+    item_name: string;
+    display_order: number;
+    market_href: string | null;
+    market_href_prime: string | null;
+  };
+
+  const masterRows = codexDb
+    .prepare(
+      `SELECT worksheet_name, canonical_key, item_name, display_order, market_href, market_href_prime
+       FROM catalog_rows ORDER BY worksheet_name, display_order`,
+    )
+    .all() as CatalogRow[];
+
+  if (masterRows.length === 0) return false;
+
+  const byWorksheet = new Map<WorksheetName, CatalogRow[]>();
+  for (const row of masterRows) {
+    if (!WORKSHEET_NAMES.includes(row.worksheet_name)) continue;
+    const bucket = byWorksheet.get(row.worksheet_name) ?? [];
+    bucket.push(row);
+    byWorksheet.set(row.worksheet_name, bucket);
+  }
+
+  for (const worksheet of WORKSHEET_NAMES) {
+    const sheet = ensureWorksheetExistsForSync(codexDb, clerkUserId, worksheet, true);
+    if (!sheet) continue;
+
+    const existingRows = q.getWorksheetRows(codexDb, sheet.id, clerkUserId);
+    const existingKeys = new Set(
+      existingRows.map((existing) => resolveCanonicalKey(existing.item_name)),
+    );
+
+    for (const masterRow of byWorksheet.get(worksheet) ?? []) {
+      if (existingKeys.has(masterRow.canonical_key)) continue;
+      q.addRowFromCatalogMaster(
+        codexDb,
+        sheet.id,
+        clerkUserId,
+        masterRow.item_name,
+        masterRow.display_order,
+        masterRow.market_href,
+        masterRow.market_href_prime,
+      );
+      existingKeys.add(masterRow.canonical_key);
+    }
+
+    if (worksheet === 'Warframes') {
+      q.ensureHelminthNonSubsumableCells(codexDb, sheet.id, clerkUserId);
+    }
+  }
+
+  return true;
+}
+
 function markRowOrphaned(codexDb: Database.Database, rowId: number, execute: boolean): void {
   if (!execute) return;
   codexDb.prepare('UPDATE rows SET orphaned = 1 WHERE id = ?').run(rowId);
@@ -712,6 +806,9 @@ export function runWarframeSync(
   try {
     const sourceByWorksheet = loadWorksheetSource(armoryDb);
     syncCatalogMasterFromSource(codexDb, sourceByWorksheet, options.execute);
+    if (options.execute) {
+      refreshCatalogMasterMarketHrefs(codexDb, armoryDb);
+    }
     const clerkUserIds = options.clerkUserIds ?? q.getWorksheetUserIds(codexDb);
     const users: UserSyncResult[] = [];
     const summary = {
@@ -848,9 +945,8 @@ export function runWarframeSync(
         cleanupRequiresConfirmationRows.push(...cleanup.requiresConfirmationRows);
 
         if (options.execute) {
-          const mr = refreshWorksheetMarketHrefs(
+          const mr = refreshUserRowMarketHrefsFromCatalog(
             codexDb,
-            armoryDb,
             clerkUserId,
             sheet.id,
             worksheet,

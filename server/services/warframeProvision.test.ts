@@ -5,14 +5,8 @@ const TEST_CLERK_ID = 'user_test123';
 
 const mocks = vi.hoisted(() => ({
   getWorksheets: vi.fn<typeof import('@codex/game-warframe').warframeQueries.getWorksheets>(),
-  runWarframeSync: vi.fn(),
+  provisionUserFromCatalogMaster: vi.fn<(db: Database.Database, clerkUserId: string) => boolean>(),
   ensureWarframeWorksheetsForUser: vi.fn(),
-  existsSync: vi.fn<(path: string) => boolean>(),
-}));
-
-vi.mock('fs', () => ({
-  default: { existsSync: (path: string) => mocks.existsSync(path) },
-  existsSync: (path: string) => mocks.existsSync(path),
 }));
 
 vi.mock('@codex/game-warframe', () => ({
@@ -20,7 +14,7 @@ vi.mock('@codex/game-warframe', () => ({
 }));
 
 vi.mock('./warframeSync.js', () => ({
-  runWarframeSync: mocks.runWarframeSync,
+  provisionUserFromCatalogMaster: mocks.provisionUserFromCatalogMaster,
   ensureWarframeWorksheetsForUser: mocks.ensureWarframeWorksheetsForUser,
 }));
 
@@ -35,42 +29,28 @@ const codexDb = {} as Database.Database;
 describe('provisionWarframeUserIfNeeded', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.existsSync.mockReturnValue(false);
   });
 
   it('does nothing when the user already has worksheets', () => {
     mocks.getWorksheets.mockReturnValue([{ id: 1, name: 'Warframes', display_order: 0 }]);
     provisionWarframeUserIfNeeded(codexDb, TEST_CLERK_ID);
-    expect(mocks.runWarframeSync).not.toHaveBeenCalled();
+    expect(mocks.provisionUserFromCatalogMaster).not.toHaveBeenCalled();
     expect(mocks.ensureWarframeWorksheetsForUser).not.toHaveBeenCalled();
   });
 
-  it('runs Armory sync when the Armory database is available', () => {
-    mocks.getWorksheets.mockReturnValueOnce([]).mockReturnValueOnce([{ id: 1, name: 'Warframes', display_order: 0 }]);
-    mocks.existsSync.mockReturnValue(true);
+  it('provisions from the Codex master catalog when available', () => {
+    mocks.getWorksheets.mockReturnValue([]);
+    mocks.provisionUserFromCatalogMaster.mockReturnValue(true);
     provisionWarframeUserIfNeeded(codexDb, TEST_CLERK_ID);
-    expect(mocks.runWarframeSync).toHaveBeenCalledWith(codexDb, {
-      execute: true,
-      clerkUserIds: [TEST_CLERK_ID],
-      initiatedByClerkUserId: TEST_CLERK_ID,
-    });
+    expect(mocks.provisionUserFromCatalogMaster).toHaveBeenCalledWith(codexDb, TEST_CLERK_ID);
     expect(mocks.ensureWarframeWorksheetsForUser).not.toHaveBeenCalled();
   });
 
-  it('creates empty worksheets when Armory sync is unavailable', () => {
+  it('creates empty worksheet shells when the master catalog is empty', () => {
     mocks.getWorksheets.mockReturnValue([]);
-    mocks.existsSync.mockReturnValue(false);
+    mocks.provisionUserFromCatalogMaster.mockReturnValue(false);
     provisionWarframeUserIfNeeded(codexDb, TEST_CLERK_ID);
-    expect(mocks.runWarframeSync).not.toHaveBeenCalled();
-    expect(mocks.ensureWarframeWorksheetsForUser).toHaveBeenCalledWith(codexDb, TEST_CLERK_ID);
-  });
-
-  it('creates empty worksheets when sync leaves the user without worksheets', () => {
-    mocks.getWorksheets.mockReturnValue([]);
-    mocks.existsSync.mockReturnValue(true);
-    mocks.runWarframeSync.mockImplementation(() => undefined);
-    provisionWarframeUserIfNeeded(codexDb, TEST_CLERK_ID);
-    expect(mocks.runWarframeSync).toHaveBeenCalled();
+    expect(mocks.provisionUserFromCatalogMaster).toHaveBeenCalledWith(codexDb, TEST_CLERK_ID);
     expect(mocks.ensureWarframeWorksheetsForUser).toHaveBeenCalledWith(codexDb, TEST_CLERK_ID);
   });
 });

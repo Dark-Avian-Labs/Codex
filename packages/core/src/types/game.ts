@@ -15,6 +15,5 @@ export interface GameModule {
   mount: (app: Application, basePath: string, options: GameMountOptions) => void;
   getDbPath: () => string;
   getDb: () => import('better-sqlite3').Database;
-  applyDefaultsForNewUser?: (clerkUserId: string) => void | Promise<void>;
   theme?: GameTheme;
 }

@@ -64,14 +64,11 @@ function requireAbsoluteSqlitePath(name: string, value: string | undefined): str
 function resolveSessionDbPath(): string {
   const session = process.env.SESSION_DB_PATH?.trim();
   if (session) return requireAbsoluteSqlitePath('SESSION_DB_PATH', session);
-  const legacy = process.env.CENTRAL_DB_PATH?.trim();
-  if (legacy) return requireAbsoluteSqlitePath('CENTRAL_DB_PATH', legacy);
   return path.join(DATA_DIR, 'session.db');
 }
 
 export const SESSION_DB_PATH = resolveSessionDbPath();
 
-export const CENTRAL_DB_PATH = SESSION_DB_PATH;
 export const ARMORY_DB_PATH = requireAbsoluteSqlitePath(
   'ARMORY_DB_PATH',
   process.env.ARMORY_DB_PATH,

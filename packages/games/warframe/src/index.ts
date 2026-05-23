@@ -1,7 +1,7 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import { log, type GameModule, type GameMountOptions } from '@codex/core';
+import type { GameModule, GameMountOptions } from '@codex/core';
 import express, { type Application } from 'express';
 
 import { WARFRAME_DB_PATH } from './config.js';
@@ -37,21 +37,6 @@ export const warframeGame: GameModule = {
       });
     });
     app.use(`${base}/assets`, express.static(assetsPath));
-  },
-
-  async applyDefaultsForNewUser(clerkUserId: string): Promise<void> {
-    try {
-      const db = getDb();
-      db.prepare(
-        'INSERT OR IGNORE INTO worksheets (clerk_user_id, name, display_order) VALUES (?, ?, ?)',
-      ).run(clerkUserId, 'Warframes', 0);
-    } catch (err) {
-      log('error', 'Failed to apply Warframe defaults for new user', {
-        clerkUserId,
-        err: err instanceof Error ? (err.stack ?? err.message) : String(err),
-      });
-      throw err;
-    }
   },
 };
 

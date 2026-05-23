@@ -1,6 +1,6 @@
 import fs from 'fs';
 
-import { ensureClerkUserIdColumn, requireCodexAdmin } from '@codex/core';
+import { requireCodexAdmin } from '@codex/core';
 import { validateBody } from '@codex/core/validation';
 import {
   HELMINTH_VALUES,
@@ -38,21 +38,6 @@ function ensureWarframeUserSettingsTable(db: ReturnType<typeof getWarframeDb>): 
       PRIMARY KEY (clerk_user_id, setting_key)
     );
   `);
-  const cols = db.prepare('PRAGMA table_info(user_settings)').all() as { name: string }[];
-  if (cols.some((c) => c.name === 'user_id') && !cols.some((c) => c.name === 'clerk_user_id')) {
-    db.exec('ALTER TABLE user_settings RENAME TO user_settings_legacy');
-    ensureClerkUserIdColumn(db, 'user_settings_legacy');
-    ensureWarframeUserSettingsTable(db);
-    db.exec(`
-      INSERT INTO user_settings (clerk_user_id, setting_key, setting_value, updated_at)
-      SELECT clerk_user_id, setting_key, setting_value, updated_at
-      FROM user_settings_legacy
-      WHERE clerk_user_id IS NOT NULL
-      ON CONFLICT(clerk_user_id, setting_key) DO UPDATE SET
-        setting_value = excluded.setting_value,
-        updated_at = excluded.updated_at
-    `);
-  }
 }
 
 async function getDbOrFail(res: Response): Promise<ReturnType<typeof getWarframeDb> | null> {

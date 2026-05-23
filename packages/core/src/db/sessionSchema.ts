@@ -16,8 +16,6 @@ export function createSessionSchema(db: Database.Database): void {
   `);
 }
 
-export const createCentralSchema = createSessionSchema;
-
 export function getSessionDb(): Database.Database {
   if (sessionDb) {
     return sessionDb;
@@ -47,8 +45,6 @@ export function getSessionDb(): Database.Database {
   return sessionDb;
 }
 
-export const getCentralDb = getSessionDb;
-
 export function closeSessionDb(): void {
   if (sessionDb === null) return;
   const db = sessionDb;
@@ -60,5 +56,3 @@ export function closeSessionDb(): void {
     throw err;
   }
 }
-
-export const closeCentralDb = closeSessionDb;
