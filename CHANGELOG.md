@@ -249,3 +249,4 @@ Historical entries through the current release were **backfilled from merged PR 
 - **v1.49.2** `fix` [#215](https://github.com/Dark-Avian-Labs/Codex/pull/215): routing
 - **v1.49.3** `fix` [#220](https://github.com/Dark-Avian-Labs/Codex/pull/220): styling
 - **v1.49.4** `fix(security)` [#221](https://github.com/Dark-Avian-Labs/Codex/pull/221): adding override for js cookie
+- **v1.49.5** `chore` [#222](https://github.com/Dark-Avian-Labs/Codex/pull/222): updated readme and fixed automatic changelog script
