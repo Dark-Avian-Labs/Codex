@@ -724,6 +724,30 @@ export function WarframePage() {
     }
   }
 
+  async function handleDeleteOrphanRow(row: Row): Promise<void> {
+    const rowId = row.id;
+    setData((previous) => ({
+      ...previous,
+      rows: previous.rows.filter((candidate) => candidate.id !== rowId),
+    }));
+    try {
+      const response = await apiFetch(`/api/warframe/rows/${rowId}`, {
+        method: 'DELETE',
+      });
+      const body = (await response.json().catch(() => null)) as { error?: string } | null;
+      if (!response.ok || body?.error) {
+        throw new Error(body?.error || 'Delete failed');
+      }
+    } catch {
+      setData((previous) =>
+        previous.rows.some((candidate) => candidate.id === rowId)
+          ? previous
+          : { ...previous, rows: [...previous.rows, row] },
+      );
+      setError('Failed to remove orphaned row.');
+    }
+  }
+
   const updateAdvancedProgressLocal = useCallback(
     (
       rowId: number,
@@ -1198,7 +1222,24 @@ export function WarframePage() {
 
                 return (
                   <tr key={row.id} className={rowClassName}>
-                    <td className="item-name">{row.name || row.item_name || 'Unnamed'}</td>
+                    <td className="item-name">
+                      <div className="flex items-center gap-2">
+                        <span>{row.name || row.item_name || 'Unnamed'}</span>
+                        {row.orphaned ? (
+                          <button
+                            type="button"
+                            className="text-muted hover:text-danger inline-flex shrink-0 items-center justify-center rounded p-0.5 transition-colors"
+                            onClick={() => {
+                              void handleDeleteOrphanRow(row);
+                            }}
+                            aria-label={`Remove ${row.name || row.item_name || 'item'} from worksheet`}
+                            title="Remove item no longer in catalog"
+                          >
+                            <MaterialSymbol name="delete" style={{ fontSize: 16 }} />
+                          </button>
+                        ) : null}
+                      </div>
+                    </td>
                     {advancedMode ? (
                       <>
                         <td className="status-cell align-middle">

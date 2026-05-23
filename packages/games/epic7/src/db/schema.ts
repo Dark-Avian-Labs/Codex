@@ -1,4 +1,4 @@
-import { createDbSingleton, ensureClerkUserIdColumn } from '@codex/core';
+import { createDbSingleton } from '@codex/core';
 import type Database from 'better-sqlite3';
 
 import { EPIC7_DB_PATH } from '../config.js';
@@ -14,11 +14,11 @@ export function createSchema(db: Database.Database): void {
 
     CREATE TABLE game_accounts (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL,
+      clerk_user_id TEXT NOT NULL,
       account_name TEXT NOT NULL,
       is_active INTEGER NOT NULL DEFAULT 0,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
-      UNIQUE(user_id, account_name)
+      UNIQUE(clerk_user_id, account_name)
     );
 
     CREATE TABLE base_heroes (
@@ -65,7 +65,7 @@ export function createSchema(db: Database.Database): void {
       FOREIGN KEY (base_artifact_id) REFERENCES base_artifacts(id) ON DELETE SET NULL
     );
 
-    CREATE INDEX idx_game_accounts_user ON game_accounts(user_id);
+    CREATE INDEX idx_game_accounts_clerk_user ON game_accounts(clerk_user_id);
     CREATE INDEX idx_account_heroes_account ON account_heroes(account_id);
     CREATE INDEX idx_account_heroes_class ON account_heroes(class);
     CREATE INDEX idx_account_heroes_element ON account_heroes(element);
@@ -147,7 +147,6 @@ function ensureUniqueBaseNameIndexes(db: Database.Database): UniqueIndexStatus {
 const { getDb, closeDb } = createDbSingleton(EPIC7_DB_PATH, {
   pragmas: ['journal_mode = WAL'],
   onOpen: (db: Database.Database) => {
-    ensureClerkUserIdColumn(db, 'game_accounts');
     ensureUniqueBaseNameIndexes(db);
   },
 });

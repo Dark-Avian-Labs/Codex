@@ -72,7 +72,6 @@ Use one key per environment to reduce blast radius.
 | `CLERK_SECRET_KEY`                  | **Required in production.** Clerk secret key for server-side session verification. |
 | `CLERK_PUBLISHABLE_KEY`             | Clerk publishable key for the server (falls back to `VITE_CLERK_PUBLISHABLE_KEY`). |
 | `SESSION_DB_PATH`                   | **Required absolute path** to Codex session SQLite (`session.db`).                 |
-| `CENTRAL_DB_PATH`                   | Deprecated alias for `SESSION_DB_PATH`.                                            |
 | `ARMORY_DB_PATH`                    | **Required absolute path** to the shared Armory SQLite database.                   |
 | `WARFRAME_DB_PATH`, `EPIC7_DB_PATH` | Per-game SQLite paths (defaults under `./data/` if unset in game packages).        |
 | `COOKIE_DOMAIN`                     | Optional; normalized to a leading-dot cookie domain.                               |

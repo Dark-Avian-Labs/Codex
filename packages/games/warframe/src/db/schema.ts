@@ -1,4 +1,4 @@
-import { createDbSingleton, ensureClerkUserIdColumn } from '@codex/core';
+import { createDbSingleton } from '@codex/core';
 import type Database from 'better-sqlite3';
 
 import { WARFRAME_DB_PATH } from '../config.js';
@@ -122,7 +122,6 @@ export function ensureWarframeAdvancedProgressTable(db: Database.Database): void
 
 const { getDb, closeDb } = createDbSingleton(WARFRAME_DB_PATH, {
   onOpen: (db) => {
-    ensureClerkUserIdColumn(db, 'worksheets');
     ensureWarframeCatalogMasterTable(db);
     ensureWarframeRowMarketHrefColumns(db);
     ensureWarframeRowOrphanColumn(db);

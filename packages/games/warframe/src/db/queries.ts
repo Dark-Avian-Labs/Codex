@@ -956,6 +956,37 @@ export function addRowWithEmptyValues(
   return addRow(db, worksheetId, clerkUserId, itemName, {});
 }
 
+export function addRowFromCatalogMaster(
+  db: Database.Database,
+  worksheetId: number,
+  clerkUserId: string,
+  itemName: string,
+  displayOrder: number,
+  marketHref: string | null,
+  marketHrefPrime: string | null,
+): number {
+  const ws = getWorksheetById(db, worksheetId, clerkUserId);
+  if (!ws) throw new Error('Worksheet not found');
+  const columns = getWorksheetColumns(db, worksheetId, clerkUserId);
+  const tx = db.transaction(() => {
+    const insert = db
+      .prepare(
+        `INSERT INTO rows (worksheet_id, item_name, display_order, market_href, market_href_prime, orphaned)
+         VALUES (?, ?, ?, ?, ?, 0)`,
+      )
+      .run(worksheetId, itemName, displayOrder, marketHref, marketHrefPrime);
+    const rowId = Number(insert.lastInsertRowid);
+    const upsert = db.prepare(
+      `INSERT INTO cell_values (row_id, column_id, value) VALUES (?, ?, ?)`,
+    );
+    for (const column of columns) {
+      upsert.run(rowId, column.id, '');
+    }
+    return rowId;
+  });
+  return tx();
+}
+
 export function ensureHelminthNonSubsumableCells(
   db: Database.Database,
   worksheetId: number,

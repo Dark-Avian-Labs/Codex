@@ -63,12 +63,6 @@ export function requireAuth(_req: Request, _res: Response, next: NextFunction): 
   next();
 }
 
-export function requireGameAccess(_gameId: string) {
-  return (_req: Request, _res: Response, next: NextFunction): void => {
-    next();
-  };
-}
-
 export function redirectIfAuthenticated(req: Request, res: Response, next: NextFunction): void {
   const state = getClerkAuthState(req);
   if (state.authenticated) {
