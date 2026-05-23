@@ -28,6 +28,7 @@ import { rememberLastGamePath } from '../../features/auth/authRedirect';
 import { buildClerkProfileAppearance } from '../../lib/clerkAppearance';
 import { MaterialSymbol } from '../ui/MaterialSymbol';
 import { Menu } from '../ui/Menu';
+import { UiStyleSelector } from '../ui/UiStyleSelector';
 import { AsciiWaveBackground } from './AsciiWaveBackground';
 import { StaleClientUpdateBanner } from './StaleClientUpdateBanner';
 export type LayoutOutletContext = {
@@ -116,6 +117,7 @@ export function Layout() {
 
     if (key === 'Escape') {
       event.preventDefault();
+      if (document.querySelector('.select-dropdown-menu')) return;
       setMenuOpen(false);
       return;
     }
@@ -185,9 +187,10 @@ export function Layout() {
       return undefined;
     }
     const onMouseDown = (event: MouseEvent) => {
-      if (!menuRef.current?.contains(event.target as Node)) {
-        setMenuOpen(false);
-      }
+      const target = event.target as Node;
+      if (menuRef.current?.contains(target)) return;
+      if (target instanceof Element && target.closest('.select-dropdown-menu')) return;
+      setMenuOpen(false);
     };
     document.addEventListener('mousedown', onMouseDown);
     return () => {
@@ -279,6 +282,8 @@ export function Layout() {
                         >
                           Sign in
                         </Link>
+                        <div className="user-menu-divider" role="separator" />
+                        <UiStyleSelector />
                       </>
                     ) : (
                       <>
@@ -295,6 +300,8 @@ export function Layout() {
                         >
                           Profile
                         </button>
+                        <div className="user-menu-divider" role="separator" />
+                        <UiStyleSelector />
                         {siblingAppLinks.map((app) => (
                           <a
                             key={app.id}

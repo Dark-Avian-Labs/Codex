@@ -7,7 +7,7 @@ export function GlassCard({ className = '', ...props }: HTMLAttributes<HTMLDivEl
     <div
       className={twMerge(
         clsx(
-          'rounded-2xl border border-[var(--color-glass-border)] bg-[var(--color-glass)] shadow-[var(--shadow-panel)] backdrop-blur',
+          'border border-[var(--color-glass-border)] bg-[var(--color-glass)] shadow-[var(--shadow-panel)] backdrop-blur [border-radius:var(--radius-ui-lg)]',
           className,
         ),
       )}

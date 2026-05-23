@@ -10,7 +10,15 @@ import {
 
 export type ThemeMode = 'light' | 'dark';
 
-export type UiStyle = 'prism' | 'shadow';
+export type UiStyle = 'prism' | 'shadow' | 'clear';
+
+export const UI_STYLES: UiStyle[] = ['prism', 'shadow', 'clear'];
+
+export const UI_STYLE_LABELS: Record<UiStyle, string> = {
+  prism: 'Prism',
+  shadow: 'Shadow',
+  clear: 'Clear',
+};
 
 interface ThemeContextValue {
   mode: ThemeMode;
@@ -18,6 +26,7 @@ interface ThemeContextValue {
   toggleMode: () => void;
   uiStyle: UiStyle;
   setUiStyle: (style: UiStyle) => void;
+  cycleUiStyle: () => void;
 }
 
 const THEME_STORAGE_KEY = 'dal.theme.mode';
@@ -50,7 +59,8 @@ function parseUiStyleCookie(): UiStyle | null {
     ?.split('=')
     .slice(1)
     .join('=');
-  if (raw === 'prism' || raw === 'shadow') return raw;
+  if (raw === 'solid') return 'clear';
+  if (raw === 'prism' || raw === 'shadow' || raw === 'clear') return raw;
   return null;
 }
 
@@ -70,7 +80,8 @@ function resolveInitialUiStyle(): UiStyle {
   const fromCookie = parseUiStyleCookie();
   if (fromCookie) return fromCookie;
   const stored = window.localStorage.getItem(UI_STYLE_STORAGE_KEY);
-  if (stored === 'prism' || stored === 'shadow') return stored;
+  if (stored === 'solid') return 'clear';
+  if (stored === 'prism' || stored === 'shadow' || stored === 'clear') return stored;
   return 'prism';
 }
 
@@ -121,7 +132,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const root = document.documentElement;
-    root.classList.remove('ui-prism', 'ui-shadow');
+    root.classList.remove('ui-prism', 'ui-shadow', 'ui-clear');
     root.classList.add(`ui-${uiStyle}`);
     if (!hasMountedRef.current) {
       return;
@@ -145,6 +156,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       toggleMode: () => setMode((prev) => (prev === 'dark' ? 'light' : 'dark')),
       uiStyle,
       setUiStyle,
+      cycleUiStyle: () =>
+        setUiStyle((prev) => {
+          const index = UI_STYLES.indexOf(prev);
+          return UI_STYLES[(index + 1) % UI_STYLES.length] ?? 'prism';
+        }),
     }),
     [mode, uiStyle],
   );
