@@ -243,9 +243,9 @@ Historical entries through the current release were **backfilled from merged PR 
 - **v1.48.12** `fix` [#205](https://github.com/Dark-Avian-Labs/Codex/pull/205): initialize dbRows for new users and enhance Warframe user provisioning
 - **v1.48.13** `fix` [#206](https://github.com/Dark-Avian-Labs/Codex/pull/206): enhance Orokin auto-completion logic for Warframe
 - **v1.48.14** `chore` [#207](https://github.com/Dark-Avian-Labs/Codex/pull/207): update CHANGELOG and enhance stale update banner styles
-- **v1.48.15** `chore`: Merge pull request #212 from Dark-Avian-Labs:chore--update-CI-workflow-with-automatic-changelog-creation
-- **v1.49.0** `chore`: Merge pull request #213 from Dark-Avian-Labs:feat--integrate-Clerk-for-authentication-and-user-management
-- **v1.49.1** `chore`: Merge pull request #214 from Dark-Avian-Labs:fix--CSP
-- **v1.49.2** `chore`: Merge pull request #215 from Dark-Avian-Labs:fix--routing
-- **v1.49.3** `chore`: Merge pull request #220 from Dark-Avian-Labs/fix--styling
-- **v1.49.4** `chore`: Merge pull request #221 from Dark-Avian-Labs:fix(security)--adding-override-for-js-cookie
+- **v1.48.15** `chore` [#212](https://github.com/Dark-Avian-Labs/Codex/pull/212): update CI workflow with automatic changelog creation
+- **v1.49.0** `feat` [#213](https://github.com/Dark-Avian-Labs/Codex/pull/213): integrate Clerk for authentication and user management
+- **v1.49.1** `fix` [#214](https://github.com/Dark-Avian-Labs/Codex/pull/214): CSP
+- **v1.49.2** `fix` [#215](https://github.com/Dark-Avian-Labs/Codex/pull/215): routing
+- **v1.49.3** `fix` [#220](https://github.com/Dark-Avian-Labs/Codex/pull/220): styling
+- **v1.49.4** `fix(security)` [#221](https://github.com/Dark-Avian-Labs/Codex/pull/221): adding override for js cookie
