@@ -1,3 +1,10 @@
+import {
+  ARTIFACT_CLASSES,
+  CLASS_DISPLAY_NAMES,
+  ELEMENT_DISPLAY_NAMES,
+  ELEMENTS,
+  HERO_CLASSES,
+} from '@codex/game-epic7/constants';
 import { type ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { MaterialSymbol } from '../../components/ui/MaterialSymbol';
@@ -16,26 +23,6 @@ type BaseArtifact = {
   name: string;
   class: string;
   star_rating: number;
-};
-
-const HERO_CLASSES = ['warrior', 'knight', 'thief', 'ranger', 'mage', 'soulweaver'] as const;
-const ARTIFACT_CLASSES = [...HERO_CLASSES, 'universal'] as const;
-const ELEMENTS = ['fire', 'ice', 'earth', 'light', 'dark'] as const;
-const CLASS_NAMES: Record<(typeof ARTIFACT_CLASSES)[number], string> = {
-  warrior: 'Warrior',
-  knight: 'Knight',
-  thief: 'Thief',
-  ranger: 'Ranger',
-  mage: 'Mage',
-  soulweaver: 'Soul Weaver',
-  universal: 'Universal',
-};
-const ELEMENT_NAMES: Record<(typeof ELEMENTS)[number], string> = {
-  fire: 'Fire',
-  ice: 'Ice',
-  earth: 'Earth',
-  light: 'Light',
-  dark: 'Dark',
 };
 
 const ICON_MODULES = import.meta.glob('../../../packages/games/epic7/assets/*.png', {
@@ -321,10 +308,14 @@ export function AdminPage() {
                 type="button"
                 className={`filter-icon ${isActive ? 'active' : ''}`}
                 aria-pressed={isActive}
-                title={CLASS_NAMES[value]}
+                title={CLASS_DISPLAY_NAMES[value]}
                 onClick={() => setClassFilter((previous) => (previous === value ? '' : value))}
               >
-                <img className="invert-on-light" src={ICONS[value]} alt={CLASS_NAMES[value]} />
+                <img
+                  className="invert-on-light"
+                  src={ICONS[value]}
+                  alt={CLASS_DISPLAY_NAMES[value]}
+                />
               </button>
             );
           })}
@@ -340,10 +331,10 @@ export function AdminPage() {
                   type="button"
                   className={`filter-icon ${isActive ? 'active' : ''}`}
                   aria-pressed={isActive}
-                  title={ELEMENT_NAMES[value]}
+                  title={ELEMENT_DISPLAY_NAMES[value]}
                   onClick={() => setElementFilter((previous) => (previous === value ? '' : value))}
                 >
-                  <img src={ICONS[value]} alt={ELEMENT_NAMES[value]} />
+                  <img src={ICONS[value]} alt={ELEMENT_DISPLAY_NAMES[value]} />
                 </button>
               );
             })}
@@ -406,12 +397,14 @@ export function AdminPage() {
                             className="invert-on-light"
                             src={ICONS[hero.class]}
                             alt={
-                              CLASS_NAMES[hero.class as (typeof ARTIFACT_CLASSES)[number]] ??
-                              hero.class
+                              CLASS_DISPLAY_NAMES[
+                                hero.class as (typeof ARTIFACT_CLASSES)[number]
+                              ] ?? hero.class
                             }
                             title={
-                              CLASS_NAMES[hero.class as (typeof ARTIFACT_CLASSES)[number]] ??
-                              hero.class
+                              CLASS_DISPLAY_NAMES[
+                                hero.class as (typeof ARTIFACT_CLASSES)[number]
+                              ] ?? hero.class
                             }
                           />
                         ) : (
@@ -423,11 +416,11 @@ export function AdminPage() {
                           <img
                             src={ICONS[hero.element]}
                             alt={
-                              ELEMENT_NAMES[hero.element as (typeof ELEMENTS)[number]] ??
+                              ELEMENT_DISPLAY_NAMES[hero.element as (typeof ELEMENTS)[number]] ??
                               hero.element
                             }
                             title={
-                              ELEMENT_NAMES[hero.element as (typeof ELEMENTS)[number]] ??
+                              ELEMENT_DISPLAY_NAMES[hero.element as (typeof ELEMENTS)[number]] ??
                               hero.element
                             }
                           />
@@ -465,12 +458,14 @@ export function AdminPage() {
                           className="invert-on-light"
                           src={ICONS[artifact.class]}
                           alt={
-                            CLASS_NAMES[artifact.class as (typeof ARTIFACT_CLASSES)[number]] ??
-                            artifact.class
+                            CLASS_DISPLAY_NAMES[
+                              artifact.class as (typeof ARTIFACT_CLASSES)[number]
+                            ] ?? artifact.class
                           }
                           title={
-                            CLASS_NAMES[artifact.class as (typeof ARTIFACT_CLASSES)[number]] ??
-                            artifact.class
+                            CLASS_DISPLAY_NAMES[
+                              artifact.class as (typeof ARTIFACT_CLASSES)[number]
+                            ] ?? artifact.class
                           }
                         />
                       ) : (

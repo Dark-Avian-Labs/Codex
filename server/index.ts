@@ -1,7 +1,7 @@
 import { createRequire } from 'module';
 import path from 'path';
 
-import { clerkMiddleware, createAppHelmet } from '@codex/core';
+import { clerkMiddleware, closeSessionDb, createAppHelmet, getSessionDb, log } from '@codex/core';
 import { closeEpic7Db, getEpic7Db } from '@codex/game-epic7';
 import { closeWarframeDb, getWarframeDb } from '@codex/game-warframe';
 import cookieParser from 'cookie-parser';
@@ -14,9 +14,10 @@ import {
   APP_NAME,
   APP_PUBLIC_BASE_URL,
   APP_VERSION,
-  LEGAL_PAGE_URL,
   COOKIE_DOMAIN,
+  ensureDataDirs,
   HOST,
+  LEGAL_PAGE_URL,
   NODE_ENV,
   PORT,
   PROJECT_ROOT,
@@ -24,13 +25,10 @@ import {
   SESSION_COOKIE_NAME,
   SESSION_SECRET,
   TRUST_PROXY,
-  ensureDataDirs,
 } from './config.js';
-import { closeSessionDb, getSessionDb } from './db/connection.js';
 import { ensureSessionSchema } from './db/sessionSchema.js';
 import { refreshEpic7DbAvailability } from './epic7DbState.js';
 import { getRequestId, requestIdMiddleware } from './http/requestId.js';
-import { log } from './logger.js';
 import { apiRouter } from './routes/api.js';
 import { authRouter } from './routes/auth.js';
 import { waitForWarframeSyncIdle } from './services/warframeSyncState.js';

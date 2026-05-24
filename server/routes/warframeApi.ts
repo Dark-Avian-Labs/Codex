@@ -1,6 +1,7 @@
 import fs from 'fs';
 
 import { requireCodexAdmin } from '@codex/core';
+import { log } from '@codex/core';
 import { validateBody } from '@codex/core/validation';
 import {
   HELMINTH_VALUES,
@@ -21,7 +22,6 @@ import {
 import { Router, type Response } from 'express';
 
 import { requireClerkUserId } from '../auth/clerkUser.js';
-import { log } from '../logger.js';
 import { provisionWarframeUserIfNeeded } from '../services/warframeProvision.js';
 import { runWarframeSync } from '../services/warframeSync.js';
 import { runWarframeSyncGuarded, SyncAlreadyRunningError } from '../services/warframeSyncState.js';

@@ -635,13 +635,68 @@ function syncCatalogMasterFromSource(
   }
 }
 
+type MarketHrefPair = {
+  market_href: string | null;
+  market_href_prime: string | null;
+};
+
+function marketLinkKey(canonicalKey: string, worksheet: WorksheetName): string {
+  return `${canonicalKey}\0${worksheet}`;
+}
+
+function loadArmoryMarketLinkMap(armoryDb: Database.Database): Map<string, MarketHrefPair> {
+  const rows = armoryDb
+    .prepare(
+      `SELECT canonical_key, worksheet_category, market_href, market_href_prime
+       FROM warframe_market_links`,
+    )
+    .all() as Array<{
+    canonical_key: string;
+    worksheet_category: WorksheetName;
+    market_href: string | null;
+    market_href_prime: string | null;
+  }>;
+
+  const map = new Map<string, MarketHrefPair>();
+  for (const row of rows) {
+    map.set(marketLinkKey(row.canonical_key, row.worksheet_category), {
+      market_href: row.market_href,
+      market_href_prime: row.market_href_prime,
+    });
+  }
+  return map;
+}
+
+function loadCatalogMarketLinkMap(
+  codexDb: Database.Database,
+  worksheet: WorksheetName,
+): Map<string, MarketHrefPair> {
+  const rows = codexDb
+    .prepare(
+      `SELECT canonical_key, market_href, market_href_prime
+       FROM catalog_rows
+       WHERE worksheet_name = ?`,
+    )
+    .all(worksheet) as Array<{
+    canonical_key: string;
+    market_href: string | null;
+    market_href_prime: string | null;
+  }>;
+
+  const map = new Map<string, MarketHrefPair>();
+  for (const row of rows) {
+    map.set(row.canonical_key, {
+      market_href: row.market_href,
+      market_href_prime: row.market_href_prime,
+    });
+  }
+  return map;
+}
+
 function refreshCatalogMasterMarketHrefs(
   codexDb: Database.Database,
-  armoryDb: Database.Database,
+  armoryMarketLinks: Map<string, MarketHrefPair>,
 ): { rowsProcessed: number; rowsWithHref: number } {
-  const sel = armoryDb.prepare(
-    `SELECT market_href, market_href_prime FROM warframe_market_links WHERE canonical_key = ? AND worksheet_category = ?`,
-  );
   const masterRows = codexDb
     .prepare(
       `SELECT id, worksheet_name, canonical_key FROM catalog_rows ORDER BY worksheet_name, display_order`,
@@ -654,9 +709,7 @@ function refreshCatalogMasterMarketHrefs(
   let rowsWithHref = 0;
   const tx = codexDb.transaction(() => {
     for (const row of masterRows) {
-      const hit = sel.get(row.canonical_key, row.worksheet_name) as
-        | { market_href: string | null; market_href_prime: string | null }
-        | undefined;
+      const hit = armoryMarketLinks.get(marketLinkKey(row.canonical_key, row.worksheet_name));
       let href = hit?.market_href ?? null;
       let hrefPrime = hit?.market_href_prime ?? null;
       if (href && !hrefPrime && warframeMarketSellHrefUsesPrimeOnlyItemSlug(href)) {
@@ -680,11 +733,9 @@ function refreshUserRowMarketHrefsFromCatalog(
   clerkUserId: string,
   worksheetId: number,
   worksheet: WorksheetName,
+  catalogMarketLinks: Map<string, MarketHrefPair>,
 ): MarketHrefRefreshResult {
   try {
-    const sel = codexDb.prepare(
-      `SELECT market_href, market_href_prime FROM catalog_rows WHERE worksheet_name = ? AND canonical_key = ?`,
-    );
     const rows = q.getWorksheetRows(codexDb, worksheetId, clerkUserId);
     const stmt = codexDb.prepare(
       'UPDATE rows SET market_href = ?, market_href_prime = ? WHERE id = ?',
@@ -696,9 +747,7 @@ function refreshUserRowMarketHrefsFromCatalog(
         const effectiveName =
           worksheet === 'Modular Weapons' ? stripKitgunPrimarySuffix(row.item_name) : row.item_name;
         const key = resolveCanonicalKey(effectiveName);
-        const hit = sel.get(worksheet, key) as
-          | { market_href: string | null; market_href_prime: string | null }
-          | undefined;
+        const hit = catalogMarketLinks.get(key);
         const href = hit?.market_href ?? null;
         const hrefPrime = hit?.market_href_prime ?? null;
         stmt.run(href, hrefPrime, row.id);
@@ -806,8 +855,9 @@ export function runWarframeSync(
   try {
     const sourceByWorksheet = loadWorksheetSource(armoryDb);
     syncCatalogMasterFromSource(codexDb, sourceByWorksheet, options.execute);
+    const armoryMarketLinks = loadArmoryMarketLinkMap(armoryDb);
     if (options.execute) {
-      refreshCatalogMasterMarketHrefs(codexDb, armoryDb);
+      refreshCatalogMasterMarketHrefs(codexDb, armoryMarketLinks);
     }
     const clerkUserIds = options.clerkUserIds ?? q.getWorksheetUserIds(codexDb);
     const users: UserSyncResult[] = [];
@@ -823,9 +873,18 @@ export function runWarframeSync(
     let marketRowsProcessed = 0;
     let marketRowsWithHref = 0;
 
+    const catalogMarketLinksByWorksheet = new Map<WorksheetName, Map<string, MarketHrefPair>>();
+    if (options.execute) {
+      for (const worksheet of WORKSHEET_NAMES) {
+        catalogMarketLinksByWorksheet.set(worksheet, loadCatalogMarketLinkMap(codexDb, worksheet));
+      }
+    }
+
     for (const clerkUserId of clerkUserIds) {
-      const sourceByWorksheetForUser = cloneWorksheetSource(sourceByWorksheet);
-      const currentRowsByWorksheet = new Map<WorksheetName, string[]>();
+      const sheetsByWorksheet = new Map<
+        WorksheetName,
+        { id: number; name: string; display_order: number }
+      >();
       for (const worksheet of WORKSHEET_NAMES) {
         const sheet = ensureWorksheetExistsForSync(
           codexDb,
@@ -833,6 +892,13 @@ export function runWarframeSync(
           worksheet,
           options.execute,
         );
+        if (sheet) sheetsByWorksheet.set(worksheet, sheet);
+      }
+
+      const sourceByWorksheetForUser = cloneWorksheetSource(sourceByWorksheet);
+      const currentRowsByWorksheet = new Map<WorksheetName, string[]>();
+      for (const worksheet of WORKSHEET_NAMES) {
+        const sheet = sheetsByWorksheet.get(worksheet);
         if (!sheet) continue;
         const rows = q.getWorksheetRows(codexDb, sheet.id, clerkUserId);
         currentRowsByWorksheet.set(
@@ -848,13 +914,11 @@ export function runWarframeSync(
 
       const worksheetResults: WorksheetSyncResult[] = [];
       for (const worksheet of WORKSHEET_NAMES) {
-        const sheet = ensureWorksheetExistsForSync(
-          codexDb,
-          clerkUserId,
-          worksheet,
-          options.execute,
-        );
+        const sheet = sheetsByWorksheet.get(worksheet);
         if (!sheet) continue;
+        const catalogMarketLinks = options.execute
+          ? catalogMarketLinksByWorksheet.get(worksheet)!
+          : new Map<string, MarketHrefPair>();
         const desired = createDesiredEntries(worksheet, sourceByWorksheetForUser[worksheet]);
         let rows = q.getWorksheetRows(codexDb, sheet.id, clerkUserId);
         const columns = q.getWorksheetColumns(codexDb, sheet.id, clerkUserId);
@@ -950,6 +1014,7 @@ export function runWarframeSync(
             clerkUserId,
             sheet.id,
             worksheet,
+            catalogMarketLinks,
           );
           if (mr.ok) {
             marketRowsProcessed += mr.rowsProcessed;

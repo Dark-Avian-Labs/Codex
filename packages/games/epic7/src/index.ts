@@ -1,61 +1,3 @@
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-import type { GameModule, GameMountOptions } from '@codex/core';
-import express, { type Application } from 'express';
-
-import { EPIC7_DB_PATH } from './config.js';
-import { getDb } from './db/schema.js';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-function getAssetsPath(): string {
-  return path.join(__dirname, '..', 'assets');
-}
-
-const ACCENT_COLOR = '#a855f7';
-
-export const epic7Game: GameModule = {
-  id: 'epic7',
-  name: 'Epic Seven',
-
-  getDbPath: () => EPIC7_DB_PATH,
-  getDb,
-
-  theme: { primary: ACCENT_COLOR },
-
-  mount(app: Application, basePath: string, _options?: GameMountOptions) {
-    const base = basePath.endsWith('/') ? basePath.slice(0, -1) : basePath;
-    const assetsPath = getAssetsPath();
-    const pkgRoot = path.join(__dirname, '..');
-    const icoPath = path.join(pkgRoot, 'favicon.ico');
-    const pngFallback = path.join(assetsPath, 'favicon.png');
-    let cachedFaviconPath: string | null = null;
-    let cachedFaviconIsPng = false;
-    if (fs.existsSync(icoPath)) {
-      cachedFaviconPath = icoPath;
-    } else if (fs.existsSync(pngFallback)) {
-      cachedFaviconPath = pngFallback;
-      cachedFaviconIsPng = true;
-    }
-    app.get(`${base}/favicon.ico`, (_req, res) => {
-      if (cachedFaviconPath === null) {
-        res.status(404).end();
-        return;
-      }
-      if (cachedFaviconIsPng) res.type('image/png');
-      res.sendFile(cachedFaviconPath, (err) => {
-        if (err) {
-          if (!res.headersSent) res.status(404).end();
-          else res.end();
-        }
-      });
-    });
-    app.use(`${base}/assets`, express.static(assetsPath));
-  },
-};
-
 export {
   ARTIFACT_CLASSES,
   ARTIFACT_GAUGE_EMPTY,
@@ -64,13 +6,14 @@ export {
   CLASS_DISPLAY_NAMES,
   ELEMENT_DISPLAY_NAMES,
   ELEMENTS,
-  EPIC7_DB_PATH,
   GAUGE_COLORS,
   HERO_CLASSES,
   HERO_RATINGS,
   RATING_COLORS,
   STAR_RATINGS,
-} from './config.js';
+} from './constants.js';
+export type { ClassKey, ElementKey, HeroClassKey, HeroRating } from './constants.js';
+export { EPIC7_DB_PATH } from './config.js';
 export { closeDb as closeEpic7Db, getDb as getEpic7Db } from './db/schema.js';
 export * as epic7Queries from './db/queries.js';
 export {

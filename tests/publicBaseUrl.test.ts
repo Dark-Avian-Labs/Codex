@@ -3,7 +3,6 @@ import { describe, expect, it, vi } from 'vitest';
 const ENV_KEYS = [
   'APP_PUBLIC_BASE_URL',
   'COOKIE_DOMAIN',
-  'BASE_HOST',
   'NODE_ENV',
   'BASE_DOMAIN',
   'BASE_PROTOCOL',
@@ -29,7 +28,6 @@ async function withEnvOverrides<T>(
   const originals: Record<EnvKey, string | undefined> = {
     APP_PUBLIC_BASE_URL: process.env.APP_PUBLIC_BASE_URL,
     COOKIE_DOMAIN: process.env.COOKIE_DOMAIN,
-    BASE_HOST: process.env.BASE_HOST,
     NODE_ENV: process.env.NODE_ENV,
     BASE_DOMAIN: process.env.BASE_DOMAIN,
     BASE_PROTOCOL: process.env.BASE_PROTOCOL,
@@ -58,7 +56,6 @@ describe('getAppPublicBaseUrl', () => {
       {
         APP_PUBLIC_BASE_URL: 'https://codex.example.com/',
         COOKIE_DOMAIN: '.example.com',
-        BASE_HOST: 'codex.example.com',
       },
       (getAppPublicBaseUrl) => {
         expect(getAppPublicBaseUrl()).toBe('https://codex.example.com');
@@ -73,7 +70,6 @@ describe('getAppPublicBaseUrl', () => {
         BASE_PROTOCOL: 'https',
         APP_SUBDOMAIN: 'codex',
         COOKIE_DOMAIN: '.example.com',
-        BASE_HOST: 'codex.example.com',
       },
       (getAppPublicBaseUrl) => {
         expect(getAppPublicBaseUrl()).toBe('https://codex.example.com');
@@ -90,7 +86,6 @@ describe('getAppPublicBaseUrl', () => {
         APP_SUBDOMAIN: 'codex',
         APP_ID: undefined,
         COOKIE_DOMAIN: '.example.com',
-        BASE_HOST: 'codex.example.com',
       },
       (getAppPublicBaseUrl) => {
         const url = getAppPublicBaseUrl();
@@ -109,7 +104,6 @@ describe('getAppPublicBaseUrl', () => {
         APP_SUBDOMAIN: undefined,
         APP_ID: 'myapp',
         COOKIE_DOMAIN: '.example.com',
-        BASE_HOST: 'myapp.example.com',
       },
       (getAppPublicBaseUrl) => {
         expect(getAppPublicBaseUrl()).toBe('https://myapp.example.com');
@@ -126,7 +120,6 @@ describe('getAppPublicBaseUrl', () => {
         APP_SUBDOMAIN: undefined,
         APP_ID: undefined,
         COOKIE_DOMAIN: '.example.com',
-        BASE_HOST: 'codex.example.com',
       },
       (getAppPublicBaseUrl) => {
         expect(getAppPublicBaseUrl()).toBe('https://codex.example.com');
@@ -142,7 +135,6 @@ describe('getAppPublicBaseUrl', () => {
         BASE_PROTOCOL: 'ftp',
         APP_SUBDOMAIN: 'codex',
         COOKIE_DOMAIN: '.example.com',
-        BASE_HOST: 'codex.example.com',
       },
       (getAppPublicBaseUrl) => {
         expect(() => getAppPublicBaseUrl()).toThrow(/APP_PUBLIC_BASE_URL|BASE_DOMAIN/);
@@ -159,7 +151,6 @@ describe('getAppPublicBaseUrl', () => {
         APP_SUBDOMAIN: undefined,
         APP_ID: undefined,
         COOKIE_DOMAIN: '.example.com',
-        BASE_HOST: 'codex.example.com',
       },
       (getAppPublicBaseUrl) => {
         expect(() => getAppPublicBaseUrl()).toThrow(/APP_PUBLIC_BASE_URL|BASE_DOMAIN/);
@@ -171,7 +162,6 @@ describe('getAppPublicBaseUrl', () => {
       {
         APP_PUBLIC_BASE_URL: 'not-a-valid-url',
         COOKIE_DOMAIN: '.example.com',
-        BASE_HOST: 'codex.example.com',
       },
       (getAppPublicBaseUrl) => {
         expect(() => getAppPublicBaseUrl()).toThrow('APP_PUBLIC_BASE_URL must be a valid URL.');
@@ -183,7 +173,6 @@ describe('getAppPublicBaseUrl', () => {
       {
         APP_PUBLIC_BASE_URL: 'http://codex.example.com/',
         COOKIE_DOMAIN: '.example.com',
-        BASE_HOST: 'codex.example.com',
         NODE_ENV: 'production',
       },
       (getAppPublicBaseUrl) => {
@@ -197,7 +186,6 @@ describe('getAppPublicBaseUrl', () => {
       {
         APP_PUBLIC_BASE_URL: 'http://codex.example.com/',
         COOKIE_DOMAIN: '.example.com',
-        BASE_HOST: 'codex.example.com',
         NODE_ENV: 'development',
       },
       (getAppPublicBaseUrl) => {

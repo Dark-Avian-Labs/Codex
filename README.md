@@ -68,6 +68,7 @@ Use one key per environment to reduce blast radius.
 | `BASE_DOMAIN`                       | Required. Apex domain (e.g. `example.com`).                                        |
 | `BASE_PROTOCOL`                     | `http` or `https` (invalid values fall back to `https` with a warning).            |
 | `APP_ID`                            | Codex app id (default: `codex`).                                                   |
+| `APP_PUBLIC_BASE_URL`               | Optional explicit public URL; otherwise derived from `BASE_DOMAIN` + subdomain.    |
 | `APP_SUBDOMAIN`                     | Public host subdomain (default: `APP_ID`). Used to build the public URL.           |
 | `CLERK_SECRET_KEY`                  | **Required in production.** Clerk secret key for server-side session verification. |
 | `CLERK_PUBLISHABLE_KEY`             | Clerk publishable key for the server (falls back to `VITE_CLERK_PUBLISHABLE_KEY`). |
@@ -76,7 +77,6 @@ Use one key per environment to reduce blast radius.
 | `WARFRAME_DB_PATH`, `EPIC7_DB_PATH` | Per-game SQLite paths (defaults under `./data/` if unset in game packages).        |
 | `COOKIE_DOMAIN`                     | Optional; normalized to a leading-dot cookie domain.                               |
 | `SESSION_COOKIE_NAME`               | Session cookie name for Codex.                                                     |
-| `GAME_HOSTS`                        | Optional `host=gameId` pairs for routing (see `@codex/core` config).               |
 | `ALLOWED_APP_ORIGINS`               | Optional; used with CORS configuration in the server.                              |
 
 Client `VITE_*` variables are listed in `.env.example`.

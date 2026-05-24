@@ -6,8 +6,8 @@
     "outDir": "dist/server",
     "rootDir": "server",
     "sourceMap": true,
-    "typeRoots": ["./node_modules/@types", "./server/types"]
+    "typeRoots": ["./node_modules/@types"]
   },
-  "include": ["server/**/*"],
+  "include": ["server/**/*", "packages/core/src/types/express-session.d.ts"],
   "exclude": ["node_modules", "dist"]
 }

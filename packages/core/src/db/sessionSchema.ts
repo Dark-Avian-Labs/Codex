@@ -1,8 +1,12 @@
 import Database from 'better-sqlite3';
 
-import { SESSION_DB_PATH } from '../config.js';
+import { requireAbsoluteSqlitePath } from './sqlitePath.js';
 
 let sessionDb: Database.Database | null = null;
+
+function requireSessionDbPath(): string {
+  return requireAbsoluteSqlitePath('SESSION_DB_PATH', process.env.SESSION_DB_PATH);
+}
 
 export function createSessionSchema(db: Database.Database): void {
   db.pragma('foreign_keys = ON');
@@ -22,7 +26,7 @@ export function getSessionDb(): Database.Database {
   }
   let opened: Database.Database | undefined;
   try {
-    opened = new Database(SESSION_DB_PATH);
+    opened = new Database(requireSessionDbPath());
     opened.pragma('foreign_keys = ON');
     const result = opened.prepare('PRAGMA journal_mode = WAL;').get() as
       | { journal_mode?: string }
