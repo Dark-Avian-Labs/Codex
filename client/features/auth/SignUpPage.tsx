@@ -1,4 +1,5 @@
 import { ClerkAuthShell } from '@/components/ClerkAuthShell';
+import { useTheme } from '@/context/ThemeContext';
 import { buildClerkAppearance } from '@/lib/clerkAppearance';
 import { SignUp } from '@clerk/react';
 import { Navigate } from 'react-router-dom';
@@ -8,6 +9,8 @@ import { APP_PATHS } from '../../app/paths';
 const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY?.trim();
 
 export function SignUpPage() {
+  const { mode } = useTheme();
+
   if (!publishableKey) {
     return <Navigate to="/" replace />;
   }
@@ -22,7 +25,7 @@ export function SignUpPage() {
         path="/sign-up"
         signInUrl="/sign-in"
         fallbackRedirectUrl={APP_PATHS.warframe}
-        appearance={buildClerkAppearance()}
+        appearance={buildClerkAppearance(mode)}
       />
     </ClerkAuthShell>
   );

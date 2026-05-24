@@ -2,7 +2,7 @@ import { clerkMiddleware, getAuth } from '@clerk/express';
 import type { Request, Response, NextFunction } from 'express';
 
 import { isAppAdmin, metadataFromSessionClaims } from '../auth/clerk.js';
-import { CODEX_APP_ID } from '../config.js';
+import { getCodexAppId } from '../config.js';
 
 export { clerkMiddleware, getAuth };
 
@@ -31,7 +31,7 @@ export function getClerkAuthState(req: Request): ClerkAuthState {
   return {
     authenticated: Boolean(userId),
     userId,
-    isCodexAdmin: isAppAdmin(metadata, CODEX_APP_ID),
+    isCodexAdmin: isAppAdmin(metadata, getCodexAppId()),
   };
 }
 

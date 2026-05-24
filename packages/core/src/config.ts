@@ -1,6 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 
+import { isEncryptedEnvValue } from './auth/clerkEnv.js';
+
 export function resolveEnvFilePath(rootPath: string): string | null {
   const normalizedNodeEnv = (process.env.NODE_ENV ?? '').trim().toLowerCase();
 
@@ -32,4 +34,14 @@ export function resolveEnvFilePath(rootPath: string): string | null {
 }
 
 export const APP_NAME = 'Codex';
-export const CODEX_APP_ID = process.env.APP_ID?.trim().toLowerCase() || 'codex';
+
+const DEFAULT_CODEX_APP_ID = 'codex';
+
+/** Resolved at call time so dotenv can decrypt APP_ID before auth checks run. */
+export function getCodexAppId(): string {
+  const raw = process.env.APP_ID?.trim().toLowerCase();
+  if (!raw || isEncryptedEnvValue(raw)) {
+    return DEFAULT_CODEX_APP_ID;
+  }
+  return raw;
+}

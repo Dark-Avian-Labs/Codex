@@ -1,3 +1,5 @@
+import type { ThemeMode } from '@/context/ThemeContext';
+
 const clerkFontFamily =
   "'Geist Variable', Geist, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif";
 
@@ -27,7 +29,7 @@ function clerkFormElements() {
   };
 }
 
-export function buildClerkAppearance() {
+export function buildClerkAppearance(_mode: ThemeMode) {
   return {
     variables: {
       ...clerkThemeVariables(),
@@ -88,7 +90,7 @@ export function buildClerkAppearance() {
   };
 }
 
-export function buildClerkProfileAppearance() {
+export function buildClerkProfileAppearance(_mode: ThemeMode) {
   return {
     variables: {
       ...clerkThemeVariables(),
