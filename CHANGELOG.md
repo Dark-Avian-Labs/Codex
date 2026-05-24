@@ -254,3 +254,4 @@ Historical entries through the current release were **backfilled from merged PR 
 - **v1.50.0** `feat` [#224](https://github.com/Dark-Avian-Labs/Codex/pull/224): new theme and fixes in styling
 - **v1.50.1** `fix` [#226](https://github.com/Dark-Avian-Labs/Codex/pull/226): import order
 - **v1.50.2** `fix` [#227](https://github.com/Dark-Avian-Labs/Codex/pull/227): import order
+- **v1.50.3** `fix` [#228](https://github.com/Dark-Avian-Labs/Codex/pull/228): admin auth
