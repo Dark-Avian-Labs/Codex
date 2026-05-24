@@ -1,9 +1,8 @@
 import path from 'path';
 
-const dataDir = process.env.DATA_DIR ?? './data';
-export const WARFRAME_DB_PATH = path.resolve(
-  process.env.WARFRAME_DB_PATH ?? path.join(dataDir, 'warframe.db'),
-);
+export const WARFRAME_DB_PATH =
+  process.env.WARFRAME_DB_PATH?.trim() ||
+  path.join(process.env.DATA_DIR ?? './data', 'warframe.db');
 
 export const VALID_STATUSES = ['', 'Obtained', 'Complete', 'Unavailable'] as const;
 export type ValidStatus = (typeof VALID_STATUSES)[number];

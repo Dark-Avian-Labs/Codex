@@ -190,3 +190,5 @@ export function ensureDataDirs(): void {
   fs.mkdirSync(path.dirname(WARFRAME_DB_PATH), { recursive: true });
   fs.mkdirSync(path.dirname(EPIC7_DB_PATH), { recursive: true });
 }
+
+ensureDataDirs();
