@@ -1,3 +1,6 @@
+import fs from 'fs';
+import path from 'path';
+
 import Database from 'better-sqlite3';
 
 export interface DbSingletonOptions {
@@ -15,6 +18,7 @@ export function createDbSingleton(dbPath: string, options?: DbSingletonOptions):
 
   function getDb(): Database.Database {
     if (instance) return instance;
+    fs.mkdirSync(path.dirname(dbPath), { recursive: true });
     const db = new Database(dbPath);
     const originalClose = db.close.bind(db);
     db.close = ((...args: Parameters<typeof originalClose>) => {

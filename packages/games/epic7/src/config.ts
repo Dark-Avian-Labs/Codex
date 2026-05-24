@@ -1,9 +1,7 @@
 import path from 'path';
 
-const dataDir = process.env.DATA_DIR ?? './data';
-export const EPIC7_DB_PATH = path.resolve(
-  process.env.EPIC7_DB_PATH ?? path.join(dataDir, 'epic7.db'),
-);
+export const EPIC7_DB_PATH =
+  process.env.EPIC7_DB_PATH?.trim() || path.join(process.env.DATA_DIR ?? './data', 'epic7.db');
 
 export {
   ARTIFACT_CLASSES,
