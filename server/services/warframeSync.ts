@@ -873,6 +873,13 @@ export function runWarframeSync(
     let marketRowsProcessed = 0;
     let marketRowsWithHref = 0;
 
+    const catalogMarketLinksByWorksheet = new Map<WorksheetName, Map<string, MarketHrefPair>>();
+    if (options.execute) {
+      for (const worksheet of WORKSHEET_NAMES) {
+        catalogMarketLinksByWorksheet.set(worksheet, loadCatalogMarketLinkMap(codexDb, worksheet));
+      }
+    }
+
     for (const clerkUserId of clerkUserIds) {
       const sheetsByWorksheet = new Map<
         WorksheetName,
@@ -910,7 +917,7 @@ export function runWarframeSync(
         const sheet = sheetsByWorksheet.get(worksheet);
         if (!sheet) continue;
         const catalogMarketLinks = options.execute
-          ? loadCatalogMarketLinkMap(codexDb, worksheet)
+          ? catalogMarketLinksByWorksheet.get(worksheet)!
           : new Map<string, MarketHrefPair>();
         const desired = createDesiredEntries(worksheet, sourceByWorksheetForUser[worksheet]);
         let rows = q.getWorksheetRows(codexDb, sheet.id, clerkUserId);

@@ -2,7 +2,12 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import { getAppPublicBaseUrl, normalizeClerkEnv, resolveEnvFilePath } from '@codex/core';
+import {
+  getAppPublicBaseUrl,
+  normalizeClerkEnv,
+  requireAbsoluteSqlitePath,
+  resolveEnvFilePath,
+} from '@codex/core';
 import { config as loadEnv } from '@dotenvx/dotenvx';
 
 const projectRoot = process.cwd();
@@ -50,16 +55,6 @@ function readPackageVersion(projectRoot: string): string {
 export const APP_VERSION = readPackageVersion(PROJECT_ROOT);
 
 export const DATA_DIR = path.join(PROJECT_ROOT, 'data');
-function requireAbsoluteSqlitePath(name: string, value: string | undefined): string {
-  const trimmed = value?.trim();
-  if (!trimmed) {
-    throw new Error(`${name} must be set to an absolute SQLite path.`);
-  }
-  if (!path.isAbsolute(trimmed)) {
-    throw new Error(`${name} must be absolute; relative paths are not supported.`);
-  }
-  return trimmed;
-}
 
 function resolveSessionDbPath(): string {
   const session = process.env.SESSION_DB_PATH?.trim();

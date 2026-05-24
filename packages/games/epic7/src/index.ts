@@ -12,7 +12,7 @@ export {
   RATING_COLORS,
   STAR_RATINGS,
 } from './constants.js';
-export type { ClassKey, ElementKey, HeroClassKey } from './constants.js';
+export type { ClassKey, ElementKey, HeroClassKey, HeroRating } from './constants.js';
 export { EPIC7_DB_PATH } from './config.js';
 export { closeDb as closeEpic7Db, getDb as getEpic7Db } from './db/schema.js';
 export * as epic7Queries from './db/queries.js';

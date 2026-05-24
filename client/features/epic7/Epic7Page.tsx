@@ -1082,8 +1082,8 @@ export function Epic7Page() {
                       <img
                         className="invert-on-light"
                         src={ICONS[row.class]}
-                        alt={CLASS_NAMES[row.class as ClassKey] ?? row.class}
-                        title={CLASS_NAMES[row.class as ClassKey] ?? row.class}
+                        alt={row.class ? (CLASS_NAMES[row.class as ClassKey] ?? row.class) : '-'}
+                        title={row.class ? (CLASS_NAMES[row.class as ClassKey] ?? row.class) : '-'}
                       />
                     ) : (
                       row.class || '-'
@@ -1094,8 +1094,16 @@ export function Epic7Page() {
                       {row.element && ICONS[row.element] ? (
                         <img
                           src={ICONS[row.element]}
-                          alt={ELEMENT_NAMES[row.element as ElementKey] ?? row.element}
-                          title={ELEMENT_NAMES[row.element as ElementKey] ?? row.element}
+                          alt={
+                            row.element
+                              ? (ELEMENT_NAMES[row.element as ElementKey] ?? row.element)
+                              : '-'
+                          }
+                          title={
+                            row.element
+                              ? (ELEMENT_NAMES[row.element as ElementKey] ?? row.element)
+                              : '-'
+                          }
                         />
                       ) : (
                         row.element || '-'

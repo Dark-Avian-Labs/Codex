@@ -6,6 +6,7 @@ export const ELEMENTS = ['fire', 'ice', 'earth', 'light', 'dark'] as const;
 export type ClassKey = (typeof ARTIFACT_CLASSES)[number];
 export type ElementKey = (typeof ELEMENTS)[number];
 export const HERO_RATINGS = ['-', 'D', 'C', 'B', 'A', 'S', 'SS', 'SSS'] as const;
+export type HeroRating = (typeof HERO_RATINGS)[number];
 export const ARTIFACT_GAUGE_MAX = 5;
 export const ARTIFACT_GAUGE_FILLED = '▰';
 export const ARTIFACT_GAUGE_EMPTY = '▱';
@@ -29,7 +30,7 @@ export const ELEMENT_DISPLAY_NAMES: Record<ElementKey, string> = {
   dark: 'Dark',
 };
 
-export const RATING_COLORS: Record<string, string> = {
+export const RATING_COLORS: Record<HeroRating, string> = {
   '-': '#6b7280',
   D: '#06b6d4',
   C: '#22c55e',
