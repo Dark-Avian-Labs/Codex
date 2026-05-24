@@ -1,8 +1,21 @@
+import path from 'path';
+
 import Database from 'better-sqlite3';
 
-import { SESSION_DB_PATH } from '../config.js';
-
 let sessionDb: Database.Database | null = null;
+
+function requireSessionDbPath(): string {
+  const configured = process.env.SESSION_DB_PATH?.trim();
+  if (!configured) {
+    throw new Error(
+      'SESSION_DB_PATH must be set to an absolute SQLite path for express-session storage.',
+    );
+  }
+  if (!path.isAbsolute(configured)) {
+    throw new Error('SESSION_DB_PATH must be absolute; relative paths are not supported.');
+  }
+  return configured;
+}
 
 export function createSessionSchema(db: Database.Database): void {
   db.pragma('foreign_keys = ON');
@@ -22,7 +35,7 @@ export function getSessionDb(): Database.Database {
   }
   let opened: Database.Database | undefined;
   try {
-    opened = new Database(SESSION_DB_PATH);
+    opened = new Database(requireSessionDbPath());
     opened.pragma('foreign_keys = ON');
     const result = opened.prepare('PRAGMA journal_mode = WAL;').get() as
       | { journal_mode?: string }

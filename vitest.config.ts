@@ -9,7 +9,6 @@ const testEnvDefaults = {
   SESSION_DB_PATH: path.join(os.tmpdir(), 'codex-vitest-session.db'),
   ARMORY_DB_PATH: path.join(os.tmpdir(), 'codex-vitest-armory.db'),
   COOKIE_DOMAIN: 'localhost',
-  BASE_HOST: 'localhost',
   BASE_DOMAIN: 'example.com',
 } as const;
 

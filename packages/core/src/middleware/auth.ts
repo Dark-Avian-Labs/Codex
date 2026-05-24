@@ -58,16 +58,3 @@ export function requireCodexAdmin(req: Request, res: Response, next: NextFunctio
 }
 
 export const requireAdmin = requireCodexAdmin;
-
-export function requireAuth(_req: Request, _res: Response, next: NextFunction): void {
-  next();
-}
-
-export function redirectIfAuthenticated(req: Request, res: Response, next: NextFunction): void {
-  const state = getClerkAuthState(req);
-  if (state.authenticated) {
-    res.redirect('/');
-    return;
-  }
-  next();
-}

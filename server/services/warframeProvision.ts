@@ -1,7 +1,7 @@
+import { log } from '@codex/core';
 import { warframeQueries as q } from '@codex/game-warframe';
 import type Database from 'better-sqlite3';
 
-import { log } from '../logger.js';
 import { ensureWarframeWorksheetsForUser, provisionUserFromCatalogMaster } from './warframeSync.js';
 
 export function provisionWarframeUserIfNeeded(

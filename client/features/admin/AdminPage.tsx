@@ -1,3 +1,10 @@
+import {
+  ARTIFACT_CLASSES,
+  CLASS_DISPLAY_NAMES,
+  ELEMENT_DISPLAY_NAMES,
+  ELEMENTS,
+  HERO_CLASSES,
+} from '@codex/game-epic7/constants';
 import { type ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { MaterialSymbol } from '../../components/ui/MaterialSymbol';
@@ -18,25 +25,8 @@ type BaseArtifact = {
   star_rating: number;
 };
 
-const HERO_CLASSES = ['warrior', 'knight', 'thief', 'ranger', 'mage', 'soulweaver'] as const;
-const ARTIFACT_CLASSES = [...HERO_CLASSES, 'universal'] as const;
-const ELEMENTS = ['fire', 'ice', 'earth', 'light', 'dark'] as const;
-const CLASS_NAMES: Record<(typeof ARTIFACT_CLASSES)[number], string> = {
-  warrior: 'Warrior',
-  knight: 'Knight',
-  thief: 'Thief',
-  ranger: 'Ranger',
-  mage: 'Mage',
-  soulweaver: 'Soul Weaver',
-  universal: 'Universal',
-};
-const ELEMENT_NAMES: Record<(typeof ELEMENTS)[number], string> = {
-  fire: 'Fire',
-  ice: 'Ice',
-  earth: 'Earth',
-  light: 'Light',
-  dark: 'Dark',
-};
+const CLASS_NAMES = CLASS_DISPLAY_NAMES;
+const ELEMENT_NAMES = ELEMENT_DISPLAY_NAMES;
 
 const ICON_MODULES = import.meta.glob('../../../packages/games/epic7/assets/*.png', {
   eager: true,

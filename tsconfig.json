@@ -11,6 +11,6 @@
       "@/*": ["./client/*"]
     }
   },
-  "include": ["client/**/*", "vite-env.d.ts"],
+  "include": ["client/**/*", "shared/**/*", "vite-env.d.ts"],
   "exclude": ["node_modules", "dist", "server"]
 }

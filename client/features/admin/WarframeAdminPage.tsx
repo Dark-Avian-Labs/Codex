@@ -1,66 +1,20 @@
 import { isHelminthNonSubsumableItemName } from '@codex/game-warframe/helminth-exceptions';
 import { type CSSProperties, useCallback, useEffect, useMemo, useState } from 'react';
 
+import type {
+  WarframeColumn as Column,
+  WarframeRow as Row,
+  WarframeSyncResult as SyncResult,
+  WarframeWorksheet as Worksheet,
+  WarframeWorksheetData as WorksheetData,
+  WarframeWorksheetSyncResult as WorksheetSyncResult,
+} from '../../../shared/warframeTypes.js';
 import { useLayoutSlots } from '../../components/Layout/useLayoutSlots';
 import { MaterialSymbol } from '../../components/ui/MaterialSymbol';
 import { Modal } from '../../components/ui/Modal';
 import { apiFetch } from '../../utils/api';
 import { useAuth } from '../auth/AuthContext';
-
-type Worksheet = { id: number; name: string };
-type Column = { id: number; name: string };
-type Row = {
-  id: number;
-  name?: string;
-  item_name?: string;
-  values?: Record<string, string>;
-};
-type WorksheetData = { columns: Column[]; rows: Row[] };
-type WorksheetSyncResult = {
-  worksheet: string;
-  added: string[];
-  deleted: string[];
-  markedUnavailable: string[];
-  mismatched: number[];
-};
-type MarketLinkSyncPayload =
-  | { ran: false }
-  | {
-      ran: true;
-      rowsProcessed: number;
-      rowsWithLink: number;
-      failedWorksheets: Array<{ userId: number; worksheet: string }>;
-    };
-
-type SyncResult = {
-  users: Array<{
-    userId: number;
-    worksheets: WorksheetSyncResult[];
-  }>;
-  summary: {
-    added: number;
-    deleted: number;
-    markedUnavailable: number;
-    mismatched: number;
-  };
-  cleanup?: {
-    deleted: number;
-    requiresConfirmation: number;
-    deletedRows: Array<{
-      worksheet: string;
-      itemName: string;
-      rowId: number;
-      canonicalKey: string;
-    }>;
-    requiresConfirmationRows: Array<{
-      worksheet: string;
-      itemName: string;
-      rowId: number;
-      canonicalKey: string;
-    }>;
-  };
-  marketLinkSync?: MarketLinkSyncPayload;
-};
+import { TAB_ORDER as WORKSHEET_ORDER, WORKSHEET_LABELS } from '../warframe/warframeConstants.js';
 
 const NAME_PREVIEW_LIMIT = 10;
 
@@ -79,31 +33,6 @@ function worksheetHasActivity(sheet: WorksheetSyncResult): boolean {
     sheet.mismatched.length > 0
   );
 }
-
-const WORKSHEET_LABELS: Record<string, string> = {
-  Warframes: 'Warframes',
-  'Primary Weapons': 'Primary',
-  'Secondary Weapons': 'Secondary',
-  'Melee Weapons': 'Melee',
-  'Modular Weapons': 'Modular',
-  'K-Drives': 'K-Drives',
-  Companions: 'Companions',
-  'Companion Weapons': 'Companion Weapons',
-  'Archwing Weapons': 'Archwing',
-  Accessories: 'Accessories',
-};
-const WORKSHEET_ORDER = [
-  'Warframes',
-  'Primary Weapons',
-  'Secondary Weapons',
-  'Melee Weapons',
-  'Modular Weapons',
-  'K-Drives',
-  'Companions',
-  'Companion Weapons',
-  'Archwing Weapons',
-  'Accessories',
-] as const;
 
 const worksheetOrderIndex = new Map<string, number>(
   WORKSHEET_ORDER.map((name, index) => [name, index]),
@@ -208,7 +137,7 @@ function SyncFromArmoryReportBody({
                   {marketLinkSync.failedWorksheets.length === 1 ? '' : 's'} could not be refreshed
                   (User{' '}
                   {marketLinkSync.failedWorksheets
-                    .map((f) => `${f.userId} · ${f.worksheet}`)
+                    .map((f) => `${f.clerkUserId} · ${f.worksheet}`)
                     .join('; ')}
                   ).
                 </span>
@@ -262,10 +191,10 @@ function SyncFromArmoryReportBody({
             const activeSheets = u.worksheets.filter(worksheetHasActivity);
             if (activeSheets.length === 0) return null;
             return (
-              <div key={u.userId}>
+              <div key={u.clerkUserId}>
                 {users.length > 1 ? (
                   <p className="text-muted mb-2 text-xs font-semibold tracking-wide uppercase">
-                    User {u.userId}
+                    User {u.clerkUserId}
                   </p>
                 ) : null}
                 {activeSheets.map((ws) => {
@@ -274,7 +203,7 @@ function SyncFromArmoryReportBody({
                   const deletedLine = formatNameSample(ws.deleted);
                   const unavailableLine = formatNameSample(ws.markedUnavailable);
                   return (
-                    <div key={`${u.userId}-${ws.worksheet}`} className="mb-4 last:mb-0">
+                    <div key={`${u.clerkUserId}-${ws.worksheet}`} className="mb-4 last:mb-0">
                       <h3 className="text-sm font-semibold">{label}</h3>
                       <ul className="text-muted mt-1.5 list-inside list-disc space-y-1 text-sm leading-relaxed">
                         {ws.added.length > 0 ? (

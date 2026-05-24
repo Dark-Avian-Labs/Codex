@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import { normalizeClerkEnv, resolveEnvFilePath } from '@codex/core';
+import { getAppPublicBaseUrl, normalizeClerkEnv, resolveEnvFilePath } from '@codex/core';
 import { config as loadEnv } from '@dotenvx/dotenvx';
 
 const projectRoot = process.cwd();
@@ -68,6 +68,7 @@ function resolveSessionDbPath(): string {
 }
 
 export const SESSION_DB_PATH = resolveSessionDbPath();
+process.env.SESSION_DB_PATH = SESSION_DB_PATH;
 
 export const ARMORY_DB_PATH = requireAbsoluteSqlitePath(
   'ARMORY_DB_PATH',
@@ -143,7 +144,7 @@ if (!DOMAIN_LABEL_REGEX.test(APP_SUBDOMAIN)) {
   throw new Error('APP_SUBDOMAIN is invalid.');
 }
 
-export const APP_PUBLIC_BASE_URL = `${BASE_PROTOCOL}://${APP_SUBDOMAIN}.${BASE_DOMAIN}`;
+export const APP_PUBLIC_BASE_URL = getAppPublicBaseUrl();
 const configuredCookieDomain = process.env.COOKIE_DOMAIN?.trim().toLowerCase() || '';
 let resolvedCookieDomain = `.${BASE_DOMAIN}`;
 
@@ -167,7 +168,6 @@ export const LEGAL_PAGE_URL =
 
 export const SESSION_COOKIE_NAME =
   process.env.SESSION_COOKIE_NAME?.trim() || 'darkavianlabs.codex.sid';
-export const SHARED_THEME_COOKIE = 'dal.theme.mode';
 
 export function ensureDataDirs(): void {
   fs.mkdirSync(DATA_DIR, { recursive: true });

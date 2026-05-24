@@ -1,4 +1,5 @@
 import { requireCodexAdmin } from '@codex/core';
+import { log } from '@codex/core';
 import { validateBody } from '@codex/core/validation';
 import {
   ARTIFACT_GAUGE_MAX,
@@ -25,7 +26,6 @@ import { Router, type Request, type Response } from 'express';
 
 import { requireClerkUserId } from '../auth/clerkUser.js';
 import { isEpic7DbAvailable } from '../epic7DbState.js';
-import { log } from '../logger.js';
 
 export const epic7ApiRouter = Router();
 

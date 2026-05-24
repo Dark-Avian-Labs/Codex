@@ -1,6 +1,5 @@
+import { log } from '@codex/core';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-
-import { log } from './logger.js';
 
 describe('logger', () => {
   afterEach(() => {

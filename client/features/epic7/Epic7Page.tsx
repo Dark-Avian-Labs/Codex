@@ -1,4 +1,18 @@
 import {
+  ARTIFACT_CLASSES,
+  ARTIFACT_GAUGE_EMPTY as GAUGE_EMPTY,
+  ARTIFACT_GAUGE_FILLED as GAUGE_FILLED,
+  ARTIFACT_GAUGE_MAX as GAUGE_MAX,
+  CLASS_DISPLAY_NAMES as CLASS_NAMES,
+  ELEMENT_DISPLAY_NAMES as ELEMENT_NAMES,
+  ELEMENTS,
+  GAUGE_COLORS,
+  HERO_CLASSES,
+  HERO_RATINGS,
+  RATING_COLORS,
+} from '@codex/game-epic7/constants';
+import type { ClassKey, ElementKey } from '@codex/game-epic7/constants';
+import {
   useCallback,
   useEffect,
   useMemo,
@@ -87,52 +101,7 @@ type Epic7ModalAction =
   | { type: 'CANCEL_ACCOUNT_DELETE' }
   | { type: 'CONFIRM_ACCOUNT_DELETE' };
 
-type HeroClass = 'warrior' | 'knight' | 'thief' | 'ranger' | 'mage' | 'soulweaver';
-type ArtifactClass = HeroClass | 'universal';
-type Element = 'fire' | 'ice' | 'earth' | 'light' | 'dark';
-type ActiveFilters = { class: ArtifactClass | null; element: Element | null };
-
-const HERO_RATINGS = ['-', 'D', 'C', 'B', 'A', 'S', 'SS', 'SSS'] as const;
-const GAUGE_MAX = 5;
-const GAUGE_FILLED = '▰';
-const GAUGE_EMPTY = '▱';
-const HERO_CLASSES: HeroClass[] = ['warrior', 'knight', 'thief', 'ranger', 'mage', 'soulweaver'];
-const ARTIFACT_CLASSES: ArtifactClass[] = [...HERO_CLASSES, 'universal'];
-const ELEMENTS: Element[] = ['fire', 'ice', 'earth', 'light', 'dark'];
-const CLASS_NAMES: Record<ArtifactClass, string> = {
-  warrior: 'Warrior',
-  knight: 'Knight',
-  thief: 'Thief',
-  ranger: 'Ranger',
-  mage: 'Mage',
-  soulweaver: 'Soul Weaver',
-  universal: 'Universal',
-};
-const ELEMENT_NAMES: Record<Element, string> = {
-  fire: 'Fire',
-  ice: 'Ice',
-  earth: 'Earth',
-  light: 'Light',
-  dark: 'Dark',
-};
-const RATING_COLORS: Record<string, string> = {
-  '-': '#6b7280',
-  D: '#06b6d4',
-  C: '#22c55e',
-  B: '#3b82f6',
-  A: '#a855f7',
-  S: '#eab308',
-  SS: '#f97316',
-  SSS: '#ef4444',
-};
-const GAUGE_COLORS: Record<number, string> = {
-  0: '#6b7280',
-  1: '#3b82f6',
-  2: '#22c55e',
-  3: '#eab308',
-  4: '#f97316',
-  5: '#ef4444',
-};
+type ActiveFilters = { class: ClassKey | null; element: ElementKey | null };
 
 const ICON_MODULES = import.meta.glob('../../../packages/games/epic7/assets/*.png', {
   eager: true,
@@ -1113,8 +1082,8 @@ export function Epic7Page() {
                       <img
                         className="invert-on-light"
                         src={ICONS[row.class]}
-                        alt={CLASS_NAMES[row.class as ArtifactClass] ?? row.class}
-                        title={CLASS_NAMES[row.class as ArtifactClass] ?? row.class}
+                        alt={CLASS_NAMES[row.class as ClassKey] ?? row.class}
+                        title={CLASS_NAMES[row.class as ClassKey] ?? row.class}
                       />
                     ) : (
                       row.class || '-'
@@ -1125,8 +1094,8 @@ export function Epic7Page() {
                       {row.element && ICONS[row.element] ? (
                         <img
                           src={ICONS[row.element]}
-                          alt={ELEMENT_NAMES[row.element as Element] ?? row.element}
-                          title={ELEMENT_NAMES[row.element as Element] ?? row.element}
+                          alt={ELEMENT_NAMES[row.element as ElementKey] ?? row.element}
+                          title={ELEMENT_NAMES[row.element as ElementKey] ?? row.element}
                         />
                       ) : (
                         row.element || '-'
