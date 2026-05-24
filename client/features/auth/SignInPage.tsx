@@ -1,4 +1,5 @@
 import { ClerkAuthShell } from '@/components/ClerkAuthShell';
+import { useTheme } from '@/context/ThemeContext';
 import { buildClerkAppearance } from '@/lib/clerkAppearance';
 import { SignIn } from '@clerk/react';
 import { Navigate } from 'react-router-dom';
@@ -8,6 +9,8 @@ import { getAuthFallbackRedirect } from './authRedirect';
 const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY?.trim();
 
 export function SignInPage() {
+  const { mode } = useTheme();
+
   if (!publishableKey) {
     return <Navigate to="/" replace />;
   }
@@ -22,7 +25,7 @@ export function SignInPage() {
         path="/sign-in"
         signUpUrl="/sign-up"
         fallbackRedirectUrl={getAuthFallbackRedirect()}
-        appearance={buildClerkAppearance()}
+        appearance={buildClerkAppearance(mode)}
       />
     </ClerkAuthShell>
   );

@@ -1,5 +1,5 @@
 export { log, type LogLevel } from './logger.js';
-export { APP_NAME, CODEX_APP_ID, resolveEnvFilePath } from './config.js';
+export { APP_NAME, getCodexAppId, resolveEnvFilePath } from './config.js';
 export { createSessionSchema, getSessionDb, closeSessionDb } from './db/schema.js';
 export { requireAbsoluteSqlitePath } from './db/sqlitePath.js';
 export { isAppAdmin, metadataFromSessionClaims, APP_ADMIN_ROLE } from './auth/clerk.js';

@@ -1,4 +1,4 @@
-import { CODEX_APP_ID, getClerkAuthState, requireAuthApi } from '@codex/core';
+import { getClerkAuthState, getCodexAppId, requireAuthApi } from '@codex/core';
 import { Router } from 'express';
 
 import {
@@ -40,7 +40,7 @@ authRouter.get('/me', requireAuthApi, (req, res) => {
     authenticated: true,
     userId: state.userId,
     isCodexAdmin: state.isCodexAdmin,
-    app: CODEX_APP_ID,
+    app: getCodexAppId(),
     apps,
   });
 });

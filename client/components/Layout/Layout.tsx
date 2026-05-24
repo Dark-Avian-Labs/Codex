@@ -295,7 +295,9 @@ export function Layout() {
                           tabIndex={-1}
                           onClick={() => {
                             setMenuOpen(false);
-                            clerk.openUserProfile({ appearance: buildClerkProfileAppearance() });
+                            clerk.openUserProfile({
+                              appearance: buildClerkProfileAppearance(mode),
+                            });
                           }}
                         >
                           Profile
