@@ -204,10 +204,7 @@ export function SelectDropdown({
         }}
         className={`select-dropdown-menu select-dropdown-menu--${menuRect.mode}`}
       >
-        <div
-          className="custom-scroll overflow-x-hidden overflow-y-auto rounded-[10px]"
-          style={{ maxHeight: menuRect.maxHeight }}
-        >
+        <div className="select-dropdown-scroll" style={{ maxHeight: menuRect.maxHeight }}>
           {displayOptions.map((opt, i) => {
             const isSelected = opt.value === value;
             const isFocused = focusedIndex === i;
