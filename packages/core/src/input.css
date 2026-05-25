@@ -625,6 +625,11 @@ html:not(.dark) .invert-on-light {
     outline: none;
   }
 
+  .select-dropdown-trigger {
+    border: 1px solid var(--color-glass-border);
+    border-radius: 10px;
+  }
+
   .select-dropdown-menu {
     position: absolute;
     right: 0;
