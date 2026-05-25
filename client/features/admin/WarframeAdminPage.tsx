@@ -55,14 +55,14 @@ function SyncFromArmoryReportModal({
       open={open}
       onClose={onClose}
       ariaLabelledBy="warframe-sync-report-title"
-      className="warframe-sync-report-modal"
+      className="glass-modal-surface warframe-sync-report-modal"
     >
       {!result ? (
         <>
           <h2 id="warframe-sync-report-title">Armory sync</h2>
           <p className="text-muted text-sm">No report data.</p>
           <div className="modal-actions">
-            <button type="button" onClick={onClose}>
+            <button type="button" className="btn btn-cancel" onClick={onClose}>
               Close
             </button>
           </div>
@@ -250,7 +250,7 @@ function SyncFromArmoryReportBody({
       )}
 
       <div className="modal-actions">
-        <button type="button" onClick={onClose}>
+        <button type="button" className="btn btn-cancel" onClick={onClose}>
           Close
         </button>
       </div>

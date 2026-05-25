@@ -85,15 +85,15 @@
 html:not(.dark) {
   --theme-mode: light;
   color-scheme: light;
-  --color-foreground: oklch(21% 0.04 266);
-  --color-muted: oklch(44% 0.03 257);
-  --color-glass: oklch(100% 0 0 / 0.58);
-  --color-glass-border: oklch(21% 0.04 266 / 0.2);
-  --color-glass-border-hover: oklch(21% 0.04 266 / 0.3);
-  --color-glass-hover: oklch(100% 0 0 / 0.72);
-  --color-glass-active: oklch(100% 0 0 / 0.84);
-  --color-glass-divider: oklch(21% 0.04 266 / 0.12);
-  --color-surface-modal: oklch(100% 0 0 / 0.92);
+  --color-foreground: oklch(0% 0 0);
+  --color-muted: oklch(45% 0.02 260);
+  --color-glass: oklch(100% 0 0 / 0.5);
+  --color-glass-border: oklch(25% 0.02 280 / 0.2);
+  --color-glass-border-hover: oklch(25% 0.02 280 / 0.32);
+  --color-glass-hover: oklch(100% 0 0 / 0.65);
+  --color-glass-active: oklch(100% 0 0 / 0.75);
+  --color-glass-divider: oklch(10% 0.01 280 / 0.12);
+  --color-surface-modal: oklch(100% 0 0 / 0.56);
   --color-surface-thead: oklch(94% 0.01 264 / 0.9);
   --color-bg-start: oklch(90% 0.02 264);
   --color-bg-end: oklch(98.4% 0.004 264);
@@ -122,6 +122,7 @@ html.dark.ui-shadow {
   --color-bg-start: oklch(1% 0.01 264);
   --color-bg-end: oklch(8% 0.02 270);
   --color-bg-glow: oklch(35% 0.04 270 / 0.14);
+  --ascii-opacity: 0.035;
 }
 
 html.ui-shadow:not(.dark) {
@@ -261,6 +262,122 @@ html:not(.dark) .invert-on-light {
     display: block;
   }
 
+  .glass-shell,
+  .glass-surface,
+  .glass-modal-surface,
+  .glass-tooltip-surface,
+  .glass-panel,
+  .glass-light {
+    position: relative;
+    overflow: hidden;
+    border-radius: 16px;
+    background: var(--color-glass);
+    border: 1px solid var(--color-glass-border);
+    box-shadow:
+      var(--shadow-panel),
+      inset 0 1px 0 oklch(100% 0 0 / 0.14),
+      inset 0 -1px 0 oklch(0% 0 0 / 0.12);
+    -webkit-backdrop-filter: blur(12px) saturate(1.2);
+    backdrop-filter: blur(12px) saturate(1.2);
+  }
+
+  .glass-shell::before,
+  .glass-surface::before,
+  .glass-modal-surface::before,
+  .glass-tooltip-surface::before,
+  .glass-panel::before,
+  .glass-light::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background:
+      linear-gradient(
+          90deg,
+          transparent,
+          color-mix(in oklab, var(--color-foreground) 16%, transparent),
+          transparent
+        )
+        top center/80% 1px no-repeat,
+      linear-gradient(
+          transparent 0%,
+          color-mix(in oklab, var(--color-foreground) 16%, transparent) 14%,
+          color-mix(in oklab, var(--color-foreground) 8%, transparent) 60%,
+          transparent 100%
+        )
+        left center/1px 86% no-repeat;
+  }
+
+  .glass-shell {
+    border-radius: 20px;
+  }
+
+  .glass-modal-surface {
+    border-radius: 20px;
+    background: color-mix(in oklab, var(--color-glass) 75%, transparent);
+  }
+
+  .glass-tooltip-surface {
+    border-radius: 14px;
+    box-shadow:
+      0 8px 24px oklch(0% 0 0 / 0.2),
+      inset 0 1px 0 oklch(100% 0 0 / 0.12);
+  }
+
+  .glass-panel {
+    border-radius: 1rem;
+  }
+
+  .toast-pill {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    padding: 0.625rem 1.375rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.25;
+    white-space: nowrap;
+    color: var(--color-foreground);
+    background: color-mix(in oklab, var(--color-glass) 88%, transparent);
+    border: 1px solid var(--color-glass-border);
+    box-shadow:
+      var(--shadow-panel),
+      inset 0 1px 0 oklch(100% 0 0 / 0.14);
+    -webkit-backdrop-filter: blur(16px) saturate(1.3);
+    backdrop-filter: blur(16px) saturate(1.3);
+    animation: toast-pill-in 0.25s ease-out;
+    pointer-events: none;
+  }
+
+  .toast-pill[data-tone='success'] {
+    border-color: color-mix(in oklab, var(--color-success) 45%, var(--color-glass-border));
+  }
+
+  .toast-pill[data-tone='error'] {
+    border-color: color-mix(in oklab, var(--color-danger) 55%, var(--color-glass-border));
+    background: color-mix(in oklab, var(--color-danger) 14%, var(--color-glass));
+    color: var(--color-foreground);
+  }
+
+  .toast-pill[data-tone='warning'] {
+    border-color: color-mix(in oklab, var(--color-warning) 50%, var(--color-glass-border));
+  }
+
+  @keyframes toast-pill-in {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.94);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+  }
+
   .btn {
     padding: 0 16px;
     font-size: 14px;
@@ -396,6 +513,42 @@ html:not(.dark) .invert-on-light {
     font-size: 1.35rem;
   }
 
+  .custom-scroll::-webkit-scrollbar {
+    width: 8px;
+  }
+  .custom-scroll::-webkit-scrollbar-track {
+    background: var(--color-glass);
+  }
+  .custom-scroll::-webkit-scrollbar-thumb {
+    background: var(--color-glass-active);
+    border-radius: 4px;
+  }
+  .custom-scroll::-webkit-scrollbar-thumb:hover {
+    background: oklch(100% 0 0 / 0.15);
+  }
+
+  .form-input {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 14px;
+    color: var(--color-foreground);
+    background: var(--color-glass-hover);
+    border: 1px solid var(--color-glass-active);
+    border-radius: 8px;
+    font-family: inherit;
+    outline: none;
+  }
+
+  .form-input:focus {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-accent) 25%, transparent);
+    outline: none;
+  }
+
+  .form-input::placeholder {
+    color: var(--color-muted);
+  }
+
   .user-menu {
     position: absolute;
     right: 0;
@@ -475,27 +628,41 @@ html:not(.dark) .invert-on-light {
   .select-dropdown-menu {
     position: absolute;
     right: 0;
-    min-width: 180px;
     padding: 6px;
     border-radius: 12px;
-    border: 1px solid color-mix(in oklab, var(--color-glass-border) 85%, oklch(100% 0 0 / 0.18));
-    background: oklch(18% 0.02 286 / 0.94);
-    box-shadow:
-      0 12px 28px oklch(0% 0 0 / 0.35),
-      inset 0 1px 0 oklch(100% 0 0 / 0.12);
+    border: 1px solid var(--color-glass-border);
+    background: var(--color-surface-modal);
     -webkit-backdrop-filter: blur(16px) saturate(1.15);
     backdrop-filter: blur(16px) saturate(1.15);
+    z-index: 60;
     isolation: isolate;
   }
 
+  .select-dropdown-menu--attached {
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    padding-top: 0;
+  }
+
+  .select-dropdown-menu--floating {
+    margin-top: 4px;
+  }
+
+  .select-dropdown-trigger--open {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom-color: color-mix(in oklab, var(--color-glass-border) 50%, transparent);
+  }
+
   .select-dropdown-item {
+    position: relative;
     width: 100%;
     display: block;
     border: none;
     background: transparent;
-    border-radius: 10px;
-    padding: 10px 12px;
-    color: var(--color-foreground);
+    border-radius: 8px;
+    padding: 10px 12px 10px 16px;
+    color: var(--color-muted);
     text-decoration: none;
     font-size: 14px;
     line-height: 1.2;
@@ -505,16 +672,36 @@ html:not(.dark) .invert-on-light {
       background-color 0.15s ease;
   }
 
+  .select-dropdown-item::before {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 1.25rem;
+    border-radius: 2px;
+    background: var(--color-accent);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+
   .select-dropdown-item:hover,
   .select-dropdown-item:focus-visible {
     color: var(--color-foreground);
-    background: color-mix(in oklab, var(--color-glass-hover) 90%, oklch(100% 0 0 / 0.07));
+    background: var(--color-glass-hover);
     outline: none;
   }
 
+  .select-dropdown-item:hover::before,
+  .select-dropdown-item:focus-visible::before,
+  .select-dropdown-item.is-selected::before {
+    opacity: 1;
+  }
+
   .select-dropdown-item.is-selected {
-    color: var(--color-accent);
-    background: color-mix(in oklab, var(--color-accent) 18%, transparent);
+    color: var(--color-foreground);
+    background: color-mix(in oklab, var(--color-glass-hover) 85%, transparent);
   }
 
   .brand-lockup {
@@ -977,11 +1164,11 @@ html:not(.dark) .invert-on-light {
   }
 
   .form-group input:focus,
-  .form-group select:focus {
+  .form-group select:focus,
+  .form-group textarea:focus {
     border-color: var(--color-accent);
-    outline: 2px solid var(--color-accent);
-    outline-offset: 2px;
-    box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-accent) 25%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-accent) 25%, transparent);
+    outline: none;
   }
 
   .form-group select option {
@@ -1810,7 +1997,8 @@ html.dark.ui-shadow .table-container::before {
   opacity: 0.38;
 }
 
-html.dark.ui-shadow .user-menu {
+html.dark.ui-shadow .user-menu,
+html.dark.ui-shadow .select-dropdown-menu {
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
 }
@@ -1845,12 +2033,122 @@ html.dark.ui-shadow .account-dropdown {
   box-shadow: var(--shadow-panel);
 }
 
+html.dark.ui-shadow .glass-shell,
+html.dark.ui-shadow .glass-surface,
+html.dark.ui-shadow .glass-modal-surface,
+html.dark.ui-shadow .glass-tooltip-surface,
+html.dark.ui-shadow .glass-panel,
+html.dark.ui-shadow .glass-light {
+  -webkit-backdrop-filter: blur(10px) saturate(1.1);
+  backdrop-filter: blur(10px) saturate(1.1);
+  box-shadow:
+    var(--shadow-panel),
+    inset 0 1px 0 oklch(100% 0 0 / 0.06),
+    inset 0 -1px 0 oklch(0% 0 0 / 0.4);
+}
+
+html.dark.ui-shadow .glass-shell::before,
+html.dark.ui-shadow .glass-surface::before,
+html.dark.ui-shadow .glass-modal-surface::before,
+html.dark.ui-shadow .glass-tooltip-surface::before,
+html.dark.ui-shadow .glass-panel::before,
+html.dark.ui-shadow .glass-light::before {
+  opacity: 0.38;
+}
+
+html.ui-shadow:not(.dark) .glass-shell,
+html.ui-shadow:not(.dark) .glass-surface,
+html.ui-shadow:not(.dark) .glass-modal-surface,
+html.ui-shadow:not(.dark) .glass-tooltip-surface,
+html.ui-shadow:not(.dark) .glass-panel,
+html.ui-shadow:not(.dark) .glass-light {
+  -webkit-backdrop-filter: blur(14px) saturate(1.15);
+  backdrop-filter: blur(14px) saturate(1.15);
+}
+
+html.ui-clear .glass-shell {
+  border-radius: var(--radius-ui-lg);
+}
+
+html.ui-clear .glass-surface,
+html.ui-clear .glass-panel,
+html.ui-clear .glass-light {
+  border-radius: var(--radius-ui);
+}
+
+html.ui-clear .glass-modal-surface {
+  border-radius: var(--radius-ui-lg);
+}
+
+html.ui-clear .glass-tooltip-surface,
+html.ui-clear .toast-pill {
+  border-radius: 9999px;
+}
+
+html.ui-clear .glass-shell,
+html.ui-clear .glass-surface,
+html.ui-clear .glass-modal-surface,
+html.ui-clear .glass-tooltip-surface,
+html.ui-clear .glass-panel,
+html.ui-clear .glass-light {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: var(--shadow-panel);
+}
+
+html.ui-clear .glass-shell::before,
+html.ui-clear .glass-surface::before,
+html.ui-clear .glass-modal-surface::before,
+html.ui-clear .glass-tooltip-surface::before,
+html.ui-clear .glass-panel::before,
+html.ui-clear .glass-light::before {
+  display: none;
+}
+
+html.ui-clear .toast-pill {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: var(--shadow-panel);
+}
+
+:root {
+  --stale-banner-border: oklch(78% 0.16 75);
+  --stale-banner-glow: oklch(82% 0.18 80);
+  --stale-update-shine: color-mix(in oklab, var(--stale-banner-glow) 55%, transparent);
+  --stale-update-shine-hot: color-mix(in oklab, white 72%, var(--stale-banner-glow));
+  --stale-cta-top: oklch(92% 0.14 92);
+  --stale-cta-mid: oklch(84% 0.17 82);
+  --stale-cta-bottom: oklch(72% 0.16 72);
+  --stale-cta-border: oklch(58% 0.14 68);
+  --stale-cta-shadow: oklch(42% 0.12 62);
+  --stale-cta-glow: oklch(80% 0.2 82);
+  --stale-cta-text: oklch(28% 0.06 62);
+}
+
+html:not(.dark) {
+  --stale-banner-border: oklch(72% 0.18 75);
+  --stale-banner-glow: oklch(76% 0.2 78);
+  --stale-update-shine: color-mix(in oklab, var(--stale-banner-glow) 45%, transparent);
+  --stale-update-shine-hot: color-mix(in oklab, white 80%, var(--stale-banner-glow));
+  --stale-cta-top: oklch(94% 0.12 94);
+  --stale-cta-mid: oklch(86% 0.16 84);
+  --stale-cta-bottom: oklch(74% 0.15 74);
+  --stale-cta-border: oklch(54% 0.13 66);
+  --stale-cta-shadow: oklch(38% 0.11 60);
+  --stale-cta-glow: oklch(78% 0.19 80);
+  --stale-cta-text: oklch(24% 0.05 60);
+}
+
 .stale-update-banner {
   position: relative;
   isolation: isolate;
   overflow: hidden;
+  border-color: var(--stale-banner-border) !important;
+  animation: stale-update-banner-glow 2.4s ease-in-out infinite;
   box-shadow:
     var(--shadow-panel),
+    0 0 0 1px color-mix(in oklab, var(--stale-banner-border) 35%, transparent),
+    0 0 28px color-mix(in oklab, var(--stale-banner-glow) 45%, transparent),
     inset 0 1px 0 color-mix(in oklab, var(--color-foreground) 14%, transparent),
     inset 0 -1px 0 color-mix(in oklab, var(--color-foreground) 5%, transparent);
 }
@@ -1862,12 +2160,12 @@ html.dark.ui-shadow .account-dropdown {
   z-index: 0;
   background: repeating-linear-gradient(
     135deg,
-    color-mix(in oklab, var(--color-foreground) 5%, transparent) 0,
-    color-mix(in oklab, var(--color-foreground) 5%, transparent) 1px,
+    color-mix(in oklab, var(--stale-banner-glow) 18%, transparent) 0,
+    color-mix(in oklab, var(--stale-banner-glow) 18%, transparent) 1px,
     transparent 1px,
     transparent 4px
   );
-  opacity: 0.28;
+  opacity: 0.42;
   pointer-events: none;
 }
 
@@ -1877,10 +2175,10 @@ html.dark.ui-shadow .account-dropdown {
   top: 50%;
   left: 50%;
   z-index: 0;
-  width: 240%;
-  height: 5px;
+  width: 250%;
+  height: 250%;
   background: linear-gradient(
-    90deg,
+    135deg,
     transparent 0%,
     transparent 44%,
     var(--stale-update-shine) 48.5%,
@@ -1889,8 +2187,8 @@ html.dark.ui-shadow .account-dropdown {
     transparent 56%,
     transparent 100%
   );
-  transform: translate(-50%, -50%) rotate(135deg) translateX(-130%);
-  animation: stale-update-metal-scan 6s linear infinite;
+  transform: translate(-50%, -50%) translate(-40%, -40%);
+  animation: stale-update-metal-scan 4.5s linear infinite;
   pointer-events: none;
 }
 
@@ -1899,22 +2197,91 @@ html.dark.ui-shadow .account-dropdown {
   z-index: 1;
 }
 
-:root {
-  --stale-update-shine: color-mix(in oklab, var(--color-foreground) 28%, transparent);
-  --stale-update-shine-hot: color-mix(in oklab, var(--color-foreground) 52%, transparent);
-}
-
-html:not(.dark) {
-  --stale-update-shine: color-mix(in oklab, var(--color-foreground) 16%, transparent);
-  --stale-update-shine-hot: color-mix(in oklab, var(--color-foreground) 32%, transparent);
-}
-
-html:not(.dark) .select-dropdown-menu {
-  background: oklch(98% 0.01 264 / 0.96);
-  border-color: oklch(25% 0.02 280 / 0.2);
+.stale-update-cta {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0.75rem 1.25rem;
+  border: 3px solid var(--stale-cta-border);
+  border-radius: 0.875rem;
+  cursor: pointer;
+  font: inherit;
+  background: linear-gradient(
+    180deg,
+    var(--stale-cta-top) 0%,
+    var(--stale-cta-mid) 42%,
+    var(--stale-cta-bottom) 100%
+  );
   box-shadow:
-    0 10px 24px oklch(21% 0.04 266 / 0.16),
-    inset 0 1px 0 oklch(100% 0 0 / 0.7);
+    0 4px 0 var(--stale-cta-shadow),
+    0 0 22px color-mix(in oklab, var(--stale-cta-glow) 55%, transparent),
+    inset 0 1px 0 color-mix(in oklab, white 55%, transparent),
+    inset 0 -2px 0 color-mix(in oklab, black 12%, transparent);
+  transform: translateY(0) scale(1);
+  animation: stale-update-cta-pulse 1.15s ease-in-out infinite;
+  transition: transform 0.12s ease;
+}
+
+.stale-update-cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(
+    135deg,
+    transparent 0%,
+    transparent 42%,
+    color-mix(in oklab, white 70%, transparent) 49%,
+    color-mix(in oklab, white 95%, transparent) 50%,
+    color-mix(in oklab, white 70%, transparent) 51%,
+    transparent 58%,
+    transparent 100%
+  );
+  transform: translate(-120%, -120%);
+  animation: stale-update-cta-shine 2.2s linear infinite;
+  pointer-events: none;
+}
+
+.stale-update-cta__label {
+  position: relative;
+  z-index: 1;
+  color: var(--stale-cta-text);
+  font-size: 0.9375rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  line-height: 1.1;
+  text-transform: uppercase;
+  text-shadow:
+    0 1px 0 color-mix(in oklab, white 35%, transparent),
+    0 2px 0 var(--stale-cta-shadow),
+    0 0 12px color-mix(in oklab, var(--stale-cta-glow) 40%, transparent);
+}
+
+.stale-update-cta:hover {
+  animation-play-state: paused;
+  transform: translateY(1px) scale(1.02);
+  box-shadow:
+    0 3px 0 var(--stale-cta-shadow),
+    0 0 30px color-mix(in oklab, var(--stale-cta-glow) 70%, transparent),
+    inset 0 1px 0 color-mix(in oklab, white 55%, transparent),
+    inset 0 -2px 0 color-mix(in oklab, black 12%, transparent);
+}
+
+.stale-update-cta:active {
+  transform: translateY(4px) scale(0.98);
+  box-shadow:
+    0 0 0 var(--stale-cta-shadow),
+    0 0 18px color-mix(in oklab, var(--stale-cta-glow) 45%, transparent),
+    inset 0 2px 4px color-mix(in oklab, black 22%, transparent);
+}
+
+.stale-update-cta:focus-visible {
+  outline: 3px solid color-mix(in oklab, var(--stale-cta-glow) 80%, white);
+  outline-offset: 3px;
 }
 
 html.ui-clear .select-dropdown-menu {
@@ -1924,15 +2291,60 @@ html.ui-clear .select-dropdown-menu {
   box-shadow: var(--shadow-panel);
 }
 
+@keyframes stale-update-banner-glow {
+  0%,
+  100% {
+    box-shadow:
+      var(--shadow-panel),
+      0 0 0 1px color-mix(in oklab, var(--stale-banner-border) 30%, transparent),
+      0 0 18px color-mix(in oklab, var(--stale-banner-glow) 30%, transparent),
+      inset 0 1px 0 color-mix(in oklab, var(--color-foreground) 14%, transparent),
+      inset 0 -1px 0 color-mix(in oklab, var(--color-foreground) 5%, transparent);
+  }
+  50% {
+    box-shadow:
+      var(--shadow-panel),
+      0 0 0 1px color-mix(in oklab, var(--stale-banner-border) 55%, transparent),
+      0 0 36px color-mix(in oklab, var(--stale-banner-glow) 55%, transparent),
+      inset 0 1px 0 color-mix(in oklab, var(--color-foreground) 14%, transparent),
+      inset 0 -1px 0 color-mix(in oklab, var(--color-foreground) 5%, transparent);
+  }
+}
+
 @keyframes stale-update-metal-scan {
   0% {
-    transform: translate(-50%, -50%) rotate(135deg) translateX(-130%);
+    transform: translate(-50%, -50%) translate(-40%, -40%);
   }
   16.666% {
-    transform: translate(-50%, -50%) rotate(135deg) translateX(130%);
+    transform: translate(-50%, -50%) translate(40%, 40%);
   }
   100% {
-    transform: translate(-50%, -50%) rotate(135deg) translateX(130%);
+    transform: translate(-50%, -50%) translate(40%, 40%);
+  }
+}
+
+@keyframes stale-update-cta-pulse {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+    filter: brightness(1);
+  }
+  50% {
+    transform: translateY(-1px) scale(1.035);
+    filter: brightness(1.08);
+  }
+}
+
+@keyframes stale-update-cta-shine {
+  0%,
+  18% {
+    transform: translate(-120%, -120%);
+  }
+  36% {
+    transform: translate(120%, 120%);
+  }
+  100% {
+    transform: translate(120%, 120%);
   }
 }
 
@@ -1942,10 +2354,12 @@ html.ui-clear .user-menu-select-trigger {
 
 html.dark.ui-clear .table-container,
 html.dark.ui-clear .user-menu,
+html.dark.ui-clear .select-dropdown-menu,
 html.dark.ui-clear .modal,
 html.dark.ui-clear .account-dropdown,
 html.ui-clear:not(.dark) .table-container,
 html.ui-clear:not(.dark) .user-menu,
+html.ui-clear:not(.dark) .select-dropdown-menu,
 html.ui-clear:not(.dark) .modal,
 html.ui-clear:not(.dark) .account-dropdown {
   -webkit-backdrop-filter: none;
@@ -1980,6 +2394,7 @@ html.ui-clear .icon-toggle-btn,
 html.ui-clear .search-box,
 html.ui-clear .btn,
 html.ui-clear .user-menu,
+html.ui-clear .select-dropdown-menu,
 html.ui-clear .modal,
 html.ui-clear .account-dropdown,
 html.ui-clear .stale-update-banner {

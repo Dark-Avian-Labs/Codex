@@ -26,12 +26,12 @@ export function StaleClientUpdateBanner({ appVersion }: StaleClientUpdateBannerP
         </p>
         <button
           type="button"
-          className="btn btn-accent mt-4 w-full text-sm"
+          className="stale-update-cta mt-4 w-full"
           onClick={() => {
             window.location.reload();
           }}
         >
-          Refresh now
+          <span className="stale-update-cta__label">Refresh now!</span>
         </button>
       </div>
     </div>
