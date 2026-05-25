@@ -628,8 +628,9 @@ html:not(.dark) .invert-on-light {
   .select-dropdown-menu {
     position: absolute;
     right: 0;
-    padding: 6px;
-    border-radius: 12px;
+    padding: 0;
+    overflow: hidden;
+    border-radius: 10px;
     border: 1px solid var(--color-glass-border);
     background: var(--color-surface-modal);
     -webkit-backdrop-filter: blur(16px) saturate(1.15);
@@ -639,13 +640,12 @@ html:not(.dark) .invert-on-light {
   }
 
   .select-dropdown-menu--attached {
-    border-top: none;
-    border-radius: 0 0 12px 12px;
-    padding-top: 0;
+    border-radius: 10px;
   }
 
   .select-dropdown-menu--floating {
     margin-top: 4px;
+    border-radius: 10px;
   }
 
   .select-dropdown-trigger--open {
@@ -654,15 +654,41 @@ html:not(.dark) .invert-on-light {
     border-bottom-color: color-mix(in oklab, var(--color-glass-border) 50%, transparent);
   }
 
+  .select-dropdown-scroll {
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-glass-active) transparent;
+  }
+
+  .select-dropdown-scroll::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .select-dropdown-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .select-dropdown-scroll::-webkit-scrollbar-thumb {
+    background: var(--color-glass-active);
+    border-radius: 0;
+  }
+
+  .select-dropdown-scroll::-webkit-scrollbar-thumb:hover {
+    background: var(--color-glass-border-hover);
+  }
+
   .select-dropdown-item {
     position: relative;
     width: 100%;
     display: block;
+    box-sizing: border-box;
     border: none;
     background: transparent;
-    border-radius: 8px;
-    padding: 10px 12px 10px 16px;
+    border-radius: 0;
+    padding: 8px 10px 8px 13px;
     color: var(--color-muted);
+    text-align: left;
     text-decoration: none;
     font-size: 14px;
     line-height: 1.2;
@@ -675,12 +701,11 @@ html:not(.dark) .invert-on-light {
   .select-dropdown-item::before {
     content: '';
     position: absolute;
-    left: 6px;
-    top: 50%;
-    transform: translateY(-50%);
+    left: 0;
+    top: 0;
+    bottom: 0;
     width: 3px;
-    height: 1.25rem;
-    border-radius: 2px;
+    border-radius: 0;
     background: var(--color-accent);
     opacity: 0;
     transition: opacity 0.15s ease;
