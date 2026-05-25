@@ -1,17 +1,14 @@
-import { clsx } from 'clsx';
-import type { HTMLAttributes } from 'react';
-import { twMerge } from 'tailwind-merge';
+import type { ReactNode } from 'react';
 
-export function GlassCard({ className = '', ...props }: HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div
-      className={twMerge(
-        clsx(
-          'border border-[var(--color-glass-border)] bg-[var(--color-glass)] shadow-[var(--shadow-panel)] backdrop-blur [border-radius:var(--radius-ui-lg)]',
-          className,
-        ),
-      )}
-      {...props}
-    />
-  );
+interface GlassCardProps {
+  children: ReactNode;
+  className?: string;
+}
+
+export function GlassCard({ children, className }: GlassCardProps) {
+  const classes = ['glass-surface'];
+  if (className) {
+    classes.push(className);
+  }
+  return <section className={classes.join(' ')}>{children}</section>;
 }

@@ -51,6 +51,7 @@ export function Layout() {
   const menuItemRefs = useRef<Array<HTMLElement | null>>([]);
   const menuItemNodeMap = useRef<Record<string, HTMLElement | null>>({});
   const prevMenuOpenRef = useRef(menuOpen);
+  const userMenuId = 'codex-user-menu';
   const currentYear = new Date().getFullYear();
   const [headerCenter, setHeaderCenter] = useState<ReactNode | null>(null);
   const [headerActions, setHeaderActions] = useState<ReactNode | null>(null);
@@ -214,7 +215,7 @@ export function Layout() {
       </a>
       <AsciiWaveBackground />
       <header className="relative z-30 h-[100px] px-6">
-        <div className="mx-auto grid h-full w-full max-w-[1900px] grid-cols-[1fr_auto_1fr] items-center gap-4">
+        <div className="mx-auto grid h-full w-full max-w-[2000px] grid-cols-[1fr_auto_1fr] items-center gap-4">
           <div className="flex w-fit max-w-full min-w-0 flex-col gap-0.5 justify-self-start">
             <Link to={APP_PATHS.home} className="brand-lockup w-fit">
               <img
@@ -262,6 +263,7 @@ export function Layout() {
                 className="icon-toggle-btn"
                 aria-haspopup="menu"
                 aria-expanded={menuOpen}
+                aria-controls={menuOpen ? userMenuId : undefined}
                 aria-label="Open user menu"
                 onClick={() => setMenuOpen((prev) => !prev)}
               >
@@ -269,7 +271,12 @@ export function Layout() {
               </button>
               {menuOpen ? (
                 <Menu baseClass="user-menu">
-                  <div role="menu" onKeyDown={onMenuKeyDown}>
+                  <div
+                    id={userMenuId}
+                    role="menu"
+                    aria-orientation="vertical"
+                    onKeyDown={onMenuKeyDown}
+                  >
                     {!isLoggedIn ? (
                       <>
                         <Link
@@ -352,14 +359,14 @@ export function Layout() {
         </div>
       </header>
 
-      <main id="main-content" className="relative z-0 flex-1 px-6 pb-6">
-        <div className="mx-auto w-full max-w-[1900px]">
+      <main id="main-content" className="relative z-10 flex-1 px-6 pb-6">
+        <div className="mx-auto w-full max-w-[2000px]">
           <Outlet context={{ setHeaderCenter, setHeaderActions }} />
         </div>
       </main>
 
       <footer className="relative z-10 flex h-[50px] items-center justify-center px-6">
-        <div className="mx-auto w-full max-w-[1900px] text-center">
+        <div className="mx-auto w-full max-w-[2000px] text-center">
           <a
             href={LEGAL_PAGE_URL}
             className="text-muted hover:text-foreground text-sm"

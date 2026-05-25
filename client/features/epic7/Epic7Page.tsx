@@ -1183,6 +1183,7 @@ export function Epic7Page() {
       <Modal
         open={modalState.isAccountModalOpen}
         onClose={() => dispatchModal({ type: 'CLOSE_ACCOUNT_MODAL' })}
+        className="glass-modal-surface max-w-lg p-6"
         ariaLabelledBy="epic7-account-modal-title"
       >
         <h2 id="epic7-account-modal-title" className="mb-4 text-lg font-semibold">
@@ -1310,6 +1311,7 @@ export function Epic7Page() {
       <Modal
         open={modalState.isItemModalOpen}
         onClose={() => dispatchModal({ type: 'CLOSE_ITEM_MODAL' })}
+        className="glass-modal-surface max-w-lg p-6"
         ariaLabelledBy="epic7-item-modal-title"
       >
         <h2 id="epic7-item-modal-title" className="mb-4 text-lg font-semibold">
@@ -1408,6 +1410,7 @@ export function Epic7Page() {
       <Modal
         open={modalState.isAccountDeleteModalOpen}
         onClose={() => dispatchModal({ type: 'CANCEL_ACCOUNT_DELETE' })}
+        className="glass-modal-surface max-w-md p-6"
         ariaLabelledBy="epic7-account-delete-modal-title"
       >
         <h2 id="epic7-account-delete-modal-title" className="mb-4 text-lg font-semibold">
@@ -1434,6 +1437,7 @@ export function Epic7Page() {
       <Modal
         open={modalState.isDeleteModalOpen}
         onClose={() => dispatchModal({ type: 'CANCEL_DELETE' })}
+        className="glass-modal-surface max-w-md p-6"
         ariaLabelledBy="epic7-delete-modal-title"
       >
         <h2 id="epic7-delete-modal-title" className="mb-4 text-lg font-semibold">

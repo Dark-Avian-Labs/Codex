@@ -13,8 +13,8 @@ catalogs:
       specifier: ^6.7.1
       version: 6.7.1
     '@dotenvx/dotenvx':
-      specifier: ^1.67.0
-      version: 1.67.0
+      specifier: ^1.68.0
+      version: 1.68.0
     '@fontsource-variable/cascadia-mono':
       specifier: ^5.2.2
       version: 5.2.2
@@ -150,7 +150,7 @@ importers:
         version: link:packages/games/warframe
       '@dotenvx/dotenvx':
         specifier: 'catalog:'
-        version: 1.67.0
+        version: 1.68.0
       '@fontsource-variable/cascadia-mono':
         specifier: 'catalog:'
         version: 5.2.2
@@ -280,7 +280,7 @@ importers:
         version: 2.1.21(express@5.2.1)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       '@dotenvx/dotenvx':
         specifier: 'catalog:'
-        version: 1.67.0
+        version: 1.68.0
       better-sqlite3:
         specifier: 'catalog:'
         version: 12.10.0
@@ -418,8 +418,8 @@ packages:
     resolution: {integrity: sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==}
     engines: {node: '>=0.1.90'}
 
-  '@dotenvx/dotenvx@1.67.0':
-    resolution: {integrity: sha512-KBfIx5OrAG6giqSkHCkQWynZmT47XkSTuuYIcvjHxlKoVRlYbxNrJmyIPaefnszU8MCvMwrrB+viJQzPqzgpcg==}
+  '@dotenvx/dotenvx@1.68.0':
+    resolution: {integrity: sha512-YGApsPyDmonlqPFGd5d9Gp5O4JQjmdQsoLYtXHTZb0bhlaCCjj69lWbXKYucCplUgvsorQqc5RRqA+tynjb1lA==}
     hasBin: true
 
   '@ecies/ciphers@0.2.6':
@@ -3109,7 +3109,7 @@ snapshots:
   '@colors/colors@1.5.0':
     optional: true
 
-  '@dotenvx/dotenvx@1.67.0':
+  '@dotenvx/dotenvx@1.68.0':
     dependencies:
       commander: 11.1.0
       dotenv: 17.4.2

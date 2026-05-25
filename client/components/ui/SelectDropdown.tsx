@@ -2,6 +2,7 @@ import {
   useCallback,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type KeyboardEvent,
@@ -20,6 +21,7 @@ interface MenuRect {
   left: number;
   width: number;
   maxHeight: number;
+  mode: 'attached' | 'floating';
 }
 
 interface SelectDropdownProps {
@@ -33,11 +35,17 @@ interface SelectDropdownProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   disabled?: boolean;
+  triggerClassName?: string;
+  placement?: 'attached' | 'floating';
 }
 
 const MENU_GAP_PX = 4;
 const VIEWPORT_MARGIN_PX = 8;
 const MENU_MAX_HEIGHT_PX = 224;
+const FLOATING_MIN_SPACE_PX = 80;
+
+const DEFAULT_TRIGGER_CLASS_NAME =
+  'user-menu-select-trigger flex w-full cursor-pointer items-center justify-between gap-2 text-left text-sm disabled:cursor-not-allowed disabled:opacity-50';
 
 export function SelectDropdown({
   value,
@@ -50,6 +58,8 @@ export function SelectDropdown({
   open,
   onOpenChange,
   disabled,
+  triggerClassName = DEFAULT_TRIGGER_CLASS_NAME,
+  placement = 'attached',
 }: SelectDropdownProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -58,20 +68,44 @@ export function SelectDropdown({
   const [focusedIndex, setFocusedIndex] = useState(0);
   const [menuRect, setMenuRect] = useState<MenuRect | null>(null);
 
+  const displayOptions = useMemo(() => {
+    const selectedIdx = options.findIndex((o) => o.value === value);
+    if (selectedIdx < 0) return options;
+    const selected = options[selectedIdx];
+    const rest = options.filter((_, i) => i !== selectedIdx);
+    return [selected, ...rest];
+  }, [options, value]);
+
   const updateMenuPosition = useCallback(() => {
     const btn = buttonRef.current;
     if (!btn) return;
     const r = btn.getBoundingClientRect();
     const spaceBelow = window.innerHeight - r.bottom - MENU_GAP_PX - VIEWPORT_MARGIN_PX;
-    const minHeight = Math.max(60, window.innerHeight * 0.2);
-    const maxHeight = Math.min(MENU_MAX_HEIGHT_PX, Math.max(minHeight, spaceBelow));
+    const useFloating = placement === 'floating' || spaceBelow < FLOATING_MIN_SPACE_PX;
+
+    if (useFloating) {
+      const maxHeight = Math.min(MENU_MAX_HEIGHT_PX, Math.max(FLOATING_MIN_SPACE_PX, spaceBelow));
+      setMenuRect({
+        top: r.bottom + MENU_GAP_PX,
+        left: r.left,
+        width: r.width,
+        maxHeight,
+        mode: 'floating',
+      });
+      return;
+    }
+
+    const spaceFromTop = window.innerHeight - r.top - VIEWPORT_MARGIN_PX;
+    const maxHeight = Math.min(MENU_MAX_HEIGHT_PX, Math.max(FLOATING_MIN_SPACE_PX, spaceFromTop));
     setMenuRect({
-      top: r.bottom + MENU_GAP_PX,
+      top: r.top,
       left: r.left,
       width: r.width,
       maxHeight,
+      mode: 'attached',
     });
-  }, []);
+  }, [placement]);
+
   useLayoutEffect(() => {
     if (!open) {
       setMenuRect(null);
@@ -100,9 +134,8 @@ export function SelectDropdown({
 
   useEffect(() => {
     if (!open) return;
-    const idx = options.findIndex((o) => o.value === value);
-    setFocusedIndex(idx >= 0 ? idx : 0);
-  }, [open, options, value]);
+    setFocusedIndex(0);
+  }, [open, displayOptions]);
 
   useEffect(() => {
     if (!open) return;
@@ -120,12 +153,14 @@ export function SelectDropdown({
   const listboxId = id ? `${id}-listbox` : undefined;
   const buttonId = id ? `${id}-button` : undefined;
 
+  const isAttachedOpen = open && menuRect?.mode === 'attached';
+
   const handleListboxKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-    if (options.length === 0) return;
+    if (displayOptions.length === 0) return;
 
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      setFocusedIndex((i) => Math.min(options.length - 1, i + 1));
+      setFocusedIndex((i) => Math.min(displayOptions.length - 1, i + 1));
       return;
     }
     if (e.key === 'ArrowUp') {
@@ -135,7 +170,7 @@ export function SelectDropdown({
     }
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      const opt = options[focusedIndex];
+      const opt = displayOptions[focusedIndex];
       if (opt) {
         onChange(opt.value);
         onOpenChange(false);
@@ -165,21 +200,20 @@ export function SelectDropdown({
           left: menuRect.left,
           right: 'auto',
           width: menuRect.width,
-          minWidth: '12rem',
           zIndex: 10000,
         }}
-        className="select-dropdown-menu"
+        className={`select-dropdown-menu select-dropdown-menu--${menuRect.mode}`}
       >
         <div
           className="custom-scroll overflow-x-hidden overflow-y-auto rounded-[10px]"
           style={{ maxHeight: menuRect.maxHeight }}
         >
-          {options.map((opt, i) => {
+          {displayOptions.map((opt, i) => {
             const isSelected = opt.value === value;
             const isFocused = focusedIndex === i;
             return (
               <button
-                key={opt.value !== '' ? opt.value : `__empty_${i}`}
+                key={opt.value === '' ? '__empty__' : opt.value}
                 ref={(el) => {
                   optionRefs.current[i] = el;
                 }}
@@ -209,13 +243,14 @@ export function SelectDropdown({
       </div>,
       document.body,
     );
+
   return (
     <div ref={rootRef} className={`relative min-w-0 ${className}`}>
       <button
         ref={buttonRef}
         type="button"
         id={buttonId}
-        className="user-menu-select-trigger flex w-full cursor-pointer items-center justify-between gap-2 text-left text-sm disabled:cursor-not-allowed disabled:opacity-50"
+        className={`${triggerClassName}${isAttachedOpen ? ' select-dropdown-trigger--open' : ''}`}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={listboxId}

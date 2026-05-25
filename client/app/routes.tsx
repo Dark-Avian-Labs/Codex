@@ -9,6 +9,7 @@ import {
 import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { Layout } from '../components/Layout/Layout';
+import { LazySuspenseFallback } from '../components/ui/LazySuspenseFallback';
 import { RequireAuth } from '../features/auth/RequireAuth';
 import { APP_PATHS } from './paths';
 
@@ -38,20 +39,6 @@ const CodexLandingPage = lazyNamed(
 );
 const SignInPage = lazyNamed(() => import('../features/auth/SignInPage'), 'SignInPage');
 const SignUpPage = lazyNamed(() => import('../features/auth/SignUpPage'), 'SignUpPage');
-
-function RouteFallback() {
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      role="status"
-      aria-live="polite"
-      aria-busy="true"
-      aria-atomic="true"
-    >
-      <p className="text-muted text-sm">Loading...</p>
-    </div>
-  );
-}
 
 type ChunkErrorBoundaryState = {
   hasError: boolean;
@@ -122,7 +109,7 @@ class ChunkErrorBoundary extends Component<{ children: ReactNode }, ChunkErrorBo
 export function AppRoutes() {
   return (
     <ChunkErrorBoundary>
-      <Suspense fallback={<RouteFallback />}>
+      <Suspense fallback={<LazySuspenseFallback />}>
         <Routes>
           <Route element={<Layout />}>
             <Route path={APP_PATHS.legal} element={<LegalPage />} />
