@@ -37,7 +37,6 @@ export const APP_NAME = 'Codex';
 
 const DEFAULT_CODEX_APP_ID = 'codex';
 
-/** Resolved at call time so dotenv can decrypt APP_ID before auth checks run. */
 export function getCodexAppId(): string {
   const raw = process.env.APP_ID?.trim().toLowerCase();
   if (!raw || isEncryptedEnvValue(raw)) {

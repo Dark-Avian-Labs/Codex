@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "command": ".cursor/hooks/prepend-system-node.ps1",
+        "matcher": "Shell"
+      }
+    ]
+  }
+}

@@ -5,6 +5,7 @@ import {
   adminUpdateSchema,
   deleteRowSchema,
   editRowSchema,
+  updateAdvancedProgressSchema,
   updateSchema,
 } from '../packages/games/warframe/src/routes/validation.js';
 
@@ -137,6 +138,25 @@ describe('Warframe validation schemas', () => {
         value: 'Unavailable',
       });
       expect(r.success).toBe(true);
+    });
+  });
+
+  describe('updateAdvancedProgressSchema', () => {
+    it('rejects empty patch with no fields', () => {
+      expect(updateAdvancedProgressSchema.safeParse({ row_id: 1 }).success).toBe(false);
+    });
+
+    it('accepts single-field updates', () => {
+      expect(updateAdvancedProgressSchema.safeParse({ row_id: 1, level: 5 }).success).toBe(true);
+      expect(updateAdvancedProgressSchema.safeParse({ row_id: 1, has_arcane: true }).success).toBe(true);
+    });
+
+    it('rejects out-of-range level', () => {
+      expect(updateAdvancedProgressSchema.safeParse({ row_id: 1, level: 999 }).success).toBe(false);
+    });
+
+    it('rejects out-of-range valence_percent', () => {
+      expect(updateAdvancedProgressSchema.safeParse({ row_id: 1, valence_percent: 999 }).success).toBe(false);
     });
   });
 });

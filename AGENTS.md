@@ -28,6 +28,7 @@ The server listens on port 3001 by default.
 - **Vite build picks up encrypted `.env.production`** for `VITE_BASE_PATH`, producing garbled asset paths. Fix by rebuilding the client with: `npx vite build --mode devbuild`.
 - **Clerk keys are required in production.** Set `CLERK_SECRET_KEY` and `CLERK_PUBLISHABLE_KEY` (or `VITE_CLERK_PUBLISHABLE_KEY`). See `.env.example` for session-token metadata and admin role setup.
 - **CI env template** at `.github/ci.env.development` provides a good reference for all required env vars.
+- **Tests:** `pnpm run test` and `pnpm run test:coverage` (build workspace packages first if needed). SQLite tests use `tests/helpers/sqliteTestHarness.ts`; CI fails if native bindings are missing. On Windows, Cursor agent shells prepend bundled Node 22 — `.cursor/hooks/prepend-system-node.ps1` rewrites Shell commands to prefer `C:\Program Files\nodejs`. After changing Node versions, run `pnpm rebuild better-sqlite3`.
 
 ### UI consistency
 

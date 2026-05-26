@@ -1,33 +1,19 @@
-import fs from 'node:fs';
-import os from 'node:os';
-import path from 'node:path';
-
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 
 import { createDbSingleton } from '../packages/core/src/db/singleton.js';
+import { describeWithSqlite } from './helpers/describeWithSqlite.js';
+import { createTempDbDir, removeTempDbDir } from './helpers/sqliteTestHarness.js';
 
-let sqliteNativeAvailable = false;
-try {
-  const mod = await import('better-sqlite3');
-  const Database = mod.default ?? mod;
-  const probe = new Database(':memory:');
-  probe.close();
-  sqliteNativeAvailable = true;
-} catch {
-  sqliteNativeAvailable = false;
-}
-
-describe.skipIf(!sqliteNativeAvailable)('createDbSingleton', () => {
+describeWithSqlite('createDbSingleton', () => {
   let tmpDir: string;
   let dbPath: string;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'codex-test-'));
-    dbPath = path.join(tmpDir, 'test.db');
+    ({ tmpDir, dbPath } = createTempDbDir());
   });
 
   afterEach(() => {
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+    removeTempDbDir(tmpDir);
   });
 
   it('returns the same instance on repeated getDb() calls', () => {
