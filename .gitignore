@@ -13,6 +13,9 @@ _resources/
 node_modules/
 dist/
 
+# Test coverage (generated locally; do not commit HTML/XML/JSON reports)
+coverage/
+
 # TypeScript incremental (composite / project references); default path is repo root
 *.tsbuildinfo
 

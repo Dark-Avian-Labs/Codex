@@ -85,3 +85,25 @@ jobs:
           else
             pnpm run test
           fi
+
+      - name: Verify better-sqlite3 native bindings
+        run: node -e "import('better-sqlite3').then(m => { const db = new m.default(':memory:'); db.close(); console.log('sqlite ok'); })"
+
+      - name: Test coverage report
+        env:
+          DOTENV_PRIVATE_KEY_DEVELOPMENT: ${{ secrets.DOTENV_PRIVATE_KEY_DEVELOPMENT }}
+        run: |
+          if [ "$USE_DOTENVX" = "true" ]; then
+            pnpm exec dotenvx run --strict -f .env.development -- pnpm run test:coverage
+          else
+            pnpm run test:coverage
+          fi
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-report
+          path: coverage/
+          if-no-files-found: ignore
+          retention-days: 7
