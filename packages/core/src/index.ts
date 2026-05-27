@@ -17,6 +17,7 @@ export {
 export { createAppHelmet, getClerkFapiOrigin } from './middleware/helmetCsp.js';
 export type { ClerkAuthState } from './middleware/auth.js';
 export { getAppPublicBaseUrl } from './middleware/appPublicBaseUrl.js';
+export { getClerkAuthorizedParties } from './middleware/clerkAuthorizedParties.js';
 export type { GameTheme } from './types/game.js';
 export { createDbSingleton } from './db/singleton.js';
 export type { DbSingleton, DbSingletonOptions } from './db/singleton.js';

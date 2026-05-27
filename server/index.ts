@@ -3,7 +3,14 @@ import './config.js';
 import { createRequire } from 'module';
 import path from 'path';
 
-import { clerkMiddleware, closeSessionDb, createAppHelmet, getSessionDb, log } from '@codex/core';
+import {
+  clerkMiddleware,
+  closeSessionDb,
+  createAppHelmet,
+  getClerkAuthorizedParties,
+  getSessionDb,
+  log,
+} from '@codex/core';
 import { closeEpic7Db, getEpic7Db } from '@codex/game-epic7';
 import { closeWarframeDb, getWarframeDb } from '@codex/game-warframe';
 import cookieParser from 'cookie-parser';
@@ -92,7 +99,7 @@ app.use(requestIdMiddleware);
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(clerkMiddleware());
+app.use(clerkMiddleware({ authorizedParties: getClerkAuthorizedParties() }));
 
 const RATE_LIMIT_SKIP_PATHS = new Set([
   '/healthz',
