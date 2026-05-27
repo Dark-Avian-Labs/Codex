@@ -20,7 +20,11 @@ The server listens on port 3001 by default.
 
 ### Key gotchas
 
-- **Node >= 25 and pnpm >= 11 required.** Use `nvm install 25` and `npm install -g pnpm@11.1.3`.
+- **Node >= 25 and pnpm >= 11 required.** Use `nvm install 25` and `npm install -g pnpm@11.3.0`.
+- **Cloud VM PATH override.** The VM has `/exec-daemon/node` (Node 22) earlier in PATH. Prepend nvm's path: `export PATH="$HOME/.nvm/versions/node/v25.9.0/bin:$PATH"`.
+- **`/agent/repos` must be writable.** Codex tests resolve `PROJECT_ROOT` two levels up from `server/config.ts`, landing at `/agent/repos`. Run `sudo chmod 777 /agent/repos` so `ensureDataDirs()` can create `/agent/repos/data` during tests.
+- **`BASE_DOMAIN` must have 2+ labels.** `localhost` fails validation. Use `example.test` for dev.
+- **Clerk publishable key format.** `VITE_CLERK_PUBLISHABLE_KEY` must be `pk_test_<base64-encoded-fapi-url>` (e.g., `pk_test_Y2xlcmsuZXhhbXBsZS5jb20k`). A bare placeholder like `pk_test_placeholder` crashes the Clerk middleware.
 - **Workspace packages must be built before tests or main build.** Run `pnpm --filter @codex/core --filter @codex/game-warframe --filter @codex/game-epic7 run --if-present build` before `pnpm run test`. The full `pnpm run build` command does this automatically, but `pnpm run test` alone does not.
 - **Encrypted `.env.development` / `.env.production` files.** Create a plain `.env` from `.env.example`. Run with `node --env-file=.env` to preload env vars.
 - **`SESSION_DB_PATH` and `ARMORY_DB_PATH` must be absolute paths.** `SESSION_DB_PATH` is Codex-owned (`session.db` for CSRF / Epic7 session state). `ARMORY_DB_PATH` is the read-only Armory catalog. Example: `/var/www/applications/codex/data/session.db`.
