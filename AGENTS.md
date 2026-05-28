@@ -30,6 +30,14 @@ The server listens on port 3001 by default.
 - **CI env template** at `.github/ci.env.development` provides a good reference for all required env vars.
 - **Tests:** `pnpm run test` and `pnpm run test:coverage` (build workspace packages first if needed). SQLite tests use `tests/helpers/sqliteTestHarness.ts`; CI fails if native bindings are missing. On Windows, Cursor agent shells prepend bundled Node 22 — `.cursor/hooks/prepend-system-node.ps1` rewrites Shell commands to prefer `C:\Program Files\nodejs`. After changing Node versions, run `pnpm rebuild better-sqlite3`.
 
+### Cloud VM-specific notes
+
+- **PATH override:** The Cloud VM has `/exec-daemon/node` (Node 22) ahead of nvm in PATH. Prepend nvm's Node 25 path: `export PATH="/home/ubuntu/.nvm/versions/node/v25.9.0/bin:$PATH"`.
+- **`/data` directory for tests:** Vitest resolves `PROJECT_ROOT` as `/` (because `server/config.ts` computes it relative to the TS source file). The `ensureDataDirs()` call tries to create `/data`. Run `sudo mkdir -p /data && sudo chmod 777 /data` before tests.
+- **Decrypt `.env.development`:** If `DOTENV_PRIVATE_KEY_DEVELOPMENT` is available as a secret, run `pnpm dotenvx decrypt -f .env.development`. Without the key, copy the CI plaintext template: `cp .github/ci.env.development .env.development` and append absolute DB paths.
+- **Clerk publishable key format (fallback only):** If using placeholder keys, must be `pk_test_<base64_of_fapi_host$>`. With decrypted `.env.development`, real keys are used automatically.
+- **Build order for dev server:** (1) `pnpm run build` (or build workspace packages + tsc), then (2) `npx vite build --mode devbuild` to avoid garbled asset paths from encrypted `.env.production`.
+
 ### UI consistency
 
 Armory and Codex mirror the same design tokens and component patterns manually (no shared UI package). When changing layout, glass surfaces, buttons, modals, or dropdowns in one app, apply the same change in the other.
