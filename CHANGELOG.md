@@ -258,3 +258,4 @@ Historical entries through the current release were **backfilled from merged PR 
 - **v1.51.0** `feat` [#229](https://github.com/Dark-Avian-Labs/Codex/pull/229): align UI with Armory and make style consistent
 - **v1.52.0** `feat` [#233](https://github.com/Dark-Avian-Labs/Codex/pull/233): enhanced tests
 - **v1.52.1** `chore` [#235](https://github.com/Dark-Avian-Labs/Codex/pull/235): update environment config and middleware
+- **v1.52.2** `chore` [#238](https://github.com/Dark-Avian-Labs/Codex/pull/238): dependabot/npm_and_yarn/production dependencies e2c2c17ddb
