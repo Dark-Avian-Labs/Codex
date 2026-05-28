@@ -6,19 +6,6 @@ import {
   parseMergeCommitMessage,
 } from './changelogEntry.mjs';
 
-function parseRepoName(repository) {
-  if (typeof repository !== 'string' || !repository.includes('/')) {
-    return null;
-  }
-
-  const [owner, name] = repository.split('/');
-  if (!owner || !name) {
-    return null;
-  }
-
-  return name;
-}
-
 const version = process.argv[2]?.replace(/^v/, '');
 if (!version) {
   console.error('Usage: node scripts/append-changelog.mjs <version>');
@@ -27,7 +14,6 @@ if (!version) {
 
 const mergeMessage = process.env.MERGE_COMMIT_MESSAGE ?? '';
 const repository = process.env.GITHUB_REPOSITORY ?? '';
-const repoName = parseRepoName(repository);
 
 const parsed = parseMergeCommitMessage(mergeMessage);
 const line = formatChangelogLine({
@@ -62,4 +48,4 @@ try {
   process.exit(1);
 }
 
-console.log(`Appended changelog entry for ${repoName ?? 'repo'} v${version}.`);
+console.log(`Appended changelog entry for ${repository || 'repo'} v${version}.`);

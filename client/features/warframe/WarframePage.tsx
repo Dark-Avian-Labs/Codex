@@ -1236,9 +1236,8 @@ export function WarframePage() {
                                     currentWorksheetName === 'Warframes';
                                   const interactive =
                                     relevant && !lockedOrokinAuto && !lockedWarframeArcaneAuto;
-                                  const lockedOrokinPrimeAuto = lockedOrokinAuto;
                                   const lockedActive =
-                                    lockedOrokinPrimeAuto || (lockedWarframeArcaneAuto && checked);
+                                    lockedOrokinAuto || (lockedWarframeArcaneAuto && checked);
                                   const key = isPrime ? `${field}_prime` : field;
                                   return (
                                     <button

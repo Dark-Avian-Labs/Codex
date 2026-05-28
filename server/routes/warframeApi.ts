@@ -1,7 +1,6 @@
 import fs from 'fs';
 
-import { requireCodexAdmin } from '@codex/core';
-import { log } from '@codex/core';
+import { log, requireCodexAdmin } from '@codex/core';
 import { validateBody } from '@codex/core/validation';
 import {
   HELMINTH_VALUES,
