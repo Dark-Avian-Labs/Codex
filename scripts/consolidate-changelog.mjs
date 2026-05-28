@@ -1,7 +1,15 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 
 const changelogPath = 'CHANGELOG.md';
-const content = readFileSync(changelogPath, 'utf8');
+let content;
+
+try {
+  content = readFileSync(changelogPath, 'utf8');
+} catch (error) {
+  console.error(`Failed to read ${changelogPath}: ${error.message}`);
+  process.exit(1);
+}
+
 const lines = content.split(/\r?\n/);
 
 const headerEnd = lines.findIndex((line) => line.startsWith('## Pull requests'));
@@ -24,10 +32,10 @@ const header = [
   '- `chore`: initial Codex release, dependency bumps, CSRF/rate-limit hardening, and Express/TS setup before the first `Merge pull request` on this line',
 ];
 const entryRe =
-  /^- \*\*v[^*]+\*\* `([^`]+)` \[#(\d+)\]\((https:\/\/github\.com\/Dark-Avian-Labs\/Codex\/pull\/\d+)\): (.+)$/;
+  /^- `([^`]+)` \[#(\d+)\]\((https:\/\/github\.com\/Dark-Avian-Labs\/Codex\/pull\/\d+)\): (.+)$/;
 const backfillLines = lines
   .slice(headerEnd + 1, autoStart)
-  .filter((line) => line.startsWith('- **v'));
+  .filter((line) => line.startsWith('- `'));
 const autoLines = lines.slice(autoStart).filter((line) => line.startsWith('- **v'));
 
 const seen = new Set();
@@ -48,11 +56,10 @@ for (const line of backfillLines) {
   seen.add(pr);
   deduped.push(`- \`${typeLabel}\` [#${pr}](${url}): ${description}`);
 }
-
 const output = [
   ...header,
   '',
-  '## Pull requests (backfill, PR #1–#211)',
+  '## Pull requests (backfill, PR #1-#211)',
   '',
   'One line per merged PR. SemVer tags from this period were reconstructed and are not listed here because release tags outnumbered PRs and reused the same PR links.',
   '',
@@ -66,7 +73,13 @@ const output = [
   '',
 ].join('\n');
 
-writeFileSync(changelogPath, output);
+try {
+  writeFileSync(changelogPath, output);
+} catch (error) {
+  console.error(`Failed to write ${changelogPath}: ${error.message}`);
+  process.exit(1);
+}
+
 console.log(
   `Consolidated CHANGELOG: ${backfillLines.length} backfill lines -> ${deduped.length} unique PRs; kept ${autoLines.length} automated release lines.`,
 );
