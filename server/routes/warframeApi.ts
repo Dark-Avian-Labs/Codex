@@ -203,22 +203,6 @@ warframeApiRouter.patch('/settings', (req, res) => {
     if (!db) return;
     try {
       ensureWarframeUserSettingsTable(db);
-      const readSetting = (key: string): boolean => {
-        const row = db
-          .prepare(
-            `SELECT setting_value FROM user_settings WHERE clerk_user_id = ? AND setting_key = ?`,
-          )
-          .get(clerkUserId, key) as { setting_value: string } | undefined;
-        return row?.setting_value === '1';
-      };
-      let hideCompleted = readSetting(SETTING_HIDE_COMPLETED);
-      let marketLinks = readSetting(SETTING_MARKET_LINKS);
-      let advancedMode = readSetting(SETTING_ADVANCED_MODE);
-      let showAllVariants = readSetting(SETTING_SHOW_ALL_VARIANTS);
-      if (hideProvided) hideCompleted = req.body.hide_completed as boolean;
-      if (marketProvided) marketLinks = req.body.market_links as boolean;
-      if (advancedProvided) advancedMode = req.body.advanced_mode as boolean;
-      if (showAllVariantsProvided) showAllVariants = req.body.show_all_variants as boolean;
       const upsert = db.prepare(
         `INSERT INTO user_settings (clerk_user_id, setting_key, setting_value, updated_at)
          VALUES (?, ?, ?, datetime('now'))
@@ -226,10 +210,34 @@ warframeApiRouter.patch('/settings', (req, res) => {
            setting_value = excluded.setting_value,
            updated_at = datetime('now')`,
       );
-      upsert.run(clerkUserId, SETTING_HIDE_COMPLETED, hideCompleted ? '1' : '0');
-      upsert.run(clerkUserId, SETTING_MARKET_LINKS, marketLinks ? '1' : '0');
-      upsert.run(clerkUserId, SETTING_ADVANCED_MODE, advancedMode ? '1' : '0');
-      upsert.run(clerkUserId, SETTING_SHOW_ALL_VARIANTS, showAllVariants ? '1' : '0');
+      if (hideProvided) {
+        upsert.run(
+          clerkUserId,
+          SETTING_HIDE_COMPLETED,
+          (req.body.hide_completed as boolean) ? '1' : '0',
+        );
+      }
+      if (marketProvided) {
+        upsert.run(
+          clerkUserId,
+          SETTING_MARKET_LINKS,
+          (req.body.market_links as boolean) ? '1' : '0',
+        );
+      }
+      if (advancedProvided) {
+        upsert.run(
+          clerkUserId,
+          SETTING_ADVANCED_MODE,
+          (req.body.advanced_mode as boolean) ? '1' : '0',
+        );
+      }
+      if (showAllVariantsProvided) {
+        upsert.run(
+          clerkUserId,
+          SETTING_SHOW_ALL_VARIANTS,
+          (req.body.show_all_variants as boolean) ? '1' : '0',
+        );
+      }
       res.status(200).json({ success: true });
     } catch (error) {
       console.error('Failed to save Warframe settings:', error);
