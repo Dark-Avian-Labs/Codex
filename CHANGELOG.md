@@ -2,247 +2,198 @@
 
 Notable work on `main` is summarized **by merged pull request**, one line each.
 
-Historical entries through the current release were **backfilled from merged PR titles** on GitHub (version numbers from the prior SemVer backfill). From the next release onward, CI appends new lines automatically when semantic-release bumps the version (from the merged PR title / squash commit message).
+Entries before **v1.48.15** were backfilled from merged PR titles on GitHub (one line per PR; SemVer tags from that period are omitted because they no longer map reliably to PRs). From **v1.48.15** onward, CI appends version-tagged lines automatically when semantic-release bumps the version (from the merged PR title / squash commit message).
 
 ## Early `main` (before merge commits)
 
 - `chore`: initial Codex release, dependency bumps, CSRF/rate-limit hardening, and Express/TS setup before the first `Merge pull request` on this line
 
-## Pull requests (oldest → newest)
+## Pull requests (backfill, PR #1–#211)
 
-- **v1.0.1** `chore(deps-dev)` [#3](https://github.com/Dark-Avian-Labs/Codex/pull/3): bump @eslint/js from 9.39.2 to 10.0.1
-- **v1.0.2** `chore(deps-dev)` [#2](https://github.com/Dark-Avian-Labs/Codex/pull/2): bump eslint from 9.39.2 to 10.0.0
-- **v1.0.3** `chore(deps-dev)` [#1](https://github.com/Dark-Avian-Labs/Codex/pull/1): bump @types/node from 25.2.0 to 25.2.2 in the development-dependencies group
-- **v1.0.4** `chore` [#4](https://github.com/Dark-Avian-Labs/Codex/pull/4): Feat tailwind css
-- **v1.0.5** `chore` [#5](https://github.com/Dark-Avian-Labs/Codex/pull/5): fix some css
-- **v1.0.6** `chore` [#6](https://github.com/Dark-Avian-Labs/Codex/pull/6): Feat adding vite, zod and vitest
-- **v1.0.7** `style` [#7](https://github.com/Dark-Avian-Labs/Codex/pull/7): add table-layout fixed to improve table rendering in input.css
-- **v1.1.0** `fix` [#8](https://github.com/Dark-Avian-Labs/Codex/pull/8): update loading message colspan in tables for better responsivene…
-- **v1.1.1** `chore` [#9](https://github.com/Dark-Avian-Labs/Codex/pull/9): Feat better styling
-- **v1.1.2** `chore` [#10](https://github.com/Dark-Avian-Labs/Codex/pull/10): update ESLint configuration to use eslint-plugin-import-x and …
-- **v1.1.3** `chore` [#11](https://github.com/Dark-Avian-Labs/Codex/pull/11): update ESLint configuration to use eslint-plugin-import-x and …
-- **v1.1.4** `chore(deps-dev)` [#12](https://github.com/Dark-Avian-Labs/Codex/pull/12): bump eslint-plugin-n from 17.23.2 to 17.24.0 in the development-dependencies group
-- **v1.1.5** `chore(deps-dev)` [#13](https://github.com/Dark-Avian-Labs/Codex/pull/13): bump the development-dependencies group with 4 updates
-- **v1.1.6** `chore(deps-dev)` [#14](https://github.com/Dark-Avian-Labs/Codex/pull/14): bump eslint from 9.39.2 to 10.0.1
-- **v1.1.7** `chore(deps)` [#15](https://github.com/Dark-Avian-Labs/Codex/pull/15): update @eslint/js to version 9.39.3 and rollup packages …
-- **v1.1.8** `chore(deps-dev)` [#1](https://github.com/Dark-Avian-Labs/Codex/pull/1): bump @types/node from 25.2.0 to 25.2.2 in the development-dependencies group
-- **v1.1.9** `chore(deps-dev)` [#2](https://github.com/Dark-Avian-Labs/Codex/pull/2): bump eslint from 9.39.2 to 10.0.0
-- **v1.1.10** `chore(deps-dev)` [#3](https://github.com/Dark-Avian-Labs/Codex/pull/3): bump @eslint/js from 9.39.2 to 10.0.1
-- **v1.1.11** `chore` [#4](https://github.com/Dark-Avian-Labs/Codex/pull/4): Feat tailwind css
-- **v1.1.12** `chore` [#5](https://github.com/Dark-Avian-Labs/Codex/pull/5): fix some css
-- **v1.1.13** `chore` [#6](https://github.com/Dark-Avian-Labs/Codex/pull/6): Feat adding vite, zod and vitest
-- **v1.1.14** `style` [#7](https://github.com/Dark-Avian-Labs/Codex/pull/7): add table-layout fixed to improve table rendering in input.css
-- **v1.1.15** `fix` [#8](https://github.com/Dark-Avian-Labs/Codex/pull/8): update loading message colspan in tables for better responsivene…
-- **v1.1.16** `chore` [#9](https://github.com/Dark-Avian-Labs/Codex/pull/9): Feat better styling
-- **v1.1.17** `chore` [#10](https://github.com/Dark-Avian-Labs/Codex/pull/10): update ESLint configuration to use eslint-plugin-import-x and …
-- **v1.1.18** `chore` [#11](https://github.com/Dark-Avian-Labs/Codex/pull/11): update ESLint configuration to use eslint-plugin-import-x and …
-- **v1.1.19** `chore(deps-dev)` [#16](https://github.com/Dark-Avian-Labs/Codex/pull/16): bump eslint from 9.39.3 to 10.0.2
-- **v1.1.20** `chore(deps-dev)` [#12](https://github.com/Dark-Avian-Labs/Codex/pull/12): bump eslint-plugin-n from 17.23.2 to 17.24.0 in the development-dependencies group
-- **v1.1.21** `feat(auth)` [#17](https://github.com/Dark-Avian-Labs/Codex/pull/17): enhance authentication middleware and public base URL handling
-- **v1.1.22** `chore` [#18](https://github.com/Dark-Avian-Labs/Codex/pull/18): .github/workflows: Migrate workflows to Blacksmith runners
-- **v1.1.23** `chore(workflows)` [#19](https://github.com/Dark-Avian-Labs/Codex/pull/19): update runner type to 2vCPU for formatting, linting, and testing jobs
-- **v1.1.24** `feat(config)` [#20](https://github.com/Dark-Avian-Labs/Codex/pull/20): update authentication service URL and theme cookie domain
-- **v1.2.0** `chore(deps-dev)` [#13](https://github.com/Dark-Avian-Labs/Codex/pull/13): bump the development-dependencies group with 4 updates
-- **v1.2.1** `feat(password-change)` [#21](https://github.com/Dark-Avian-Labs/Codex/pull/21): add change password functionality and links
-- **v1.2.2** `chore(deps-dev)` [#14](https://github.com/Dark-Avian-Labs/Codex/pull/14): bump eslint from 9.39.2 to 10.0.1
-- **v1.2.3** `chore` [#22](https://github.com/Dark-Avian-Labs/Codex/pull/22): Migration--Scaffolding-base
-- **v1.2.4** `chore` [#23](https://github.com/Dark-Avian-Labs/Codex/pull/23): fix env and deploy
-- **v1.2.5** `chore(deps)` [#15](https://github.com/Dark-Avian-Labs/Codex/pull/15): update @eslint/js to version 9.39.3 and rollup packages …
-- **v1.2.6** `chore(deps-dev)` [#16](https://github.com/Dark-Avian-Labs/Codex/pull/16): bump eslint from 9.39.3 to 10.0.2
-- **v1.2.7** `chore` [#24](https://github.com/Dark-Avian-Labs/Codex/pull/24): more auth and env fixes
-- **v1.2.8** `fix` [#25](https://github.com/Dark-Avian-Labs/Codex/pull/25): profile icons and missed stuff
-- **v1.2.9** `feat(auth)` [#17](https://github.com/Dark-Avian-Labs/Codex/pull/17): enhance authentication middleware and public base URL handling
-- **v1.3.0** `fix` [#26](https://github.com/Dark-Avian-Labs/Codex/pull/26): more fixes missed by migration
-- **v1.4.0** `chore` [#18](https://github.com/Dark-Avian-Labs/Codex/pull/18): .github/workflows: Migrate workflows to Blacksmith runners
-- **v1.4.1** `feat` [#27](https://github.com/Dark-Avian-Labs/Codex/pull/27): enhance layout and epic7/warframe pages with new context and improved state management
-- **v1.4.2** `chore(workflows)` [#19](https://github.com/Dark-Avian-Labs/Codex/pull/19): update runner type to 2vCPU for formatting, linting, and testing jobs
-- **v1.4.3** `feat(config)` [#20](https://github.com/Dark-Avian-Labs/Codex/pull/20): update authentication service URL and theme cookie domain
-- **v1.4.4** `fix` [#28](https://github.com/Dark-Avian-Labs/Codex/pull/28): more stuff missed at migration
-- **v1.4.5** `chore` [#29](https://github.com/Dark-Avian-Labs/Codex/pull/29): Feat--add-db-import-from-parametric
-- **v1.4.6** `feat(password-change)` [#21](https://github.com/Dark-Avian-Labs/Codex/pull/21): add change password functionality and links
-- **v1.4.7** `chore` [#22](https://github.com/Dark-Avian-Labs/Codex/pull/22): Migration--Scaffolding-base
-- **v1.4.8** `fix` [#30](https://github.com/Dark-Avian-Labs/Codex/pull/30): small styling fixes
-- **v1.4.9** `chore` [#23](https://github.com/Dark-Avian-Labs/Codex/pull/23): fix env and deploy
-- **v1.5.0** `feat` [#31](https://github.com/Dark-Avian-Labs/Codex/pull/31): enhance WarframeAdminPage with cleanup functionality and state management for deleted items
-- **v1.5.1** `chore` [#32](https://github.com/Dark-Avian-Labs/Codex/pull/32): created dev branch
-- **v1.5.2** `chore` [#33](https://github.com/Dark-Avian-Labs/Codex/pull/33): Cleanup pass
-- **v1.5.3** `chore` [#24](https://github.com/Dark-Avian-Labs/Codex/pull/24): more auth and env fixes
-- **v1.5.4** `chore(deps-dev)` [#34](https://github.com/Dark-Avian-Labs/Codex/pull/34): bump @types/node from 25.3.2 to 25.3.3 in the development-dependencies group
-- **v1.5.5** `fix` [#35](https://github.com/Dark-Avian-Labs/Codex/pull/35): logout
-- **v1.5.6** `chore` [#36](https://github.com/Dark-Avian-Labs/Codex/pull/36): update CI workflows to use environment variables for SSH configuration
-- **v1.5.7** `fix` [#37](https://github.com/Dark-Avian-Labs/Codex/pull/37): styling, counting
-- **v1.5.8** `chore` [#4](https://github.com/Dark-Avian-Labs/Codex/pull/4): Feat tailwind css
-- **v1.5.9** `chore` [#5](https://github.com/Dark-Avian-Labs/Codex/pull/5): fix some css
-- **v1.5.10** `chore` [#6](https://github.com/Dark-Avian-Labs/Codex/pull/6): Feat adding vite, zod and vitest
-- **v1.5.11** `style` [#7](https://github.com/Dark-Avian-Labs/Codex/pull/7): add table-layout fixed to improve table rendering in input.css
-- **v1.5.12** `fix` [#8](https://github.com/Dark-Avian-Labs/Codex/pull/8): update loading message colspan in tables for better responsivene…
-- **v1.5.13** `chore` [#9](https://github.com/Dark-Avian-Labs/Codex/pull/9): Feat better styling
-- **v1.5.14** `chore` [#10](https://github.com/Dark-Avian-Labs/Codex/pull/10): update ESLint configuration to use eslint-plugin-import-x and …
-- **v1.5.15** `chore` [#11](https://github.com/Dark-Avian-Labs/Codex/pull/11): update ESLint configuration to use eslint-plugin-import-x and …
-- **v1.5.16** `chore(deps-dev)` [#12](https://github.com/Dark-Avian-Labs/Codex/pull/12): bump eslint-plugin-n from 17.23.2 to 17.24.0 in the development-dependencies group
-- **v1.5.17** `chore(deps-dev)` [#13](https://github.com/Dark-Avian-Labs/Codex/pull/13): bump the development-dependencies group with 4 updates
-- **v1.5.18** `chore(deps)` [#15](https://github.com/Dark-Avian-Labs/Codex/pull/15): update @eslint/js to version 9.39.3 and rollup packages …
-- **v1.5.19** `feat(auth)` [#17](https://github.com/Dark-Avian-Labs/Codex/pull/17): enhance authentication middleware and public base URL handling
-- **v1.5.20** `chore` [#18](https://github.com/Dark-Avian-Labs/Codex/pull/18): .github/workflows: Migrate workflows to Blacksmith runners
-- **v1.5.21** `chore(workflows)` [#19](https://github.com/Dark-Avian-Labs/Codex/pull/19): update runner type to 2vCPU for formatting, linting, and testing jobs
-- **v1.6.0** `feat(config)` [#20](https://github.com/Dark-Avian-Labs/Codex/pull/20): update authentication service URL and theme cookie domain
-- **v1.7.0** `feat(password-change)` [#21](https://github.com/Dark-Avian-Labs/Codex/pull/21): add change password functionality and links
-- **v1.8.0** `chore` [#22](https://github.com/Dark-Avian-Labs/Codex/pull/22): Migration--Scaffolding-base
-- **v1.8.1** `chore` [#23](https://github.com/Dark-Avian-Labs/Codex/pull/23): fix env and deploy
-- **v1.8.2** `chore` [#24](https://github.com/Dark-Avian-Labs/Codex/pull/24): more auth and env fixes
-- **v1.8.3** `fix` [#25](https://github.com/Dark-Avian-Labs/Codex/pull/25): profile icons and missed stuff
-- **v1.8.4** `fix` [#26](https://github.com/Dark-Avian-Labs/Codex/pull/26): more fixes missed by migration
-- **v1.8.5** `feat` [#27](https://github.com/Dark-Avian-Labs/Codex/pull/27): enhance layout and epic7/warframe pages with new context and improved state management
-- **v1.8.6** `fix` [#28](https://github.com/Dark-Avian-Labs/Codex/pull/28): more stuff missed at migration
-- **v1.9.0** `chore` [#29](https://github.com/Dark-Avian-Labs/Codex/pull/29): Feat--add-db-import-from-parametric
-- **v1.9.1** `fix` [#30](https://github.com/Dark-Avian-Labs/Codex/pull/30): small styling fixes
-- **v1.9.2** `feat` [#31](https://github.com/Dark-Avian-Labs/Codex/pull/31): enhance WarframeAdminPage with cleanup functionality and state management for deleted items
-- **v1.9.3** `chore` [#32](https://github.com/Dark-Avian-Labs/Codex/pull/32): created dev branch
-- **v1.9.4** `chore` [#33](https://github.com/Dark-Avian-Labs/Codex/pull/33): Cleanup pass
-- **v1.9.5** `chore(deps-dev)` [#34](https://github.com/Dark-Avian-Labs/Codex/pull/34): bump @types/node from 25.3.2 to 25.3.3 in the development-dependencies group
-- **v1.9.6** `fix` [#35](https://github.com/Dark-Avian-Labs/Codex/pull/35): logout
-- **v1.9.7** `chore` [#36](https://github.com/Dark-Avian-Labs/Codex/pull/36): update CI workflows to use environment variables for SSH configuration
-- **v1.9.8** `fix` [#37](https://github.com/Dark-Avian-Labs/Codex/pull/37): styling, counting
-- **v1.9.9** `feat` [#38](https://github.com/Dark-Avian-Labs/Codex/pull/38): enhance epic7 account select styling and add backdrop blur effect for improved UI
-- **v1.9.10** `feat` [#39](https://github.com/Dark-Avian-Labs/Codex/pull/39): add id to epic7 account select and update CSS selectors for improved styling consistency
-- **v1.9.11** `feat` [#40](https://github.com/Dark-Avian-Labs/Codex/pull/40): implement modal open state management and CSS enhancements for improved user experience
-- **v1.9.12** `feat` [#41](https://github.com/Dark-Avian-Labs/Codex/pull/41): add color-scheme support for light and dark themes in input CSS, enhancing visual consistency
-- **v1.9.13** `feat` [#42](https://github.com/Dark-Avian-Labs/Codex/pull/42): replace select dropdown with button-based account selector in Epic7Page for improved accessibility and user experience
-- **v1.9.14** `chore` [#43](https://github.com/Dark-Avian-Labs/Codex/pull/43): Feat--coderabbit-audit
-- **v1.9.15** `chore` [#44](https://github.com/Dark-Avian-Labs/Codex/pull/44): small fixes
-- **v1.9.16** `chore` [#45](https://github.com/Dark-Avian-Labs/Codex/pull/45): Enhance search functionality in WarframePage by trimming input and allowing visibility of completed rows when searching.
-- **v1.10.0** `chore` [#47](https://github.com/Dark-Avian-Labs/Codex/pull/47): Refactor checkbox label in WarframePage for improved styling and accessibility
-- **v1.11.0** `chore` [#48](https://github.com/Dark-Avian-Labs/Codex/pull/48): Refactor WarframePage to replace checkbox with button for toggling "Hide completed" functionality and add styling for completed rows
-- **v1.12.0** `chore` [#49](https://github.com/Dark-Avian-Labs/Codex/pull/49): Enhance WarframePage to track 'obtained' status in item statistics, updating data structure and UI to reflect new metric. v-
-- **v1.12.1** `chore` [#50](https://github.com/Dark-Avian-Labs/Codex/pull/50): Update WarframePage to conditionally render 'obtained' statistic only when greater than zero, improving UI clarity.
-- **v1.13.0** `chore` [#51](https://github.com/Dark-Avian-Labs/Codex/pull/51): Feat--completed-animation
-- **v1.14.0** `chore` [#52](https://github.com/Dark-Avian-Labs/Codex/pull/52): Update input.css to adjust exit animation translation and modify animation timing function for improved visual effect on Warframe rows.
-- **v1.14.1** `chore` [#53](https://github.com/Dark-Avian-Labs/Codex/pull/53): Update SQL queries in warframeSync.ts to filter out weapons with null or empty slots, ensuring only valid entries are loaded for each category.
-- **v1.15.0** `chore` [#54](https://github.com/Dark-Avian-Labs/Codex/pull/54): Add validation script to package.json and remove comment from schema.ts
-- **v1.15.1** `fix` [#55](https://github.com/Dark-Avian-Labs/Codex/pull/55): vite_env
-- **v1.15.2** `fix` [#56](https://github.com/Dark-Avian-Labs/Codex/pull/56): updated express-rate-limit
-- **v1.16.0** `chore` [#57](https://github.com/Dark-Avian-Labs/Codex/pull/57): Feat--rate-limiting-modal
-- **v1.17.0** `chore` [#60](https://github.com/Dark-Avian-Labs/Codex/pull/60): update package versions to 3.1.0 and clean up dependencies
-- **v1.17.1** `chore` [#61](https://github.com/Dark-Avian-Labs/Codex/pull/61): keep only main components, remove the rest
-- **v1.18.0** `feat` [#62](https://github.com/Dark-Avian-Labs/Codex/pull/62): add Companions category to admin and user interfaces
-- **v1.19.0** `feat` [#63](https://github.com/Dark-Avian-Labs/Codex/pull/63): add 'Companion Weapons' category to admin and user interfaces
-- **v1.19.1** `feat` [#64](https://github.com/Dark-Avian-Labs/Codex/pull/64): enhance Warframe sync logic for special prime variants
-- **v1.20.0** `refactor` [#65](https://github.com/Dark-Avian-Labs/Codex/pull/65): update brand title logic in Layout component and enhance CSS styles
-- **v1.21.0** `refactor` [#66](https://github.com/Dark-Avian-Labs/Codex/pull/66): simplify base title logic in Layout component
-- **v1.21.1** `chore` [#67](https://github.com/Dark-Avian-Labs/Codex/pull/67): updating deploy script to use SSH port config value
-- **v1.22.0** `chore` [#68](https://github.com/Dark-Avian-Labs/Codex/pull/68): Feat--add-dotenvx
-- **v1.22.1** `chore` [#69](https://github.com/Dark-Avian-Labs/Codex/pull/69): Fix--auth-loop
-- **v1.22.2** `chore` [#72](https://github.com/Dark-Avian-Labs/Codex/pull/72): update package dependencies for improved stability
-- **v1.22.3** `chore` [#73](https://github.com/Dark-Avian-Labs/Codex/pull/73): update version and improve environment file resolution
-- **v1.23.0** `chore` [#74](https://github.com/Dark-Avian-Labs/Codex/pull/74): Feat--upgrade-to-vite8,-oxlint,-oxfmt
-- **v1.24.0** `chore` [#75](https://github.com/Dark-Avian-Labs/Codex/pull/75): migrate project to pnpm and update workflows
-- **v1.24.1** `chore` [#76](https://github.com/Dark-Avian-Labs/Codex/pull/76): add better-sqlite3-session-store dependency
-- **v1.24.2** `chore` [#77](https://github.com/Dark-Avian-Labs/Codex/pull/77): reorganize dependency overrides in package.json and pnpm-lock.yaml
-- **v1.24.3** `chore` [#78](https://github.com/Dark-Avian-Labs/Codex/pull/78): Chore--update-readme
-- **v1.24.4** `chore` [#79](https://github.com/Dark-Avian-Labs/Codex/pull/79): Fix for Useless conditional
-- **v1.24.5** `chore` [#80](https://github.com/Dark-Avian-Labs/Codex/pull/80): Potential fix for 1 code quality finding
-- **v1.24.6** `chore` [#81](https://github.com/Dark-Avian-Labs/Codex/pull/81): Refactor warning regex patterns in run-quality-checks.mjs
-- **v1.24.7** `chore` [#84](https://github.com/Dark-Avian-Labs/Codex/pull/84): Chore--dependency-updates-and-vscode-fixes
-- **v1.24.8** `chore` [#85](https://github.com/Dark-Avian-Labs/Codex/pull/85): update pnpm action version in workflow files
-- **v1.24.9** `chore` [#86](https://github.com/Dark-Avian-Labs/Codex/pull/86): update testing configuration and refactor environment setup
-- **v1.24.10** `chore(deps)` [#83](https://github.com/Dark-Avian-Labs/Codex/pull/83): bump @dotenvx/dotenvx from 1.56.0 to 1.57.2 in the production-dependencies group
-- **v1.25.0** `chore` [#87](https://github.com/Dark-Avian-Labs/Codex/pull/87): Feat--add-better-sync-reporting
-- **v1.25.1** `chore(deps)` [#88](https://github.com/Dark-Avian-Labs/Codex/pull/88): update @dotenvx/dotenvx, vite, and vitest versions
-- **v1.26.0** `chore` [#89](https://github.com/Dark-Avian-Labs/Codex/pull/89): Feat--add-theme-support
-- **v1.26.1** `refactor` [#90](https://github.com/Dark-Avian-Labs/Codex/pull/90): remove ThemeRadioGroup component and streamline layout theme handling
-- **v1.26.2** `refactor` [#91](https://github.com/Dark-Avian-Labs/Codex/pull/91): enhance theme context initialization and cookie handling
-- **v1.26.3** `refactor` [#92](https://github.com/Dark-Avian-Labs/Codex/pull/92): simplify theme context initialization and cookie handling
-- **v1.27.0** `refactor` [#93](https://github.com/Dark-Avian-Labs/Codex/pull/93): enhance theme handling and UI accessibility
-- **v1.27.1** `style` [#94](https://github.com/Dark-Avian-Labs/Codex/pull/94): add horizontal overflow hidden to table-scroll for improved layout
-- **v1.27.2** `chore(deps)` [#95](https://github.com/Dark-Avian-Labs/Codex/pull/95): bump @dotenvx/dotenvx from 1.58.0 to 1.59.1 in the production-dependencies group
-- **v1.27.3** `chore` [#96](https://github.com/Dark-Avian-Labs/Codex/pull/96): update package manager to pnpm@10.33.0 and adjust Dependabot schedules to daily
-- **v1.27.4** `ci(deps)` [#97](https://github.com/Dark-Avian-Labs/Codex/pull/97): bump actions/cache from 4 to 5
-- **v1.27.5** `chore` [#98](https://github.com/Dark-Avian-Labs/Codex/pull/98): migrate dependencies to catalog format in package.json and pnpm-lock.yaml
-- **v1.27.6** `fix` [#99](https://github.com/Dark-Avian-Labs/Codex/pull/99): GH runners
-- **v1.27.7** `ci` [#100](https://github.com/Dark-Avian-Labs/Codex/pull/100): update deployment process to include pnpm-workspace.yaml and sync packages
-- **v1.27.8** `refactor` [#101](https://github.com/Dark-Avian-Labs/Codex/pull/101): replace inline theme initialization script with external theme-init.js
-- **v1.27.9** `ci` [#102](https://github.com/Dark-Avian-Labs/Codex/pull/102): expand workflow triggers and enhance deployment script
-- **v1.28.0** `chore` [#106](https://github.com/Dark-Avian-Labs/Codex/pull/106): update dependencies and enhance deployment scripts
-- **v1.28.1** `chore` [#108](https://github.com/Dark-Avian-Labs/Codex/pull/108): update oxfmt package version to 0.43.0 in pnpm-lock.yaml and pnpm-workspace.yaml
-- **v1.28.2** `refactor` [#109](https://github.com/Dark-Avian-Labs/Codex/pull/109): improve button variant handling and enhance authentication logic
-- **v1.28.3** `refactor` [#110](https://github.com/Dark-Avian-Labs/Codex/pull/110): remove unnecessary comment from vitest configuration
-- **v1.28.4** `chore` [#112](https://github.com/Dark-Avian-Labs/Codex/pull/112): update package versions in pnpm-lock.yaml and pnpm-workspace.yaml
-- **v1.28.5** `chore` [#113](https://github.com/Dark-Avian-Labs/Codex/pull/113): update '@dotenvx/dotenvx' to version 1.60.0 in pnpm-lock.yaml
-- **v1.28.6** `test` [#114](https://github.com/Dark-Avian-Labs/Codex/pull/114): enhance getAppPublicBaseUrl tests with specific error messages and add support for non-https URLs in development
-- **v1.28.7** `refactor` [#115](https://github.com/Dark-Avian-Labs/Codex/pull/115): simplify environment variable restoration in tests
-- **v1.28.8** `chore` [#118](https://github.com/Dark-Avian-Labs/Codex/pull/118): update package versions in pnpm-lock.yaml and pnpm-workspace.yaml
-- **v1.28.9** `chore` [#120](https://github.com/Dark-Avian-Labs/Codex/pull/120): Enhance CI workflow with detailed deployment reasoning and debug output
-- **v1.28.10** `chore` [#121](https://github.com/Dark-Avian-Labs/Codex/pull/121): clean up CI script and remove unused comments in CSS and TypeScript files
-- **v1.28.11** `chore` [#122](https://github.com/Dark-Avian-Labs/Codex/pull/122): update React and related package versions in pnpm-lock.yaml and pnpm-workspace.yaml
-- **v1.28.12** `chore` [#123](https://github.com/Dark-Avian-Labs/Codex/pull/123): upgrade oxfmt package to version 0.44.0 in pnpm-lock.yaml and pnpm-workspace.yaml
-- **v1.28.13** `chore` [#126](https://github.com/Dark-Avian-Labs/Codex/pull/126): update package versions in pnpm-lock.yaml and pnpm-workspace.yaml
-- **v1.28.14** `ci(deps)` [#127](https://github.com/Dark-Avian-Labs/Codex/pull/127): bump pnpm/action-setup from 5 to 6
-- **v1.29.0** `chore` [#128](https://github.com/Dark-Avian-Labs/Codex/pull/128): Feat--updated-CI/CD-and-Validation-workflow
-- **v1.29.1** `chore(deps)` [#129](https://github.com/Dark-Avian-Labs/Codex/pull/129): bump react-router-dom from 7.14.0 to 7.14.1 in the production-dependencies group
-- **v1.29.2** `chore(deps)` [#130](https://github.com/Dark-Avian-Labs/Codex/pull/130): add react-router-dom version 7.14.1 to pnpm-lock.yaml
-- **v1.29.3** `chore(deps)` [#131](https://github.com/Dark-Avian-Labs/Codex/pull/131): update pnpm and related packages to version 10.33.0 in pnpm-lock.yaml
-- **v1.29.4** `chore(deps)` [#132](https://github.com/Dark-Avian-Labs/Codex/pull/132): remove unnecessary entries from pnpm-lock.yaml
-- **v1.29.5** `chore(deps)` [#133](https://github.com/Dark-Avian-Labs/Codex/pull/133): update pnpm-lock.yaml to version 10.33.0 and adjust file exclusions in .oxfmtrc.json
-- **v1.29.6** `chore` [#134](https://github.com/Dark-Avian-Labs/Codex/pull/134): Chore--update-pnpm
-- **v1.29.7** `refactor(schema)` [#135](https://github.com/Dark-Avian-Labs/Codex/pull/135): remove user password hash migration from central schema creation
-- **v1.29.8** `chore(deps)` [#136](https://github.com/Dark-Avian-Labs/Codex/pull/136): add Geist and Geist Mono font packages to project
-- **v1.29.9** `refactor(legal)` [#137](https://github.com/Dark-Avian-Labs/Codex/pull/137): update legal page URL and implement redirect
-- **v1.30.0** `refactor` [#138](https://github.com/Dark-Avian-Labs/Codex/pull/138): rename project from Corpus to Codex
-- **v1.30.1** `chore` [#139](https://github.com/Dark-Avian-Labs/Codex/pull/139): update version to 3.3.0 in package.json
-- **v1.30.2** `chore` [#140](https://github.com/Dark-Avian-Labs/Codex/pull/140): bump version to 3.3.0 in package.json for core and game modules
-- **v1.30.3** `chore` [#141](https://github.com/Dark-Avian-Labs/Codex/pull/141): update dependencies in pnpm-lock.yaml and pnpm-workspace.yaml to latest versions
-- **v1.30.4** `chore` [#142](https://github.com/Dark-Avian-Labs/Codex/pull/142): update license from GPL-3.0-or-later to MIT and adjust related documentation
-- **v1.31.0** `chore` [#143](https://github.com/Dark-Avian-Labs/Codex/pull/143): update CI and PR workflows to use 4 CPU runner and include pnpm-lock.yaml in CI triggers
-- **v1.31.1** `chore` [#144](https://github.com/Dark-Avian-Labs/Codex/pull/144): Chore--update-dependencies
-- **v1.32.0** `chore` [#145](https://github.com/Dark-Avian-Labs/Codex/pull/145): update pnpm to version 11.0.0 and adjust package specifications in package.json and pnpm-lock.yaml
-- **v1.33.0** `chore` [#146](https://github.com/Dark-Avian-Labs/Codex/pull/146): update pnpm-lock.yaml to version 9.0, add new package specifications, and modify CI workflows to use custom checkout action
-- **v1.34.0** `chore` [#147](https://github.com/Dark-Avian-Labs/Codex/pull/147): update package versions in pnpm-lock.yaml and pnpm-workspace.yaml to 1.64.0 for @dotenvx/dotenvx, 0.47.0 for oxfmt, and 1.62.0 for oxlint; add Discord status reporting to CI workflow
-- **v1.35.0** `chore` [#148](https://github.com/Dark-Avian-Labs/Codex/pull/148): bump version to 3.4.0 in package.json and update zod dependency to 4.4.1 in pnpm-lock.yaml and pnpm-workspace.yaml; add market link functionality in WarframePage and related database schema updates
-- **v1.35.1** `feat` [#149](https://github.com/Dark-Avian-Labs/Codex/pull/149): implement market link synchronization in WarframeAdminPage and WarframePage; update related types and UI components for better user feedback
-- **v1.35.2** `feat` [#150](https://github.com/Dark-Avian-Labs/Codex/pull/150): enhance WarframePage with dual variant market link support; update database schema and UI components for improved item display and interaction
-- **v1.36.0** `feat` [#151](https://github.com/Dark-Avian-Labs/Codex/pull/151): enhance WarframeAdminPage and WarframePage with Helminth non-subsumable item handling; update status display logic and database queries for improved item management
-- **v1.37.0** `chore` [#152](https://github.com/Dark-Avian-Labs/Codex/pull/152): Feat--material-icons
-- **v1.38.0** `refactor` [#153](https://github.com/Dark-Avian-Labs/Codex/pull/153): remove unused profile icons and related avatar handling; update Layout and AuthContext to eliminate avatar dependency
-- **v1.39.0** `feat` [#155](https://github.com/Dark-Avian-Labs/Codex/pull/155): add K-Drives support to WarframeAdminPage, WarframePage, and warframeSync; update labels, order, and database queries for improved item management
-- **v1.39.1** `chore` [#157](https://github.com/Dark-Avian-Labs/Codex/pull/157): update dependencies in pnpm-lock.yaml and pnpm-workspace.yaml; bump express-rate-limit to 8.5.0 and zod to 4.4.3; update MaterialSymbol component by removing unnecessary comment
-- **v1.40.0** `chore` [#160](https://github.com/Dark-Avian-Labs/Codex/pull/160): Feat--Advanced-Details
-- **v1.40.1** `chore` [#161](https://github.com/Dark-Avian-Labs/Codex/pull/161): Fix--advanced-style
-- **v1.40.2** `feat` [#162](https://github.com/Dark-Avian-Labs/Codex/pull/162): enhance advanced progress tracking in Warframe; restructure data models to support normal and prime variants, update validation and API endpoints, and implement new handling logic in WarframePage
-- **v1.40.3** `chore` [#163](https://github.com/Dark-Avian-Labs/Codex/pull/163): update dependencies in pnpm-lock.yaml and pnpm-workspace.yaml; bump versions for dotenvx, express-rate-limit, oxfmt, oxlint, react, react-dom, and react-router-dom
-- **v1.40.4** `fix` [#165](https://github.com/Dark-Avian-Labs/Codex/pull/165): adjust column widths and enhance item name display in WarframePage; implement conditional rendering for advanced mode details
-- **v1.40.5** `fix` [#166](https://github.com/Dark-Avian-Labs/Codex/pull/166): enhance advanced toggle functionality in WarframePage; add conditional rendering for locked states and adjust column widths for improved layout
-- **v1.40.6** `feat` [#167](https://github.com/Dark-Avian-Labs/Codex/pull/167): add 'show all variants' setting in WarframePage; update API to handle new setting and adjust completion logic for advanced mode
-- **v1.40.7** `refactor` [#168](https://github.com/Dark-Avian-Labs/Codex/pull/168): update 'show all variants' button functionality in WarframePage; improve conditional rendering and styling for better user experience
-- **v1.40.8** `chore` [#169](https://github.com/Dark-Avian-Labs/Codex/pull/169): update pnpm-lock.yaml and pnpm-workspace.yaml to bump vite version to 8.0.11; update valence_percent logic in WarframePage and related validation schema
-- **v1.41.0** `chore` [#171](https://github.com/Dark-Avian-Labs/Codex/pull/171): update package.json and pnpm-lock.yaml to bump @types/node version to 25.6.1; add search input IDs for accessibility in AdminPage, WarframeAdminPage, Epic7Page, and WarframePage
-- **v1.42.0** `feat` [#172](https://github.com/Dark-Avian-Labs/Codex/pull/172): enhance advanced toggle functionality in WarframePage; add autoArcane logic and improve state handling for interactive buttons
-- **v1.43.0** `chore(ci)` [#173](https://github.com/Dark-Avian-Labs/Codex/pull/173): update package.json and pnpm-lock.yaml to add semantic-release dependencies and bump @types/node version to 25.6.2
-- **v1.44.0** `feat` [#175](https://github.com/Dark-Avian-Labs/Codex/pull/175): enhance versioning and release process; add APP_VERSION to client and server, update CI workflow conditions
-- **v1.45.0** `chore` [#178](https://github.com/Dark-Avian-Labs/Codex/pull/178): update dependencies in package.json and pnpm-lock.yaml; bump versions for @semantic-release/release-notes-generator, @fontsource-variable/material-symbols-rounded, tailwind-merge, tailwindcss, and related packages
-- **v1.45.1** `fix` [#180](https://github.com/Dark-Avian-Labs/Codex/pull/180): enhance AsciiWaveBackground styling and implement CSRF protection in server
-- **v1.45.2** `feat` [#181](https://github.com/Dark-Avian-Labs/Codex/pull/181): enhance AsciiWaveBackground with dynamic wave animation
-- **v1.45.3** `fix` [#182](https://github.com/Dark-Avian-Labs/Codex/pull/182): refine wave animation parameters in AsciiWaveBackground
-- **v1.45.4** `refactor` [#183](https://github.com/Dark-Avian-Labs/Codex/pull/183): update Warframe configuration and validation logic
-- **v1.45.5** `refactor` [#184](https://github.com/Dark-Avian-Labs/Codex/pull/184): update wave animation parameters in AsciiWaveBackground
-- **v1.46.0** `feat` [#185](https://github.com/Dark-Avian-Labs/Codex/pull/185): add Cascadia Mono font to project dependencies
-- **v1.47.0** `chore` [#187](https://github.com/Dark-Avian-Labs/Codex/pull/187): Feat--background-animation-color-overlay
-- **v1.47.1** `fix` [#189](https://github.com/Dark-Avian-Labs/Codex/pull/189): update background assets for improved visual consistency
-- **v1.47.2** `chore` [#190](https://github.com/Dark-Avian-Labs/Codex/pull/190): update package versions in pnpm-lock and pnpm-workspace
-- **v1.48.0** `feat` [#192](https://github.com/Dark-Avian-Labs/Codex/pull/192): update @types/node to version 25.7.0 and add app_roles to auth middleware
-- **v1.48.1** `chore(deps)` [#193](https://github.com/Dark-Avian-Labs/Codex/pull/193): bump better-sqlite3 from 12.9.0 to 12.10.0 in the production-dependencies group across 1 directory
-- **v1.48.2** `chore` [#194](https://github.com/Dark-Avian-Labs/Codex/pull/194): CI workflows to improve dependency handling
-- **v1.48.3** `chore` [#195](https://github.com/Dark-Avian-Labs/Codex/pull/195): update @octokit/request to version 10.0.9 and add content-type@2.0.0
-- **v1.48.4** `fix` [#196](https://github.com/Dark-Avian-Labs/Codex/pull/196): enhance display name handling and add market URL utility
-- **v1.48.5** `chore` [#198](https://github.com/Dark-Avian-Labs/Codex/pull/198): Fix--colors
-- **v1.48.6** `chore` [#199](https://github.com/Dark-Avian-Labs/Codex/pull/199): update package dependencies and improve search input accessibility
-- **v1.48.7** `chore` [#200](https://github.com/Dark-Avian-Labs/Codex/pull/200): bump version to 1.0.0 in package.json
-- **v1.48.8** `chore` [#201](https://github.com/Dark-Avian-Labs/Codex/pull/201): replace PNG assets with SVG and update icon imports
-- **v1.48.9** `chore` [#202](https://github.com/Dark-Avian-Labs/Codex/pull/202): update oxfmt and oxlint versions in pnpm-lock.yaml and pnpm-workspace.yaml
-- **v1.48.10** `chore` [#203](https://github.com/Dark-Avian-Labs/Codex/pull/203): update fontsource dependencies in pnpm-lock.yaml and pnpm-workspace.yaml
-- **v1.48.11** `chore` [#204](https://github.com/Dark-Avian-Labs/Codex/pull/204): Chore--composer-&-coderabbit-audit
-- **v1.48.12** `fix` [#205](https://github.com/Dark-Avian-Labs/Codex/pull/205): initialize dbRows for new users and enhance Warframe user provisioning
-- **v1.48.13** `fix` [#206](https://github.com/Dark-Avian-Labs/Codex/pull/206): enhance Orokin auto-completion logic for Warframe
-- **v1.48.14** `chore` [#207](https://github.com/Dark-Avian-Labs/Codex/pull/207): update CHANGELOG and enhance stale update banner styles
+One line per merged PR. SemVer tags from this period were reconstructed and are not listed here because release tags outnumbered PRs and reused the same PR links.
+
+- `chore(deps-dev)` [#3](https://github.com/Dark-Avian-Labs/Codex/pull/3): bump @eslint/js from 9.39.2 to 10.0.1
+- `chore(deps-dev)` [#2](https://github.com/Dark-Avian-Labs/Codex/pull/2): bump eslint from 9.39.2 to 10.0.0
+- `chore(deps-dev)` [#1](https://github.com/Dark-Avian-Labs/Codex/pull/1): bump @types/node from 25.2.0 to 25.2.2 in the development-dependencies group
+- `chore` [#4](https://github.com/Dark-Avian-Labs/Codex/pull/4): Feat tailwind css
+- `chore` [#5](https://github.com/Dark-Avian-Labs/Codex/pull/5): fix some css
+- `chore` [#6](https://github.com/Dark-Avian-Labs/Codex/pull/6): Feat adding vite, zod and vitest
+- `style` [#7](https://github.com/Dark-Avian-Labs/Codex/pull/7): add table-layout fixed to improve table rendering in input.css
+- `fix` [#8](https://github.com/Dark-Avian-Labs/Codex/pull/8): update loading message colspan in tables for better responsivene…
+- `chore` [#9](https://github.com/Dark-Avian-Labs/Codex/pull/9): Feat better styling
+- `chore` [#10](https://github.com/Dark-Avian-Labs/Codex/pull/10): update ESLint configuration to use eslint-plugin-import-x and …
+- `chore` [#11](https://github.com/Dark-Avian-Labs/Codex/pull/11): update ESLint configuration to use eslint-plugin-import-x and …
+- `chore(deps-dev)` [#12](https://github.com/Dark-Avian-Labs/Codex/pull/12): bump eslint-plugin-n from 17.23.2 to 17.24.0 in the development-dependencies group
+- `chore(deps-dev)` [#13](https://github.com/Dark-Avian-Labs/Codex/pull/13): bump the development-dependencies group with 4 updates
+- `chore(deps-dev)` [#14](https://github.com/Dark-Avian-Labs/Codex/pull/14): bump eslint from 9.39.2 to 10.0.1
+- `chore(deps)` [#15](https://github.com/Dark-Avian-Labs/Codex/pull/15): update @eslint/js to version 9.39.3 and rollup packages …
+- `chore(deps-dev)` [#16](https://github.com/Dark-Avian-Labs/Codex/pull/16): bump eslint from 9.39.3 to 10.0.2
+- `feat(auth)` [#17](https://github.com/Dark-Avian-Labs/Codex/pull/17): enhance authentication middleware and public base URL handling
+- `chore` [#18](https://github.com/Dark-Avian-Labs/Codex/pull/18): .github/workflows: Migrate workflows to Blacksmith runners
+- `chore(workflows)` [#19](https://github.com/Dark-Avian-Labs/Codex/pull/19): update runner type to 2vCPU for formatting, linting, and testing jobs
+- `feat(config)` [#20](https://github.com/Dark-Avian-Labs/Codex/pull/20): update authentication service URL and theme cookie domain
+- `feat(password-change)` [#21](https://github.com/Dark-Avian-Labs/Codex/pull/21): add change password functionality and links
+- `chore` [#22](https://github.com/Dark-Avian-Labs/Codex/pull/22): Migration--Scaffolding-base
+- `chore` [#23](https://github.com/Dark-Avian-Labs/Codex/pull/23): fix env and deploy
+- `chore` [#24](https://github.com/Dark-Avian-Labs/Codex/pull/24): more auth and env fixes
+- `fix` [#25](https://github.com/Dark-Avian-Labs/Codex/pull/25): profile icons and missed stuff
+- `fix` [#26](https://github.com/Dark-Avian-Labs/Codex/pull/26): more fixes missed by migration
+- `feat` [#27](https://github.com/Dark-Avian-Labs/Codex/pull/27): enhance layout and epic7/warframe pages with new context and improved state management
+- `fix` [#28](https://github.com/Dark-Avian-Labs/Codex/pull/28): more stuff missed at migration
+- `chore` [#29](https://github.com/Dark-Avian-Labs/Codex/pull/29): Feat--add-db-import-from-parametric
+- `fix` [#30](https://github.com/Dark-Avian-Labs/Codex/pull/30): small styling fixes
+- `feat` [#31](https://github.com/Dark-Avian-Labs/Codex/pull/31): enhance WarframeAdminPage with cleanup functionality and state management for deleted items
+- `chore` [#32](https://github.com/Dark-Avian-Labs/Codex/pull/32): created dev branch
+- `chore` [#33](https://github.com/Dark-Avian-Labs/Codex/pull/33): Cleanup pass
+- `chore(deps-dev)` [#34](https://github.com/Dark-Avian-Labs/Codex/pull/34): bump @types/node from 25.3.2 to 25.3.3 in the development-dependencies group
+- `fix` [#35](https://github.com/Dark-Avian-Labs/Codex/pull/35): logout
+- `chore` [#36](https://github.com/Dark-Avian-Labs/Codex/pull/36): update CI workflows to use environment variables for SSH configuration
+- `fix` [#37](https://github.com/Dark-Avian-Labs/Codex/pull/37): styling, counting
+- `feat` [#38](https://github.com/Dark-Avian-Labs/Codex/pull/38): enhance epic7 account select styling and add backdrop blur effect for improved UI
+- `feat` [#39](https://github.com/Dark-Avian-Labs/Codex/pull/39): add id to epic7 account select and update CSS selectors for improved styling consistency
+- `feat` [#40](https://github.com/Dark-Avian-Labs/Codex/pull/40): implement modal open state management and CSS enhancements for improved user experience
+- `feat` [#41](https://github.com/Dark-Avian-Labs/Codex/pull/41): add color-scheme support for light and dark themes in input CSS, enhancing visual consistency
+- `feat` [#42](https://github.com/Dark-Avian-Labs/Codex/pull/42): replace select dropdown with button-based account selector in Epic7Page for improved accessibility and user experience
+- `chore` [#43](https://github.com/Dark-Avian-Labs/Codex/pull/43): Feat--coderabbit-audit
+- `chore` [#44](https://github.com/Dark-Avian-Labs/Codex/pull/44): small fixes
+- `chore` [#45](https://github.com/Dark-Avian-Labs/Codex/pull/45): Enhance search functionality in WarframePage by trimming input and allowing visibility of completed rows when searching.
+- `chore` [#47](https://github.com/Dark-Avian-Labs/Codex/pull/47): Refactor checkbox label in WarframePage for improved styling and accessibility
+- `chore` [#48](https://github.com/Dark-Avian-Labs/Codex/pull/48): Refactor WarframePage to replace checkbox with button for toggling "Hide completed" functionality and add styling for completed rows
+- `chore` [#49](https://github.com/Dark-Avian-Labs/Codex/pull/49): Enhance WarframePage to track 'obtained' status in item statistics, updating data structure and UI to reflect new metric. v-
+- `chore` [#50](https://github.com/Dark-Avian-Labs/Codex/pull/50): Update WarframePage to conditionally render 'obtained' statistic only when greater than zero, improving UI clarity.
+- `chore` [#51](https://github.com/Dark-Avian-Labs/Codex/pull/51): Feat--completed-animation
+- `chore` [#52](https://github.com/Dark-Avian-Labs/Codex/pull/52): Update input.css to adjust exit animation translation and modify animation timing function for improved visual effect on Warframe rows.
+- `chore` [#53](https://github.com/Dark-Avian-Labs/Codex/pull/53): Update SQL queries in warframeSync.ts to filter out weapons with null or empty slots, ensuring only valid entries are loaded for each category.
+- `chore` [#54](https://github.com/Dark-Avian-Labs/Codex/pull/54): Add validation script to package.json and remove comment from schema.ts
+- `fix` [#55](https://github.com/Dark-Avian-Labs/Codex/pull/55): vite_env
+- `fix` [#56](https://github.com/Dark-Avian-Labs/Codex/pull/56): updated express-rate-limit
+- `chore` [#57](https://github.com/Dark-Avian-Labs/Codex/pull/57): Feat--rate-limiting-modal
+- `chore` [#60](https://github.com/Dark-Avian-Labs/Codex/pull/60): update package versions to 3.1.0 and clean up dependencies
+- `chore` [#61](https://github.com/Dark-Avian-Labs/Codex/pull/61): keep only main components, remove the rest
+- `feat` [#62](https://github.com/Dark-Avian-Labs/Codex/pull/62): add Companions category to admin and user interfaces
+- `feat` [#63](https://github.com/Dark-Avian-Labs/Codex/pull/63): add 'Companion Weapons' category to admin and user interfaces
+- `feat` [#64](https://github.com/Dark-Avian-Labs/Codex/pull/64): enhance Warframe sync logic for special prime variants
+- `refactor` [#65](https://github.com/Dark-Avian-Labs/Codex/pull/65): update brand title logic in Layout component and enhance CSS styles
+- `refactor` [#66](https://github.com/Dark-Avian-Labs/Codex/pull/66): simplify base title logic in Layout component
+- `chore` [#67](https://github.com/Dark-Avian-Labs/Codex/pull/67): updating deploy script to use SSH port config value
+- `chore` [#68](https://github.com/Dark-Avian-Labs/Codex/pull/68): Feat--add-dotenvx
+- `chore` [#69](https://github.com/Dark-Avian-Labs/Codex/pull/69): Fix--auth-loop
+- `chore` [#72](https://github.com/Dark-Avian-Labs/Codex/pull/72): update package dependencies for improved stability
+- `chore` [#73](https://github.com/Dark-Avian-Labs/Codex/pull/73): update version and improve environment file resolution
+- `chore` [#74](https://github.com/Dark-Avian-Labs/Codex/pull/74): Feat--upgrade-to-vite8,-oxlint,-oxfmt
+- `chore` [#75](https://github.com/Dark-Avian-Labs/Codex/pull/75): migrate project to pnpm and update workflows
+- `chore` [#76](https://github.com/Dark-Avian-Labs/Codex/pull/76): add better-sqlite3-session-store dependency
+- `chore` [#77](https://github.com/Dark-Avian-Labs/Codex/pull/77): reorganize dependency overrides in package.json and pnpm-lock.yaml
+- `chore` [#78](https://github.com/Dark-Avian-Labs/Codex/pull/78): Chore--update-readme
+- `chore` [#79](https://github.com/Dark-Avian-Labs/Codex/pull/79): Fix for Useless conditional
+- `chore` [#80](https://github.com/Dark-Avian-Labs/Codex/pull/80): Potential fix for 1 code quality finding
+- `chore` [#81](https://github.com/Dark-Avian-Labs/Codex/pull/81): Refactor warning regex patterns in run-quality-checks.mjs
+- `chore` [#84](https://github.com/Dark-Avian-Labs/Codex/pull/84): Chore--dependency-updates-and-vscode-fixes
+- `chore` [#85](https://github.com/Dark-Avian-Labs/Codex/pull/85): update pnpm action version in workflow files
+- `chore` [#86](https://github.com/Dark-Avian-Labs/Codex/pull/86): update testing configuration and refactor environment setup
+- `chore(deps)` [#83](https://github.com/Dark-Avian-Labs/Codex/pull/83): bump @dotenvx/dotenvx from 1.56.0 to 1.57.2 in the production-dependencies group
+- `chore` [#87](https://github.com/Dark-Avian-Labs/Codex/pull/87): Feat--add-better-sync-reporting
+- `chore(deps)` [#88](https://github.com/Dark-Avian-Labs/Codex/pull/88): update @dotenvx/dotenvx, vite, and vitest versions
+- `chore` [#89](https://github.com/Dark-Avian-Labs/Codex/pull/89): Feat--add-theme-support
+- `refactor` [#90](https://github.com/Dark-Avian-Labs/Codex/pull/90): remove ThemeRadioGroup component and streamline layout theme handling
+- `refactor` [#91](https://github.com/Dark-Avian-Labs/Codex/pull/91): enhance theme context initialization and cookie handling
+- `refactor` [#92](https://github.com/Dark-Avian-Labs/Codex/pull/92): simplify theme context initialization and cookie handling
+- `refactor` [#93](https://github.com/Dark-Avian-Labs/Codex/pull/93): enhance theme handling and UI accessibility
+- `style` [#94](https://github.com/Dark-Avian-Labs/Codex/pull/94): add horizontal overflow hidden to table-scroll for improved layout
+- `chore(deps)` [#95](https://github.com/Dark-Avian-Labs/Codex/pull/95): bump @dotenvx/dotenvx from 1.58.0 to 1.59.1 in the production-dependencies group
+- `chore` [#96](https://github.com/Dark-Avian-Labs/Codex/pull/96): update package manager to pnpm@10.33.0 and adjust Dependabot schedules to daily
+- `ci(deps)` [#97](https://github.com/Dark-Avian-Labs/Codex/pull/97): bump actions/cache from 4 to 5
+- `chore` [#98](https://github.com/Dark-Avian-Labs/Codex/pull/98): migrate dependencies to catalog format in package.json and pnpm-lock.yaml
+- `fix` [#99](https://github.com/Dark-Avian-Labs/Codex/pull/99): GH runners
+- `ci` [#100](https://github.com/Dark-Avian-Labs/Codex/pull/100): update deployment process to include pnpm-workspace.yaml and sync packages
+- `refactor` [#101](https://github.com/Dark-Avian-Labs/Codex/pull/101): replace inline theme initialization script with external theme-init.js
+- `ci` [#102](https://github.com/Dark-Avian-Labs/Codex/pull/102): expand workflow triggers and enhance deployment script
+- `chore` [#106](https://github.com/Dark-Avian-Labs/Codex/pull/106): update dependencies and enhance deployment scripts
+- `chore` [#108](https://github.com/Dark-Avian-Labs/Codex/pull/108): update oxfmt package version to 0.43.0 in pnpm-lock.yaml and pnpm-workspace.yaml
+- `refactor` [#109](https://github.com/Dark-Avian-Labs/Codex/pull/109): improve button variant handling and enhance authentication logic
+- `refactor` [#110](https://github.com/Dark-Avian-Labs/Codex/pull/110): remove unnecessary comment from vitest configuration
+- `chore` [#112](https://github.com/Dark-Avian-Labs/Codex/pull/112): update package versions in pnpm-lock.yaml and pnpm-workspace.yaml
+- `chore` [#113](https://github.com/Dark-Avian-Labs/Codex/pull/113): update '@dotenvx/dotenvx' to version 1.60.0 in pnpm-lock.yaml
+- `test` [#114](https://github.com/Dark-Avian-Labs/Codex/pull/114): enhance getAppPublicBaseUrl tests with specific error messages and add support for non-https URLs in development
+- `refactor` [#115](https://github.com/Dark-Avian-Labs/Codex/pull/115): simplify environment variable restoration in tests
+- `chore` [#118](https://github.com/Dark-Avian-Labs/Codex/pull/118): update package versions in pnpm-lock.yaml and pnpm-workspace.yaml
+- `chore` [#120](https://github.com/Dark-Avian-Labs/Codex/pull/120): Enhance CI workflow with detailed deployment reasoning and debug output
+- `chore` [#121](https://github.com/Dark-Avian-Labs/Codex/pull/121): clean up CI script and remove unused comments in CSS and TypeScript files
+- `chore` [#122](https://github.com/Dark-Avian-Labs/Codex/pull/122): update React and related package versions in pnpm-lock.yaml and pnpm-workspace.yaml
+- `chore` [#123](https://github.com/Dark-Avian-Labs/Codex/pull/123): upgrade oxfmt package to version 0.44.0 in pnpm-lock.yaml and pnpm-workspace.yaml
+- `chore` [#126](https://github.com/Dark-Avian-Labs/Codex/pull/126): update package versions in pnpm-lock.yaml and pnpm-workspace.yaml
+- `ci(deps)` [#127](https://github.com/Dark-Avian-Labs/Codex/pull/127): bump pnpm/action-setup from 5 to 6
+- `chore` [#128](https://github.com/Dark-Avian-Labs/Codex/pull/128): Feat--updated-CI/CD-and-Validation-workflow
+- `chore(deps)` [#129](https://github.com/Dark-Avian-Labs/Codex/pull/129): bump react-router-dom from 7.14.0 to 7.14.1 in the production-dependencies group
+- `chore(deps)` [#130](https://github.com/Dark-Avian-Labs/Codex/pull/130): add react-router-dom version 7.14.1 to pnpm-lock.yaml
+- `chore(deps)` [#131](https://github.com/Dark-Avian-Labs/Codex/pull/131): update pnpm and related packages to version 10.33.0 in pnpm-lock.yaml
+- `chore(deps)` [#132](https://github.com/Dark-Avian-Labs/Codex/pull/132): remove unnecessary entries from pnpm-lock.yaml
+- `chore(deps)` [#133](https://github.com/Dark-Avian-Labs/Codex/pull/133): update pnpm-lock.yaml to version 10.33.0 and adjust file exclusions in .oxfmtrc.json
+- `chore` [#134](https://github.com/Dark-Avian-Labs/Codex/pull/134): Chore--update-pnpm
+- `refactor(schema)` [#135](https://github.com/Dark-Avian-Labs/Codex/pull/135): remove user password hash migration from central schema creation
+- `chore(deps)` [#136](https://github.com/Dark-Avian-Labs/Codex/pull/136): add Geist and Geist Mono font packages to project
+- `refactor(legal)` [#137](https://github.com/Dark-Avian-Labs/Codex/pull/137): update legal page URL and implement redirect
+- `refactor` [#138](https://github.com/Dark-Avian-Labs/Codex/pull/138): rename project from Corpus to Codex
+- `chore` [#139](https://github.com/Dark-Avian-Labs/Codex/pull/139): update version to 3.3.0 in package.json
+- `chore` [#140](https://github.com/Dark-Avian-Labs/Codex/pull/140): bump version to 3.3.0 in package.json for core and game modules
+- `chore` [#141](https://github.com/Dark-Avian-Labs/Codex/pull/141): update dependencies in pnpm-lock.yaml and pnpm-workspace.yaml to latest versions
+- `chore` [#142](https://github.com/Dark-Avian-Labs/Codex/pull/142): update license from GPL-3.0-or-later to MIT and adjust related documentation
+- `chore` [#143](https://github.com/Dark-Avian-Labs/Codex/pull/143): update CI and PR workflows to use 4 CPU runner and include pnpm-lock.yaml in CI triggers
+- `chore` [#144](https://github.com/Dark-Avian-Labs/Codex/pull/144): Chore--update-dependencies
+- `chore` [#145](https://github.com/Dark-Avian-Labs/Codex/pull/145): update pnpm to version 11.0.0 and adjust package specifications in package.json and pnpm-lock.yaml
+- `chore` [#146](https://github.com/Dark-Avian-Labs/Codex/pull/146): update pnpm-lock.yaml to version 9.0, add new package specifications, and modify CI workflows to use custom checkout action
+- `chore` [#147](https://github.com/Dark-Avian-Labs/Codex/pull/147): update package versions in pnpm-lock.yaml and pnpm-workspace.yaml to 1.64.0 for @dotenvx/dotenvx, 0.47.0 for oxfmt, and 1.62.0 for oxlint; add Discord status reporting to CI workflow
+- `chore` [#148](https://github.com/Dark-Avian-Labs/Codex/pull/148): bump version to 3.4.0 in package.json and update zod dependency to 4.4.1 in pnpm-lock.yaml and pnpm-workspace.yaml; add market link functionality in WarframePage and related database schema updates
+- `feat` [#149](https://github.com/Dark-Avian-Labs/Codex/pull/149): implement market link synchronization in WarframeAdminPage and WarframePage; update related types and UI components for better user feedback
+- `feat` [#150](https://github.com/Dark-Avian-Labs/Codex/pull/150): enhance WarframePage with dual variant market link support; update database schema and UI components for improved item display and interaction
+- `feat` [#151](https://github.com/Dark-Avian-Labs/Codex/pull/151): enhance WarframeAdminPage and WarframePage with Helminth non-subsumable item handling; update status display logic and database queries for improved item management
+- `chore` [#152](https://github.com/Dark-Avian-Labs/Codex/pull/152): Feat--material-icons
+- `refactor` [#153](https://github.com/Dark-Avian-Labs/Codex/pull/153): remove unused profile icons and related avatar handling; update Layout and AuthContext to eliminate avatar dependency
+- `feat` [#155](https://github.com/Dark-Avian-Labs/Codex/pull/155): add K-Drives support to WarframeAdminPage, WarframePage, and warframeSync; update labels, order, and database queries for improved item management
+- `chore` [#157](https://github.com/Dark-Avian-Labs/Codex/pull/157): update dependencies in pnpm-lock.yaml and pnpm-workspace.yaml; bump express-rate-limit to 8.5.0 and zod to 4.4.3; update MaterialSymbol component by removing unnecessary comment
+- `chore` [#160](https://github.com/Dark-Avian-Labs/Codex/pull/160): Feat--Advanced-Details
+- `chore` [#161](https://github.com/Dark-Avian-Labs/Codex/pull/161): Fix--advanced-style
+- `feat` [#162](https://github.com/Dark-Avian-Labs/Codex/pull/162): enhance advanced progress tracking in Warframe; restructure data models to support normal and prime variants, update validation and API endpoints, and implement new handling logic in WarframePage
+- `chore` [#163](https://github.com/Dark-Avian-Labs/Codex/pull/163): update dependencies in pnpm-lock.yaml and pnpm-workspace.yaml; bump versions for dotenvx, express-rate-limit, oxfmt, oxlint, react, react-dom, and react-router-dom
+- `fix` [#165](https://github.com/Dark-Avian-Labs/Codex/pull/165): adjust column widths and enhance item name display in WarframePage; implement conditional rendering for advanced mode details
+- `fix` [#166](https://github.com/Dark-Avian-Labs/Codex/pull/166): enhance advanced toggle functionality in WarframePage; add conditional rendering for locked states and adjust column widths for improved layout
+- `feat` [#167](https://github.com/Dark-Avian-Labs/Codex/pull/167): add 'show all variants' setting in WarframePage; update API to handle new setting and adjust completion logic for advanced mode
+- `refactor` [#168](https://github.com/Dark-Avian-Labs/Codex/pull/168): update 'show all variants' button functionality in WarframePage; improve conditional rendering and styling for better user experience
+- `chore` [#169](https://github.com/Dark-Avian-Labs/Codex/pull/169): update pnpm-lock.yaml and pnpm-workspace.yaml to bump vite version to 8.0.11; update valence_percent logic in WarframePage and related validation schema
+- `chore` [#171](https://github.com/Dark-Avian-Labs/Codex/pull/171): update package.json and pnpm-lock.yaml to bump @types/node version to 25.6.1; add search input IDs for accessibility in AdminPage, WarframeAdminPage, Epic7Page, and WarframePage
+- `feat` [#172](https://github.com/Dark-Avian-Labs/Codex/pull/172): enhance advanced toggle functionality in WarframePage; add autoArcane logic and improve state handling for interactive buttons
+- `chore(ci)` [#173](https://github.com/Dark-Avian-Labs/Codex/pull/173): update package.json and pnpm-lock.yaml to add semantic-release dependencies and bump @types/node version to 25.6.2
+- `feat` [#175](https://github.com/Dark-Avian-Labs/Codex/pull/175): enhance versioning and release process; add APP_VERSION to client and server, update CI workflow conditions
+- `chore` [#178](https://github.com/Dark-Avian-Labs/Codex/pull/178): update dependencies in package.json and pnpm-lock.yaml; bump versions for @semantic-release/release-notes-generator, @fontsource-variable/material-symbols-rounded, tailwind-merge, tailwindcss, and related packages
+- `fix` [#180](https://github.com/Dark-Avian-Labs/Codex/pull/180): enhance AsciiWaveBackground styling and implement CSRF protection in server
+- `feat` [#181](https://github.com/Dark-Avian-Labs/Codex/pull/181): enhance AsciiWaveBackground with dynamic wave animation
+- `fix` [#182](https://github.com/Dark-Avian-Labs/Codex/pull/182): refine wave animation parameters in AsciiWaveBackground
+- `refactor` [#183](https://github.com/Dark-Avian-Labs/Codex/pull/183): update Warframe configuration and validation logic
+- `refactor` [#184](https://github.com/Dark-Avian-Labs/Codex/pull/184): update wave animation parameters in AsciiWaveBackground
+- `feat` [#185](https://github.com/Dark-Avian-Labs/Codex/pull/185): add Cascadia Mono font to project dependencies
+- `chore` [#187](https://github.com/Dark-Avian-Labs/Codex/pull/187): Feat--background-animation-color-overlay
+- `fix` [#189](https://github.com/Dark-Avian-Labs/Codex/pull/189): update background assets for improved visual consistency
+- `chore` [#190](https://github.com/Dark-Avian-Labs/Codex/pull/190): update package versions in pnpm-lock and pnpm-workspace
+- `feat` [#192](https://github.com/Dark-Avian-Labs/Codex/pull/192): update @types/node to version 25.7.0 and add app_roles to auth middleware
+- `chore(deps)` [#193](https://github.com/Dark-Avian-Labs/Codex/pull/193): bump better-sqlite3 from 12.9.0 to 12.10.0 in the production-dependencies group across 1 directory
+- `chore` [#194](https://github.com/Dark-Avian-Labs/Codex/pull/194): CI workflows to improve dependency handling
+- `chore` [#195](https://github.com/Dark-Avian-Labs/Codex/pull/195): update @octokit/request to version 10.0.9 and add content-type@2.0.0
+- `fix` [#196](https://github.com/Dark-Avian-Labs/Codex/pull/196): enhance display name handling and add market URL utility
+- `chore` [#198](https://github.com/Dark-Avian-Labs/Codex/pull/198): Fix--colors
+- `chore` [#199](https://github.com/Dark-Avian-Labs/Codex/pull/199): update package dependencies and improve search input accessibility
+- `chore` [#200](https://github.com/Dark-Avian-Labs/Codex/pull/200): bump version to 1.0.0 in package.json
+- `chore` [#201](https://github.com/Dark-Avian-Labs/Codex/pull/201): replace PNG assets with SVG and update icon imports
+- `chore` [#202](https://github.com/Dark-Avian-Labs/Codex/pull/202): update oxfmt and oxlint versions in pnpm-lock.yaml and pnpm-workspace.yaml
+- `chore` [#203](https://github.com/Dark-Avian-Labs/Codex/pull/203): update fontsource dependencies in pnpm-lock.yaml and pnpm-workspace.yaml
+- `chore` [#204](https://github.com/Dark-Avian-Labs/Codex/pull/204): Chore--composer-&-coderabbit-audit
+- `fix` [#205](https://github.com/Dark-Avian-Labs/Codex/pull/205): initialize dbRows for new users and enhance Warframe user provisioning
+- `fix` [#206](https://github.com/Dark-Avian-Labs/Codex/pull/206): enhance Orokin auto-completion logic for Warframe
+- `chore` [#207](https://github.com/Dark-Avian-Labs/Codex/pull/207): update CHANGELOG and enhance stale update banner styles
+
+## Releases (automated, v1.48.15+)
+
+Each release maps to exactly one merged PR. CI appends these lines when semantic-release bumps the version.
+
 - **v1.48.15** `chore` [#212](https://github.com/Dark-Avian-Labs/Codex/pull/212): update CI workflow with automatic changelog creation
 - **v1.49.0** `feat` [#213](https://github.com/Dark-Avian-Labs/Codex/pull/213): integrate Clerk for authentication and user management
 - **v1.49.1** `fix` [#214](https://github.com/Dark-Avian-Labs/Codex/pull/214): CSP
