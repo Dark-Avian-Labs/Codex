@@ -10,7 +10,13 @@ Codex is a table-based game collection tracker (Warframe and Epic Seven). It is 
 
 See `README.md` for standard scripts (`pnpm run build`, `pnpm start`, `pnpm run validate`, etc.).
 
-To start in development mode after building:
+To start in development mode after building (preferred when `DOTENV_PRIVATE_KEY_DEVELOPMENT` is available):
+
+```bash
+NODE_ENV=development pnpm dotenvx run -f .env.development -- node dist/server/index.js
+```
+
+Without the private key, use a plain `.env` instead:
 
 ```bash
 NODE_ENV=development node --env-file=.env dist/server/index.js
@@ -20,15 +26,16 @@ The server listens on port 3001 by default.
 
 ### Key gotchas
 
-- **Node >= 25 and pnpm >= 11 required.** Use `nvm install 25` and `npm install -g pnpm@11.1.3`.
-- **Workspace packages must be built before tests or main build.** Run `pnpm --filter @codex/core --filter @codex/game-warframe --filter @codex/game-epic7 run --if-present build` before `pnpm run test`. The full `pnpm run build` command does this automatically, but `pnpm run test` alone does not.
-- **Encrypted `.env.development` / `.env.production` files.** Create a plain `.env` from `.env.example`. Run with `node --env-file=.env` to preload env vars.
+- **Node >= 25 and pnpm >= 11 required.** Use `nvm install 25` and `npm install -g pnpm@latest-11`. The `packageManager` field in `package.json` must stay an exact version (e.g. `pnpm@11.3.0`) — Corepack does not accept dist-tags like `latest-11`.
+- **Encrypted `.env.development` / `.env.production` files.** When `DOTENV_PRIVATE_KEY_DEVELOPMENT` is set as an env var, use dotenvx to decrypt at runtime: `NODE_ENV=development pnpm dotenvx run -f .env.development -- node dist/server/index.js`. Without the private key, create a plain `.env` from `.env.example` and run with `node --env-file=.env`.
+- **Workspace packages must be built before tests or main build.** Run `pnpm --filter @codex/core --filter @codex/game-warframe --filter @codex/game-epic7 run --if-present build` before `pnpm run validate`. The full `pnpm run build` command does this automatically, but `pnpm run validate` alone does not.
 - **`SESSION_DB_PATH` and `ARMORY_DB_PATH` must be absolute paths.** `SESSION_DB_PATH` is Codex-owned (`session.db` for CSRF / Epic7 session state). `ARMORY_DB_PATH` is the read-only Armory catalog. Example: `/var/www/applications/codex/data/session.db`.
 - **Game databases must be pre-created.** The Warframe and Epic7 SQLite databases need their schemas initialized before first start. The `onOpen` callbacks in the game packages assume tables already exist. Pre-create schemas using the SQL in `packages/games/warframe/src/db/schema.ts` and `packages/games/epic7/src/db/schema.ts`.
 - **Vite build picks up encrypted `.env.production`** for `VITE_BASE_PATH`, producing garbled asset paths. Fix by rebuilding the client with: `npx vite build --mode devbuild`.
 - **Clerk keys are required in production.** Set `CLERK_SECRET_KEY` and `CLERK_PUBLISHABLE_KEY` (or `VITE_CLERK_PUBLISHABLE_KEY`). See `.env.example` for session-token metadata and admin role setup.
+- **Clerk middleware returns 500 on all routes with placeholder keys.** With `pk_test_placeholder` / `sk_test_placeholder`, the Clerk middleware throws on every request. The server still starts and listens correctly — auth-dependent endpoints just fail. This is expected in local dev without real Clerk keys.
 - **CI env template** at `.github/ci.env.development` provides a good reference for all required env vars.
-- **Tests:** `pnpm run test` and `pnpm run test:coverage` (build workspace packages first if needed). SQLite tests use `tests/helpers/sqliteTestHarness.ts`; CI fails if native bindings are missing. On Windows, Cursor agent shells prepend bundled Node 22 — `.cursor/hooks/prepend-system-node.ps1` rewrites Shell commands to prefer `C:\Program Files\nodejs`. After changing Node versions, run `pnpm rebuild better-sqlite3`.
+- **Tests:** `pnpm run validate` (build workspace packages first if needed; or `pnpm run test:coverage` for coverage). SQLite tests use `tests/helpers/sqliteTestHarness.ts`; CI fails if native bindings are missing. On Windows, Cursor agent shells prepend bundled Node 22 — `.cursor/hooks/prepend-system-node.ps1` rewrites Shell commands to prefer `C:\Program Files\nodejs`. After changing Node versions, run `pnpm rebuild better-sqlite3`.
 
 ### Cloud VM-specific notes
 
