@@ -210,3 +210,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.52.0** `feat` [#233](https://github.com/Dark-Avian-Labs/Codex/pull/233): enhanced tests
 - **v1.52.1** `chore` [#235](https://github.com/Dark-Avian-Labs/Codex/pull/235): update environment config and middleware
 - **v1.52.2** `chore` [#238](https://github.com/Dark-Avian-Labs/Codex/pull/238): dependabot/npm_and_yarn/production dependencies e2c2c17ddb
+- **v1.52.3** `chore` [#240](https://github.com/Dark-Avian-Labs/Codex/pull/240): CodeQL review
