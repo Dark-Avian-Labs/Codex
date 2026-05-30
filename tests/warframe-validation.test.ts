@@ -154,6 +154,24 @@ describe('Warframe validation schemas', () => {
       expect(updateAdvancedProgressSchema.safeParse({ row_id: 1, has_arcane: true }).success).toBe(true);
     });
 
+    it('accepts each additional optional field as a valid single-field patch', () => {
+      const singleFieldPatches = [
+        { row_id: 1, level_prime: 5 },
+        { row_id: 1, valence_percent_prime: 10 },
+        { row_id: 1, has_element: true },
+        { row_id: 1, has_element_prime: true },
+        { row_id: 1, has_orokin: true },
+        { row_id: 1, has_orokin_prime: true },
+        { row_id: 1, has_arcane_prime: true },
+        { row_id: 1, has_exilus: true },
+        { row_id: 1, has_exilus_prime: true },
+      ];
+
+      for (const patch of singleFieldPatches) {
+        expect(updateAdvancedProgressSchema.safeParse(patch).success).toBe(true);
+      }
+    });
+
     it('rejects out-of-range level', () => {
       expect(updateAdvancedProgressSchema.safeParse({ row_id: 1, level: 999 }).success).toBe(false);
     });
