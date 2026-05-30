@@ -131,6 +131,10 @@ describe('Warframe validation schemas', () => {
     it('rejects zero', () => {
       expect(deleteRowSchema.safeParse({ row_id: 0 }).success).toBe(false);
     });
+
+    it('rejects negative row_id', () => {
+      expect(deleteRowSchema.safeParse({ row_id: -1 }).success).toBe(false);
+    });
   });
 
   describe('adminUpdateSchema', () => {
