@@ -8,6 +8,23 @@ import {
   HERO_RATINGS,
 } from '../config.js';
 
+export const MAX_EPIC7_NAME_LENGTH = 255;
+export const MAX_EPIC7_ACCOUNT_NAME_LENGTH = 128;
+
+const epic7Name = z
+  .string()
+  .trim()
+  .min(1, 'Name is required.')
+  .max(MAX_EPIC7_NAME_LENGTH, `Name must be at most ${MAX_EPIC7_NAME_LENGTH} characters.`);
+const epic7AccountName = z
+  .string()
+  .trim()
+  .min(1, 'Account name is required.')
+  .max(
+    MAX_EPIC7_ACCOUNT_NAME_LENGTH,
+    `Account name must be at most ${MAX_EPIC7_ACCOUNT_NAME_LENGTH} characters.`,
+  );
+
 const heroClass = zodEnum(HERO_CLASSES);
 const artifactClass = zodEnum(ARTIFACT_CLASSES);
 const element = zodEnum(ELEMENTS);
@@ -25,7 +42,7 @@ export const updateArtifactSchema = z.object({
 });
 
 export const addHeroSchema = z.object({
-  name: z.string().trim().min(1, 'Name is required.'),
+  name: epic7Name,
   class: heroClass,
   element,
   star_rating: starRating,
@@ -33,7 +50,7 @@ export const addHeroSchema = z.object({
 });
 
 export const addArtifactSchema = z.object({
-  name: z.string().trim().min(1, 'Name is required.'),
+  name: epic7Name,
   class: artifactClass,
   star_rating: starRating,
   base_artifact_id: optionalPositiveInt.optional(),
@@ -49,7 +66,7 @@ export const deleteArtifactSchema = z.object({
 
 export const updateHeroDetailsSchema = z.object({
   hero_id: positiveInt,
-  name: z.string().trim().min(1, 'Name is required.'),
+  name: epic7Name,
   class: heroClass,
   element,
   star_rating: starRating,
@@ -57,7 +74,7 @@ export const updateHeroDetailsSchema = z.object({
 
 export const updateArtifactDetailsSchema = z.object({
   artifact_id: positiveInt,
-  name: z.string().trim().min(1, 'Name is required.'),
+  name: epic7Name,
   class: artifactClass,
   star_rating: starRating,
 });
@@ -67,12 +84,12 @@ export const switchAccountSchema = z.object({
 });
 
 export const addAccountSchema = z.object({
-  account_name: z.string().trim().min(1, 'Account name is required.'),
+  account_name: epic7AccountName,
 });
 
 export const updateAccountSchema = z.object({
   account_id: positiveInt,
-  account_name: z.string().trim().min(1, 'Account name is required.'),
+  account_name: epic7AccountName,
 });
 
 export const deleteAccountSchema = z.object({
@@ -80,14 +97,14 @@ export const deleteAccountSchema = z.object({
 });
 
 export const adminAddBaseHeroSchema = z.object({
-  name: z.string().trim().min(1, 'Name is required.'),
+  name: epic7Name,
   class: heroClass,
   element,
   star_rating: starRating,
 });
 
 export const adminAddBaseArtifactSchema = z.object({
-  name: z.string().trim().min(1, 'Name is required.'),
+  name: epic7Name,
   class: artifactClass,
   star_rating: starRating,
 });

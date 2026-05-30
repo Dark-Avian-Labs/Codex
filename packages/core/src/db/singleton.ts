@@ -3,6 +3,8 @@ import path from 'path';
 
 import Database from 'better-sqlite3';
 
+import { DEFAULT_SQLITE_PRAGMAS } from './sqlitePragmas.js';
+
 export interface DbSingletonOptions {
   pragmas?: string[];
   onOpen?: (db: Database.Database) => void;
@@ -28,6 +30,9 @@ export function createDbSingleton(dbPath: string, options?: DbSingletonOptions):
     }) as typeof db.close;
     try {
       db.pragma('foreign_keys = ON');
+      for (const p of DEFAULT_SQLITE_PRAGMAS) {
+        db.pragma(p);
+      }
       if (options?.pragmas) {
         for (const p of options.pragmas) {
           db.pragma(p);

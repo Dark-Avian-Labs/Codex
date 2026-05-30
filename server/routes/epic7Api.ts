@@ -26,21 +26,14 @@ import { Router, type Request, type Response } from 'express';
 
 import { requireClerkUserId } from '../auth/clerkUser.js';
 import { isEpic7DbAvailable } from '../epic7DbState.js';
+import {
+  clearEpic7SessionFields,
+  ensureSessionBoundToClerkUser,
+  getEpic7Session,
+  patchEpic7Session,
+} from '../session/epic7SessionBinding.js';
 
 export const epic7ApiRouter = Router();
-
-type Epic7Session = {
-  account_id?: number | null;
-  account_name?: string | null;
-};
-
-function session(req: Request): Epic7Session {
-  return req.session as Epic7Session;
-}
-
-function patchEpic7Session(req: Request, values: Partial<Epic7Session>): void {
-  Object.assign(req.session as Epic7Session, values);
-}
 
 function json(res: Response, data: object, status = 200): void {
   res.status(status).json(data);
@@ -66,13 +59,22 @@ function getDbOrFail(res: Response): ReturnType<typeof getEpic7Db> | null {
 type Epic7Database = ReturnType<typeof getEpic7Db>;
 
 function resolveAccountId(db: Epic7Database, req: Request, clerkUserId: string): number | null {
-  const fromSession = session(req).account_id;
+  ensureSessionBoundToClerkUser(req, clerkUserId);
+  const fromSession = getEpic7Session(req).account_id;
   if (typeof fromSession === 'number' && fromSession > 0) {
-    return fromSession;
+    const owned = q.getGameAccountByIdAndUser(db, fromSession, clerkUserId);
+    if (owned) {
+      return owned.id;
+    }
+    clearEpic7SessionFields(req);
   }
   const accounts = q.getUserAccountsForApi(db, clerkUserId);
   const active = accounts.find((account) => account.is_active === 1);
-  return active?.id ?? null;
+  if (active) {
+    patchEpic7Session(req, { account_id: active.id, account_name: active.account_name });
+    return active.id;
+  }
+  return null;
 }
 
 function runWithDb(res: Response, fn: (db: Epic7Database) => void | Promise<void>): void {
@@ -310,9 +312,10 @@ epic7ApiRouter.delete('/artifacts/:artifactId', (req, res) => {
 epic7ApiRouter.get('/accounts', (req, res) => {
   runWithDb(res, (db) => {
     const clerkUserId = requireClerkUserId(req);
+    ensureSessionBoundToClerkUser(req, clerkUserId);
     const accounts = q.getUserAccountsForApi(db, clerkUserId);
     const active = accounts.find((account) => account.is_active === 1);
-    const currentId = session(req).account_id ?? active?.id ?? null;
+    const currentId = getEpic7Session(req).account_id ?? active?.id ?? null;
     json(res, {
       accounts: accounts.map((account) => ({
         id: account.id,
@@ -392,7 +395,7 @@ epic7ApiRouter.patch('/accounts/:accountId', (req, res) => {
       err(res, 'Failed to update account name.');
       return;
     }
-    if (session(req).account_id === data.account_id) {
+    if (getEpic7Session(req).account_id === data.account_id) {
       patchEpic7Session(req, { account_name: data.account_name });
     }
     json(res, {
@@ -416,7 +419,7 @@ epic7ApiRouter.delete('/accounts/:accountId', (req, res) => {
       return;
     }
     const accounts = q.getGameAccountsByUserId(db, clerkUserId);
-    const stillCurrent = session(req).account_id === data.account_id;
+    const stillCurrent = getEpic7Session(req).account_id === data.account_id;
     if (stillCurrent && accounts.length > 0) {
       patchEpic7Session(req, {
         account_id: accounts[0].id,
@@ -430,7 +433,9 @@ epic7ApiRouter.delete('/accounts/:accountId', (req, res) => {
 });
 
 epic7ApiRouter.get('/user', (req, res) => {
-  const s = session(req);
+  const clerkUserId = requireClerkUserId(req);
+  ensureSessionBoundToClerkUser(req, clerkUserId);
+  const s = getEpic7Session(req);
   json(res, {
     userId: requireClerkUserId(req),
     account_id: s.account_id ?? null,

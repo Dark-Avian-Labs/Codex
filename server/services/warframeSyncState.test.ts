@@ -1,11 +1,35 @@
-import { describe, expect, it } from 'vitest';
+import Database from 'better-sqlite3';
+import { describe, expect, it, vi } from 'vitest';
 
+vi.mock('@codex/core', async () => {
+  const actual = await vi.importActual<typeof import('@codex/core')>('@codex/core');
+  let sessionDb: Database.Database | null = null;
+  return {
+    ...actual,
+    getSessionDb: () => {
+      if (!sessionDb) {
+        sessionDb = new Database(':memory:');
+        sessionDb.pragma('foreign_keys = ON');
+      }
+      return sessionDb;
+    },
+  };
+});
+
+import { ensureWarframeSyncJobsSchema } from './warframeSyncJobs.js';
 import {
   isWarframeSyncRunning,
   runWarframeSyncGuarded,
   SyncAlreadyRunningError,
   waitForWarframeSyncIdle,
 } from './warframeSyncState.js';
+
+describe('warframe sync state setup', () => {
+  it('initializes job schema', () => {
+    ensureWarframeSyncJobsSchema();
+    expect(isWarframeSyncRunning()).toBe(false);
+  });
+});
 
 describe('runWarframeSyncGuarded', () => {
   it('keeps running true until an async callback completes', async () => {

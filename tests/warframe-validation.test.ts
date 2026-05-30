@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  MAX_WARFRAME_CELL_VALUE_LENGTH,
+  MAX_WARFRAME_ITEM_NAME_LENGTH,
   addRowSchema,
   adminUpdateSchema,
   deleteRowSchema,
   editRowSchema,
+  patchSettingsSchema,
   updateAdvancedProgressSchema,
   updateSchema,
 } from '../packages/games/warframe/src/routes/validation.js';
@@ -157,6 +160,32 @@ describe('Warframe validation schemas', () => {
 
     it('rejects out-of-range valence_percent', () => {
       expect(updateAdvancedProgressSchema.safeParse({ row_id: 1, valence_percent: 999 }).success).toBe(false);
+    });
+  });
+
+  describe('string length limits', () => {
+    it('rejects item names over MAX_WARFRAME_ITEM_NAME_LENGTH', () => {
+      expect(
+        addRowSchema.safeParse({
+          worksheet_id: 1,
+          item_name: 'n'.repeat(MAX_WARFRAME_ITEM_NAME_LENGTH + 1),
+        }).success,
+      ).toBe(false);
+    });
+
+    it('rejects cell values over MAX_WARFRAME_CELL_VALUE_LENGTH', () => {
+      expect(
+        updateSchema.safeParse({
+          row_id: 1,
+          column_id: 2,
+          value: 'x'.repeat(MAX_WARFRAME_CELL_VALUE_LENGTH + 1),
+        }).success,
+      ).toBe(false);
+    });
+
+    it('requires at least one settings field in patchSettingsSchema', () => {
+      expect(patchSettingsSchema.safeParse({}).success).toBe(false);
+      expect(patchSettingsSchema.safeParse({ hide_completed: true }).success).toBe(true);
     });
   });
 });

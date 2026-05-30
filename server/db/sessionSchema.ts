@@ -1,5 +1,9 @@
 import { createSessionSchema, getSessionDb } from '@codex/core';
 
+import { ensureWarframeSyncJobsSchema } from '../services/warframeSyncJobs.js';
+
 export function ensureSessionSchema(): void {
-  createSessionSchema(getSessionDb());
+  const db = getSessionDb();
+  createSessionSchema(db);
+  ensureWarframeSyncJobsSchema(db);
 }

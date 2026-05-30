@@ -1,5 +1,11 @@
 import { EventEmitter } from 'node:events';
 
+import {
+  isWarframeSyncLeaseHeld,
+  releaseWarframeSyncLease,
+  tryAcquireWarframeSyncLease,
+} from './warframeSyncJobs.js';
+
 let running = false;
 const syncStateEmitter = new EventEmitter();
 
@@ -11,24 +17,32 @@ export class SyncAlreadyRunningError extends Error {
 }
 
 export function isWarframeSyncRunning(): boolean {
-  return running;
+  return running || isWarframeSyncLeaseHeld();
 }
 
-export async function runWarframeSyncGuarded<T>(fn: () => T | Promise<T>): Promise<T> {
-  if (running) {
+export async function runWarframeSyncGuarded<T>(
+  fn: () => T | Promise<T>,
+  runId: number | null = null,
+): Promise<T> {
+  if (isWarframeSyncRunning()) {
+    throw new SyncAlreadyRunningError();
+  }
+  const lockToken = tryAcquireWarframeSyncLease(runId);
+  if (!lockToken) {
     throw new SyncAlreadyRunningError();
   }
   running = true;
   try {
     return await Promise.resolve(fn());
   } finally {
+    releaseWarframeSyncLease(lockToken);
     running = false;
     syncStateEmitter.emit('stopped');
   }
 }
 
 export function waitForWarframeSyncIdle(timeoutMs: number): Promise<boolean> {
-  if (!running) {
+  if (!isWarframeSyncRunning()) {
     return Promise.resolve(true);
   }
   return new Promise((resolve) => {
@@ -44,20 +58,20 @@ export function waitForWarframeSyncIdle(timeoutMs: number): Promise<boolean> {
     };
 
     const onStopped = () => {
-      if (!running) {
+      if (!isWarframeSyncRunning()) {
         finish(true);
       }
     };
 
     syncStateEmitter.on('stopped', onStopped);
 
-    if (!running) {
+    if (!isWarframeSyncRunning()) {
       finish(true);
       return;
     }
 
     timeoutId = setTimeout(() => {
-      finish(!running);
+      finish(!isWarframeSyncRunning());
     }, timeoutMs);
   });
 }

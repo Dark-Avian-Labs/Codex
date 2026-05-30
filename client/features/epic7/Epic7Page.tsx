@@ -23,6 +23,7 @@ import {
 } from 'react';
 
 import { useLayoutSlots } from '../../components/Layout/useLayoutSlots';
+import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { MaterialSymbol } from '../../components/ui/MaterialSymbol';
 import { Modal } from '../../components/ui/Modal';
 import { apiFetch } from '../../utils/api';
@@ -928,35 +929,94 @@ export function Epic7Page() {
       ) : null}
       <div className="tabs" role="tablist" aria-label="Epic Seven data tabs">
         <button
+          id="epic7-tab-heroes"
           type="button"
           className={`tab ${tab === 'heroes' ? 'active' : ''}`}
           role="tab"
           aria-selected={tab === 'heroes'}
+          aria-controls="epic7-panel"
           onClick={() => setTab('heroes')}
         >
           Heroes
         </button>
         <button
+          id="epic7-tab-artifacts"
           type="button"
           className={`tab ${tab === 'artifacts' ? 'active' : ''}`}
           role="tab"
           aria-selected={tab === 'artifacts'}
+          aria-controls="epic7-panel"
           onClick={() => setTab('artifacts')}
         >
           Artifacts
         </button>
       </div>
-      <div className="filter-bar" id="filter-bar">
-        {tab === 'heroes' ? (
-          <>
+      <div
+        id="epic7-panel"
+        role="tabpanel"
+        aria-labelledby={tab === 'heroes' ? 'epic7-tab-heroes' : 'epic7-tab-artifacts'}
+      >
+        <div className="filter-bar" id="filter-bar">
+          {tab === 'heroes' ? (
+            <>
+              <div className="filter-group">
+                <span className="filter-label">Class:</span>
+                {HERO_CLASSES.map((classKey) => (
+                  <button
+                    key={classKey}
+                    type="button"
+                    className={`filter-icon ${activeFilters.class === classKey ? 'active' : ''}`}
+                    title={CLASS_NAMES[classKey]}
+                    aria-pressed={activeFilters.class === classKey}
+                    aria-label={`Filter by ${CLASS_NAMES[classKey]} class`}
+                    onClick={() =>
+                      setActiveFilters((previous) => ({
+                        ...previous,
+                        class: previous.class === classKey ? null : classKey,
+                      }))
+                    }
+                  >
+                    <img
+                      className="invert-on-light"
+                      src={ICONS[classKey]}
+                      alt={CLASS_NAMES[classKey]}
+                    />
+                  </button>
+                ))}
+              </div>
+              <div className="filter-group">
+                <span className="filter-label">Element:</span>
+                {ELEMENTS.map((elementKey) => (
+                  <button
+                    key={elementKey}
+                    type="button"
+                    className={`filter-icon ${activeFilters.element === elementKey ? 'active' : ''}`}
+                    title={ELEMENT_NAMES[elementKey]}
+                    aria-pressed={activeFilters.element === elementKey}
+                    aria-label={`Filter by ${ELEMENT_NAMES[elementKey]} element`}
+                    onClick={() =>
+                      setActiveFilters((previous) => ({
+                        ...previous,
+                        element: previous.element === elementKey ? null : elementKey,
+                      }))
+                    }
+                  >
+                    <img src={ICONS[elementKey]} alt={ELEMENT_NAMES[elementKey]} />
+                  </button>
+                ))}
+              </div>
+            </>
+          ) : (
             <div className="filter-group">
               <span className="filter-label">Class:</span>
-              {HERO_CLASSES.map((classKey) => (
+              {ARTIFACT_CLASSES.map((classKey) => (
                 <button
                   key={classKey}
                   type="button"
                   className={`filter-icon ${activeFilters.class === classKey ? 'active' : ''}`}
                   title={CLASS_NAMES[classKey]}
+                  aria-pressed={activeFilters.class === classKey}
+                  aria-label={`Filter by ${CLASS_NAMES[classKey]} class`}
                   onClick={() =>
                     setActiveFilters((previous) => ({
                       ...previous,
@@ -972,211 +1032,170 @@ export function Epic7Page() {
                 </button>
               ))}
             </div>
-            <div className="filter-group">
-              <span className="filter-label">Element:</span>
-              {ELEMENTS.map((elementKey) => (
-                <button
-                  key={elementKey}
-                  type="button"
-                  className={`filter-icon ${activeFilters.element === elementKey ? 'active' : ''}`}
-                  title={ELEMENT_NAMES[elementKey]}
-                  onClick={() =>
-                    setActiveFilters((previous) => ({
-                      ...previous,
-                      element: previous.element === elementKey ? null : elementKey,
-                    }))
-                  }
-                >
-                  <img src={ICONS[elementKey]} alt={ELEMENT_NAMES[elementKey]} />
-                </button>
-              ))}
-            </div>
-          </>
-        ) : (
-          <div className="filter-group">
-            <span className="filter-label">Class:</span>
-            {ARTIFACT_CLASSES.map((classKey) => (
-              <button
-                key={classKey}
-                type="button"
-                className={`filter-icon ${activeFilters.class === classKey ? 'active' : ''}`}
-                title={CLASS_NAMES[classKey]}
-                onClick={() =>
-                  setActiveFilters((previous) => ({
-                    ...previous,
-                    class: previous.class === classKey ? null : classKey,
-                  }))
-                }
-              >
-                <img
-                  className="invert-on-light"
-                  src={ICONS[classKey]}
-                  alt={CLASS_NAMES[classKey]}
-                />
-              </button>
-            ))}
+          )}
+        </div>
+        <div className="stats-bar">
+          <div className="stat">
+            <span>Total:</span>
+            <span className="stat-value">{stats.total}</span>
           </div>
-        )}
-      </div>
-      <div className="stats-bar">
-        <div className="stat">
-          <span>Total:</span>
-          <span className="stat-value">{stats.total}</span>
+          <div className="stat">
+            <span>Upgraded:</span>
+            <span className="stat-value stat-owned">{stats.owned}</span>
+          </div>
+          <div className="stat">
+            <span>{tab === 'heroes' ? 'SSS:' : 'Max Level:'}</span>
+            <span className="stat-value stat-maxed">{stats.maxed}</span>
+          </div>
         </div>
-        <div className="stat">
-          <span>Upgraded:</span>
-          <span className="stat-value stat-owned">{stats.owned}</span>
-        </div>
-        <div className="stat">
-          <span>{tab === 'heroes' ? 'SSS:' : 'Max Level:'}</span>
-          <span className="stat-value stat-maxed">{stats.maxed}</span>
-        </div>
-      </div>
-      <div className="table-container">
-        <div className="table-scroll" style={tableScrollStyle}>
-          <table className="epic7-table" style={{ tableLayout: 'fixed' }}>
-            {tab === 'heroes' ? (
-              <colgroup>
-                <col style={{ width: 'auto' }} />
-                <col style={{ width: '150px' }} />
-                <col style={{ width: '150px' }} />
-                <col style={{ width: '200px' }} />
-                <col style={{ width: '150px' }} />
-                {editMode ? <col style={{ width: '120px' }} /> : null}
-              </colgroup>
-            ) : (
-              <colgroup>
-                <col style={{ width: 'auto' }} />
-                <col style={{ width: '150px' }} />
-                <col style={{ width: '200px' }} />
-                <col style={{ width: '150px' }} />
-                {editMode ? <col style={{ width: '120px' }} /> : null}
-              </colgroup>
-            )}
-            <thead>
+        <div className="table-container">
+          <div className="table-scroll" style={tableScrollStyle}>
+            <table className="epic7-table" style={{ tableLayout: 'fixed' }}>
               {tab === 'heroes' ? (
-                <tr>
-                  <th>Name</th>
-                  <th className="icon-cell text-center">Class</th>
-                  <th className="icon-cell text-center">Element</th>
-                  <th className="text-center">Stars</th>
-                  <th className="text-center">Imprint</th>
-                  {editMode ? <th className="text-center">Actions</th> : null}
-                </tr>
+                <colgroup>
+                  <col style={{ width: 'auto' }} />
+                  <col style={{ width: '150px' }} />
+                  <col style={{ width: '150px' }} />
+                  <col style={{ width: '200px' }} />
+                  <col style={{ width: '150px' }} />
+                  {editMode ? <col style={{ width: '120px' }} /> : null}
+                </colgroup>
               ) : (
-                <tr>
-                  <th>Name</th>
-                  <th className="icon-cell text-center">Class</th>
-                  <th className="text-center">Stars</th>
-                  <th className="text-center">Limit Break</th>
-                  {editMode ? <th className="text-center">Actions</th> : null}
-                </tr>
+                <colgroup>
+                  <col style={{ width: 'auto' }} />
+                  <col style={{ width: '150px' }} />
+                  <col style={{ width: '200px' }} />
+                  <col style={{ width: '150px' }} />
+                  {editMode ? <col style={{ width: '120px' }} /> : null}
+                </colgroup>
               )}
-            </thead>
-            <tbody>
-              {activeRows.map((row) => (
-                <tr key={row.id}>
-                  <td className="item-name">{row.name}</td>
-                  <td className="icon-cell">
-                    {row.class && ICONS[row.class] ? (
-                      <img
-                        className="invert-on-light"
-                        src={ICONS[row.class]}
-                        alt={row.class ? (CLASS_NAMES[row.class as ClassKey] ?? row.class) : '-'}
-                        title={row.class ? (CLASS_NAMES[row.class as ClassKey] ?? row.class) : '-'}
-                      />
-                    ) : (
-                      row.class || '-'
-                    )}
-                  </td>
-                  {isHero(row) ? (
+              <thead>
+                {tab === 'heroes' ? (
+                  <tr>
+                    <th>Name</th>
+                    <th className="icon-cell text-center">Class</th>
+                    <th className="icon-cell text-center">Element</th>
+                    <th className="text-center">Stars</th>
+                    <th className="text-center">Imprint</th>
+                    {editMode ? <th className="text-center">Actions</th> : null}
+                  </tr>
+                ) : (
+                  <tr>
+                    <th>Name</th>
+                    <th className="icon-cell text-center">Class</th>
+                    <th className="text-center">Stars</th>
+                    <th className="text-center">Limit Break</th>
+                    {editMode ? <th className="text-center">Actions</th> : null}
+                  </tr>
+                )}
+              </thead>
+              <tbody>
+                {activeRows.map((row) => (
+                  <tr key={row.id}>
+                    <td className="item-name">{row.name}</td>
                     <td className="icon-cell">
-                      {row.element && ICONS[row.element] ? (
+                      {row.class && ICONS[row.class] ? (
                         <img
-                          src={ICONS[row.element]}
-                          alt={
-                            row.element
-                              ? (ELEMENT_NAMES[row.element as ElementKey] ?? row.element)
-                              : '-'
-                          }
+                          className="invert-on-light"
+                          src={ICONS[row.class]}
+                          alt={row.class ? (CLASS_NAMES[row.class as ClassKey] ?? row.class) : '-'}
                           title={
-                            row.element
-                              ? (ELEMENT_NAMES[row.element as ElementKey] ?? row.element)
-                              : '-'
+                            row.class ? (CLASS_NAMES[row.class as ClassKey] ?? row.class) : '-'
                           }
                         />
                       ) : (
-                        row.element || '-'
+                        row.class || '-'
                       )}
                     </td>
-                  ) : null}
-                  <td className="stars-cell">{renderStars(row.star_rating)}</td>
-                  <td className={isHero(row) ? 'rating-cell' : 'level-cell'}>
                     {isHero(row) ? (
-                      <button
-                        type="button"
-                        className="rating-btn"
-                        style={{
-                          color: RATING_COLORS[row.rating] ?? '#6b7280',
-                          borderColor: `${RATING_COLORS[row.rating] ?? '#6b7280'}50`,
-                          background: `${RATING_COLORS[row.rating] ?? '#6b7280'}20`,
-                        }}
-                        onClick={() => {
-                          void cycleHero(row);
-                        }}
-                        aria-label={`Cycle imprint for ${row.name}`}
-                      >
-                        {row.rating}
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        className="gauge-btn"
-                        style={{
-                          color: GAUGE_COLORS[row.gauge_level] ?? GAUGE_COLORS[0],
-                        }}
-                        onClick={() => {
-                          void cycleArtifact(row);
-                        }}
-                        aria-label={`Cycle limit break for ${row.name}`}
-                      >
-                        {renderGauge(row.gauge_level)}
-                      </button>
-                    )}
-                  </td>
-                  {editMode ? (
-                    <td className="row-actions">
-                      <button
-                        type="button"
-                        className="btn-icon btn-edit"
-                        onClick={() => openEditItemModal(row)}
-                        aria-label={`Edit ${row.name}`}
-                      >
-                        <MaterialSymbol name="edit" />
-                      </button>
-                      <button
-                        type="button"
-                        className="btn-icon btn-delete"
-                        onClick={() => {
-                          dispatchModal({
-                            type: 'START_DELETE',
-                            payload: {
-                              id: row.id,
-                              type: tab === 'heroes' ? 'hero' : 'artifact',
-                              name: row.name,
-                            },
-                          });
-                        }}
-                        aria-label={`Delete ${row.name}`}
-                      >
-                        <MaterialSymbol name="delete" />
-                      </button>
+                      <td className="icon-cell">
+                        {row.element && ICONS[row.element] ? (
+                          <img
+                            src={ICONS[row.element]}
+                            alt={
+                              row.element
+                                ? (ELEMENT_NAMES[row.element as ElementKey] ?? row.element)
+                                : '-'
+                            }
+                            title={
+                              row.element
+                                ? (ELEMENT_NAMES[row.element as ElementKey] ?? row.element)
+                                : '-'
+                            }
+                          />
+                        ) : (
+                          row.element || '-'
+                        )}
+                      </td>
+                    ) : null}
+                    <td className="stars-cell">{renderStars(row.star_rating)}</td>
+                    <td className={isHero(row) ? 'rating-cell' : 'level-cell'}>
+                      {isHero(row) ? (
+                        <button
+                          type="button"
+                          className="rating-btn"
+                          style={{
+                            color: RATING_COLORS[row.rating] ?? '#6b7280',
+                            borderColor: `${RATING_COLORS[row.rating] ?? '#6b7280'}50`,
+                            background: `${RATING_COLORS[row.rating] ?? '#6b7280'}20`,
+                          }}
+                          onClick={() => {
+                            void cycleHero(row);
+                          }}
+                          aria-label={`Cycle imprint for ${row.name}`}
+                        >
+                          {row.rating}
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className="gauge-btn"
+                          style={{
+                            color: GAUGE_COLORS[row.gauge_level] ?? GAUGE_COLORS[0],
+                          }}
+                          onClick={() => {
+                            void cycleArtifact(row);
+                          }}
+                          aria-label={`Cycle limit break for ${row.name}`}
+                        >
+                          {renderGauge(row.gauge_level)}
+                        </button>
+                      )}
                     </td>
-                  ) : null}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    {editMode ? (
+                      <td className="row-actions">
+                        <button
+                          type="button"
+                          className="btn-icon btn-edit"
+                          onClick={() => openEditItemModal(row)}
+                          aria-label={`Edit ${row.name}`}
+                        >
+                          <MaterialSymbol name="edit" />
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-icon btn-delete"
+                          onClick={() => {
+                            dispatchModal({
+                              type: 'START_DELETE',
+                              payload: {
+                                id: row.id,
+                                type: tab === 'heroes' ? 'hero' : 'artifact',
+                                name: row.name,
+                              },
+                            });
+                          }}
+                          aria-label={`Delete ${row.name}`}
+                        >
+                          <MaterialSymbol name="delete" />
+                        </button>
+                      </td>
+                    ) : null}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
@@ -1407,58 +1426,23 @@ export function Epic7Page() {
         </div>
       </Modal>
 
-      <Modal
+      <ConfirmModal
         open={modalState.isAccountDeleteModalOpen}
-        onClose={() => dispatchModal({ type: 'CANCEL_ACCOUNT_DELETE' })}
-        className="glass-modal-surface max-w-md p-6"
-        ariaLabelledBy="epic7-account-delete-modal-title"
-      >
-        <h2 id="epic7-account-delete-modal-title" className="mb-4 text-lg font-semibold">
-          Delete Account
-        </h2>
-        <p className="text-muted text-sm">
-          Delete <strong>{modalState.deletingAccount?.account_name || 'this account'}</strong>? This
-          also removes heroes and artifacts in this account.
-        </p>
-        <div className="modal-actions">
-          <button
-            type="button"
-            className="btn btn-cancel"
-            onClick={() => dispatchModal({ type: 'CANCEL_ACCOUNT_DELETE' })}
-          >
-            Cancel
-          </button>
-          <button type="button" className="btn btn-danger" onClick={() => void deleteAccount()}>
-            Delete
-          </button>
-        </div>
-      </Modal>
+        title="Delete Account"
+        message={`Delete ${modalState.deletingAccount?.account_name || 'this account'}? This also removes heroes and artifacts in this account.`}
+        confirmLabel="Delete"
+        onConfirm={() => void deleteAccount()}
+        onCancel={() => dispatchModal({ type: 'CANCEL_ACCOUNT_DELETE' })}
+      />
 
-      <Modal
+      <ConfirmModal
         open={modalState.isDeleteModalOpen}
-        onClose={() => dispatchModal({ type: 'CANCEL_DELETE' })}
-        className="glass-modal-surface max-w-md p-6"
-        ariaLabelledBy="epic7-delete-modal-title"
-      >
-        <h2 id="epic7-delete-modal-title" className="mb-4 text-lg font-semibold">
-          Delete {modalState.deletingItem?.type === 'hero' ? 'Hero' : 'Artifact'}
-        </h2>
-        <p className="text-muted text-sm">
-          Delete <strong>{modalState.deletingItem?.name || 'this item'}</strong>?
-        </p>
-        <div className="modal-actions">
-          <button
-            type="button"
-            className="btn btn-cancel"
-            onClick={() => dispatchModal({ type: 'CANCEL_DELETE' })}
-          >
-            Cancel
-          </button>
-          <button type="button" className="btn btn-danger" onClick={() => void deleteItem()}>
-            Delete
-          </button>
-        </div>
-      </Modal>
+        title={`Delete ${modalState.deletingItem?.type === 'hero' ? 'Hero' : 'Artifact'}`}
+        message={`Delete ${modalState.deletingItem?.name || 'this item'}?`}
+        confirmLabel="Delete"
+        onConfirm={() => void deleteItem()}
+        onCancel={() => dispatchModal({ type: 'CANCEL_DELETE' })}
+      />
     </section>
   );
 }

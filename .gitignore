@@ -22,3 +22,6 @@ coverage/
 # OS
 .DS_Store
 Thumbs.db
+
+# Local CodeRabbit CLI review output
+.cursor/coderabbit-*.log

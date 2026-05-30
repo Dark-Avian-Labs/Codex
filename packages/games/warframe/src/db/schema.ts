@@ -3,6 +3,60 @@ import type Database from 'better-sqlite3';
 
 import { WARFRAME_DB_PATH } from '../config.js';
 
+export function ensureWarframeCoreTables(db: Database.Database): void {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS worksheets (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      clerk_user_id TEXT NOT NULL,
+      name TEXT NOT NULL,
+      display_order INTEGER NOT NULL DEFAULT 0,
+      UNIQUE(clerk_user_id, name)
+    );
+
+    CREATE TABLE IF NOT EXISTS columns (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      worksheet_id INTEGER NOT NULL,
+      name TEXT NOT NULL,
+      display_order INTEGER NOT NULL DEFAULT 0,
+      FOREIGN KEY (worksheet_id) REFERENCES worksheets(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS rows (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      worksheet_id INTEGER NOT NULL,
+      item_name TEXT NOT NULL,
+      display_order INTEGER NOT NULL DEFAULT 0,
+      market_href TEXT,
+      market_href_prime TEXT,
+      FOREIGN KEY (worksheet_id) REFERENCES worksheets(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS cell_values (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      row_id INTEGER NOT NULL,
+      column_id INTEGER NOT NULL,
+      value TEXT NOT NULL DEFAULT '',
+      FOREIGN KEY (row_id) REFERENCES rows(id) ON DELETE CASCADE,
+      FOREIGN KEY (column_id) REFERENCES columns(id) ON DELETE CASCADE,
+      UNIQUE(row_id, column_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS user_settings (
+      clerk_user_id TEXT NOT NULL,
+      setting_key TEXT NOT NULL,
+      setting_value TEXT NOT NULL,
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      PRIMARY KEY (clerk_user_id, setting_key)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_worksheets_clerk_user ON worksheets(clerk_user_id);
+    CREATE INDEX IF NOT EXISTS idx_columns_worksheet ON columns(worksheet_id);
+    CREATE INDEX IF NOT EXISTS idx_rows_worksheet ON rows(worksheet_id);
+    CREATE INDEX IF NOT EXISTS idx_cell_values_row ON cell_values(row_id);
+    CREATE INDEX IF NOT EXISTS idx_cell_values_column ON cell_values(column_id);
+  `);
+}
+
 export function createSchema(db: Database.Database, confirmReset: boolean): void {
   db.pragma('foreign_keys = ON');
   if (!confirmReset) return;
@@ -77,10 +131,18 @@ export function ensureWarframeCatalogMasterTable(db: Database.Database): void {
       display_order INTEGER NOT NULL DEFAULT 0,
       market_href TEXT,
       market_href_prime TEXT,
+      active INTEGER NOT NULL DEFAULT 1,
       UNIQUE(worksheet_name, canonical_key)
     );
     CREATE INDEX IF NOT EXISTS idx_catalog_rows_worksheet ON catalog_rows(worksheet_name);
   `);
+}
+
+export function ensureWarframeCatalogActiveColumn(db: Database.Database): void {
+  const cols = db.prepare(`PRAGMA table_info(catalog_rows)`).all() as { name: string }[];
+  if (!cols.some((c) => c.name === 'active')) {
+    db.exec('ALTER TABLE catalog_rows ADD COLUMN active INTEGER NOT NULL DEFAULT 1');
+  }
 }
 
 export function ensureWarframeRowOrphanColumn(db: Database.Database): void {
@@ -122,7 +184,9 @@ export function ensureWarframeAdvancedProgressTable(db: Database.Database): void
 
 const { getDb, closeDb } = createDbSingleton(WARFRAME_DB_PATH, {
   onOpen: (db) => {
+    ensureWarframeCoreTables(db);
     ensureWarframeCatalogMasterTable(db);
+    ensureWarframeCatalogActiveColumn(db);
     ensureWarframeRowMarketHrefColumns(db);
     ensureWarframeRowOrphanColumn(db);
     ensureWarframeAdvancedProgressTable(db);

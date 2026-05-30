@@ -614,23 +614,54 @@ type RunSyncOptions = {
   initiatedByClerkUserId?: string;
 };
 
+function catalogRowsHasActiveColumn(codexDb: Database.Database): boolean {
+  const cols = codexDb.prepare(`PRAGMA table_info(catalog_rows)`).all() as { name: string }[];
+  return cols.some((c) => c.name === 'active');
+}
+
 function syncCatalogMasterFromSource(
   codexDb: Database.Database,
   sourceByWorksheet: Record<WorksheetName, Set<string>>,
   execute: boolean,
 ): void {
   if (!execute) return;
+  const hasActive = catalogRowsHasActiveColumn(codexDb);
   const upsert = codexDb.prepare(
-    `INSERT INTO catalog_rows (worksheet_name, canonical_key, item_name, display_order)
-     VALUES (?, ?, ?, ?)
-     ON CONFLICT(worksheet_name, canonical_key) DO UPDATE SET
-       item_name = excluded.item_name,
-       display_order = excluded.display_order`,
+    hasActive
+      ? `INSERT INTO catalog_rows (worksheet_name, canonical_key, item_name, display_order, active)
+         VALUES (?, ?, ?, ?, 1)
+         ON CONFLICT(worksheet_name, canonical_key) DO UPDATE SET
+           item_name = excluded.item_name,
+           display_order = excluded.display_order,
+           active = 1`
+      : `INSERT INTO catalog_rows (worksheet_name, canonical_key, item_name, display_order)
+         VALUES (?, ?, ?, ?)
+         ON CONFLICT(worksheet_name, canonical_key) DO UPDATE SET
+           item_name = excluded.item_name,
+           display_order = excluded.display_order`,
   );
   for (const worksheet of WORKSHEET_NAMES) {
     let index = 0;
+    const canonicalKeys: string[] = [];
     for (const name of sourceByWorksheet[worksheet] ?? []) {
-      upsert.run(worksheet, resolveCanonicalKey(name), name, index++);
+      const key = resolveCanonicalKey(name);
+      canonicalKeys.push(key);
+      upsert.run(worksheet, key, name, index++);
+    }
+    if (hasActive) {
+      if (canonicalKeys.length === 0) {
+        codexDb
+          .prepare('UPDATE catalog_rows SET active = 0 WHERE worksheet_name = ?')
+          .run(worksheet);
+      } else {
+        const placeholders = canonicalKeys.map(() => '?').join(', ');
+        codexDb
+          .prepare(
+            `UPDATE catalog_rows SET active = 0
+             WHERE worksheet_name = ? AND canonical_key NOT IN (${placeholders})`,
+          )
+          .run(worksheet, ...canonicalKeys);
+      }
     }
   }
 }

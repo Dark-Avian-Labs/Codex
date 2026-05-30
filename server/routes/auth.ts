@@ -1,11 +1,13 @@
 import { getClerkAuthState, getCodexAppId, requireAuthApi } from '@codex/core';
 import { Router } from 'express';
 
+import { SESSION_COOKIE_NAME } from '../config.js';
 import {
   CODEX_GAMES as REGISTRY_CODEX_GAMES,
   getGameMetadata,
   unknownGameMetadata,
 } from '../games/metadataRegistry.js';
+import { ensureSessionBoundToClerkUser } from '../session/epic7SessionBinding.js';
 
 export const authRouter = Router();
 
@@ -36,6 +38,7 @@ authRouter.get('/me', requireAuthApi, (req, res) => {
     };
     return { id, ...metadata };
   });
+  ensureSessionBoundToClerkUser(req, state.userId);
   res.json({
     authenticated: true,
     userId: state.userId,
@@ -45,6 +48,13 @@ authRouter.get('/me', requireAuthApi, (req, res) => {
   });
 });
 
-authRouter.post('/logout', (_req, res) => {
-  res.json({ ok: true, next: '/' });
+authRouter.post('/logout', (req, res) => {
+  req.session.destroy((destroyErr) => {
+    if (destroyErr) {
+      res.status(500).json({ error: 'Failed to logout' });
+      return;
+    }
+    res.clearCookie(SESSION_COOKIE_NAME);
+    res.json({ ok: true, next: '/' });
+  });
 });

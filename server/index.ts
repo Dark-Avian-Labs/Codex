@@ -38,6 +38,7 @@ import {
 import { ensureSessionSchema } from './db/sessionSchema.js';
 import { refreshEpic7DbAvailability } from './epic7DbState.js';
 import { getRequestId, requestIdMiddleware } from './http/requestId.js';
+import { healthzHandler, readyzHandler } from './probes.js';
 import { apiRouter } from './routes/api.js';
 import { authRouter } from './routes/auth.js';
 import { waitForWarframeSyncIdle } from './services/warframeSyncState.js';
@@ -303,19 +304,8 @@ app.use(publicPageLimiter, express.static(clientDir, { maxAge: '1h' }));
 app.get('/favicon.ico', publicPageLimiter, (_req, res) => {
   res.sendFile(path.join(PROJECT_ROOT, 'favicon.ico'));
 });
-app.get('/healthz', (_req, res) => {
-  res.json({ status: 'ok', app: APP_NAME });
-});
-app.get('/readyz', async (_req, res) => {
-  try {
-    sessionDb.prepare('SELECT 1').get();
-    getWarframeDb().prepare('SELECT 1').get();
-    getEpic7Db().prepare('SELECT 1').get();
-    res.json({ status: 'ready', app: APP_NAME });
-  } catch {
-    res.status(503).json({ status: 'not_ready', app: APP_NAME });
-  }
-});
+app.get('/healthz', healthzHandler);
+app.get('/readyz', readyzHandler);
 
 app.get('/login', publicPageLimiter, (_req, res) => {
   res.redirect('/sign-in');
