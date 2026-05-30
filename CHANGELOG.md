@@ -212,3 +212,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.52.2** `chore` [#238](https://github.com/Dark-Avian-Labs/Codex/pull/238): dependabot/npm_and_yarn/production dependencies e2c2c17ddb
 - **v1.52.3** `chore` [#240](https://github.com/Dark-Avian-Labs/Codex/pull/240): CodeQL review
 - **v1.52.4** `chore` [#244](https://github.com/Dark-Avian-Labs/Codex/pull/244): GPT-5.5 and Coderabbit Audit
+- **v1.52.5** `chore` [#245](https://github.com/Dark-Avian-Labs/Codex/pull/245): ai findings autofix/tests warframe validation.test.ts
