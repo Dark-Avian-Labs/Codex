@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { APP_NAME } from '../server/config.js';
 import { healthzHandler, readyzHandler } from '../server/probes.js';
 import { authRouter } from '../server/routes/auth.js';
+import { testRateLimiter, testSessionOptions } from './helpers/testExpress.js';
 
 const dbMocks = vi.hoisted(() => ({
   sessionOk: true,
@@ -68,13 +69,14 @@ const armoryAccessMock = vi.hoisted(() => vi.fn(async () => {}));
 
 function createProbeApp() {
   const app = express();
+  app.use(testRateLimiter);
   app.use(express.json());
   app.use(
-    session({
-      secret: 'test-secret',
-      resave: false,
-      saveUninitialized: true,
-    }),
+    session(
+      testSessionOptions({
+        saveUninitialized: true,
+      }),
+    ),
   );
   app.use((req, res, next) => {
     if (!req.session.csrfToken) {

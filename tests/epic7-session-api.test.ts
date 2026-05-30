@@ -2,11 +2,11 @@ import { epic7Queries as q } from '@codex/game-epic7';
 import Database from 'better-sqlite3';
 import express from 'express';
 import session from 'express-session';
-import request from 'supertest';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 
 import { createSchema as createEpic7Schema } from '../packages/games/epic7/src/db/schema.js';
 import { describeWithSqlite } from './helpers/describeWithSqlite.js';
+import { createSessionAgent, testSessionOptions } from './helpers/testExpress.js';
 
 const authState = vi.hoisted(() => ({
   userId: null as string | null,
@@ -41,13 +41,7 @@ import { epic7ApiRouter } from '../server/routes/epic7Api.js';
 function createTestApp() {
   const app = express();
   app.use(express.json());
-  app.use(
-    session({
-      secret: 'test-secret',
-      resave: false,
-      saveUninitialized: false,
-    }),
-  );
+  app.use(session(testSessionOptions()));
   app.use('/api/epic7', epic7ApiRouter);
   return app;
 }
@@ -69,7 +63,7 @@ describeWithSqlite('Epic7 session isolation', () => {
 
   it('rejects stale account_id from another user session', async () => {
     authState.userId = 'user_a';
-    const agent = request.agent(createTestApp());
+    const agent = createSessionAgent(createTestApp());
     await agent.post('/api/epic7/accounts/switch').send({ account_id: 1 }).expect(200);
 
     authState.userId = 'user_b';
@@ -80,7 +74,7 @@ describeWithSqlite('Epic7 session isolation', () => {
 
   it('clears session account on logout via binding when user switches', async () => {
     authState.userId = 'user_a';
-    const agent = request.agent(createTestApp());
+    const agent = createSessionAgent(createTestApp());
     const accounts = await agent.get('/api/epic7/accounts');
     expect(accounts.body.current_account_id).toBe(1);
 

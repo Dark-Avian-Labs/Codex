@@ -1,6 +1,5 @@
 import express from 'express';
 import session from 'express-session';
-import request from 'supertest';
 import { describe, expect, it, vi } from 'vitest';
 
 const authState = vi.hoisted(() => ({
@@ -30,16 +29,17 @@ vi.mock('@codex/core', async (importOriginal) => {
 
 import { authRouter } from '../server/routes/auth.js';
 import { getEpic7Session, patchEpic7Session } from '../server/session/epic7SessionBinding.js';
+import { createSessionAgent, testSessionOptions } from './helpers/testExpress.js';
 
 function createAuthApp() {
   const app = express();
   app.use(express.json());
   app.use(
-    session({
-      secret: 'test-secret',
-      resave: false,
-      saveUninitialized: false,
-    }),
+    session(
+      testSessionOptions({
+        saveUninitialized: true,
+      }),
+    ),
   );
   app.get('/api/auth/__test/epic7-session', (req, res) => {
     const epic7 = getEpic7Session(req);
@@ -61,7 +61,7 @@ describe('auth session routes', () => {
   it('destroys session on logout', async () => {
     authState.userId = 'user_a';
     const app = createAuthApp();
-    const agent = request.agent(app);
+    const agent = createSessionAgent(app);
 
     await agent.get('/api/auth/me').expect(200);
     await agent.post('/api/auth/__test/epic7-session').send({ account_id: 42, account_name: 'Primary' }).expect(200);
@@ -84,7 +84,7 @@ describe('auth session routes', () => {
   it('clears Epic7 session fields when Clerk user changes', async () => {
     authState.userId = 'user_a';
     const app = createAuthApp();
-    const agent = request.agent(app);
+    const agent = createSessionAgent(app);
 
     await agent.get('/api/auth/me').expect(200);
     await agent
