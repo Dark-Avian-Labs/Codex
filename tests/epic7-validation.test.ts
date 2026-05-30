@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  MAX_EPIC7_ACCOUNT_NAME_LENGTH,
+  MAX_EPIC7_NAME_LENGTH,
   addAccountSchema,
   addArtifactSchema,
   addHeroSchema,
@@ -264,6 +266,24 @@ describe('Epic7 validation schemas', () => {
   describe('adminDeleteBaseArtifactSchema', () => {
     it('accepts valid artifact_id', () => {
       expect(adminDeleteBaseArtifactSchema.safeParse({ artifact_id: 10 }).success).toBe(true);
+    });
+  });
+
+  describe('name length limits', () => {
+    it('rejects hero names over MAX_EPIC7_NAME_LENGTH', () => {
+      expect(
+        addHeroSchema.safeParse({
+          name: 'x'.repeat(MAX_EPIC7_NAME_LENGTH + 1),
+          class: 'warrior',
+          element: 'fire',
+        }).success,
+      ).toBe(false);
+    });
+
+    it('rejects account names over MAX_EPIC7_ACCOUNT_NAME_LENGTH', () => {
+      expect(addAccountSchema.safeParse({ account_name: 'a'.repeat(MAX_EPIC7_ACCOUNT_NAME_LENGTH + 1) }).success).toBe(
+        false,
+      );
     });
   });
 });

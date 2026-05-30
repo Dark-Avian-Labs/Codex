@@ -2,7 +2,7 @@ import fs from 'node:fs';
 
 import express from 'express';
 import request from 'supertest';
-import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from 'vitest';
+import { afterEach, beforeEach, expect, it, vi, type MockInstance } from 'vitest';
 
 const authState = vi.hoisted(() => ({
   userId: null as string | null,
@@ -37,6 +37,7 @@ vi.mock('@codex/game-warframe', async (importOriginal) => {
 });
 
 import { apiRouter } from '../server/routes/api.js';
+import { describeWithSqlite } from './helpers/describeWithSqlite.js';
 import {
   createTempDbDir,
   createWarframeTestDb,
@@ -61,7 +62,7 @@ function cleanupTempDb(clearState = false): void {
   }
 }
 
-describe('warframe API routes', () => {
+describeWithSqlite('warframe API routes', () => {
   let accessSpy: MockInstance | undefined;
 
   beforeEach(() => {

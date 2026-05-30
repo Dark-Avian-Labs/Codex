@@ -16,6 +16,7 @@
     "typecheck:client": "tsc -p tsconfig.json --noEmit",
     "build": "pnpm --filter @codex/core --filter @codex/game-warframe --filter @codex/game-epic7 run --if-present build && pnpm run typecheck && tsc -p tsconfig.server.json && vite build",
     "start": "node dist/server/index.js",
+    "db:init": "node scripts/db-init.mjs",
     "validate": "node run-quality-checks.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -82,5 +83,5 @@
     "node": ">=25.0.0",
     "pnpm": ">=11.0.0"
   },
-  "packageManager": "pnpm@11.3.0"
+  "packageManager": "pnpm@11.5.0"
 }

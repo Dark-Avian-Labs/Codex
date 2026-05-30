@@ -20,6 +20,7 @@ export {
   adminUpdateSchema as warframeAdminUpdateSchema,
   deleteRowSchema as warframeDeleteRowSchema,
   editRowSchema as warframeEditRowSchema,
+  patchSettingsSchema as warframePatchSettingsSchema,
   updateAdvancedProgressSchema as warframeUpdateAdvancedProgressSchema,
   updateSchema as warframeUpdateSchema,
 } from './routes/validation.js';

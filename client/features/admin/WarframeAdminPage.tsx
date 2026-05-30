@@ -1,5 +1,5 @@
 import { isHelminthNonSubsumableItemName } from '@codex/game-warframe/helminth-exceptions';
-import { type CSSProperties, useCallback, useEffect, useMemo, useState } from 'react';
+import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type {
   WarframeColumn as Column,
@@ -309,6 +309,16 @@ export function WarframeAdminPage() {
   const [mismatchedByWorksheet, setMismatchedByWorksheet] = useState<Record<string, Set<number>>>(
     {},
   );
+  const mountedRef = useRef(true);
+  const syncAbortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      syncAbortRef.current?.abort();
+    };
+  }, []);
 
   const loadWorksheets = useCallback(async (): Promise<void> => {
     setLoading(true);
@@ -407,33 +417,93 @@ export function WarframeAdminPage() {
   }, []);
 
   const handleSync = useCallback(async (): Promise<void> => {
+    syncAbortRef.current?.abort();
+    const controller = new AbortController();
+    syncAbortRef.current = controller;
     setRunningSync(true);
     setError(null);
     try {
       const response = await apiFetch('/api/warframe/admin/sync-source', {
         method: 'POST',
+        signal: controller.signal,
       });
       const body = (await response.json().catch(() => null)) as
         | SyncResult
-        | { error?: string }
+        | { error?: string; runId?: number; pollUrl?: string }
         | null;
       if (!response.ok || (body && 'error' in body && body.error)) {
         throw new Error((body && 'error' in body && body.error) || 'Failed to run sync');
       }
-      const result = body as SyncResult;
-      setSummary(result.summary ?? null);
-      setCleanup(result.cleanup ?? null);
-      setLastSyncReport(result);
-      setSyncReportOpen(true);
+
+      if (response.status === 202 && body && 'runId' in body && typeof body.runId === 'number') {
+        const pollUrl =
+          typeof body.pollUrl === 'string'
+            ? body.pollUrl
+            : `/api/warframe/admin/sync/runs/${body.runId}`;
+        const deadline = Date.now() + 30 * 60 * 1000;
+        let result: SyncResult | null = null;
+        while (Date.now() < deadline) {
+          if (controller.signal.aborted || !mountedRef.current) {
+            return;
+          }
+          await new Promise((resolve) => setTimeout(resolve, 1500));
+          if (controller.signal.aborted || !mountedRef.current) {
+            return;
+          }
+          const pollRes = await apiFetch(pollUrl, { signal: controller.signal });
+          const pollBody = (await pollRes.json().catch(() => null)) as {
+            status?: string;
+            summary?: SyncResult | null;
+            error?: string | null;
+          } | null;
+          if (!pollRes.ok || !pollBody) {
+            throw new Error('Failed to poll sync status');
+          }
+          if (pollBody.status === 'failed') {
+            throw new Error(pollBody.error || 'Sync failed');
+          }
+          if (pollBody.status === 'succeeded' && pollBody.summary) {
+            result = pollBody.summary;
+            break;
+          }
+        }
+        if (controller.signal.aborted || !mountedRef.current) {
+          return;
+        }
+        if (!result) {
+          throw new Error('Sync timed out while waiting for completion');
+        }
+        setSummary(result.summary ?? null);
+        setCleanup(result.cleanup ?? null);
+        setLastSyncReport(result);
+        setSyncReportOpen(true);
+      } else {
+        if (controller.signal.aborted || !mountedRef.current) {
+          return;
+        }
+        const result = body as SyncResult;
+        setSummary(result.summary ?? null);
+        setCleanup(result.cleanup ?? null);
+        setLastSyncReport(result);
+        setSyncReportOpen(true);
+      }
+      if (controller.signal.aborted || !mountedRef.current) {
+        return;
+      }
       await loadWorksheets();
       if (worksheetId !== null) {
         await loadWorksheetData(worksheetId);
       }
       await loadPreview();
     } catch (err) {
+      if (controller.signal.aborted || !mountedRef.current) {
+        return;
+      }
       setError(err instanceof Error ? err.message : 'Failed to run sync');
     } finally {
-      setRunningSync(false);
+      if (mountedRef.current && !controller.signal.aborted) {
+        setRunningSync(false);
+      }
     }
   }, [loadPreview, loadWorksheetData, loadWorksheets, worksheetId]);
 

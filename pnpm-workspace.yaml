@@ -6,8 +6,8 @@ allowBuilds:
   '@clerk/shared': true
   better-sqlite3: true
 catalog:
-  "@clerk/react": ^6.7.1
-  "@clerk/express": ^2.1.21
+  "@clerk/react": ^6.7.2
+  "@clerk/express": ^2.1.22
   "@dotenvx/dotenvx": ^1.69.1
   "@fontsource-variable/geist": ^5.2.9
   "@fontsource-variable/geist-mono": ^5.2.8
@@ -37,7 +37,7 @@ catalog:
   oxlint: ^1.67.0
   react: ^19.2.6
   react-dom: ^19.2.6
-  react-router-dom: ^7.15.1
+  react-router-dom: ^7.16.0
   tailwind-merge: ^3.6.0
   tailwindcss: ^4.3.0
   typescript: ^6.0.3

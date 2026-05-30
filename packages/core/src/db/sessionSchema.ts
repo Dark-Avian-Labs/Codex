@@ -28,6 +28,7 @@ export function getSessionDb(): Database.Database {
   try {
     opened = new Database(requireSessionDbPath());
     opened.pragma('foreign_keys = ON');
+    opened.pragma('busy_timeout = 5000');
     const result = opened.prepare('PRAGMA journal_mode = WAL;').get() as
       | { journal_mode?: string }
       | undefined;
