@@ -98,6 +98,10 @@ describe('Warframe validation schemas', () => {
     it('rejects non-positive worksheet_id', () => {
       expect(addRowSchema.safeParse({ worksheet_id: -1, item_name: 'Test' }).success).toBe(false);
     });
+
+    it('rejects zero worksheet_id', () => {
+      expect(addRowSchema.safeParse({ worksheet_id: 0, item_name: 'Test' }).success).toBe(false);
+    });
   });
 
   describe('editRowSchema', () => {
