@@ -98,6 +98,10 @@ describe('Warframe validation schemas', () => {
     it('rejects non-positive worksheet_id', () => {
       expect(addRowSchema.safeParse({ worksheet_id: -1, item_name: 'Test' }).success).toBe(false);
     });
+
+    it('rejects zero worksheet_id', () => {
+      expect(addRowSchema.safeParse({ worksheet_id: 0, item_name: 'Test' }).success).toBe(false);
+    });
   });
 
   describe('editRowSchema', () => {
@@ -131,6 +135,10 @@ describe('Warframe validation schemas', () => {
     it('rejects zero', () => {
       expect(deleteRowSchema.safeParse({ row_id: 0 }).success).toBe(false);
     });
+
+    it('rejects negative row_id', () => {
+      expect(deleteRowSchema.safeParse({ row_id: -1 }).success).toBe(false);
+    });
   });
 
   describe('adminUpdateSchema', () => {
@@ -152,6 +160,24 @@ describe('Warframe validation schemas', () => {
     it('accepts single-field updates', () => {
       expect(updateAdvancedProgressSchema.safeParse({ row_id: 1, level: 5 }).success).toBe(true);
       expect(updateAdvancedProgressSchema.safeParse({ row_id: 1, has_arcane: true }).success).toBe(true);
+    });
+
+    it('accepts each additional optional field as a valid single-field patch', () => {
+      const singleFieldPatches = [
+        { row_id: 1, level_prime: 5 },
+        { row_id: 1, valence_percent_prime: 25 },
+        { row_id: 1, has_element: true },
+        { row_id: 1, has_element_prime: true },
+        { row_id: 1, has_orokin: true },
+        { row_id: 1, has_orokin_prime: true },
+        { row_id: 1, has_arcane_prime: true },
+        { row_id: 1, has_exilus: true },
+        { row_id: 1, has_exilus_prime: true },
+      ];
+
+      for (const patch of singleFieldPatches) {
+        expect(updateAdvancedProgressSchema.safeParse(patch).success).toBe(true);
+      }
     });
 
     it('rejects out-of-range level', () => {
