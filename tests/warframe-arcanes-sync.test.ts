@@ -71,6 +71,39 @@ function seedArmoryArcanes(armoryPath: string): void {
       'Arcane',
       JSON.stringify([{}, {}]),
     );
+
+  armory
+    .prepare(
+      `INSERT INTO arcanes (unique_name, name, rarity, level_stats)
+       VALUES (?, ?, 'COMMON', ?)`,
+    )
+    .run(
+      '/Lotus/Upgrades/CosmeticEnhancers/Utility/SlowerBleedOutOnPredeath',
+      'Arcane Survival',
+      JSON.stringify([{}, {}, {}, {}, {}, {}]),
+    );
+
+  armory
+    .prepare(
+      `INSERT INTO arcanes (unique_name, name, rarity, level_stats)
+       VALUES (?, ?, 'COMMON', ?)`,
+    )
+    .run(
+      '/Lotus/Upgrades/CosmeticEnhancers/OperatorArmour/ArmourOnOperatorMode',
+      'Magus Husk',
+      JSON.stringify([{}, {}, {}, {}]),
+    );
+
+  armory
+    .prepare(
+      `INSERT INTO arcanes (unique_name, name, rarity, level_stats)
+       VALUES (?, ?, 'COMMON', ?)`,
+    )
+    .run(
+      '/Lotus/Upgrades/CosmeticEnhancers/OperatorAmps/AttackSpeedOnKill',
+      'Virtuos Tempo',
+      JSON.stringify([{}, {}, {}, {}]),
+    );
   armory.close();
 }
 
@@ -114,10 +147,11 @@ describeWithSqlite('warframe arcanes sync', () => {
       active: number;
     }>;
 
-    expect(rows).toHaveLength(1);
-    expect(rows[0]?.item_name).toBe('Arcane Energize');
+    expect(rows).toHaveLength(3);
+    expect(rows.map((row) => row.item_name)).toEqual(['Arcane Energize', 'Magus Husk', 'Virtuos Tempo']);
     expect(rows[0]?.max_level).toBe(5);
     expect(rows[0]?.active).toBe(1);
     expect(rows.some((row) => row.item_name === 'Arcane')).toBe(false);
+    expect(rows.some((row) => row.item_name === 'Arcane Survival')).toBe(false);
   });
 });
