@@ -258,6 +258,9 @@ function loadCompanionNames(armoryDb: Database.Database): Set<string> {
   return companionNames;
 }
 
+const UNRELEASED_ARCANE_UNIQUE_NAME =
+  '/Lotus/Upgrades/CosmeticEnhancers/Utility/SlowerBleedOutOnPredeath';
+
 function loadArcaneCatalog(armoryDb: Database.Database): {
   names: Set<string>;
   maxLevelByCanonicalKey: Map<string, number>;
@@ -266,10 +269,14 @@ function loadArcaneCatalog(armoryDb: Database.Database): {
     .prepare(
       `SELECT name, level_stats FROM arcanes
        WHERE unique_name NOT LIKE '%Sub'
+         AND unique_name != ?
          AND name IS NOT NULL AND TRIM(name) <> ''
        ORDER BY name`,
     )
-    .all() as Array<{ name: string | null; level_stats: string | null }>;
+    .all(UNRELEASED_ARCANE_UNIQUE_NAME) as Array<{
+    name: string | null;
+    level_stats: string | null;
+  }>;
   const names = new Set<string>();
   const maxLevelByCanonicalKey = new Map<string, number>();
   for (const row of rows) {
