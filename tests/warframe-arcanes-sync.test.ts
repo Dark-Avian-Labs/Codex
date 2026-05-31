@@ -60,7 +60,7 @@ function seedArmoryArcanes(armoryPath: string): void {
       'Arcane Energize',
       JSON.stringify([{}, {}, {}, {}, {}, {}]),
     );
-  // Internal DE row (path ends with Sub); must not appear in Codex catalog.
+
   armory
     .prepare(
       `INSERT INTO arcanes (unique_name, name, rarity, level_stats)
