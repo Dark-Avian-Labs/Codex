@@ -684,6 +684,7 @@ export function WarframePage() {
   }
 
   const effectiveMarketLinks = marketLinks && (!advancedMode || isArcanesSheet);
+  const inlineMarketLayout = effectiveMarketLinks && (hasDualVariantColumns || isArcanesSheet);
   const activePanelId =
     worksheetId === null ? 'warframe-panel-empty' : `warframe-panel-${worksheetId}`;
 
@@ -896,10 +897,7 @@ export function WarframePage() {
                 <col style={{ width: 'auto' }} />
                 {advancedMode ? (
                   isArcanesSheet ? (
-                    <>
-                      <col style={{ width: '128px' }} />
-                      {effectiveMarketLinks ? <col style={{ width: '96px' }} /> : null}
-                    </>
+                    <col style={{ width: effectiveMarketLinks ? '248px' : '128px' }} />
                   ) : (
                     <>
                       <col style={{ width: '64px' }} />
@@ -919,16 +917,14 @@ export function WarframePage() {
                         width:
                           column.name === 'Helminth'
                             ? '150px'
-                            : hasDualVariantColumns && effectiveMarketLinks
+                            : inlineMarketLayout && column.name !== 'Helminth'
                               ? '248px'
                               : '200px',
                       }}
                     />
                   ))
                 )}
-                {effectiveMarketLinks &&
-                !hasDualVariantColumns &&
-                !(advancedMode && isArcanesSheet) ? (
+                {effectiveMarketLinks && !inlineMarketLayout ? (
                   <col style={{ width: '96px' }} />
                 ) : null}
               </colgroup>
@@ -937,10 +933,7 @@ export function WarframePage() {
                   <th>Name</th>
                   {advancedMode ? (
                     isArcanesSheet ? (
-                      <>
-                        <th className="text-center">Rank</th>
-                        {effectiveMarketLinks ? <th className="text-center">Market</th> : null}
-                      </>
+                      <th className="text-center">Rank</th>
                     ) : (
                       <>
                         <th
@@ -964,9 +957,7 @@ export function WarframePage() {
                       </th>
                     ))
                   )}
-                  {effectiveMarketLinks &&
-                  !hasDualVariantColumns &&
-                  !(advancedMode && isArcanesSheet) ? (
+                  {effectiveMarketLinks && !inlineMarketLayout ? (
                     <th className="text-center">Market</th>
                   ) : null}
                 </tr>
@@ -1007,16 +998,19 @@ export function WarframePage() {
                         </div>
                       </td>
                       {advancedMode && isArcanesSheet ? (
-                        <>
-                          <td className="status-cell">
-                            <div className="status-cell-inner justify-center">
-                              {(() => {
-                                const relevance = row.advanced_relevance?.normal;
-                                const progress = row.advanced_progress?.normal;
-                                const max = relevance?.max_level ?? 5;
-                                const current = progress?.level ?? 0;
-                                const levelMaxed = current >= max;
-                                return (
+                        <td className="status-cell">
+                          <div
+                            className={`status-cell-inner ${effectiveMarketLinks ? '' : 'justify-center'}`}
+                          >
+                            {(() => {
+                              const relevance = row.advanced_relevance?.normal;
+                              const progress = row.advanced_progress?.normal;
+                              const max = relevance?.max_level ?? 5;
+                              const current = progress?.level ?? 0;
+                              const levelMaxed = current >= max;
+                              const rowLabel = row.name || row.item_name || 'item';
+                              return (
+                                <>
                                   <button
                                     type="button"
                                     className={`status-btn helminth-btn ${
@@ -1042,7 +1036,7 @@ export function WarframePage() {
                                     onMouseUp={() => stopHoldStep(true)}
                                     onMouseLeave={() => stopHoldStep(true)}
                                     onTouchEnd={() => stopHoldStep(true)}
-                                    aria-label={`Rank for ${row.name || row.item_name || 'item'}`}
+                                    aria-label={`Rank for ${rowLabel}`}
                                   >
                                     <span className="flex w-full min-w-0 items-center justify-between gap-1">
                                       <span className="tabular-nums">{current}</span>
@@ -1056,44 +1050,42 @@ export function WarframePage() {
                                       </span>
                                     </span>
                                   </button>
-                                );
-                              })()}
-                            </div>
-                          </td>
-                          {effectiveMarketLinks ? (
-                            <td className="status-cell">
-                              {row.market_href ? (
-                                <a
-                                  href={row.market_href}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="status-btn empty text-primary hover:text-primary/90 inline-flex shrink-0 no-underline"
-                                  aria-label={`Warframe Market sell listings for ${row.name || row.item_name || 'item'}`}
-                                  title="Open Warframe Market"
-                                >
-                                  <MaterialSymbol
-                                    name="link_2"
-                                    className="leading-none"
-                                    style={{ fontSize: 15 }}
-                                  />
-                                </a>
-                              ) : (
-                                <span
-                                  className="status-btn unavailable inline-flex shrink-0 cursor-not-allowed"
-                                  aria-disabled="true"
-                                  title="Not listed on Warframe Market"
-                                  aria-label={`No Warframe Market listing for ${row.name || row.item_name || 'item'}`}
-                                >
-                                  <MaterialSymbol
-                                    name="link_2"
-                                    className="leading-none"
-                                    style={{ fontSize: 15 }}
-                                  />
-                                </span>
-                              )}
-                            </td>
-                          ) : null}
-                        </>
+                                  {effectiveMarketLinks ? (
+                                    row.market_href ? (
+                                      <a
+                                        href={row.market_href}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="status-btn helminth-btn empty text-primary hover:text-primary/90 inline-flex shrink-0 no-underline"
+                                        aria-label={`Warframe Market for ${rowLabel}`}
+                                        title="Open Warframe Market"
+                                      >
+                                        <MaterialSymbol
+                                          name="link_2"
+                                          className="leading-none"
+                                          style={{ fontSize: 15 }}
+                                        />
+                                      </a>
+                                    ) : (
+                                      <span
+                                        className="status-btn helminth-btn unavailable inline-flex shrink-0 cursor-not-allowed"
+                                        aria-disabled="true"
+                                        title="Not listed on Warframe Market"
+                                        aria-label={`No Warframe Market listing for ${rowLabel}`}
+                                      >
+                                        <MaterialSymbol
+                                          name="link_2"
+                                          className="leading-none"
+                                          style={{ fontSize: 15 }}
+                                        />
+                                      </span>
+                                    )
+                                  ) : null}
+                                </>
+                              );
+                            })()}
+                          </div>
+                        </td>
                       ) : advancedMode ? (
                         <>
                           <td className="status-cell align-middle">
@@ -1334,14 +1326,11 @@ export function WarframePage() {
                         data.columns.map((column) => {
                           const value = row.values?.[String(column.id)] ?? '';
                           const rowLabel = row.name || row.item_name || 'item';
-                          const showInlineMarket =
-                            effectiveMarketLinks &&
-                            hasDualVariantColumns &&
-                            column.name !== 'Helminth';
+                          const showInlineMarket = inlineMarketLayout && column.name !== 'Helminth';
                           const variantHref = showInlineMarket
-                            ? /prime/i.test(column.name)
-                              ? row.market_href_prime
-                              : row.market_href_normal
+                            ? isArcanesSheet || !/prime/i.test(column.name)
+                              ? (row.market_href_normal ?? row.market_href)
+                              : row.market_href_prime
                             : undefined;
 
                           const helminthLocked =
@@ -1412,9 +1401,7 @@ export function WarframePage() {
                           );
                         })
                       )}
-                      {effectiveMarketLinks &&
-                      !hasDualVariantColumns &&
-                      !(advancedMode && isArcanesSheet) ? (
+                      {effectiveMarketLinks && !inlineMarketLayout ? (
                         <td className="status-cell">
                           {row.market_href ? (
                             <a
