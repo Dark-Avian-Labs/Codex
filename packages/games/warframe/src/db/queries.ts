@@ -8,7 +8,7 @@ import {
   isHelminthValue,
   isValidStatus,
 } from '../config.js';
-import { normalizeDisplayName } from '../displayName.js';
+import { normalizeDisplayName, resolveCanonicalKey } from '../displayName.js';
 import {
   isHelminthNonSubsumableItemName,
   isValidHelminthCellValue,
@@ -144,15 +144,45 @@ function rowHasVariant(
   return candidateColumns.some((column) => (rowValues[column.id] ?? '') !== 'Unavailable');
 }
 
+function loadCatalogMaxLevelMap(db: Database.Database, worksheetName: string): Map<string, number> {
+  const map = new Map<string, number>();
+  if (worksheetName !== 'Arcanes') return map;
+  const rows = db
+    .prepare(
+      `SELECT canonical_key, max_level FROM catalog_rows
+       WHERE worksheet_name = ? AND max_level IS NOT NULL`,
+    )
+    .all(worksheetName) as Array<{ canonical_key: string; max_level: number }>;
+  for (const row of rows) {
+    map.set(row.canonical_key, row.max_level);
+  }
+  return map;
+}
+
+function catalogMaxLevelForItem(
+  catalogMaxByKey: Map<string, number>,
+  itemName: string,
+): number | undefined {
+  const key = resolveCanonicalKey(itemName);
+  if (!key) return undefined;
+  return catalogMaxByKey.get(key);
+}
+
 export function resolveAdvancedProgressState(
   worksheetName: string,
   itemName: string,
   hasPrimeVariant: boolean,
   current?: AdvancedProgressRow | null,
   patch?: AdvancedProgressPatch,
+  catalogMaxLevel?: number,
 ): AdvancedProgressState {
-  const normalRelevanceRaw = resolveAdvancedRowRelevance(worksheetName, itemName);
-  const primeRelevanceRaw = resolveAdvancedRowRelevance(worksheetName, `${itemName} Prime`);
+  const relevanceOptions = catalogMaxLevel !== undefined ? { catalogMaxLevel } : undefined;
+  const normalRelevanceRaw = resolveAdvancedRowRelevance(worksheetName, itemName, relevanceOptions);
+  const primeRelevanceRaw = resolveAdvancedRowRelevance(
+    worksheetName,
+    `${itemName} Prime`,
+    relevanceOptions,
+  );
   const normalizeRelevance = (
     raw: ReturnType<typeof resolveAdvancedRowRelevance>,
     available: boolean,
@@ -525,6 +555,7 @@ export function getWorksheetData(
       }
     }
 
+    const catalogMaxByKey = loadCatalogMaxLevelMap(db, worksheet.name);
     for (const row of dataRows) {
       const hasPrimeVariant = rowHasVariant(row.values, columns, true);
       const state = resolveAdvancedProgressState(
@@ -532,6 +563,8 @@ export function getWorksheetData(
         row.name,
         hasPrimeVariant,
         advancedRowsByRowId.get(row.id),
+        undefined,
+        catalogMaxLevelForItem(catalogMaxByKey, row.name),
       );
       row.advanced_progress = {
         normal: state.normal,
@@ -587,7 +620,15 @@ export function getRowAdvancedProgress(
     return acc;
   }, {});
   const hasPrimeVariant = rowHasVariant(rowValues, columns, true);
-  return resolveAdvancedProgressState(row.worksheet_name, row.item_name, hasPrimeVariant, current);
+  const catalogMaxByKey = loadCatalogMaxLevelMap(db, row.worksheet_name);
+  return resolveAdvancedProgressState(
+    row.worksheet_name,
+    row.item_name,
+    hasPrimeVariant,
+    current,
+    undefined,
+    catalogMaxLevelForItem(catalogMaxByKey, row.item_name),
+  );
 }
 
 export function updateRowAdvancedProgress(
@@ -623,12 +664,14 @@ export function updateRowAdvancedProgress(
     return acc;
   }, {});
   const hasPrimeVariant = rowHasVariant(rowValues, columns, true);
+  const catalogMaxByKey = loadCatalogMaxLevelMap(db, row.worksheet_name);
   const next = resolveAdvancedProgressState(
     row.worksheet_name,
     row.item_name,
     hasPrimeVariant,
     current,
     patch,
+    catalogMaxLevelForItem(catalogMaxByKey, row.item_name),
   );
   db.prepare(
     `INSERT INTO row_advanced_progress (

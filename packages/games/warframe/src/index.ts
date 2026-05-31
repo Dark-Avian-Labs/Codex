@@ -44,6 +44,7 @@ export {
 export {
   ABSOLUTE_MAX_ADVANCED_LEVEL,
   type AdvancedRowRelevance,
+  arcaneMaxRankFromLevelStats,
   isArcaneRelevant,
   isExilusRelevant,
   isPrimeItem,

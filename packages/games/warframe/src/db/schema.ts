@@ -145,6 +145,13 @@ export function ensureWarframeCatalogActiveColumn(db: Database.Database): void {
   }
 }
 
+export function ensureWarframeCatalogMaxLevelColumn(db: Database.Database): void {
+  const cols = db.prepare(`PRAGMA table_info(catalog_rows)`).all() as { name: string }[];
+  if (!cols.some((c) => c.name === 'max_level')) {
+    db.exec('ALTER TABLE catalog_rows ADD COLUMN max_level INTEGER');
+  }
+}
+
 export function ensureWarframeRowOrphanColumn(db: Database.Database): void {
   const cols = db.prepare(`PRAGMA table_info(rows)`).all() as { name: string }[];
   if (!cols.some((c) => c.name === 'orphaned')) {
@@ -187,6 +194,7 @@ const { getDb, closeDb } = createDbSingleton(WARFRAME_DB_PATH, {
     ensureWarframeCoreTables(db);
     ensureWarframeCatalogMasterTable(db);
     ensureWarframeCatalogActiveColumn(db);
+    ensureWarframeCatalogMaxLevelColumn(db);
     ensureWarframeRowMarketHrefColumns(db);
     ensureWarframeRowOrphanColumn(db);
     ensureWarframeAdvancedProgressTable(db);
