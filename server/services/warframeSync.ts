@@ -1,5 +1,6 @@
 import { warframeQueries as q } from '@codex/game-warframe';
 import {
+  arcaneMaxRankFromLevelStats,
   isPrimeVariantName,
   normalizeDisplayName,
   normalizeNameForKey,
@@ -24,6 +25,7 @@ const WORKSHEET_NAMES = [
   'Companion Weapons',
   'Archwing Weapons',
   'Accessories',
+  'Arcanes',
 ] as const;
 
 type WorksheetName = (typeof WORKSHEET_NAMES)[number];
@@ -256,6 +258,35 @@ function loadCompanionNames(armoryDb: Database.Database): Set<string> {
   return companionNames;
 }
 
+function loadArcaneCatalog(armoryDb: Database.Database): {
+  names: Set<string>;
+  maxLevelByCanonicalKey: Map<string, number>;
+} {
+  const rows = armoryDb
+    .prepare(
+      `SELECT name, level_stats FROM arcanes
+       WHERE unique_name NOT LIKE '%Sub'
+         AND name IS NOT NULL AND TRIM(name) <> ''
+       ORDER BY name`,
+    )
+    .all() as Array<{ name: string | null; level_stats: string | null }>;
+  const names = new Set<string>();
+  const maxLevelByCanonicalKey = new Map<string, number>();
+  for (const row of rows) {
+    const displayName = normalizeDisplayName(row.name?.trim() ?? '');
+    if (!displayName) continue;
+    const key = resolveCanonicalKey(displayName);
+    if (!key) continue;
+    const maxLevel = arcaneMaxRankFromLevelStats(row.level_stats);
+    names.add(displayName);
+    const existing = maxLevelByCanonicalKey.get(key);
+    if (existing === undefined || maxLevel > existing) {
+      maxLevelByCanonicalKey.set(key, maxLevel);
+    }
+  }
+  return { names, maxLevelByCanonicalKey };
+}
+
 function loadKDriveNames(armoryDb: Database.Database): Set<string> {
   const kDriveRows = armoryDb
     .prepare(
@@ -290,7 +321,9 @@ function ensureWorksheetExistsForSync(
     ) + 1;
   const worksheetId = q.createWorksheet(codexDb, clerkUserId, worksheet, displayOrder);
   q.addColumn(codexDb, worksheetId, clerkUserId, 'Normal', 0);
-  q.addColumn(codexDb, worksheetId, clerkUserId, 'Prime', 1);
+  if (worksheet !== 'Arcanes') {
+    q.addColumn(codexDb, worksheetId, clerkUserId, 'Prime', 1);
+  }
   if (worksheet === 'Warframes') {
     q.addColumn(codexDb, worksheetId, clerkUserId, 'Helminth', 2);
   }
@@ -306,7 +339,12 @@ export function ensureWarframeWorksheetsForUser(
   }
 }
 
-function loadWorksheetSource(armoryDb: Database.Database): Record<WorksheetName, Set<string>> {
+type WorksheetSourceBundle = {
+  sourceByWorksheet: Record<WorksheetName, Set<string>>;
+  arcaneMaxLevelByCanonicalKey: Map<string, number>;
+};
+
+function loadWorksheetSource(armoryDb: Database.Database): WorksheetSourceBundle {
   const warframes = new Set(
     loadNames(armoryDb, "SELECT name FROM warframes WHERE product_category = 'Suits'"),
   );
@@ -349,18 +387,23 @@ function loadWorksheetSource(armoryDb: Database.Database): Record<WorksheetName,
   const modular = loadModularWeaponNames(armoryDb);
   const kDrives = loadKDriveNames(armoryDb);
   const companions = loadCompanionNames(armoryDb);
+  const arcanes = loadArcaneCatalog(armoryDb);
 
   return {
-    Warframes: warframes,
-    Accessories: accessories,
-    'Primary Weapons': primary,
-    'Secondary Weapons': secondary,
-    'Melee Weapons': melee,
-    'K-Drives': kDrives,
-    Companions: companions,
-    'Companion Weapons': companionWeapons,
-    'Archwing Weapons': archwing,
-    'Modular Weapons': modular,
+    sourceByWorksheet: {
+      Warframes: warframes,
+      Accessories: accessories,
+      'Primary Weapons': primary,
+      'Secondary Weapons': secondary,
+      'Melee Weapons': melee,
+      'K-Drives': kDrives,
+      Companions: companions,
+      'Companion Weapons': companionWeapons,
+      'Archwing Weapons': archwing,
+      'Modular Weapons': modular,
+      Arcanes: arcanes.names,
+    },
+    arcaneMaxLevelByCanonicalKey: arcanes.maxLevelByCanonicalKey,
   };
 }
 
@@ -619,13 +662,20 @@ function catalogRowsHasActiveColumn(codexDb: Database.Database): boolean {
   return cols.some((c) => c.name === 'active');
 }
 
+function catalogRowsHasMaxLevelColumn(codexDb: Database.Database): boolean {
+  const cols = codexDb.prepare(`PRAGMA table_info(catalog_rows)`).all() as { name: string }[];
+  return cols.some((c) => c.name === 'max_level');
+}
+
 function syncCatalogMasterFromSource(
   codexDb: Database.Database,
   sourceByWorksheet: Record<WorksheetName, Set<string>>,
+  arcaneMaxLevelByCanonicalKey: Map<string, number>,
   execute: boolean,
 ): void {
   if (!execute) return;
   const hasActive = catalogRowsHasActiveColumn(codexDb);
+  const hasMaxLevel = catalogRowsHasMaxLevelColumn(codexDb);
   const upsert = codexDb.prepare(
     hasActive
       ? `INSERT INTO catalog_rows (worksheet_name, canonical_key, item_name, display_order, active)
@@ -640,13 +690,36 @@ function syncCatalogMasterFromSource(
            item_name = excluded.item_name,
            display_order = excluded.display_order`,
   );
+  const upsertArcane = hasMaxLevel
+    ? codexDb.prepare(
+        hasActive
+          ? `INSERT INTO catalog_rows (worksheet_name, canonical_key, item_name, display_order, active, max_level)
+             VALUES (?, ?, ?, ?, 1, ?)
+             ON CONFLICT(worksheet_name, canonical_key) DO UPDATE SET
+               item_name = excluded.item_name,
+               display_order = excluded.display_order,
+               active = 1,
+               max_level = excluded.max_level`
+          : `INSERT INTO catalog_rows (worksheet_name, canonical_key, item_name, display_order, max_level)
+             VALUES (?, ?, ?, ?, ?)
+             ON CONFLICT(worksheet_name, canonical_key) DO UPDATE SET
+               item_name = excluded.item_name,
+               display_order = excluded.display_order,
+               max_level = excluded.max_level`,
+      )
+    : null;
   for (const worksheet of WORKSHEET_NAMES) {
     let index = 0;
     const canonicalKeys: string[] = [];
     for (const name of sourceByWorksheet[worksheet] ?? []) {
       const key = resolveCanonicalKey(name);
       canonicalKeys.push(key);
-      upsert.run(worksheet, key, name, index++);
+      if (worksheet === 'Arcanes' && upsertArcane) {
+        const maxLevel = arcaneMaxLevelByCanonicalKey.get(key) ?? arcaneMaxRankFromLevelStats(null);
+        upsertArcane.run(worksheet, key, name, index++, maxLevel);
+      } else {
+        upsert.run(worksheet, key, name, index++);
+      }
     }
     if (hasActive) {
       if (canonicalKeys.length === 0) {
@@ -884,8 +957,13 @@ export function runWarframeSync(
     fileMustExist: true,
   });
   try {
-    const sourceByWorksheet = loadWorksheetSource(armoryDb);
-    syncCatalogMasterFromSource(codexDb, sourceByWorksheet, options.execute);
+    const { sourceByWorksheet, arcaneMaxLevelByCanonicalKey } = loadWorksheetSource(armoryDb);
+    syncCatalogMasterFromSource(
+      codexDb,
+      sourceByWorksheet,
+      arcaneMaxLevelByCanonicalKey,
+      options.execute,
+    );
     const armoryMarketLinks = loadArmoryMarketLinkMap(armoryDb);
     if (options.execute) {
       refreshCatalogMasterMarketHrefs(codexDb, armoryMarketLinks);

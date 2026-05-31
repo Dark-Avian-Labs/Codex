@@ -106,6 +106,7 @@ const {
   ensureWarframeCoreTables,
   ensureWarframeCatalogMasterTable,
   ensureWarframeCatalogActiveColumn,
+  ensureWarframeCatalogMaxLevelColumn,
   ensureWarframeRowMarketHrefColumns,
   ensureWarframeRowOrphanColumn,
   ensureWarframeAdvancedProgressTable,
@@ -119,6 +120,7 @@ initDatabase(warframeDbPath, 'warframe', (db) => {
   ensureWarframeCoreTables(db);
   ensureWarframeCatalogMasterTable(db);
   ensureWarframeCatalogActiveColumn(db);
+  ensureWarframeCatalogMaxLevelColumn(db);
   ensureWarframeRowMarketHrefColumns(db);
   ensureWarframeRowOrphanColumn(db);
   ensureWarframeAdvancedProgressTable(db);

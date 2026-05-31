@@ -102,6 +102,28 @@ describe('Warframe advanced progress', () => {
     expect(next.normal.has_exilus).toBe(true);
   });
 
+  it('clamps Arcanes rank to catalog max and ignores other advanced fields', () => {
+    const state = resolveAdvancedProgressState(
+      'Arcanes',
+      'Arcane Energize',
+      false,
+      null,
+      {
+        level: 99,
+        has_orokin: true,
+        has_arcane: true,
+      },
+      3,
+    );
+
+    expect(state.normal.level).toBe(3);
+    expect(state.normal.has_orokin).toBe(false);
+    expect(state.normal.has_arcane).toBe(false);
+    expect(state.relevance.normal.max_level).toBe(3);
+    expect(state.relevance.normal.valence).toBe(false);
+    expect(state.relevance.normal.arcane).toBe(false);
+  });
+
   describe('valence_percent normalization (Kuva / Tenet)', () => {
     it.each([
       { input: 57, expected: 57, note: 'below complete threshold stays clamped value' },

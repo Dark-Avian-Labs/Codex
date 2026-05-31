@@ -39,6 +39,22 @@ export function isNecramechItem(itemName: string): boolean {
 
 export const ABSOLUTE_MAX_ADVANCED_LEVEL = 40;
 
+const DEFAULT_ARCANE_MAX_RANK = 5;
+
+export function arcaneMaxRankFromLevelStats(levelStatsJson: string | null | undefined): number {
+  try {
+    if (levelStatsJson) {
+      const stats = JSON.parse(levelStatsJson) as unknown;
+      if (Array.isArray(stats) && stats.length > 0) {
+        return stats.length - 1;
+      }
+    }
+  } catch {
+    // ignore invalid JSON
+  }
+  return DEFAULT_ARCANE_MAX_RANK;
+}
+
 export function maxLevelForRow(worksheetName: string, itemName: string): number {
   if (isValenceRelevant(itemName)) return 40;
   if (MAX_RANK_40_EXACT_NAMES.has(itemName.trim())) return 40;
@@ -74,7 +90,20 @@ export function isElementRelevant(itemName: string): boolean {
 export function resolveAdvancedRowRelevance(
   worksheetName: string,
   itemName: string,
+  options?: { catalogMaxLevel?: number },
 ): AdvancedRowRelevance {
+  if (worksheetName === 'Arcanes') {
+    return {
+      maxLevel: options?.catalogMaxLevel ?? DEFAULT_ARCANE_MAX_RANK,
+      valence: false,
+      element: false,
+      orokin: false,
+      arcane: false,
+      exilus: false,
+      autoOrokin: false,
+      autoArcane: false,
+    };
+  }
   const autoArcane = worksheetName === 'Warframes';
   return {
     maxLevel: maxLevelForRow(worksheetName, itemName),

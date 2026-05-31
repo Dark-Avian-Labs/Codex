@@ -16,6 +16,7 @@ export const TAB_ORDER = [
   'Companion Weapons',
   'Archwing Weapons',
   'Accessories',
+  'Arcanes',
 ] as const;
 
 export const WORKSHEET_LABELS: Record<string, string> = {
@@ -29,6 +30,7 @@ export const WORKSHEET_LABELS: Record<string, string> = {
   'Companion Weapons': 'Companion Weapons',
   'Archwing Weapons': 'Archwing',
   Accessories: 'Accessories',
+  Arcanes: 'Arcanes',
 };
 
 export const tableScrollStyle = {
