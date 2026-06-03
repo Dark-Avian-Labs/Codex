@@ -8,7 +8,7 @@ allowBuilds:
 catalog:
   "@clerk/react": ^6.7.2
   "@clerk/express": ^2.1.22
-  "@dotenvx/dotenvx": ^1.69.2
+  "@dotenvx/dotenvx": ^1.71.0
   "@fontsource-variable/geist": ^5.2.9
   "@fontsource-variable/geist-mono": ^5.2.8
   "@fontsource-variable/cascadia-mono": ^5.2.2
@@ -20,7 +20,7 @@ catalog:
   "@types/express": ^5.0.6
   "@types/express-session": ^1.19.0
   "@types/node": ^25.9.1
-  "@types/react": ^19.2.15
+  "@types/react": ^19.2.16
   "@types/react-dom": ^19.2.3
   "@vitejs/plugin-react": ^6.0.2
   better-sqlite3: ^12.10.0
@@ -33,16 +33,16 @@ catalog:
   express-session: ^1.19.0
   globals: ^17.6.0
   helmet: ^8.2.0
-  oxfmt: ^0.52.0
-  oxlint: ^1.67.0
-  react: ^19.2.6
-  react-dom: ^19.2.6
+  oxfmt: ^0.53.0
+  oxlint: ^1.68.0
+  react: ^19.2.7
+  react-dom: ^19.2.7
   react-router-dom: ^7.16.0
   tailwind-merge: ^3.6.0
   tailwindcss: ^4.3.0
   typescript: ^6.0.3
-  vite: ^8.0.14
-  vitest: ^4.1.7
+  vite: ^8.0.16
+  vitest: ^4.1.8
   zod: ^4.4.3
 overrides:
   glob: ^13.0.6
