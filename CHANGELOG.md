@@ -217,3 +217,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.53.1** `fix` [#249](https://github.com/Dark-Avian-Labs/Codex/pull/249): arcane import
 - **v1.53.2** `chore` [#253](https://github.com/Dark-Avian-Labs/Codex/pull/253): dependabot/npm_and_yarn/production dependencies 65ebffe9a5
 - **v1.53.3** `chore` [#255](https://github.com/Dark-Avian-Labs/Codex/pull/255): dependabot/npm_and_yarn/production dependencies 273cffee25
+- **v1.53.4** `fix` [#256](https://github.com/Dark-Avian-Labs/Codex/pull/256): clerk auth modal
