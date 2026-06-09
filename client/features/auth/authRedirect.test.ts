@@ -1,7 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { APP_PATHS } from '../../app/paths';
-import { getAuthFallbackRedirect, LAST_GAME_PATH_STORAGE_KEY, rememberLastGamePath } from './authRedirect.js';
+import {
+  AUTH_REDIRECT_QUERY_PARAM,
+  buildAuthPagePath,
+  getAuthFallbackRedirect,
+  getAuthRedirectUrl,
+  LAST_GAME_PATH_STORAGE_KEY,
+  rememberLastGamePath,
+  safeAuthRedirectPath,
+} from './authRedirect.js';
 
 describe('authRedirect', () => {
   beforeEach(() => {
@@ -41,5 +49,25 @@ describe('authRedirect', () => {
 
     expect(window.localStorage.setItem).toHaveBeenCalledTimes(1);
     expect(window.localStorage.setItem).toHaveBeenCalledWith(LAST_GAME_PATH_STORAGE_KEY, APP_PATHS.warframe);
+  });
+
+  it('rejects unsafe redirect targets', () => {
+    expect(safeAuthRedirectPath('//evil.test')).toBeNull();
+    expect(safeAuthRedirectPath('https://evil.test')).toBeNull();
+    expect(safeAuthRedirectPath('/warframe')).toBe('/warframe');
+  });
+
+  it('builds auth page links with redirect_url', () => {
+    expect(buildAuthPagePath(APP_PATHS.signIn, '/warframe/admin')).toBe(
+      `${APP_PATHS.signIn}?${AUTH_REDIRECT_QUERY_PARAM}=%2Fwarframe%2Fadmin`,
+    );
+  });
+
+  it('prefers redirect_url query param over stored fallback', () => {
+    vi.mocked(window.localStorage.getItem).mockReturnValue(APP_PATHS.epic7);
+
+    expect(getAuthRedirectUrl(new URLSearchParams({ [AUTH_REDIRECT_QUERY_PARAM]: APP_PATHS.warframe }))).toBe(
+      APP_PATHS.warframe,
+    );
   });
 });
