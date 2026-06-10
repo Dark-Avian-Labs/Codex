@@ -170,59 +170,108 @@ type WeaponSourceRow = {
   unique_name: string | null;
 };
 
-function isModularMainComponent(row: WeaponSourceRow): boolean {
+const CODEX_MODULAR_EXCLUDED_PATH_MARKERS = [
+  '/scaffold/',
+  '/chassis/',
+  '/grip/',
+  '/brace/',
+  '/handle/',
+  '/handles/',
+  '/link/',
+  '/balance/',
+  '/loader/',
+  '/clip/',
+  '/core/',
+] as const;
+
+function codexDisplayNameForModularWeapon(name: string): string {
+  const trimmed = name.trim();
+  if (trimmed.toLowerCase() === 'mote prism') return 'Mote Amp';
+  return trimmed;
+}
+
+function isCodexModularTrackableWeapon(row: WeaponSourceRow): boolean {
   const name = row.name?.trim() ?? '';
   if (!name) return false;
-  if (/\bprism\b/i.test(name)) return true;
   if (/\bscaffold\b/i.test(name)) return false;
 
   const uniqueName = row.unique_name?.toLowerCase() ?? '';
   if (!uniqueName) return false;
-  if (uniqueName.includes('/prism/')) return true;
-  if (uniqueName.includes('/scaffold/')) return false;
-  if (uniqueName.includes('/barrel/')) return true;
-  if (
-    uniqueName.includes('/tip/') ||
-    uniqueName.includes('/tips/') ||
-    uniqueName.includes('/strike/')
-  ) {
-    return true;
-  }
 
-  const removablePartMarkers = [
-    '/handle/',
-    '/handles/',
-    '/grip/',
-    '/brace/',
-    '/link/',
-    '/balance/',
-    '/loader/',
-    '/clip/',
-    '/core/',
-  ];
-  for (const marker of removablePartMarkers) {
+  for (const marker of CODEX_MODULAR_EXCLUDED_PATH_MARKERS) {
     if (uniqueName.includes(marker)) {
       return false;
     }
   }
-  return false;
+
+  if (uniqueName.includes('/solarisunited/') && uniqueName.includes('/barrel/')) {
+    return true;
+  }
+  if (uniqueName.includes('/infkitgun/barrels/')) {
+    return true;
+  }
+  if (uniqueName.includes('/operatoramplifiers/') && uniqueName.includes('/barrel/')) {
+    return true;
+  }
+  if (uniqueName.includes('/senttrainingamplifier/') && uniqueName.includes('barrel')) {
+    return true;
+  }
+  if (
+    uniqueName.includes('/modularmelee') &&
+    (uniqueName.includes('/tip/') || uniqueName.includes('/tips/'))
+  ) {
+    return true;
+  }
+
+  return /\bprism\b/i.test(name);
 }
 
-function loadModularWeaponNames(armoryDb: Database.Database): Set<string> {
+function armoryHasCodexModularWeaponsTable(armoryDb: Database.Database): boolean {
+  const row = armoryDb
+    .prepare(
+      `SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'codex_modular_weapons'`,
+    )
+    .get() as { name: string } | undefined;
+  return row !== undefined;
+}
+
+function loadModularWeaponNamesFromCatalogTable(armoryDb: Database.Database): Set<string> {
+  const rows = armoryDb
+    .prepare(
+      `SELECT name FROM codex_modular_weapons
+       WHERE active = 1 AND name IS NOT NULL AND TRIM(name) <> ''
+       ORDER BY display_order`,
+    )
+    .all() as { name: string | null }[];
+  return new Set(rows.map((row) => row.name?.trim() ?? '').filter((name) => name.length > 0));
+}
+
+function loadModularWeaponNamesFromWeaponsTable(armoryDb: Database.Database): Set<string> {
   const modularRows = armoryDb
     .prepare(
-      "SELECT name, unique_name FROM weapons WHERE product_category IN ('ModularPrimary', 'ModularSecondary', 'Amps') AND name IS NOT NULL AND slot IS NOT NULL AND TRIM(slot) <> ''",
+      `SELECT name, unique_name FROM weapons
+       WHERE name IS NOT NULL AND TRIM(name) <> ''`,
     )
     .all() as WeaponSourceRow[];
   const names = new Set<string>();
   for (const row of modularRows) {
-    if (!isModularMainComponent(row)) continue;
-    const name = row.name?.trim() ?? '';
-    if (name) {
-      names.add(name);
+    if (!isCodexModularTrackableWeapon(row)) continue;
+    const displayName = codexDisplayNameForModularWeapon(row.name?.trim() ?? '');
+    if (displayName) {
+      names.add(displayName);
     }
   }
   return names;
+}
+
+function loadModularWeaponNames(armoryDb: Database.Database): Set<string> {
+  if (armoryHasCodexModularWeaponsTable(armoryDb)) {
+    const names = loadModularWeaponNamesFromCatalogTable(armoryDb);
+    if (names.size > 0) {
+      return names;
+    }
+  }
+  return loadModularWeaponNamesFromWeaponsTable(armoryDb);
 }
 
 function isCompanionModularMainComponent(row: WeaponSourceRow): boolean {
