@@ -33,7 +33,7 @@ export const DEFAULT_CASCADIA_TYPOGRAPHY: CascadiaCanvasTypography = {
   fontStretch: 'normal',
   letterSpacingPx: 0,
   wordSpacingPx: 0,
-  fontKerning: 'auto',
+  fontKerning: 'none',
   textRendering: 'auto',
   fontVariantCaps: 'normal',
   textDirection: 'ltr',

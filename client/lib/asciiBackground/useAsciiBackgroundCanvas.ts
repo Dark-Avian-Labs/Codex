@@ -1,5 +1,6 @@
 import { type RefObject, useEffect } from 'react';
 
+import { canvasDpiScale, snapAsciiCellWidth } from './canvasDpiScale';
 import {
   applyCascadiaTypographyToContext,
   DEFAULT_CASCADIA_TYPOGRAPHY,
@@ -56,11 +57,11 @@ export function useAsciiBackgroundCanvas(
 
     const prefersReduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const typography = DEFAULT_CASCADIA_TYPOGRAPHY;
-    const dpiScale = window.devicePixelRatio || 1;
+    const dpiScale = canvasDpiScale();
 
     ctx.imageSmoothingEnabled = false;
     applyCascadiaTypographyToContext(ctx, typography);
-    const cellW = Math.max(1, Math.ceil(ctx.measureText('M').width));
+    const cellW = snapAsciiCellWidth(ctx, dpiScale);
     const cellH = Math.ceil(typography.lineHeightPx);
     const w = cols * cellW;
     const h = rows * cellH;

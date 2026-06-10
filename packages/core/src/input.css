@@ -2146,13 +2146,6 @@ html.ui-clear .toast-pill {
   --stale-banner-glow: oklch(82% 0.18 80);
   --stale-update-shine: color-mix(in oklab, var(--stale-banner-glow) 55%, transparent);
   --stale-update-shine-hot: color-mix(in oklab, white 72%, var(--stale-banner-glow));
-  --stale-cta-top: oklch(92% 0.14 92);
-  --stale-cta-mid: oklch(84% 0.17 82);
-  --stale-cta-bottom: oklch(72% 0.16 72);
-  --stale-cta-border: oklch(58% 0.14 68);
-  --stale-cta-shadow: oklch(42% 0.12 62);
-  --stale-cta-glow: oklch(80% 0.2 82);
-  --stale-cta-text: oklch(28% 0.06 62);
 }
 
 html:not(.dark) {
@@ -2160,13 +2153,6 @@ html:not(.dark) {
   --stale-banner-glow: oklch(76% 0.2 78);
   --stale-update-shine: color-mix(in oklab, var(--stale-banner-glow) 45%, transparent);
   --stale-update-shine-hot: color-mix(in oklab, white 80%, var(--stale-banner-glow));
-  --stale-cta-top: oklch(94% 0.12 94);
-  --stale-cta-mid: oklch(86% 0.16 84);
-  --stale-cta-bottom: oklch(74% 0.15 74);
-  --stale-cta-border: oklch(54% 0.13 66);
-  --stale-cta-shadow: oklch(38% 0.11 60);
-  --stale-cta-glow: oklch(78% 0.19 80);
-  --stale-cta-text: oklch(24% 0.05 60);
 }
 
 .stale-update-banner {
@@ -2236,30 +2222,20 @@ html:not(.dark) {
   justify-content: center;
   min-height: 3rem;
   padding: 0.75rem 1.25rem;
-  border: 1px solid color-mix(in oklab, var(--stale-cta-border) 52%, var(--color-glass-border));
+  border: 1px solid color-mix(in oklab, var(--color-warning) 30%, transparent);
   border-radius: var(--radius-ui);
   cursor: pointer;
   font: inherit;
-  background: linear-gradient(
-    180deg,
-    color-mix(in oklab, var(--stale-cta-top) 68%, var(--color-glass)) 0%,
-    color-mix(in oklab, var(--stale-cta-mid) 62%, transparent) 45%,
-    color-mix(in oklab, var(--stale-cta-bottom) 70%, transparent) 100%
-  );
-  -webkit-backdrop-filter: blur(10px) saturate(1.25);
-  backdrop-filter: blur(10px) saturate(1.25);
-  box-shadow:
-    var(--shadow-panel),
-    0 2px 0 color-mix(in oklab, var(--stale-cta-shadow) 65%, transparent),
-    0 0 18px color-mix(in oklab, var(--stale-cta-glow) 38%, transparent),
-    inset 0 1px 0 color-mix(in oklab, var(--color-foreground) 16%, transparent),
-    inset 0 -1px 0 color-mix(in oklab, var(--color-foreground) 6%, transparent);
+  color: var(--color-warning);
+  background: color-mix(in oklab, var(--color-warning) 15%, transparent);
+  box-shadow: 0 0 18px color-mix(in oklab, var(--color-warning) 38%, transparent);
   transform: translateY(0) scale(1);
   animation: stale-update-cta-pulse 1.15s ease-in-out infinite;
   transition:
     transform 0.12s ease,
     box-shadow 0.12s ease,
-    filter 0.12s ease;
+    filter 0.12s ease,
+    background-color 0.2s;
 }
 
 .stale-update-cta::before {
@@ -2271,9 +2247,9 @@ html:not(.dark) {
     135deg,
     transparent 0%,
     transparent 42%,
-    color-mix(in oklab, white 55%, var(--stale-cta-glow)) 49%,
-    color-mix(in oklab, white 82%, var(--stale-cta-glow)) 50%,
-    color-mix(in oklab, white 55%, var(--stale-cta-glow)) 51%,
+    color-mix(in oklab, white 55%, var(--color-warning)) 49%,
+    color-mix(in oklab, white 82%, var(--color-warning)) 50%,
+    color-mix(in oklab, white 55%, var(--color-warning)) 51%,
     transparent 58%,
     transparent 100%
   );
@@ -2282,79 +2258,32 @@ html:not(.dark) {
   pointer-events: none;
 }
 
-.stale-update-cta::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  background:
-    linear-gradient(
-        90deg,
-        transparent,
-        color-mix(in oklab, var(--color-foreground) 14%, transparent),
-        transparent
-      )
-      top center/78% 1px no-repeat,
-    linear-gradient(
-        transparent 0%,
-        color-mix(in oklab, var(--stale-cta-glow) 22%, transparent) 16%,
-        color-mix(in oklab, var(--stale-cta-glow) 10%, transparent) 58%,
-        transparent 100%
-      )
-      left center/1px 84% no-repeat;
-}
-
 .stale-update-cta__label {
   position: relative;
   z-index: 1;
-  color: var(--stale-cta-text);
+  color: inherit;
   font-size: 0.9375rem;
   font-weight: 800;
   letter-spacing: 0.12em;
   line-height: 1.1;
   text-transform: uppercase;
-  text-shadow:
-    0 1px 0 color-mix(in oklab, white 28%, transparent),
-    0 1px 2px color-mix(in oklab, var(--stale-cta-shadow) 45%, transparent),
-    0 0 10px color-mix(in oklab, var(--stale-cta-glow) 32%, transparent);
+  text-shadow: 0 0 10px color-mix(in oklab, var(--color-warning) 32%, transparent);
 }
 
 .stale-update-cta:hover {
   animation-play-state: paused;
-  transform: translateY(1px) scale(1.02);
-  box-shadow:
-    var(--shadow-panel),
-    0 1px 0 color-mix(in oklab, var(--stale-cta-shadow) 65%, transparent),
-    0 0 24px color-mix(in oklab, var(--stale-cta-glow) 52%, transparent),
-    inset 0 1px 0 color-mix(in oklab, var(--color-foreground) 18%, transparent),
-    inset 0 -1px 0 color-mix(in oklab, var(--color-foreground) 6%, transparent);
+  background: color-mix(in oklab, var(--color-warning) 25%, transparent);
+  box-shadow: 0 0 24px color-mix(in oklab, var(--color-warning) 52%, transparent);
 }
 
 .stale-update-cta:active {
-  transform: translateY(3px) scale(0.985);
-  box-shadow:
-    0 0 0 color-mix(in oklab, var(--stale-cta-shadow) 40%, transparent),
-    0 0 14px color-mix(in oklab, var(--stale-cta-glow) 35%, transparent),
-    inset 0 2px 4px color-mix(in oklab, black 18%, transparent),
-    inset 0 1px 0 color-mix(in oklab, var(--color-foreground) 10%, transparent);
+  background: color-mix(in oklab, var(--color-warning) 30%, transparent);
+  box-shadow: 0 0 14px color-mix(in oklab, var(--color-warning) 35%, transparent);
 }
 
 .stale-update-cta:focus-visible {
-  outline: 2px solid color-mix(in oklab, var(--stale-cta-glow) 70%, var(--color-accent));
+  outline: 2px solid color-mix(in oklab, var(--color-warning) 70%, var(--color-accent));
   outline-offset: 2px;
-}
-
-html.ui-clear .stale-update-cta {
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  background: linear-gradient(
-    180deg,
-    color-mix(in oklab, var(--stale-cta-top) 82%, var(--color-glass)) 0%,
-    color-mix(in oklab, var(--stale-cta-mid) 78%, var(--color-glass)) 45%,
-    color-mix(in oklab, var(--stale-cta-bottom) 84%, var(--color-glass)) 100%
-  );
 }
 
 html.ui-clear .select-dropdown-menu {
