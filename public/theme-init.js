@@ -35,7 +35,7 @@
 
     var ui = readCookie('dal.ui.style').trim();
     if (ui === 'solid') ui = 'clear';
-    if (ui !== 'prism' && ui !== 'shadow' && ui !== 'clear') {
+    if (ui !== 'prism' && ui !== 'shadow' && ui !== 'clear' && ui !== 'liquid') {
       try {
         ui = (localStorage.getItem('dal.ui.style') || '').trim();
       } catch (e) {
@@ -46,8 +46,8 @@
       }
     }
     if (ui === 'solid') ui = 'clear';
-    if (ui !== 'prism' && ui !== 'shadow' && ui !== 'clear') ui = 'prism';
-    root.classList.remove('ui-prism', 'ui-shadow', 'ui-clear');
+    if (ui !== 'prism' && ui !== 'shadow' && ui !== 'clear' && ui !== 'liquid') ui = 'prism';
+    root.classList.remove('ui-prism', 'ui-shadow', 'ui-clear', 'ui-liquid');
     root.classList.add('ui-' + ui);
   } catch {}
 })();
