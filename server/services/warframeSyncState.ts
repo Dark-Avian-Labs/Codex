@@ -20,10 +20,7 @@ export function isWarframeSyncRunning(): boolean {
   return running || isWarframeSyncLeaseHeld();
 }
 
-export async function runWarframeSyncGuarded<T>(
-  fn: () => T | Promise<T>,
-  runId: number | null = null,
-): Promise<T> {
+export function acquireWarframeSyncSlot(runId: number | null = null): string {
   if (isWarframeSyncRunning()) {
     throw new SyncAlreadyRunningError();
   }
@@ -32,12 +29,24 @@ export async function runWarframeSyncGuarded<T>(
     throw new SyncAlreadyRunningError();
   }
   running = true;
+  return lockToken;
+}
+
+export function releaseWarframeSyncSlot(lockToken: string): void {
+  releaseWarframeSyncLease(lockToken);
+  running = false;
+  syncStateEmitter.emit('stopped');
+}
+
+export async function runWarframeSyncGuarded<T>(
+  fn: () => T | Promise<T>,
+  runId: number | null = null,
+): Promise<T> {
+  const lockToken = acquireWarframeSyncSlot(runId);
   try {
     return await Promise.resolve(fn());
   } finally {
-    releaseWarframeSyncLease(lockToken);
-    running = false;
-    syncStateEmitter.emit('stopped');
+    releaseWarframeSyncSlot(lockToken);
   }
 }
 

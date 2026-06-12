@@ -24,6 +24,7 @@ export function useWarframeWorksheetData(
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const worksheetIdRef = useRef<number | null>(worksheetId);
+  const loadGenerationRef = useRef(0);
 
   useEffect(() => {
     worksheetIdRef.current = worksheetId;
@@ -73,10 +74,14 @@ export function useWarframeWorksheetData(
   );
 
   const loadWorksheets = useCallback(async (): Promise<WarframeInitialSettings | null> => {
+    const generation = ++loadGenerationRef.current;
     setLoading(true);
     setLoadError(null);
     try {
       const [worksheetItems, settings] = await Promise.all([fetchWorksheets(), fetchSettings()]);
+      if (loadGenerationRef.current !== generation) {
+        return null;
+      }
       const items = worksheetItems
         .map((worksheet) => ({
           ...worksheet,
@@ -92,35 +97,40 @@ export function useWarframeWorksheetData(
       onSettingsLoaded?.(settings);
       return settings;
     } catch {
-      setLoadError('Could not load Warframe worksheets.');
+      if (loadGenerationRef.current === generation) {
+        setLoadError('Could not load Warframe worksheets.');
+      }
       return null;
     } finally {
-      setLoading(false);
+      if (loadGenerationRef.current === generation) {
+        setLoading(false);
+      }
     }
   }, [fetchSettings, fetchWorksheets, onSettingsLoaded]);
 
   const loadWorksheetData = useCallback(
     async (targetWorksheetId: number, signal?: AbortSignal): Promise<void> => {
+      const generation = ++loadGenerationRef.current;
+      const isStale = (): boolean =>
+        signal?.aborted === true ||
+        loadGenerationRef.current !== generation ||
+        worksheetIdRef.current !== targetWorksheetId;
       setLoading(true);
       setLoadError(null);
       setData({ columns: [], rows: [] });
       try {
         const worksheetData = await fetchWorksheetData(targetWorksheetId, signal);
-        if (signal?.aborted || worksheetIdRef.current !== targetWorksheetId) {
+        if (isStale()) {
           return;
         }
         setData(worksheetData);
       } catch (error_) {
-        if (
-          signal?.aborted ||
-          (error_ instanceof Error && error_.name === 'AbortError') ||
-          worksheetIdRef.current !== targetWorksheetId
-        ) {
+        if (isStale() || (error_ instanceof Error && error_.name === 'AbortError')) {
           return;
         }
         setLoadError('Could not load worksheet data.');
       } finally {
-        if (!signal?.aborted && worksheetIdRef.current === targetWorksheetId) {
+        if (!isStale()) {
           setLoading(false);
         }
       }
@@ -131,6 +141,12 @@ export function useWarframeWorksheetData(
   useEffect(() => {
     void loadWorksheets();
   }, [loadWorksheets]);
+
+  useEffect(() => {
+    return () => {
+      loadGenerationRef.current += 1;
+    };
+  }, []);
 
   useEffect(() => {
     let controller: AbortController | null = null;

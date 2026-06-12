@@ -311,6 +311,12 @@ export function WarframeAdminPage() {
   );
   const mountedRef = useRef(true);
   const syncAbortRef = useRef<AbortController | null>(null);
+  const worksheetIdRef = useRef<number | null>(null);
+  const dataLoadGenerationRef = useRef(0);
+
+  useEffect(() => {
+    worksheetIdRef.current = worksheetId;
+  }, [worksheetId]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -344,6 +350,11 @@ export function WarframeAdminPage() {
   }, []);
 
   const loadWorksheetData = useCallback(async (targetWorksheetId: number) => {
+    const generation = ++dataLoadGenerationRef.current;
+    const isStale = (): boolean =>
+      !mountedRef.current ||
+      dataLoadGenerationRef.current !== generation ||
+      worksheetIdRef.current !== targetWorksheetId;
     setLoadingData(true);
     try {
       const response = await apiFetch(`/api/warframe/worksheets/${targetWorksheetId}`);
@@ -352,15 +363,19 @@ export function WarframeAdminPage() {
         columns?: Column[];
         rows?: Row[];
       };
+      if (isStale()) return;
       setData({
         columns: Array.isArray(body.columns) ? body.columns : [],
         rows: Array.isArray(body.rows) ? body.rows : [],
       });
     } catch (err) {
+      if (isStale()) return;
       console.error('[warframe admin] Failed to load worksheet data', err);
       setError(err instanceof Error ? err.message : 'Failed to load worksheet data');
     } finally {
-      setLoadingData(false);
+      if (!isStale()) {
+        setLoadingData(false);
+      }
     }
   }, []);
 
@@ -491,8 +506,9 @@ export function WarframeAdminPage() {
         return;
       }
       await loadWorksheets();
-      if (worksheetId !== null) {
-        await loadWorksheetData(worksheetId);
+      const currentWorksheetId = worksheetIdRef.current;
+      if (currentWorksheetId !== null) {
+        await loadWorksheetData(currentWorksheetId);
       }
       await loadPreview();
     } catch (err) {
@@ -505,7 +521,7 @@ export function WarframeAdminPage() {
         setRunningSync(false);
       }
     }
-  }, [loadPreview, loadWorksheetData, loadWorksheets, worksheetId]);
+  }, [loadPreview, loadWorksheetData, loadWorksheets]);
 
   useEffect(() => {
     setHeaderCenter(

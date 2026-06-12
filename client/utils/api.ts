@@ -84,9 +84,15 @@ export async function apiFetch(url: string, init?: RequestInit): Promise<Respons
   }
 
   clearCsrfToken();
+  if (init?.signal?.aborted) {
+    throw new DOMException('Request aborted before CSRF retry', 'AbortError');
+  }
   const freshCsrfToken = await getCsrfToken();
   if (freshCsrfToken === null) {
     throw new Error('Failed to refresh CSRF token');
+  }
+  if (init?.signal?.aborted) {
+    throw new DOMException('Request aborted before CSRF retry', 'AbortError');
   }
 
   const retryHeaders = new Headers(init?.headers);

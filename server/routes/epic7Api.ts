@@ -90,6 +90,14 @@ function runWithDb(res: Response, fn: (db: Epic7Database) => void | Promise<void
         });
         return;
       }
+      const status =
+        error instanceof Error && typeof (error as { status?: unknown }).status === 'number'
+          ? (error as unknown as { status: number }).status
+          : 500;
+      if (status >= 400 && status < 500) {
+        err(res, (error as Error).message || 'Request failed', status);
+        return;
+      }
       log('error', 'Epic7 request failed', {
         err: error instanceof Error ? (error.stack ?? error.message) : String(error),
       });
@@ -359,9 +367,12 @@ epic7ApiRouter.post('/accounts', (req, res) => {
     }
     const accountsBefore = q.getGameAccountsByUserId(db, clerkUserId);
     const isFirst = accountsBefore.length === 0;
-    const accountId = q.createGameAccount(db, clerkUserId, data.account_name, isFirst);
-    q.seedAccountHeroesFromBase(db, accountId);
-    q.seedAccountArtifactsFromBase(db, accountId);
+    const accountId = db.transaction(() => {
+      const newAccountId = q.createGameAccount(db, clerkUserId, data.account_name, isFirst);
+      q.seedAccountHeroesFromBase(db, newAccountId);
+      q.seedAccountArtifactsFromBase(db, newAccountId);
+      return newAccountId;
+    })();
     if (isFirst) {
       patchEpic7Session(req, { account_id: accountId, account_name: data.account_name });
     }
@@ -419,6 +430,9 @@ epic7ApiRouter.delete('/accounts/:accountId', (req, res) => {
       return;
     }
     const accounts = q.getGameAccountsByUserId(db, clerkUserId);
+    if (accounts.length > 0 && !accounts.some((account) => account.is_active === 1)) {
+      q.setActiveAccount(db, clerkUserId, accounts[0].id);
+    }
     const stillCurrent = getEpic7Session(req).account_id === data.account_id;
     if (stillCurrent && accounts.length > 0) {
       patchEpic7Session(req, {

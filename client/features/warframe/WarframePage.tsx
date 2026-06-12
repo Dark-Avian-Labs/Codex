@@ -4,6 +4,7 @@ import type {
   WarframeColumn as Column,
   WarframeRow as Row,
 } from '../../../shared/warframeTypes.js';
+import { HeaderSearch } from '../../components/Layout/HeaderSearch';
 import { useLayoutSlots } from '../../components/Layout/useLayoutSlots';
 import { MaterialSymbol } from '../../components/ui/MaterialSymbol';
 import { apiFetch } from '../../utils/api';
@@ -12,17 +13,13 @@ import {
   type WarframeInitialSettings,
 } from './hooks/useWarframeWorksheetData.js';
 import { tableScrollStyle, WORKSHEET_LABELS, type ExitRowPhase } from './warframeConstants.js';
+import { WarframeTableRow, type AdvancedPatch } from './WarframeTableRow';
 import {
-  advancedToggleClass,
-  advancedToggleGlyph,
-  advancedVariantsVisible,
   clamp,
-  helminthCellGlyph,
   isHelminthNonSubsumableRow,
   isRowAdvancedCompleted,
   isRowCompleted,
   nextStatus,
-  statusClass,
 } from './warframeUtils.js';
 
 export function WarframePage() {
@@ -237,70 +234,36 @@ export function WarframePage() {
       });
   }, [advancedMode, showAllVariants, data.columns, data.rows]);
 
-  async function handleToggle(row: Row, column: Column): Promise<void> {
-    const oldValue = row.values?.[String(column.id)] ?? '';
-    if (oldValue === 'Unavailable') {
-      return;
-    }
-    if (column.name === 'Helminth' && isHelminthNonSubsumableRow(row)) {
-      return;
-    }
-    const value = nextStatus(oldValue, column.name);
-    const rowId = row.id;
-    const wasCompleted = isRowCompleted(row, data.columns, advancedMode, showAllVariants);
-    const updatedRowForCompletionCheck: Row = {
-      ...row,
-      values: {
-        ...row.values,
-        [String(column.id)]: value,
-      },
-    };
-    const nowCompleted = isRowCompleted(
-      updatedRowForCompletionCheck,
-      data.columns,
-      advancedMode,
-      showAllVariants,
-    );
-    const shouldAnimateExit =
-      hideCompleted && search.trim().length === 0 && !wasCompleted && nowCompleted;
-    if (!shouldAnimateExit) {
-      cancelExitAnimation(rowId);
-    }
-    setData((previous) => ({
-      ...previous,
-      rows: previous.rows.map((candidate) =>
-        candidate.id === row.id
-          ? {
-              ...candidate,
-              values: {
-                ...candidate.values,
-                [String(column.id)]: value,
-              },
-            }
-          : candidate,
-      ),
-    }));
-    if (shouldAnimateExit) {
-      startExitAnimation(rowId);
-    }
-    try {
-      const response = await apiFetch('/api/warframe/cells', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          row_id: rowId,
-          column_id: column.id,
-          value,
-        }),
-      });
-      const body = (await response.json().catch(() => null)) as {
-        error?: string;
-      } | null;
-      if (!response.ok || body?.error) {
-        throw new Error(body?.error || 'Update failed');
+  const handleToggle = useCallback(
+    async (row: Row, column: Column): Promise<void> => {
+      const oldValue = row.values?.[String(column.id)] ?? '';
+      if (oldValue === 'Unavailable') {
+        return;
       }
-    } catch {
-      cancelExitAnimation(rowId);
+      if (column.name === 'Helminth' && isHelminthNonSubsumableRow(row)) {
+        return;
+      }
+      const value = nextStatus(oldValue, column.name);
+      const rowId = row.id;
+      const wasCompleted = isRowCompleted(row, data.columns, advancedMode, showAllVariants);
+      const updatedRowForCompletionCheck: Row = {
+        ...row,
+        values: {
+          ...row.values,
+          [String(column.id)]: value,
+        },
+      };
+      const nowCompleted = isRowCompleted(
+        updatedRowForCompletionCheck,
+        data.columns,
+        advancedMode,
+        showAllVariants,
+      );
+      const shouldAnimateExit =
+        hideCompleted && search.trim().length === 0 && !wasCompleted && nowCompleted;
+      if (!shouldAnimateExit) {
+        cancelExitAnimation(rowId);
+      }
       setData((previous) => ({
         ...previous,
         rows: previous.rows.map((candidate) =>
@@ -309,154 +272,198 @@ export function WarframePage() {
                 ...candidate,
                 values: {
                   ...candidate.values,
-                  [String(column.id)]: oldValue,
+                  [String(column.id)]: value,
                 },
               }
             : candidate,
         ),
       }));
-      setOperationError('Failed to save Warframe update.');
-    }
-  }
-
-  async function handleAdvancedPatch(
-    row: Row,
-    patch: Partial<{
-      level: number;
-      level_prime: number;
-      valence_percent: number | null;
-      valence_percent_prime: number | null;
-      has_element: boolean;
-      has_element_prime: boolean;
-      has_orokin: boolean;
-      has_orokin_prime: boolean;
-      has_arcane: boolean;
-      has_arcane_prime: boolean;
-      has_exilus: boolean;
-      has_exilus_prime: boolean;
-    }>,
-  ): Promise<void> {
-    const oldProgress = row.advanced_progress ?? {
-      normal: {
-        level: 0,
-        valence_percent: null,
-        has_element: false,
-        has_orokin: false,
-        has_arcane: false,
-        has_exilus: false,
-      },
-      prime: {
-        level: 0,
-        valence_percent: null,
-        has_element: false,
-        has_orokin: false,
-        has_arcane: false,
-        has_exilus: false,
-      },
-    };
-    const nextProgress = {
-      normal: {
-        ...oldProgress.normal,
-        level: patch.level ?? oldProgress.normal.level,
-        valence_percent: patch.valence_percent ?? oldProgress.normal.valence_percent,
-        has_element: patch.has_element ?? oldProgress.normal.has_element,
-        has_orokin: patch.has_orokin ?? oldProgress.normal.has_orokin,
-        has_arcane: patch.has_arcane ?? oldProgress.normal.has_arcane,
-        has_exilus: patch.has_exilus ?? oldProgress.normal.has_exilus,
-      },
-      prime: {
-        ...oldProgress.prime,
-        level: patch.level_prime ?? oldProgress.prime.level,
-        valence_percent: patch.valence_percent_prime ?? oldProgress.prime.valence_percent,
-        has_element: patch.has_element_prime ?? oldProgress.prime.has_element,
-        has_orokin: patch.has_orokin_prime ?? oldProgress.prime.has_orokin,
-        has_arcane: patch.has_arcane_prime ?? oldProgress.prime.has_arcane,
-        has_exilus: patch.has_exilus_prime ?? oldProgress.prime.has_exilus,
-      },
-    };
-    const rowId = row.id;
-    const wasCompleted = isRowCompleted(row, data.columns, true, showAllVariants);
-    const nowCompleted = isRowCompleted(
-      { ...row, advanced_progress: nextProgress },
-      data.columns,
-      true,
-      showAllVariants,
-    );
-    const shouldAnimateExit =
-      hideCompleted && search.trim().length === 0 && !wasCompleted && nowCompleted;
-    if (!shouldAnimateExit) {
-      cancelExitAnimation(rowId);
-    }
-    setData((previous) => ({
-      ...previous,
-      rows: previous.rows.map((candidate) =>
-        candidate.id === row.id ? { ...candidate, advanced_progress: nextProgress } : candidate,
-      ),
-    }));
-    if (shouldAnimateExit) {
-      startExitAnimation(rowId);
-    }
-    try {
-      const response = await apiFetch('/api/warframe/advanced-progress', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          row_id: row.id,
-          ...patch,
-        }),
-      });
-      const body = (await response.json().catch(() => null)) as {
-        error?: string;
-        advanced_progress?: NonNullable<Row['advanced_progress']>;
-      } | null;
-      if (!response.ok || body?.error) {
-        throw new Error(body?.error || 'Update failed');
+      if (shouldAnimateExit) {
+        startExitAnimation(rowId);
       }
-      if (body?.advanced_progress) {
+      try {
+        const response = await apiFetch('/api/warframe/cells', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            row_id: rowId,
+            column_id: column.id,
+            value,
+          }),
+        });
+        const body = (await response.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+        if (!response.ok || body?.error) {
+          throw new Error(body?.error || 'Update failed');
+        }
+      } catch {
+        cancelExitAnimation(rowId);
         setData((previous) => ({
           ...previous,
           rows: previous.rows.map((candidate) =>
             candidate.id === row.id
-              ? { ...candidate, advanced_progress: body.advanced_progress }
+              ? {
+                  ...candidate,
+                  values: {
+                    ...candidate.values,
+                    [String(column.id)]: oldValue,
+                  },
+                }
               : candidate,
           ),
         }));
+        setOperationError('Failed to save Warframe update.');
       }
-    } catch {
-      cancelExitAnimation(rowId);
+    },
+    [
+      data.columns,
+      advancedMode,
+      showAllVariants,
+      hideCompleted,
+      search,
+      cancelExitAnimation,
+      startExitAnimation,
+      setData,
+    ],
+  );
+
+  const handleAdvancedPatch = useCallback(
+    async (row: Row, patch: AdvancedPatch): Promise<void> => {
+      const oldProgress = row.advanced_progress ?? {
+        normal: {
+          level: 0,
+          valence_percent: null,
+          has_element: false,
+          has_orokin: false,
+          has_arcane: false,
+          has_exilus: false,
+        },
+        prime: {
+          level: 0,
+          valence_percent: null,
+          has_element: false,
+          has_orokin: false,
+          has_arcane: false,
+          has_exilus: false,
+        },
+      };
+      const nextProgress = {
+        normal: {
+          ...oldProgress.normal,
+          level: patch.level ?? oldProgress.normal.level,
+          valence_percent: patch.valence_percent ?? oldProgress.normal.valence_percent,
+          has_element: patch.has_element ?? oldProgress.normal.has_element,
+          has_orokin: patch.has_orokin ?? oldProgress.normal.has_orokin,
+          has_arcane: patch.has_arcane ?? oldProgress.normal.has_arcane,
+          has_exilus: patch.has_exilus ?? oldProgress.normal.has_exilus,
+        },
+        prime: {
+          ...oldProgress.prime,
+          level: patch.level_prime ?? oldProgress.prime.level,
+          valence_percent: patch.valence_percent_prime ?? oldProgress.prime.valence_percent,
+          has_element: patch.has_element_prime ?? oldProgress.prime.has_element,
+          has_orokin: patch.has_orokin_prime ?? oldProgress.prime.has_orokin,
+          has_arcane: patch.has_arcane_prime ?? oldProgress.prime.has_arcane,
+          has_exilus: patch.has_exilus_prime ?? oldProgress.prime.has_exilus,
+        },
+      };
+      const rowId = row.id;
+      const wasCompleted = isRowCompleted(row, data.columns, true, showAllVariants);
+      const nowCompleted = isRowCompleted(
+        { ...row, advanced_progress: nextProgress },
+        data.columns,
+        true,
+        showAllVariants,
+      );
+      const shouldAnimateExit =
+        hideCompleted && search.trim().length === 0 && !wasCompleted && nowCompleted;
+      if (!shouldAnimateExit) {
+        cancelExitAnimation(rowId);
+      }
       setData((previous) => ({
         ...previous,
         rows: previous.rows.map((candidate) =>
-          candidate.id === row.id ? { ...candidate, advanced_progress: oldProgress } : candidate,
+          candidate.id === row.id ? { ...candidate, advanced_progress: nextProgress } : candidate,
         ),
       }));
-      setOperationError('Failed to save advanced Warframe update.');
-    }
-  }
-
-  async function handleDeleteOrphanRow(row: Row): Promise<void> {
-    const rowId = row.id;
-    setData((previous) => ({
-      ...previous,
-      rows: previous.rows.filter((candidate) => candidate.id !== rowId),
-    }));
-    try {
-      const response = await apiFetch(`/api/warframe/rows/${rowId}`, {
-        method: 'DELETE',
-      });
-      const body = (await response.json().catch(() => null)) as { error?: string } | null;
-      if (!response.ok || body?.error) {
-        throw new Error(body?.error || 'Delete failed');
+      if (shouldAnimateExit) {
+        startExitAnimation(rowId);
       }
-    } catch {
-      setData((previous) =>
-        previous.rows.some((candidate) => candidate.id === rowId)
-          ? previous
-          : { ...previous, rows: [...previous.rows, row] },
-      );
-      setOperationError('Failed to remove orphaned row.');
-    }
-  }
+      try {
+        const response = await apiFetch('/api/warframe/advanced-progress', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            row_id: row.id,
+            ...patch,
+          }),
+        });
+        const body = (await response.json().catch(() => null)) as {
+          error?: string;
+          advanced_progress?: NonNullable<Row['advanced_progress']>;
+        } | null;
+        if (!response.ok || body?.error) {
+          throw new Error(body?.error || 'Update failed');
+        }
+        if (body?.advanced_progress) {
+          setData((previous) => ({
+            ...previous,
+            rows: previous.rows.map((candidate) =>
+              candidate.id === row.id
+                ? { ...candidate, advanced_progress: body.advanced_progress }
+                : candidate,
+            ),
+          }));
+        }
+      } catch {
+        cancelExitAnimation(rowId);
+        setData((previous) => ({
+          ...previous,
+          rows: previous.rows.map((candidate) =>
+            candidate.id === row.id ? { ...candidate, advanced_progress: oldProgress } : candidate,
+          ),
+        }));
+        setOperationError('Failed to save advanced Warframe update.');
+      }
+    },
+    [
+      data.columns,
+      showAllVariants,
+      hideCompleted,
+      search,
+      cancelExitAnimation,
+      startExitAnimation,
+      setData,
+    ],
+  );
+
+  const handleDeleteOrphanRow = useCallback(
+    async (row: Row): Promise<void> => {
+      const rowId = row.id;
+      setData((previous) => ({
+        ...previous,
+        rows: previous.rows.filter((candidate) => candidate.id !== rowId),
+      }));
+      try {
+        const response = await apiFetch(`/api/warframe/rows/${rowId}`, {
+          method: 'DELETE',
+        });
+        const body = (await response.json().catch(() => null)) as { error?: string } | null;
+        if (!response.ok || body?.error) {
+          throw new Error(body?.error || 'Delete failed');
+        }
+      } catch {
+        setData((previous) =>
+          previous.rows.some((candidate) => candidate.id === rowId)
+            ? previous
+            : { ...previous, rows: [...previous.rows, row] },
+        );
+        setOperationError('Failed to remove orphaned row.');
+      }
+    },
+    [setData],
+  );
 
   const updateAdvancedProgressLocal = useCallback(
     (
@@ -628,29 +635,12 @@ export function WarframePage() {
 
   useEffect(() => {
     setHeaderCenter(
-      <div className="search-wrapper">
-        <input
-          id="codex-warframe-header-search"
-          name="search"
-          type="text"
-          role="searchbox"
-          enterKeyHint="search"
-          autoComplete="off"
-          className="search-box"
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          aria-label="Search Warframe items"
-          placeholder="Search..."
-        />
-        <button
-          type="button"
-          className={`search-clear ${search.length > 0 ? 'visible' : ''}`}
-          aria-label="Clear search"
-          onClick={() => setSearch('')}
-        >
-          <MaterialSymbol name="close" className="leading-none" style={{ fontSize: 18 }} />
-        </button>
-      </div>,
+      <HeaderSearch
+        inputId="codex-warframe-header-search"
+        ariaLabel="Search Warframe items"
+        value={search}
+        onChange={setSearch}
+      />,
     );
     return () => {
       setHeaderCenter(null);
@@ -963,480 +953,26 @@ export function WarframePage() {
                 </tr>
               </thead>
               <tbody>
-                {rows.map((row) => {
-                  const isCompletedRow = isRowCompleted(
-                    row,
-                    data.columns,
-                    advancedMode,
-                    showAllVariants,
-                  );
-                  const rowClassName = `${isCompletedRow ? 'warframe-completed-row ' : ''}${
-                    row.orphaned ? 'sync-mismatch-row ' : ''
-                  }${
-                    exitingRows[row.id] === 'fill' ? 'warframe-row-exit-fill ' : ''
-                  }${exitingRows[row.id] === 'push' ? 'warframe-row-exit-push' : ''}`.trim();
-                  const visibleVariants = advancedVariantsVisible(row, showAllVariants);
-
-                  return (
-                    <tr key={row.id} className={rowClassName}>
-                      <td className="item-name">
-                        <div className="flex items-center gap-2">
-                          <span>{row.name || row.item_name || 'Unnamed'}</span>
-                          {row.orphaned ? (
-                            <button
-                              type="button"
-                              className="text-muted hover:text-danger inline-flex shrink-0 items-center justify-center rounded p-0.5 transition-colors"
-                              onClick={() => {
-                                void handleDeleteOrphanRow(row);
-                              }}
-                              aria-label={`Remove ${row.name || row.item_name || 'item'} from worksheet`}
-                              title="Remove item no longer in catalog"
-                            >
-                              <MaterialSymbol name="delete" style={{ fontSize: 16 }} />
-                            </button>
-                          ) : null}
-                        </div>
-                      </td>
-                      {advancedMode && isArcanesSheet ? (
-                        <td className="status-cell">
-                          <div
-                            className={`status-cell-inner ${effectiveMarketLinks ? '' : 'justify-center'}`}
-                          >
-                            {(() => {
-                              const relevance = row.advanced_relevance?.normal;
-                              const progress = row.advanced_progress?.normal;
-                              const max = relevance?.max_level ?? 5;
-                              const current = progress?.level ?? 0;
-                              const levelMaxed = current >= max;
-                              const rowLabel = row.name || row.item_name || 'item';
-                              return (
-                                <>
-                                  <button
-                                    type="button"
-                                    className={`status-btn helminth-btn ${
-                                      levelMaxed ? 'yes' : 'empty'
-                                    } min-w-[82px] px-2 py-1 text-xs`}
-                                    onMouseDown={(event) => {
-                                      const rect = event.currentTarget.getBoundingClientRect();
-                                      const direction: 1 | -1 =
-                                        event.clientY < rect.top + rect.height / 2 ? 1 : -1;
-                                      startHoldStep(
-                                        current,
-                                        direction,
-                                        0,
-                                        max,
-                                        (next) => {
-                                          updateAdvancedProgressLocal(row.id, { level: next });
-                                        },
-                                        (next) => {
-                                          void handleAdvancedPatch(row, { level: next });
-                                        },
-                                      );
-                                    }}
-                                    onMouseUp={() => stopHoldStep(true)}
-                                    onMouseLeave={() => stopHoldStep(true)}
-                                    onTouchEnd={() => stopHoldStep(true)}
-                                    aria-label={`Rank for ${rowLabel}`}
-                                  >
-                                    <span className="flex w-full min-w-0 items-center justify-between gap-1">
-                                      <span className="tabular-nums">{current}</span>
-                                      <span
-                                        className={`inline-flex shrink-0 flex-col text-[9px] leading-[0.7] ${
-                                          levelMaxed ? 'opacity-90' : 'opacity-80'
-                                        }`}
-                                      >
-                                        <span>▲</span>
-                                        <span>▼</span>
-                                      </span>
-                                    </span>
-                                  </button>
-                                  {effectiveMarketLinks ? (
-                                    row.market_href ? (
-                                      <a
-                                        href={row.market_href}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="status-btn helminth-btn empty text-primary hover:text-primary/90 inline-flex shrink-0 no-underline"
-                                        aria-label={`Warframe Market for ${rowLabel}`}
-                                        title="Open Warframe Market"
-                                      >
-                                        <MaterialSymbol
-                                          name="link_2"
-                                          className="leading-none"
-                                          style={{ fontSize: 15 }}
-                                        />
-                                      </a>
-                                    ) : (
-                                      <span
-                                        className="status-btn helminth-btn unavailable inline-flex shrink-0 cursor-not-allowed"
-                                        aria-disabled="true"
-                                        title="Not listed on Warframe Market"
-                                        aria-label={`No Warframe Market listing for ${rowLabel}`}
-                                      >
-                                        <MaterialSymbol
-                                          name="link_2"
-                                          className="leading-none"
-                                          style={{ fontSize: 15 }}
-                                        />
-                                      </span>
-                                    )
-                                  ) : null}
-                                </>
-                              );
-                            })()}
-                          </div>
-                        </td>
-                      ) : advancedMode ? (
-                        <>
-                          <td className="status-cell align-middle">
-                            <div className="status-cell-inner justify-end pr-1">
-                              <div className="text-muted flex flex-col gap-1 text-end text-[10px] leading-tight">
-                                {visibleVariants.map((variant) => (
-                                  <span
-                                    key={`${row.id}-vl-${variant}`}
-                                    className="flex min-h-[29px] items-center justify-end"
-                                  >
-                                    {variant === 'prime' ? 'Prime' : 'Normal'}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="status-cell">
-                            <div className="status-cell-inner justify-center">
-                              <div className="flex flex-col gap-1">
-                                {visibleVariants.map((variant) => {
-                                  const isPrime = variant === 'prime';
-                                  const relevance = row.advanced_relevance?.[variant];
-                                  const progress = row.advanced_progress?.[variant];
-                                  const enabled = isPrime
-                                    ? Boolean(row.advanced_relevance?.has_prime_variant)
-                                    : true;
-                                  const max = relevance?.max_level ?? 30;
-                                  const current = progress?.level ?? 0;
-                                  const levelMaxed = enabled && current >= max;
-                                  const key = isPrime ? 'level_prime' : 'level';
-                                  return (
-                                    <button
-                                      key={`level-${variant}`}
-                                      type="button"
-                                      className={`status-btn helminth-btn ${
-                                        !enabled ? 'unavailable' : levelMaxed ? 'yes' : 'empty'
-                                      } min-w-[82px] px-2 py-1 text-xs`}
-                                      disabled={!enabled}
-                                      onMouseDown={(event) => {
-                                        const rect = event.currentTarget.getBoundingClientRect();
-                                        const direction: 1 | -1 =
-                                          event.clientY < rect.top + rect.height / 2 ? 1 : -1;
-                                        startHoldStep(
-                                          current,
-                                          direction,
-                                          0,
-                                          max,
-                                          (next) => {
-                                            updateAdvancedProgressLocal(row.id, {
-                                              [key]: next,
-                                            } as { level?: number; level_prime?: number });
-                                          },
-                                          (next) => {
-                                            void handleAdvancedPatch(row, { [key]: next } as {
-                                              level?: number;
-                                              level_prime?: number;
-                                            });
-                                          },
-                                        );
-                                      }}
-                                      onMouseUp={() => stopHoldStep(true)}
-                                      onMouseLeave={() => stopHoldStep(true)}
-                                      onTouchEnd={() => stopHoldStep(true)}
-                                      aria-label={`${isPrime ? 'Prime' : 'Normal'} level for ${row.name || row.item_name || 'item'}`}
-                                    >
-                                      <span className="flex w-full min-w-0 items-center justify-between gap-1">
-                                        <span className="tabular-nums">{current}</span>
-                                        <span
-                                          className={`inline-flex shrink-0 flex-col text-[9px] leading-[0.7] ${
-                                            levelMaxed ? 'opacity-90' : 'opacity-80'
-                                          }`}
-                                        >
-                                          <span>▲</span>
-                                          <span>▼</span>
-                                        </span>
-                                      </span>
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="status-cell">
-                            <div className="status-cell-inner justify-center">
-                              <div className="flex flex-col gap-1">
-                                {visibleVariants.map((variant) => {
-                                  const isPrime = variant === 'prime';
-                                  const relevance = row.advanced_relevance?.[variant];
-                                  const progress = row.advanced_progress?.[variant];
-                                  const enabled = Boolean(relevance?.valence);
-                                  const current = progress?.valence_percent ?? 25;
-                                  const valenceMax = 60;
-                                  const valenceMaxed = enabled && current >= valenceMax;
-                                  const key = isPrime ? 'valence_percent_prime' : 'valence_percent';
-                                  return (
-                                    <button
-                                      key={`valence-${variant}`}
-                                      type="button"
-                                      className={`status-btn helminth-btn ${
-                                        !enabled ? 'unavailable' : valenceMaxed ? 'yes' : 'empty'
-                                      } min-w-[82px] px-2 py-1 text-xs`}
-                                      disabled={!enabled}
-                                      onMouseDown={(event) => {
-                                        const rect = event.currentTarget.getBoundingClientRect();
-                                        const direction: 1 | -1 =
-                                          event.clientY < rect.top + rect.height / 2 ? 1 : -1;
-                                        startHoldStep(
-                                          current,
-                                          direction,
-                                          25,
-                                          valenceMax,
-                                          (next) => {
-                                            updateAdvancedProgressLocal(row.id, {
-                                              [key]: next,
-                                            } as {
-                                              valence_percent?: number;
-                                              valence_percent_prime?: number;
-                                            });
-                                          },
-                                          (next) => {
-                                            void handleAdvancedPatch(row, { [key]: next } as {
-                                              valence_percent?: number;
-                                              valence_percent_prime?: number;
-                                            });
-                                          },
-                                        );
-                                      }}
-                                      onMouseUp={() => stopHoldStep(true)}
-                                      onMouseLeave={() => stopHoldStep(true)}
-                                      onTouchEnd={() => stopHoldStep(true)}
-                                      aria-label={`${isPrime ? 'Prime' : 'Normal'} valence for ${row.name || row.item_name || 'item'}`}
-                                    >
-                                      <span className="flex w-full min-w-0 items-center justify-between gap-1">
-                                        <span className="tabular-nums">{current}</span>
-                                        <span
-                                          className={`inline-flex shrink-0 flex-col text-[9px] leading-[0.7] ${
-                                            valenceMaxed ? 'opacity-90' : 'opacity-80'
-                                          }`}
-                                        >
-                                          <span>▲</span>
-                                          <span>▼</span>
-                                        </span>
-                                      </span>
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          </td>
-                          {(
-                            [
-                              ['has_element', 'element'],
-                              ['has_orokin', 'orokin'],
-                              ['has_arcane', 'arcane'],
-                              ['has_exilus', 'exilus'],
-                            ] as const
-                          ).map(([field, relevanceField]) => (
-                            <td key={`${row.id}-${field}`} className="status-cell">
-                              <div className="status-cell-inner justify-center">
-                                <div className="flex flex-col gap-1">
-                                  {visibleVariants.map((variant) => {
-                                    const isPrime = variant === 'prime';
-                                    const checked = Boolean(
-                                      isPrime
-                                        ? row.advanced_progress?.prime[
-                                            field as keyof NonNullable<
-                                              Row['advanced_progress']
-                                            >['prime']
-                                          ]
-                                        : row.advanced_progress?.normal[
-                                            field as keyof NonNullable<
-                                              Row['advanced_progress']
-                                            >['normal']
-                                          ],
-                                    );
-                                    const relevant = Boolean(
-                                      row.advanced_relevance?.[variant][
-                                        relevanceField as keyof NonNullable<
-                                          Row['advanced_relevance']
-                                        >['normal']
-                                      ],
-                                    );
-                                    const variantRelevance = row.advanced_relevance?.[variant];
-                                    const lockedOrokinAuto =
-                                      field === 'has_orokin' &&
-                                      checked &&
-                                      Boolean(variantRelevance?.auto_orokin);
-                                    const lockedWarframeArcaneAuto =
-                                      field === 'has_arcane' &&
-                                      relevant &&
-                                      currentWorksheetName === 'Warframes';
-                                    const interactive =
-                                      relevant && !lockedOrokinAuto && !lockedWarframeArcaneAuto;
-                                    const lockedActive =
-                                      lockedOrokinAuto || (lockedWarframeArcaneAuto && checked);
-                                    const key = isPrime ? `${field}_prime` : field;
-                                    return (
-                                      <button
-                                        key={`${row.id}-${key}`}
-                                        type="button"
-                                        className={`${advancedToggleClass(checked, interactive, lockedActive)} min-w-[82px] px-2 py-1 text-xs`}
-                                        disabled={!interactive}
-                                        tabIndex={lockedActive ? -1 : undefined}
-                                        onClick={() => {
-                                          void handleAdvancedPatch(row, {
-                                            [key]: !checked,
-                                          } as Partial<{
-                                            has_element: boolean;
-                                            has_element_prime: boolean;
-                                            has_orokin: boolean;
-                                            has_orokin_prime: boolean;
-                                            has_arcane: boolean;
-                                            has_arcane_prime: boolean;
-                                            has_exilus: boolean;
-                                            has_exilus_prime: boolean;
-                                          }>);
-                                        }}
-                                        aria-label={`${isPrime ? 'Prime' : 'Normal'} ${field.replace('has_', '')} for ${row.name || row.item_name || 'item'}`}
-                                      >
-                                        <span className="inline-flex items-center gap-1.5">
-                                          <span>
-                                            {advancedToggleGlyph(
-                                              checked,
-                                              interactive,
-                                              lockedActive,
-                                            )}
-                                          </span>
-                                        </span>
-                                      </button>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                            </td>
-                          ))}
-                        </>
-                      ) : (
-                        data.columns.map((column) => {
-                          const value = row.values?.[String(column.id)] ?? '';
-                          const rowLabel = row.name || row.item_name || 'item';
-                          const showInlineMarket = inlineMarketLayout && column.name !== 'Helminth';
-                          const variantHref = showInlineMarket
-                            ? isArcanesSheet || !/prime/i.test(column.name)
-                              ? (row.market_href_normal ?? row.market_href)
-                              : row.market_href_prime
-                            : undefined;
-
-                          const helminthLocked =
-                            column.name === 'Helminth' && isHelminthNonSubsumableRow(row);
-                          const helminthAria =
-                            column.name === 'Helminth'
-                              ? value === 'Yes'
-                                ? `Helminth subsumed for ${rowLabel}`
-                                : value === 'Unavailable' || helminthLocked
-                                  ? `Helminth not applicable for ${rowLabel}`
-                                  : `Helminth not completed for ${rowLabel}`
-                              : `${column.name} status for ${rowLabel}`;
-                          const statusButton = (
-                            <button
-                              type="button"
-                              className={statusClass(value, column.name, row)}
-                              onClick={() => {
-                                void handleToggle(row, column);
-                              }}
-                              aria-label={helminthAria}
-                              disabled={value === 'Unavailable' || helminthLocked}
-                            >
-                              {column.name === 'Helminth'
-                                ? helminthCellGlyph(value, row)
-                                : value || '—'}
-                            </button>
-                          );
-
-                          return (
-                            <td key={`${row.id}-${column.id}`} className="status-cell">
-                              {showInlineMarket ? (
-                                <div className="status-cell-inner">
-                                  {statusButton}
-                                  {variantHref ? (
-                                    <a
-                                      href={variantHref}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="status-btn helminth-btn empty text-primary hover:text-primary/90 inline-flex shrink-0 no-underline"
-                                      aria-label={`Warframe Market (${column.name}) for ${rowLabel}`}
-                                      title="Open Warframe Market"
-                                    >
-                                      <MaterialSymbol
-                                        name="link_2"
-                                        className="leading-none"
-                                        style={{ fontSize: 15 }}
-                                      />
-                                    </a>
-                                  ) : (
-                                    <span
-                                      className="status-btn helminth-btn unavailable inline-flex shrink-0 cursor-not-allowed"
-                                      aria-disabled="true"
-                                      title="Not listed on Warframe Market"
-                                      aria-label={`No Warframe Market listing (${column.name}) for ${rowLabel}`}
-                                    >
-                                      <MaterialSymbol
-                                        name="link_2"
-                                        className="leading-none"
-                                        style={{ fontSize: 15 }}
-                                      />
-                                    </span>
-                                  )}
-                                </div>
-                              ) : (
-                                statusButton
-                              )}
-                            </td>
-                          );
-                        })
-                      )}
-                      {effectiveMarketLinks && !inlineMarketLayout ? (
-                        <td className="status-cell">
-                          {row.market_href ? (
-                            <a
-                              href={row.market_href}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="status-btn empty text-primary hover:text-primary/90 inline-flex shrink-0 no-underline"
-                              aria-label={`Warframe Market sell listings for ${row.name || row.item_name || 'item'}`}
-                              title="Open Warframe Market"
-                            >
-                              <MaterialSymbol
-                                name="link_2"
-                                className="leading-none"
-                                style={{ fontSize: 15 }}
-                              />
-                            </a>
-                          ) : (
-                            <span
-                              className="status-btn unavailable inline-flex shrink-0 cursor-not-allowed"
-                              aria-disabled="true"
-                              title="Not listed on Warframe Market"
-                              aria-label={`No Warframe Market listing for ${row.name || row.item_name || 'item'}`}
-                            >
-                              <MaterialSymbol
-                                name="link_2"
-                                className="leading-none"
-                                style={{ fontSize: 15 }}
-                              />
-                            </span>
-                          )}
-                        </td>
-                      ) : null}
-                    </tr>
-                  );
-                })}
+                {rows.map((row) => (
+                  <WarframeTableRow
+                    key={row.id}
+                    row={row}
+                    columns={data.columns}
+                    advancedMode={advancedMode}
+                    isArcanesSheet={isArcanesSheet}
+                    showAllVariants={showAllVariants}
+                    effectiveMarketLinks={effectiveMarketLinks}
+                    inlineMarketLayout={inlineMarketLayout}
+                    currentWorksheetName={currentWorksheetName}
+                    exitPhase={exitingRows[row.id]}
+                    onToggle={handleToggle}
+                    onAdvancedPatch={handleAdvancedPatch}
+                    onDeleteOrphanRow={handleDeleteOrphanRow}
+                    onHoldStart={startHoldStep}
+                    onHoldStop={stopHoldStep}
+                    updateAdvancedProgressLocal={updateAdvancedProgressLocal}
+                  />
+                ))}
               </tbody>
             </table>
           </div>

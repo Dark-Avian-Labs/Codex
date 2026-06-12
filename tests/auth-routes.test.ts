@@ -65,6 +65,11 @@ vi.mock('@codex/game-epic7', () => ({
   }),
 }));
 
+vi.mock('../server/epic7DbState.js', () => ({
+  refreshEpic7DbAvailability: async () => {},
+  isEpic7DbAvailable: () => dbMocks.epic7Ok,
+}));
+
 const armoryAccessMock = vi.hoisted(() => vi.fn(async () => {}));
 
 function createProbeApp() {

@@ -24,7 +24,15 @@ vi.mock('../logger.js', () => ({
 
 import { provisionWarframeUserIfNeeded } from './warframeProvision.js';
 
-const codexDb = {} as Database.Database;
+const codexDb = {
+  transaction(fn: (...args: unknown[]) => unknown) {
+    const runner = (...args: unknown[]) => fn(...args);
+    runner.immediate = (...args: unknown[]) => fn(...args);
+    runner.deferred = (...args: unknown[]) => fn(...args);
+    runner.exclusive = (...args: unknown[]) => fn(...args);
+    return runner;
+  },
+} as unknown as Database.Database;
 
 describe('provisionWarframeUserIfNeeded', () => {
   beforeEach(() => {

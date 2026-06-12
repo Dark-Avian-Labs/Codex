@@ -75,8 +75,10 @@ export function useAsciiBackgroundCanvas(
 
     const t0 = performance.now();
 
+    let colors = readAsciiCanvasColors();
+
     const paint = (now: number) => {
-      const { fgA, fgB, fgMask } = readAsciiCanvasColors();
+      const { fgA, fgB, fgMask } = colors;
       const phase = phaseFromClock(now, t0, PERIOD_SEC, direction);
       drawAsciiOverlayFrame(
         ctx,
@@ -97,9 +99,22 @@ export function useAsciiBackgroundCanvas(
       );
     };
 
+    const themeObserver = new MutationObserver(() => {
+      colors = readAsciiCanvasColors();
+      if (prefersReduce) {
+        paint(performance.now());
+      }
+    });
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class', 'style'],
+    });
+
     if (prefersReduce) {
       paint(performance.now());
-      return undefined;
+      return () => {
+        themeObserver.disconnect();
+      };
     }
 
     let raf = 0;
@@ -110,6 +125,7 @@ export function useAsciiBackgroundCanvas(
     raf = requestAnimationFrame(tick);
     return () => {
       cancelAnimationFrame(raf);
+      themeObserver.disconnect();
     };
   }, [asciiRows, asciiRowsAlt, asciiMaskRows, direction]);
 }

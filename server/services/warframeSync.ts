@@ -133,7 +133,10 @@ export type WarframeMarketLinkSyncSummary =
       ran: true;
       rowsProcessed: number;
       rowsWithLink: number;
-      failedWorksheets: Array<{ clerkUserId: string; worksheet: WorksheetName }>;
+      failedWorksheets: Array<{
+        clerkUserId: string;
+        worksheet: WorksheetName;
+      }>;
     };
 
 type CleanupCandidate = {
@@ -551,6 +554,36 @@ function createDesiredEntries(
   return desired;
 }
 
+function loadWorksheetCellValues(
+  codexDb: Database.Database,
+  worksheetId: number,
+  clerkUserId: string,
+): Map<number, Map<number, string>> {
+  const cellRows = codexDb
+    .prepare(
+      `SELECT cv.row_id, cv.column_id, cv.value
+       FROM cell_values cv
+       JOIN rows r ON cv.row_id = r.id
+       JOIN worksheets w ON r.worksheet_id = w.id
+       WHERE w.id = ? AND w.clerk_user_id = ?`,
+    )
+    .all(worksheetId, clerkUserId) as Array<{
+    row_id: number;
+    column_id: number;
+    value: string;
+  }>;
+  const map = new Map<number, Map<number, string>>();
+  for (const cell of cellRows) {
+    let bucket = map.get(cell.row_id);
+    if (!bucket) {
+      bucket = new Map<number, string>();
+      map.set(cell.row_id, bucket);
+    }
+    bucket.set(cell.column_id, cell.value);
+  }
+  return map;
+}
+
 function reconcileVariantAvailability(params: {
   codexDb: Database.Database;
   clerkUserId: string;
@@ -558,8 +591,10 @@ function reconcileVariantAvailability(params: {
   desiredEntry: DesiredEntry;
   variantColumns: VariantColumns;
   execute: boolean;
+  rowCellValues?: Map<number, string>;
 }): boolean {
-  const { codexDb, clerkUserId, rowId, desiredEntry, variantColumns, execute } = params;
+  const { codexDb, clerkUserId, rowId, desiredEntry, variantColumns, execute, rowCellValues } =
+    params;
   const targetValuesByColumn = new Map<number, '' | 'Unavailable'>();
   if (!desiredEntry.hasBaseVariant) {
     for (const columnId of variantColumns.baseColumnIds) {
@@ -583,7 +618,9 @@ function reconcileVariantAvailability(params: {
 
   let hasChange = false;
   for (const [columnId, targetValue] of targetValuesByColumn.entries()) {
-    const currentValue = q.getCellValue(codexDb, rowId, columnId, clerkUserId) ?? '';
+    const currentValue = rowCellValues
+      ? (rowCellValues.get(columnId) ?? '')
+      : (q.getCellValue(codexDb, rowId, columnId, clerkUserId) ?? '');
     const nextValue =
       targetValue === 'Unavailable'
         ? 'Unavailable'
@@ -596,6 +633,7 @@ function reconcileVariantAvailability(params: {
     hasChange = true;
     if (execute) {
       q.adminUpdateCell(codexDb, rowId, columnId, nextValue, clerkUserId);
+      rowCellValues?.set(columnId, nextValue);
     }
   }
 
@@ -606,11 +644,11 @@ function reconcileVariantAvailability(params: {
 }
 
 function rowHasUserProgress(
-  rowValues: Record<number, string>,
+  rowValues: Map<number, string> | undefined,
   columns: Array<{ id: number; name: string }>,
 ): boolean {
   for (const column of columns) {
-    const value = rowValues[column.id] ?? '';
+    const value = rowValues?.get(column.id) ?? '';
     if (column.name === 'Helminth') {
       if (value === 'Yes') return true;
       continue;
@@ -625,23 +663,17 @@ function rowHasUserProgress(
 function cleanupDuplicateVariantRows(params: {
   codexDb: Database.Database;
   clerkUserId: string;
-  sheetId: number;
   worksheet: WorksheetName;
   execute: boolean;
+  rows: Array<{ id: number; item_name: string }>;
+  columns: Array<{ id: number; name: string }>;
+  cellValuesByRow: Map<number, Map<number, string>>;
 }): {
   deletedItemNames: string[];
   deletedRows: CleanupCandidate[];
   requiresConfirmationRows: CleanupCandidate[];
 } {
-  const { codexDb, clerkUserId, sheetId, worksheet, execute } = params;
-  const worksheetData = q.getWorksheetData(codexDb, sheetId, clerkUserId);
-  if (!worksheetData) {
-    return {
-      deletedItemNames: [],
-      deletedRows: [],
-      requiresConfirmationRows: [],
-    };
-  }
+  const { codexDb, clerkUserId, worksheet, execute, rows, columns, cellValuesByRow } = params;
 
   const groups = new Map<
     string,
@@ -652,15 +684,15 @@ function cleanupDuplicateVariantRows(params: {
       isPrime: boolean;
     }>
   >();
-  for (const row of worksheetData.rows) {
-    const key = resolveCanonicalKey(row.name);
+  for (const row of rows) {
+    const key = resolveCanonicalKey(row.item_name);
     if (!key) continue;
     const bucket = groups.get(key) ?? [];
     bucket.push({
       id: row.id,
-      name: row.name,
-      hasProgress: rowHasUserProgress(row.values, worksheetData.columns),
-      isPrime: isPrimeVariantName(row.name),
+      name: row.item_name,
+      hasProgress: rowHasUserProgress(cellValuesByRow.get(row.id), columns),
+      isPrime: isPrimeVariantName(row.item_name),
     });
     groups.set(key, bucket);
   }
@@ -714,12 +746,16 @@ type RunSyncOptions = {
 };
 
 function catalogRowsHasActiveColumn(codexDb: Database.Database): boolean {
-  const cols = codexDb.prepare(`PRAGMA table_info(catalog_rows)`).all() as { name: string }[];
+  const cols = codexDb.prepare(`PRAGMA table_info(catalog_rows)`).all() as {
+    name: string;
+  }[];
   return cols.some((c) => c.name === 'active');
 }
 
 function catalogRowsHasMaxLevelColumn(codexDb: Database.Database): boolean {
-  const cols = codexDb.prepare(`PRAGMA table_info(catalog_rows)`).all() as { name: string }[];
+  const cols = codexDb.prepare(`PRAGMA table_info(catalog_rows)`).all() as {
+    name: string;
+  }[];
   return cols.some((c) => c.name === 'max_level');
 }
 
@@ -804,7 +840,22 @@ function marketLinkKey(canonicalKey: string, worksheet: WorksheetName): string {
   return `${canonicalKey}\0${worksheet}`;
 }
 
+function armoryHasMarketLinksTable(armoryDb: Database.Database): boolean {
+  const row = armoryDb
+    .prepare(
+      `SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'warframe_market_links'`,
+    )
+    .get() as { name: string } | undefined;
+  return row !== undefined;
+}
+
 function loadArmoryMarketLinkMap(armoryDb: Database.Database): Map<string, MarketHrefPair> {
+  if (!armoryHasMarketLinksTable(armoryDb)) {
+    console.warn(
+      '[Warframe sync] Armory DB has no warframe_market_links table; skipping market link sync.',
+    );
+    return new Map();
+  }
   const rows = armoryDb
     .prepare(
       `SELECT canonical_key, worksheet_category, market_href, market_href_prime
@@ -861,7 +912,11 @@ function refreshCatalogMasterMarketHrefs(
     .prepare(
       `SELECT id, worksheet_name, canonical_key FROM catalog_rows ORDER BY worksheet_name, display_order`,
     )
-    .all() as Array<{ id: number; worksheet_name: WorksheetName; canonical_key: string }>;
+    .all() as Array<{
+    id: number;
+    worksheet_name: WorksheetName;
+    canonical_key: string;
+  }>;
   const stmt = codexDb.prepare(
     'UPDATE catalog_rows SET market_href = ?, market_href_prime = ? WHERE id = ?',
   );
@@ -1034,7 +1089,10 @@ export function runWarframeSync(
     };
     const cleanupDeletedRows: CleanupCandidate[] = [];
     const cleanupRequiresConfirmationRows: CleanupCandidate[] = [];
-    const marketLinkFailed: Array<{ clerkUserId: string; worksheet: WorksheetName }> = [];
+    const marketLinkFailed: Array<{
+      clerkUserId: string;
+      worksheet: WorksheetName;
+    }> = [];
     let marketRowsProcessed = 0;
     let marketRowsWithHref = 0;
 
@@ -1046,168 +1104,189 @@ export function runWarframeSync(
     }
 
     for (const clerkUserId of clerkUserIds) {
-      const sheetsByWorksheet = new Map<
-        WorksheetName,
-        { id: number; name: string; display_order: number }
-      >();
-      for (const worksheet of WORKSHEET_NAMES) {
-        const sheet = ensureWorksheetExistsForSync(
-          codexDb,
-          clerkUserId,
-          worksheet,
-          options.execute,
-        );
-        if (sheet) sheetsByWorksheet.set(worksheet, sheet);
-      }
-
-      const sourceByWorksheetForUser = cloneWorksheetSource(sourceByWorksheet);
-      const currentRowsByWorksheet = new Map<WorksheetName, string[]>();
-      for (const worksheet of WORKSHEET_NAMES) {
-        const sheet = sheetsByWorksheet.get(worksheet);
-        if (!sheet) continue;
-        const rows = q.getWorksheetRows(codexDb, sheet.id, clerkUserId);
-        currentRowsByWorksheet.set(
-          worksheet,
-          rows.map((row) => row.item_name),
-        );
-      }
-      appendCurrentSpecialItemPlacements(
-        sourceByWorksheetForUser,
-        currentRowsByWorksheet,
-        armoryDb,
-      );
-
-      const worksheetResults: WorksheetSyncResult[] = [];
-      for (const worksheet of WORKSHEET_NAMES) {
-        const sheet = sheetsByWorksheet.get(worksheet);
-        if (!sheet) continue;
-        const catalogMarketLinks = options.execute
-          ? catalogMarketLinksByWorksheet.get(worksheet)!
-          : new Map<string, MarketHrefPair>();
-        const desired = createDesiredEntries(worksheet, sourceByWorksheetForUser[worksheet]);
-        let rows = q.getWorksheetRows(codexDb, sheet.id, clerkUserId);
-        const columns = q.getWorksheetColumns(codexDb, sheet.id, clerkUserId);
-        const variantColumns = resolveVariantColumns(columns);
-
-        const existingByKey = new Map<string, typeof rows>();
-        for (const row of rows) {
-          const key = resolveCanonicalKey(row.item_name);
-          const bucket = existingByKey.get(key) ?? [];
-          bucket.push(row);
-          existingByKey.set(key, bucket);
-        }
-
-        const toAdd: string[] = [];
-        for (const [key, entry] of desired.entries()) {
-          if (!existingByKey.has(key)) {
-            toAdd.push(entry.displayName);
-          }
-        }
-
-        const added: string[] = [];
-        if (options.execute) {
-          for (const name of toAdd) {
-            q.addRowWithEmptyValues(codexDb, sheet.id, clerkUserId, name);
-            added.push(name);
-          }
-          rows = q.getWorksheetRows(codexDb, sheet.id, clerkUserId);
-        }
-
-        const deleted: string[] = [];
-        const markedUnavailable: string[] = [];
-        const mismatched: number[] = [];
-
-        for (const row of rows) {
-          const normalizedItemName =
-            worksheet === 'Modular Weapons'
-              ? stripKitgunPrimarySuffix(row.item_name)
-              : row.item_name;
-          const didNormalizeKitgunName =
-            normalizedItemName !== row.item_name &&
-            resolveCanonicalKey(normalizedItemName) === resolveCanonicalKey(row.item_name);
-          if (didNormalizeKitgunName && options.execute) {
-            q.editRow(codexDb, row.id, clerkUserId, normalizedItemName, {});
-          }
-          const effectiveItemName = didNormalizeKitgunName ? normalizedItemName : row.item_name;
-
-          if (DISCARDED_ROWS.has(effectiveItemName)) {
-            if (options.execute) {
-              q.deleteRow(codexDb, row.id, clerkUserId);
-            }
-            deleted.push(effectiveItemName);
-            continue;
-          }
-          const key = resolveCanonicalKey(effectiveItemName);
-          const desiredEntry = desired.get(key);
-          if (!desiredEntry) {
-            markRowOrphaned(codexDb, row.id, options.execute);
-            mismatched.push(row.id);
-            continue;
-          }
-          if (options.execute) {
-            codexDb.prepare('UPDATE rows SET orphaned = 0 WHERE id = ?').run(row.id);
-          }
-          const didMarkUnavailable = reconcileVariantAvailability({
+      const syncUser = (): void => {
+        const sheetsByWorksheet = new Map<
+          WorksheetName,
+          { id: number; name: string; display_order: number }
+        >();
+        for (const worksheet of WORKSHEET_NAMES) {
+          const sheet = ensureWorksheetExistsForSync(
             codexDb,
             clerkUserId,
-            rowId: row.id,
-            desiredEntry,
-            variantColumns,
-            execute: options.execute,
-          });
-          if (didMarkUnavailable) {
-            markedUnavailable.push(effectiveItemName);
-          }
-        }
-
-        const cleanup = cleanupDuplicateVariantRows({
-          codexDb,
-          clerkUserId,
-          sheetId: sheet.id,
-          worksheet,
-          execute: options.execute,
-        });
-        if (cleanup.deletedItemNames.length > 0) {
-          deleted.push(...cleanup.deletedItemNames);
-        }
-        cleanupDeletedRows.push(...cleanup.deletedRows);
-        cleanupRequiresConfirmationRows.push(...cleanup.requiresConfirmationRows);
-
-        if (options.execute) {
-          const mr = refreshUserRowMarketHrefsFromCatalog(
-            codexDb,
-            clerkUserId,
-            sheet.id,
             worksheet,
-            catalogMarketLinks,
+            options.execute,
           );
-          if (mr.ok) {
-            marketRowsProcessed += mr.rowsProcessed;
-            marketRowsWithHref += mr.rowsWithHref;
-          } else {
-            marketLinkFailed.push({ clerkUserId, worksheet });
+          if (sheet) sheetsByWorksheet.set(worksheet, sheet);
+        }
+
+        const sourceByWorksheetForUser = cloneWorksheetSource(sourceByWorksheet);
+        const currentRowsByWorksheet = new Map<WorksheetName, string[]>();
+        for (const worksheet of WORKSHEET_NAMES) {
+          const sheet = sheetsByWorksheet.get(worksheet);
+          if (!sheet) continue;
+          const rows = q.getWorksheetRows(codexDb, sheet.id, clerkUserId);
+          currentRowsByWorksheet.set(
+            worksheet,
+            rows.map((row) => row.item_name),
+          );
+        }
+        appendCurrentSpecialItemPlacements(
+          sourceByWorksheetForUser,
+          currentRowsByWorksheet,
+          armoryDb,
+        );
+
+        const worksheetResults: WorksheetSyncResult[] = [];
+        for (const worksheet of WORKSHEET_NAMES) {
+          const sheet = sheetsByWorksheet.get(worksheet);
+          if (!sheet) continue;
+          const catalogMarketLinks = options.execute
+            ? catalogMarketLinksByWorksheet.get(worksheet)!
+            : new Map<string, MarketHrefPair>();
+          const desired = createDesiredEntries(worksheet, sourceByWorksheetForUser[worksheet]);
+          let rows = q.getWorksheetRows(codexDb, sheet.id, clerkUserId);
+          const columns = q.getWorksheetColumns(codexDb, sheet.id, clerkUserId);
+          const variantColumns = resolveVariantColumns(columns);
+
+          const existingByKey = new Map<string, typeof rows>();
+          for (const row of rows) {
+            const key = resolveCanonicalKey(row.item_name);
+            const bucket = existingByKey.get(key) ?? [];
+            bucket.push(row);
+            existingByKey.set(key, bucket);
           }
+
+          const toAdd: string[] = [];
+          for (const [key, entry] of desired.entries()) {
+            if (!existingByKey.has(key)) {
+              toAdd.push(entry.displayName);
+            }
+          }
+
+          const added: string[] = [];
+          if (options.execute) {
+            for (const name of toAdd) {
+              q.addRowWithEmptyValues(codexDb, sheet.id, clerkUserId, name);
+              added.push(name);
+            }
+            rows = q.getWorksheetRows(codexDb, sheet.id, clerkUserId);
+          }
+
+          const cellValuesByRow = loadWorksheetCellValues(codexDb, sheet.id, clerkUserId);
+          const deleted: string[] = [];
+          const markedUnavailable: string[] = [];
+          const mismatched: number[] = [];
+          const deletedRowIds = new Set<number>();
+          const renamedRowNames = new Map<number, string>();
+
+          for (const row of rows) {
+            const normalizedItemName =
+              worksheet === 'Modular Weapons'
+                ? stripKitgunPrimarySuffix(row.item_name)
+                : row.item_name;
+            const didNormalizeKitgunName =
+              normalizedItemName !== row.item_name &&
+              resolveCanonicalKey(normalizedItemName) === resolveCanonicalKey(row.item_name);
+            if (didNormalizeKitgunName && options.execute) {
+              q.editRow(codexDb, row.id, clerkUserId, normalizedItemName, {});
+              renamedRowNames.set(row.id, normalizedItemName);
+            }
+            const effectiveItemName = didNormalizeKitgunName ? normalizedItemName : row.item_name;
+
+            if (DISCARDED_ROWS.has(effectiveItemName)) {
+              if (options.execute) {
+                q.deleteRow(codexDb, row.id, clerkUserId);
+              }
+              deletedRowIds.add(row.id);
+              deleted.push(effectiveItemName);
+              continue;
+            }
+            const key = resolveCanonicalKey(effectiveItemName);
+            const desiredEntry = desired.get(key);
+            if (!desiredEntry) {
+              markRowOrphaned(codexDb, row.id, options.execute);
+              mismatched.push(row.id);
+              continue;
+            }
+            if (options.execute) {
+              codexDb.prepare('UPDATE rows SET orphaned = 0 WHERE id = ?').run(row.id);
+            }
+            const didMarkUnavailable = reconcileVariantAvailability({
+              codexDb,
+              clerkUserId,
+              rowId: row.id,
+              desiredEntry,
+              variantColumns,
+              execute: options.execute,
+              rowCellValues: cellValuesByRow.get(row.id) ?? new Map<number, string>(),
+            });
+            if (didMarkUnavailable) {
+              markedUnavailable.push(effectiveItemName);
+            }
+          }
+
+          const cleanup = cleanupDuplicateVariantRows({
+            codexDb,
+            clerkUserId,
+            worksheet,
+            execute: options.execute,
+            rows: rows
+              .filter((row) => !deletedRowIds.has(row.id))
+              .map((row) => ({
+                id: row.id,
+                item_name: renamedRowNames.get(row.id) ?? row.item_name,
+              })),
+            columns,
+            cellValuesByRow,
+          });
+          if (cleanup.deletedItemNames.length > 0) {
+            deleted.push(...cleanup.deletedItemNames);
+          }
+          cleanupDeletedRows.push(...cleanup.deletedRows);
+          cleanupRequiresConfirmationRows.push(...cleanup.requiresConfirmationRows);
+
+          if (options.execute) {
+            const mr = refreshUserRowMarketHrefsFromCatalog(
+              codexDb,
+              clerkUserId,
+              sheet.id,
+              worksheet,
+              catalogMarketLinks,
+            );
+            if (mr.ok) {
+              marketRowsProcessed += mr.rowsProcessed;
+              marketRowsWithHref += mr.rowsWithHref;
+            } else {
+              marketLinkFailed.push({ clerkUserId, worksheet });
+            }
+          }
+
+          if (worksheet === 'Warframes' && options.execute) {
+            q.ensureHelminthNonSubsumableCells(codexDb, sheet.id, clerkUserId);
+          }
+
+          worksheetResults.push({
+            worksheet,
+            added: options.execute ? added : toAdd,
+            deleted,
+            markedUnavailable,
+            mismatched,
+          });
+
+          summary.added += (options.execute ? added : toAdd).length;
+          summary.deleted += deleted.length;
+          summary.markedUnavailable += markedUnavailable.length;
+          summary.mismatched += mismatched.length;
         }
 
-        if (worksheet === 'Warframes' && options.execute) {
-          q.ensureHelminthNonSubsumableCells(codexDb, sheet.id, clerkUserId);
-        }
+        users.push({ clerkUserId, worksheets: worksheetResults });
+      };
 
-        worksheetResults.push({
-          worksheet,
-          added: options.execute ? added : toAdd,
-          deleted,
-          markedUnavailable,
-          mismatched,
-        });
-
-        summary.added += (options.execute ? added : toAdd).length;
-        summary.deleted += deleted.length;
-        summary.markedUnavailable += markedUnavailable.length;
-        summary.mismatched += mismatched.length;
+      if (options.execute) {
+        codexDb.transaction(syncUser).immediate();
+      } else {
+        syncUser();
       }
-
-      users.push({ clerkUserId, worksheets: worksheetResults });
     }
 
     return {
