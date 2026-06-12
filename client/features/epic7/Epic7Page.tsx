@@ -13,6 +13,7 @@ import {
 } from '@codex/game-epic7/constants';
 import type { ClassKey, ElementKey } from '@codex/game-epic7/constants';
 import {
+  memo,
   useCallback,
   useEffect,
   useMemo,
@@ -22,6 +23,7 @@ import {
   type CSSProperties,
 } from 'react';
 
+import { HeaderSearch } from '../../components/Layout/HeaderSearch';
 import { useLayoutSlots } from '../../components/Layout/useLayoutSlots';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { MaterialSymbol } from '../../components/ui/MaterialSymbol';
@@ -248,6 +250,109 @@ const tableScrollStyle = {
   '--header-offset': '340px',
 } as CSSProperties;
 
+interface Epic7TableRowProps {
+  row: Epic7Hero | Epic7Artifact;
+  editMode: boolean;
+  onCycleHero: (hero: Epic7Hero) => void | Promise<void>;
+  onCycleArtifact: (artifact: Epic7Artifact) => void | Promise<void>;
+  onEditItem: (item: Epic7Hero | Epic7Artifact) => void;
+  onDeleteItem: (item: Epic7Hero | Epic7Artifact) => void;
+}
+
+const Epic7TableRow = memo(function Epic7TableRow({
+  row,
+  editMode,
+  onCycleHero,
+  onCycleArtifact,
+  onEditItem,
+  onDeleteItem,
+}: Epic7TableRowProps) {
+  return (
+    <tr>
+      <td className="item-name">{row.name}</td>
+      <td className="icon-cell">
+        {row.class && ICONS[row.class] ? (
+          <img
+            className="invert-on-light"
+            src={ICONS[row.class]}
+            alt={row.class ? (CLASS_NAMES[row.class as ClassKey] ?? row.class) : '-'}
+            title={row.class ? (CLASS_NAMES[row.class as ClassKey] ?? row.class) : '-'}
+          />
+        ) : (
+          row.class || '-'
+        )}
+      </td>
+      {isHero(row) ? (
+        <td className="icon-cell">
+          {row.element && ICONS[row.element] ? (
+            <img
+              src={ICONS[row.element]}
+              alt={row.element ? (ELEMENT_NAMES[row.element as ElementKey] ?? row.element) : '-'}
+              title={row.element ? (ELEMENT_NAMES[row.element as ElementKey] ?? row.element) : '-'}
+            />
+          ) : (
+            row.element || '-'
+          )}
+        </td>
+      ) : null}
+      <td className="stars-cell">{renderStars(row.star_rating)}</td>
+      <td className={isHero(row) ? 'rating-cell' : 'level-cell'}>
+        {isHero(row) ? (
+          <button
+            type="button"
+            className="rating-btn"
+            style={{
+              color: RATING_COLORS[row.rating] ?? '#6b7280',
+              borderColor: `${RATING_COLORS[row.rating] ?? '#6b7280'}50`,
+              background: `${RATING_COLORS[row.rating] ?? '#6b7280'}20`,
+            }}
+            onClick={() => {
+              void onCycleHero(row);
+            }}
+            aria-label={`Cycle imprint for ${row.name}`}
+          >
+            {row.rating}
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="gauge-btn"
+            style={{
+              color: GAUGE_COLORS[row.gauge_level] ?? GAUGE_COLORS[0],
+            }}
+            onClick={() => {
+              void onCycleArtifact(row);
+            }}
+            aria-label={`Cycle limit break for ${row.name}`}
+          >
+            {renderGauge(row.gauge_level)}
+          </button>
+        )}
+      </td>
+      {editMode ? (
+        <td className="row-actions">
+          <button
+            type="button"
+            className="btn-icon btn-edit"
+            onClick={() => onEditItem(row)}
+            aria-label={`Edit ${row.name}`}
+          >
+            <MaterialSymbol name="edit" />
+          </button>
+          <button
+            type="button"
+            className="btn-icon btn-delete"
+            onClick={() => onDeleteItem(row)}
+            aria-label={`Delete ${row.name}`}
+          >
+            <MaterialSymbol name="delete" />
+          </button>
+        </td>
+      ) : null}
+    </tr>
+  );
+});
+
 function useEpic7Modal() {
   return useReducer(epic7ModalReducer, initialModalState);
 }
@@ -348,6 +453,33 @@ function useEpic7Data() {
     }
   }, []);
 
+  const reloadItems = useCallback(
+    async (itemType: 'heroes' | 'artifacts', signal?: AbortSignal): Promise<void> => {
+      try {
+        const response = await apiFetch(`/api/epic7/${itemType}`, { signal });
+        if (!response.ok) {
+          throw new Error('Failed to reload Epic7 items');
+        }
+        const body = (await response.json()) as {
+          heroes?: Epic7Hero[];
+          artifacts?: Epic7Artifact[];
+        };
+        if (signal?.aborted) return;
+        if (itemType === 'heroes') {
+          setHeroes(Array.isArray(body.heroes) ? body.heroes : []);
+        } else {
+          setArtifacts(Array.isArray(body.artifacts) ? body.artifacts : []);
+        }
+      } catch (error) {
+        if (error instanceof DOMException && error.name === 'AbortError') {
+          return;
+        }
+        setOperationError('Could not refresh Epic Seven items.');
+      }
+    },
+    [],
+  );
+
   useEffect(() => {
     let timeoutId: number | null = null;
     if (operationError) {
@@ -394,6 +526,7 @@ function useEpic7Data() {
     abortControllerRef,
     beginUserActionRequest,
     loadAccountsAndData,
+    reloadItems,
   };
 }
 
@@ -414,6 +547,7 @@ export function Epic7Page() {
     setOperationError,
     beginUserActionRequest,
     loadAccountsAndData,
+    reloadItems,
   } = useEpic7Data();
   const { tab, setTab, search, setSearch, activeFilters, setActiveFilters, editMode, setEditMode } =
     useEpic7Filters();
@@ -521,66 +655,72 @@ export function Epic7Page() {
     };
   }, [isAccountMenuOpen]);
 
-  async function cycleHero(hero: Epic7Hero): Promise<void> {
-    const index = HERO_RATINGS.indexOf(hero.rating);
-    const rating = HERO_RATINGS[(index + 1 + HERO_RATINGS.length) % HERO_RATINGS.length];
-    setHeroes((previous) =>
-      previous.map((candidate) =>
-        candidate.id === hero.id ? { ...candidate, rating } : candidate,
-      ),
-    );
-    try {
-      const response = await apiFetch(`/api/epic7/heroes/${hero.id}/rating`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rating }),
-      });
-      const body = (await response.json().catch(() => null)) as {
-        error?: string;
-      } | null;
-      if (!response.ok || body?.error) {
-        throw new Error(body?.error || 'Failed to update hero');
-      }
-    } catch {
+  const cycleHero = useCallback(
+    async (hero: Epic7Hero): Promise<void> => {
+      const index = HERO_RATINGS.indexOf(hero.rating);
+      const rating = HERO_RATINGS[(index + 1 + HERO_RATINGS.length) % HERO_RATINGS.length];
       setHeroes((previous) =>
         previous.map((candidate) =>
-          candidate.id === hero.id ? { ...candidate, rating: hero.rating } : candidate,
+          candidate.id === hero.id ? { ...candidate, rating } : candidate,
         ),
       );
-      setOperationError('Failed to save hero rating.');
-    }
-  }
-
-  async function cycleArtifact(artifact: Epic7Artifact): Promise<void> {
-    const gaugeLevel = (artifact.gauge_level + 1) % (GAUGE_MAX + 1);
-    setArtifacts((previous) =>
-      previous.map((candidate) =>
-        candidate.id === artifact.id ? { ...candidate, gauge_level: gaugeLevel } : candidate,
-      ),
-    );
-    try {
-      const response = await apiFetch(`/api/epic7/artifacts/${artifact.id}/gauge`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ gauge_level: gaugeLevel }),
-      });
-      const body = (await response.json().catch(() => null)) as {
-        error?: string;
-      } | null;
-      if (!response.ok || body?.error) {
-        throw new Error(body?.error || 'Failed to update artifact');
+      try {
+        const response = await apiFetch(`/api/epic7/heroes/${hero.id}/rating`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ rating }),
+        });
+        const body = (await response.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+        if (!response.ok || body?.error) {
+          throw new Error(body?.error || 'Failed to update hero');
+        }
+      } catch {
+        setHeroes((previous) =>
+          previous.map((candidate) =>
+            candidate.id === hero.id ? { ...candidate, rating: hero.rating } : candidate,
+          ),
+        );
+        setOperationError('Failed to save hero rating.');
       }
-    } catch {
+    },
+    [setHeroes, setOperationError],
+  );
+
+  const cycleArtifact = useCallback(
+    async (artifact: Epic7Artifact): Promise<void> => {
+      const gaugeLevel = (artifact.gauge_level + 1) % (GAUGE_MAX + 1);
       setArtifacts((previous) =>
         previous.map((candidate) =>
-          candidate.id === artifact.id
-            ? { ...candidate, gauge_level: artifact.gauge_level }
-            : candidate,
+          candidate.id === artifact.id ? { ...candidate, gauge_level: gaugeLevel } : candidate,
         ),
       );
-      setOperationError('Failed to save artifact gauge.');
-    }
-  }
+      try {
+        const response = await apiFetch(`/api/epic7/artifacts/${artifact.id}/gauge`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ gauge_level: gaugeLevel }),
+        });
+        const body = (await response.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+        if (!response.ok || body?.error) {
+          throw new Error(body?.error || 'Failed to update artifact');
+        }
+      } catch {
+        setArtifacts((previous) =>
+          previous.map((candidate) =>
+            candidate.id === artifact.id
+              ? { ...candidate, gauge_level: artifact.gauge_level }
+              : candidate,
+          ),
+        );
+        setOperationError('Failed to save artifact gauge.');
+      }
+    },
+    [setArtifacts, setOperationError],
+  );
 
   async function addAccount(): Promise<void> {
     if (modalState.accountNameDraft.trim().length === 0) {
@@ -696,7 +836,7 @@ export function Epic7Page() {
         throw new Error(payload?.error || 'Failed to delete item');
       }
       dispatchModal({ type: 'CONFIRM_DELETE' });
-      await loadAccountsAndData(signal);
+      await reloadItems(path, signal);
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') {
         return;
@@ -712,7 +852,7 @@ export function Epic7Page() {
     });
   }, [tab]);
 
-  function openEditItemModal(item: Epic7Hero | Epic7Artifact): void {
+  const openEditItemModal = useCallback((item: Epic7Hero | Epic7Artifact): void => {
     const itemType = 'rating' in item ? 'heroes' : 'artifacts';
     dispatchModal({
       type: 'START_EDIT',
@@ -727,7 +867,18 @@ export function Epic7Page() {
         },
       },
     });
-  }
+  }, []);
+
+  const openDeleteItemModal = useCallback((item: Epic7Hero | Epic7Artifact): void => {
+    dispatchModal({
+      type: 'START_DELETE',
+      payload: {
+        id: item.id,
+        type: isHero(item) ? 'hero' : 'artifact',
+        name: item.name,
+      },
+    });
+  }, []);
 
   async function saveItem(): Promise<void> {
     if (modalState.draft.name.trim().length === 0) {
@@ -768,7 +919,7 @@ export function Epic7Page() {
         throw new Error(payload?.error || 'Failed to save item');
       }
       dispatchModal({ type: 'CLOSE_ITEM_MODAL' });
-      await loadAccountsAndData(signal);
+      await reloadItems(path, signal);
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') {
         return;
@@ -779,34 +930,17 @@ export function Epic7Page() {
 
   useEffect(() => {
     setHeaderCenter(
-      <div className="search-wrapper">
-        <input
-          id="codex-epic7-header-search"
-          name="search"
-          type="text"
-          role="searchbox"
-          enterKeyHint="search"
-          autoComplete="off"
-          className="search-box"
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          aria-label="Search Epic Seven entries"
-          placeholder="Search..."
-        />
-        <button
-          type="button"
-          className={`search-clear ${search.length > 0 ? 'visible' : ''}`}
-          aria-label="Clear search"
-          onClick={() => setSearch('')}
-        >
-          <MaterialSymbol name="close" style={{ fontSize: 18 }} />
-        </button>
-      </div>,
+      <HeaderSearch
+        inputId="codex-epic7-header-search"
+        ariaLabel="Search Epic Seven entries"
+        value={search}
+        onChange={setSearch}
+      />,
     );
     return () => {
       setHeaderCenter(null);
     };
-  }, [search, setHeaderCenter]);
+  }, [search, setHeaderCenter, setSearch]);
 
   useEffect(() => {
     setHeaderActions(
@@ -1091,107 +1225,15 @@ export function Epic7Page() {
               </thead>
               <tbody>
                 {activeRows.map((row) => (
-                  <tr key={row.id}>
-                    <td className="item-name">{row.name}</td>
-                    <td className="icon-cell">
-                      {row.class && ICONS[row.class] ? (
-                        <img
-                          className="invert-on-light"
-                          src={ICONS[row.class]}
-                          alt={row.class ? (CLASS_NAMES[row.class as ClassKey] ?? row.class) : '-'}
-                          title={
-                            row.class ? (CLASS_NAMES[row.class as ClassKey] ?? row.class) : '-'
-                          }
-                        />
-                      ) : (
-                        row.class || '-'
-                      )}
-                    </td>
-                    {isHero(row) ? (
-                      <td className="icon-cell">
-                        {row.element && ICONS[row.element] ? (
-                          <img
-                            src={ICONS[row.element]}
-                            alt={
-                              row.element
-                                ? (ELEMENT_NAMES[row.element as ElementKey] ?? row.element)
-                                : '-'
-                            }
-                            title={
-                              row.element
-                                ? (ELEMENT_NAMES[row.element as ElementKey] ?? row.element)
-                                : '-'
-                            }
-                          />
-                        ) : (
-                          row.element || '-'
-                        )}
-                      </td>
-                    ) : null}
-                    <td className="stars-cell">{renderStars(row.star_rating)}</td>
-                    <td className={isHero(row) ? 'rating-cell' : 'level-cell'}>
-                      {isHero(row) ? (
-                        <button
-                          type="button"
-                          className="rating-btn"
-                          style={{
-                            color: RATING_COLORS[row.rating] ?? '#6b7280',
-                            borderColor: `${RATING_COLORS[row.rating] ?? '#6b7280'}50`,
-                            background: `${RATING_COLORS[row.rating] ?? '#6b7280'}20`,
-                          }}
-                          onClick={() => {
-                            void cycleHero(row);
-                          }}
-                          aria-label={`Cycle imprint for ${row.name}`}
-                        >
-                          {row.rating}
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          className="gauge-btn"
-                          style={{
-                            color: GAUGE_COLORS[row.gauge_level] ?? GAUGE_COLORS[0],
-                          }}
-                          onClick={() => {
-                            void cycleArtifact(row);
-                          }}
-                          aria-label={`Cycle limit break for ${row.name}`}
-                        >
-                          {renderGauge(row.gauge_level)}
-                        </button>
-                      )}
-                    </td>
-                    {editMode ? (
-                      <td className="row-actions">
-                        <button
-                          type="button"
-                          className="btn-icon btn-edit"
-                          onClick={() => openEditItemModal(row)}
-                          aria-label={`Edit ${row.name}`}
-                        >
-                          <MaterialSymbol name="edit" />
-                        </button>
-                        <button
-                          type="button"
-                          className="btn-icon btn-delete"
-                          onClick={() => {
-                            dispatchModal({
-                              type: 'START_DELETE',
-                              payload: {
-                                id: row.id,
-                                type: tab === 'heroes' ? 'hero' : 'artifact',
-                                name: row.name,
-                              },
-                            });
-                          }}
-                          aria-label={`Delete ${row.name}`}
-                        >
-                          <MaterialSymbol name="delete" />
-                        </button>
-                      </td>
-                    ) : null}
-                  </tr>
+                  <Epic7TableRow
+                    key={row.id}
+                    row={row}
+                    editMode={editMode}
+                    onCycleHero={cycleHero}
+                    onCycleArtifact={cycleArtifact}
+                    onEditItem={openEditItemModal}
+                    onDeleteItem={openDeleteItemModal}
+                  />
                 ))}
               </tbody>
             </table>

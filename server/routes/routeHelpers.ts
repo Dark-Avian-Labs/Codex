@@ -40,6 +40,14 @@ export function runWithWarframeDb(
         });
         return;
       }
+      const status =
+        error instanceof Error && typeof (error as { status?: unknown }).status === 'number'
+          ? (error as unknown as { status: number }).status
+          : 500;
+      if (status >= 400 && status < 500) {
+        res.status(status).json({ error: (error as Error).message || 'Request failed' });
+        return;
+      }
       log('error', 'Warframe request failed', {
         err: error instanceof Error ? (error.stack ?? error.message) : String(error),
       });

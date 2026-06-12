@@ -12,9 +12,15 @@ export function provisionWarframeUserIfNeeded(
     return;
   }
 
-  const provisionedFromMaster = provisionUserFromCatalogMaster(codexDb, clerkUserId);
-  if (!provisionedFromMaster) {
-    log('info', 'Warframe master catalog empty; created worksheet shells only', { clerkUserId });
-    ensureWarframeWorksheetsForUser(codexDb, clerkUserId);
-  }
+  const provision = codexDb.transaction(() => {
+    if (q.getWorksheets(codexDb, clerkUserId).length > 0) {
+      return;
+    }
+    const provisionedFromMaster = provisionUserFromCatalogMaster(codexDb, clerkUserId);
+    if (!provisionedFromMaster) {
+      log('info', 'Warframe master catalog empty; created worksheet shells only', { clerkUserId });
+      ensureWarframeWorksheetsForUser(codexDb, clerkUserId);
+    }
+  });
+  provision.immediate();
 }

@@ -5,6 +5,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react';
@@ -43,17 +44,24 @@ function toAuthErrorDetail(error: unknown): AuthErrorDetail {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { isSignedIn, isLoaded } = useClerkAuth();
   const [auth, setAuth] = useState<AuthState>(DEFAULT_AUTH_STATE);
+  const refreshGenerationRef = useRef(0);
 
   const refresh = useCallback(async () => {
     if (!isLoaded) return;
+    const generation = ++refreshGenerationRef.current;
+    const applyAuth = (next: AuthState): void => {
+      if (refreshGenerationRef.current === generation) {
+        setAuth(next);
+      }
+    };
     if (!isSignedIn) {
-      setAuth({ status: 'unauthenticated', userId: null, isCodexAdmin: false, apps: [] });
+      applyAuth({ status: 'unauthenticated', userId: null, isCodexAdmin: false, apps: [] });
       return;
     }
     try {
       const response = await apiFetch('/api/auth/me');
       if (!response.ok) {
-        setAuth({ status: 'unauthenticated', userId: null, isCodexAdmin: false, apps: [] });
+        applyAuth({ status: 'unauthenticated', userId: null, isCodexAdmin: false, apps: [] });
         return;
       }
       const body = (await response.json()) as {
@@ -63,17 +71,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         apps?: AppSummary[];
       };
       if (!body.authenticated || !body.userId) {
-        setAuth({ status: 'unauthenticated', userId: null, isCodexAdmin: false, apps: [] });
+        applyAuth({ status: 'unauthenticated', userId: null, isCodexAdmin: false, apps: [] });
         return;
       }
-      setAuth({
+      applyAuth({
         status: 'ok',
         userId: body.userId,
         isCodexAdmin: body.isCodexAdmin === true,
         apps: Array.isArray(body.apps) ? body.apps : [],
       });
     } catch (error) {
-      setAuth({
+      applyAuth({
         status: 'error',
         userId: null,
         isCodexAdmin: false,

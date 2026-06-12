@@ -130,6 +130,8 @@ export function createSchema(db: Database.Database): void {
     );
 
     CREATE INDEX idx_game_accounts_clerk_user ON game_accounts(clerk_user_id);
+    CREATE UNIQUE INDEX idx_game_accounts_single_active
+      ON game_accounts(clerk_user_id) WHERE is_active = 1;
     CREATE INDEX idx_account_heroes_account ON account_heroes(account_id);
     CREATE INDEX idx_account_heroes_class ON account_heroes(class);
     CREATE INDEX idx_account_heroes_element ON account_heroes(element);
@@ -208,10 +210,43 @@ export function ensureUniqueBaseNameIndexes(db: Database.Database): UniqueIndexS
   return status;
 }
 
+export function ensureSingleActiveAccountIndex(db: Database.Database): UniqueIndexOutcome {
+  if (!hasTable(db, 'game_accounts')) {
+    return 'skipped';
+  }
+  const duplicate = db
+    .prepare(
+      `SELECT clerk_user_id FROM game_accounts
+        WHERE is_active = 1
+        GROUP BY clerk_user_id HAVING COUNT(*) > 1 LIMIT 1`,
+    )
+    .get() as { clerk_user_id: string } | undefined;
+  if (duplicate) {
+    console.warn(
+      `[epic7 schema] Skipping unique index idx_game_accounts_single_active: user ${JSON.stringify(duplicate.clerk_user_id)} has multiple active accounts`,
+    );
+    return 'blocked_by_duplicates';
+  }
+  try {
+    db.exec(
+      `CREATE UNIQUE INDEX IF NOT EXISTS idx_game_accounts_single_active
+         ON game_accounts(clerk_user_id) WHERE is_active = 1`,
+    );
+    return 'created';
+  } catch (error) {
+    console.error(
+      '[epic7 schema] Failed to create unique index idx_game_accounts_single_active:',
+      error,
+    );
+    return 'failed';
+  }
+}
+
 const { getDb, closeDb } = createDbSingleton(EPIC7_DB_PATH, {
   onOpen: (db: Database.Database) => {
     ensureEpic7CoreTables(db);
     ensureUniqueBaseNameIndexes(db);
+    ensureSingleActiveAccountIndex(db);
   },
 });
 export { getDb, closeDb };

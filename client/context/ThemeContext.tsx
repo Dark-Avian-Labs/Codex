@@ -39,6 +39,14 @@ const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
+function safeReadStorage(key: string): string | null {
+  try {
+    return window.localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
 function parseThemeCookie(): ThemeMode | null {
   const raw = document.cookie
     .split(';')
@@ -68,7 +76,7 @@ function resolveInitialMode(): ThemeMode {
   if (typeof window === 'undefined') return 'dark';
   const fromCookie = parseThemeCookie();
   if (fromCookie) return fromCookie;
-  const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+  const stored = safeReadStorage(THEME_STORAGE_KEY);
   if (stored === 'light' || stored === 'dark') {
     return stored;
   }
@@ -79,7 +87,7 @@ function resolveInitialUiStyle(): UiStyle {
   if (typeof window === 'undefined') return 'prism';
   const fromCookie = parseUiStyleCookie();
   if (fromCookie) return fromCookie;
-  const stored = window.localStorage.getItem(UI_STYLE_STORAGE_KEY);
+  const stored = safeReadStorage(UI_STYLE_STORAGE_KEY);
   if (stored === 'solid') return 'clear';
   if (stored === 'prism' || stored === 'shadow' || stored === 'clear') return stored;
   return 'prism';

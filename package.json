@@ -41,6 +41,7 @@
     "better-sqlite3": "catalog:",
     "better-sqlite3-session-store": "catalog:",
     "clsx": "catalog:",
+    "compression": "catalog:",
     "cookie-parser": "catalog:",
     "csrf-sync": "catalog:",
     "express": "catalog:",
@@ -60,6 +61,7 @@
     "@semantic-release/release-notes-generator": "^14.1.1",
     "@tailwindcss/vite": "catalog:",
     "@types/better-sqlite3": "catalog:",
+    "@types/compression": "catalog:",
     "@types/cookie-parser": "catalog:",
     "@types/express": "catalog:",
     "@types/express-session": "catalog:",
@@ -72,7 +74,7 @@
     "globals": "catalog:",
     "oxfmt": "catalog:",
     "oxlint": "catalog:",
-    "semantic-release": "^25.0.3",
+    "semantic-release": "^25.0.5",
     "supertest": "^7.2.2",
     "tailwindcss": "catalog:",
     "typescript": "catalog:",
@@ -83,5 +85,5 @@
     "node": ">=25.0.0",
     "pnpm": ">=11.0.0"
   },
-  "packageManager": "pnpm@11.5.2"
+  "packageManager": "pnpm@11.5.3"
 }

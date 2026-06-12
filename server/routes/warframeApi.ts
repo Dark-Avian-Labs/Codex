@@ -27,7 +27,9 @@ import {
   updateWarframeSyncRun,
 } from '../services/warframeSyncJobs.js';
 import {
+  acquireWarframeSyncSlot,
   isWarframeSyncRunning,
+  releaseWarframeSyncSlot,
   runWarframeSyncGuarded,
   SyncAlreadyRunningError,
 } from '../services/warframeSyncState.js';
@@ -179,6 +181,7 @@ warframeApiRouter.get('/worksheets/:worksheetId', (req, res) => {
       res.status(404).json({ error: 'Worksheet not found.' });
       return;
     }
+    res.setHeader('Cache-Control', 'private, no-cache');
     res.status(200).json({
       worksheet: data.worksheet,
       columns: data.columns,
@@ -404,8 +407,20 @@ warframeApiRouter.get('/admin/sync/runs/:id', requireCodexAdmin, (req, res) => {
 
 warframeApiRouter.post('/admin/sync-source', requireCodexAdmin, (req, res) => {
   void (async () => {
-    const adminUserId = requireClerkUserId(req);
-    const db = await openWarframeDbOrFail(res);
+    let adminUserId: string;
+    let db;
+    try {
+      adminUserId = requireClerkUserId(req);
+      db = await openWarframeDbOrFail(res);
+    } catch (error) {
+      log('error', 'Failed to start Warframe sync', {
+        err: error instanceof Error ? error.message : String(error),
+      });
+      if (!res.headersSent) {
+        res.status(500).json({ error: 'Failed to queue Warframe sync.' });
+      }
+      return;
+    }
     if (!db) return;
     if (isWarframeSyncRunning()) {
       res.status(409).json({ error: 'A Warframe sync is already running.' });
@@ -423,6 +438,28 @@ warframeApiRouter.post('/admin/sync-source', requireCodexAdmin, (req, res) => {
       return;
     }
 
+    let lockToken: string;
+    try {
+      lockToken = acquireWarframeSyncSlot(run.id);
+    } catch (error) {
+      const message =
+        error instanceof SyncAlreadyRunningError ? error.message : 'Failed to queue Warframe sync.';
+      updateWarframeSyncRun(run.id, {
+        status: 'failed',
+        finished_at: new Date().toISOString(),
+        error_text: message,
+      });
+      if (error instanceof SyncAlreadyRunningError) {
+        res.status(409).json({ error: message });
+      } else {
+        log('error', 'Failed to acquire Warframe sync slot', {
+          err: error instanceof Error ? error.message : String(error),
+        });
+        res.status(500).json({ error: message });
+      }
+      return;
+    }
+
     res.status(202).json({
       runId: run.id,
       status: run.status,
@@ -434,14 +471,10 @@ warframeApiRouter.post('/admin/sync-source', requireCodexAdmin, (req, res) => {
       try {
         updateWarframeSyncRun(run.id, { status: 'running' });
         log('info', 'Starting Warframe sync execution', { runId: run.id });
-        const result = await runWarframeSyncGuarded(
-          () =>
-            runWarframeSync(db, {
-              execute: true,
-              initiatedByClerkUserId: adminUserId,
-            }),
-          run.id,
-        );
+        const result = runWarframeSync(db, {
+          execute: true,
+          initiatedByClerkUserId: adminUserId,
+        });
         const pendingMeta = getWarframeSyncRunRow(run.id)?.summary_json;
         let initiatorMasked: string | undefined;
         if (pendingMeta) {
@@ -460,14 +493,6 @@ warframeApiRouter.post('/admin/sync-source', requireCodexAdmin, (req, res) => {
           ),
         });
       } catch (error) {
-        if (error instanceof SyncAlreadyRunningError) {
-          updateWarframeSyncRun(run.id, {
-            status: 'failed',
-            finished_at: finishedAt(),
-            error_text: error.message,
-          });
-          return;
-        }
         const message = error instanceof Error ? error.message : String(error);
         log('error', 'Failed to execute Warframe sync', {
           runId: run.id,
@@ -478,6 +503,8 @@ warframeApiRouter.post('/admin/sync-source', requireCodexAdmin, (req, res) => {
           finished_at: finishedAt(),
           error_text: message,
         });
+      } finally {
+        releaseWarframeSyncSlot(lockToken);
       }
     })();
   })();
