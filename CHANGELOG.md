@@ -220,3 +220,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.53.4** `fix` [#256](https://github.com/Dark-Avian-Labs/Codex/pull/256): clerk auth modal
 - **v1.53.5** `chore` [#258](https://github.com/Dark-Avian-Labs/Codex/pull/258): some style changes
 - **v1.54.0** `feat` [#262](https://github.com/Dark-Avian-Labs/Codex/pull/262): fable5 audit
+- **v1.55.0** `feat` [#263](https://github.com/Dark-Avian-Labs/Codex/pull/263): liquid glass theme
