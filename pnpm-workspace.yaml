@@ -8,13 +8,13 @@ allowBuilds:
 catalog:
   "@clerk/react": ^6.9.1
   "@clerk/express": ^2.1.26
-  "@dotenvx/dotenvx": ^1.71.2
+  "@dotenvx/dotenvx": ^1.71.3
   "@fontsource-variable/geist": ^5.2.9
   "@fontsource-variable/geist-mono": ^5.2.8
   "@fontsource-variable/cascadia-mono": ^5.2.2
   "@fontsource-variable/inter": ^5.2.8
   "@fontsource-variable/material-symbols-rounded": ^5.2.45
-  "@tailwindcss/vite": ^4.3.0
+  "@tailwindcss/vite": ^4.3.1
   "@types/better-sqlite3": ^7.6.13
   "@types/cookie-parser": ^1.4.10
   "@types/express": ^5.0.6
@@ -41,7 +41,7 @@ catalog:
   react-dom: ^19.2.7
   react-router-dom: ^7.17.0
   tailwind-merge: ^3.6.0
-  tailwindcss: ^4.3.0
+  tailwindcss: ^4.3.1
   typescript: ^6.0.3
   vite: ^8.0.16
   vitest: ^4.1.8
