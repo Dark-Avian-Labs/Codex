@@ -224,6 +224,12 @@ html:not(.dark) .invert-on-light {
     outline-offset: 2px;
   }
 
+  #root {
+    position: relative;
+    z-index: 10;
+    min-height: 100%;
+  }
+
   body {
     font-family: var(--font-sans);
     margin: 0;
@@ -2533,7 +2539,8 @@ html.ui-liquid .glass-tooltip-surface {
 }
 
 html.bg-hybrid-active .glass-shell,
-html.bg-hybrid-active .glass-surface,
+html.bg-hybrid-active
+  .glass-surface:not(.user-menu):not(.select-dropdown-menu):not(.account-dropdown),
 html.bg-hybrid-active .glass-tooltip-surface,
 html.bg-hybrid-active .glass-panel,
 html.bg-hybrid-active .glass-light,
@@ -2557,11 +2564,32 @@ html.bg-hybrid-active thead th {
 }
 
 html.dark.bg-hybrid-active:not(.ui-shadow) thead th {
-  background: oklch(0% 0 0 / 0.35);
+  background: oklch(0% 0 0 / 0.88);
+  border-bottom: 1px solid var(--color-glass-divider);
 }
 
 html:not(.dark).bg-hybrid-active:not(.ui-shadow) thead th {
-  background: color-mix(in oklab, var(--color-glass-hover) 50%, transparent);
+  background: oklch(100% 0 0 / 0.88);
+  border-bottom: 1px solid var(--color-glass-divider);
+}
+
+html.bg-hybrid-active .user-menu,
+html.bg-hybrid-active .select-dropdown-menu,
+html.bg-hybrid-active .account-dropdown {
+  -webkit-backdrop-filter: blur(12px) saturate(1.2) !important;
+  backdrop-filter: blur(12px) saturate(1.2) !important;
+}
+
+html.dark.bg-hybrid-active .user-menu,
+html.dark.bg-hybrid-active .select-dropdown-menu,
+html.dark.bg-hybrid-active .account-dropdown {
+  background: oklch(0% 0 0 / 0.78);
+}
+
+html:not(.dark).bg-hybrid-active .user-menu,
+html:not(.dark).bg-hybrid-active .select-dropdown-menu,
+html:not(.dark).bg-hybrid-active .account-dropdown {
+  background: oklch(100% 0 0 / 0.9);
 }
 
 @media (prefers-reduced-motion: reduce) {
