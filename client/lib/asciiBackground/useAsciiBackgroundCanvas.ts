@@ -16,9 +16,6 @@ const PANEL_SELECTOR = [
   '.glass-panel',
   '.glass-light',
   '.table-container',
-  '.user-menu',
-  '.select-dropdown-menu',
-  '.account-dropdown',
 ].join(',');
 const HYBRID_CLASS = 'bg-hybrid-active';
 const DEFAULT_BG_BLUR_PX = 12;
@@ -200,7 +197,11 @@ export function useAsciiBackgroundCanvas(
 
     const syncSlices = () => {
       const panels = Array.from(document.querySelectorAll<HTMLElement>(PANEL_SELECTOR)).filter(
-        (panel) => !panel.classList.contains('glass-modal-surface'),
+        (panel) =>
+          !panel.classList.contains('glass-modal-surface') &&
+          !panel.classList.contains('user-menu') &&
+          !panel.classList.contains('select-dropdown-menu') &&
+          !panel.classList.contains('account-dropdown'),
       );
       const nextSet = new Set(panels);
       for (const [panel, slice] of slices) {
