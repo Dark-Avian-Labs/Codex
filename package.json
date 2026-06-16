@@ -70,7 +70,7 @@
     "@types/react-dom": "catalog:",
     "@types/supertest": "^7.2.0",
     "@vitejs/plugin-react": "catalog:",
-    "@vitest/coverage-v8": "4.1.8",
+    "@vitest/coverage-v8": "4.1.9",
     "globals": "catalog:",
     "oxfmt": "catalog:",
     "oxlint": "catalog:",
@@ -85,5 +85,5 @@
     "node": ">=25.0.0",
     "pnpm": ">=11.0.0"
   },
-  "packageManager": "pnpm@11.6.0"
+  "packageManager": "pnpm@11.7.0"
 }
