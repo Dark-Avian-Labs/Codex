@@ -224,3 +224,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.55.1** `chore` [#264](https://github.com/Dark-Avian-Labs/Codex/pull/264): update dependencies
 - **v1.55.2** `chore` [#266](https://github.com/Dark-Avian-Labs/Codex/pull/266): update dependencies
 - **v1.55.3** `chore` [#267](https://github.com/Dark-Avian-Labs/Codex/pull/267): theme fixes
+- **v1.55.4** `fix` [#268](https://github.com/Dark-Avian-Labs/Codex/pull/268): themes
