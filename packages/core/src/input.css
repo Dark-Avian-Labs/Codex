@@ -80,8 +80,6 @@
   --radius-ui: 16px;
   --radius-ui-lg: 20px;
   --radius-ui-sm: 14px;
-  --bg-blur-radius: 12px;
-  --bg-hybrid-header-blur: 4px;
 }
 
 html:not(.dark) {
@@ -222,12 +220,6 @@ html:not(.dark) .invert-on-light {
     color: oklch(100% 0 0);
     outline: 2px solid oklch(100% 0 0);
     outline-offset: 2px;
-  }
-
-  #root {
-    position: relative;
-    z-index: 10;
-    min-height: 100%;
   }
 
   body {
@@ -2516,82 +2508,6 @@ html.ui-liquid .glass-tooltip-surface {
     inset 0 1px 0 oklch(100% 0 0 / 0.12);
 }
 
-.bg-blur-slice-layer {
-  position: fixed;
-  inset: 0;
-  z-index: 5;
-  pointer-events: none;
-}
-
-.bg-blur-slice {
-  position: fixed;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.bg-blur-slice canvas {
-  position: absolute;
-  display: block;
-}
-
-.bg-blur-slice--liquid canvas {
-  filter: url(#glass-distortion);
-}
-
-html.bg-hybrid-active .glass-shell,
-html.bg-hybrid-active
-  .glass-surface:not(.user-menu):not(.select-dropdown-menu):not(.account-dropdown),
-html.bg-hybrid-active .glass-tooltip-surface,
-html.bg-hybrid-active .glass-panel,
-html.bg-hybrid-active .glass-light,
-html.bg-hybrid-active .table-container {
-  -webkit-backdrop-filter: none !important;
-  backdrop-filter: none !important;
-}
-
-html.bg-hybrid-active.ui-liquid .glass-shell::before,
-html.bg-hybrid-active.ui-liquid .glass-surface::before,
-html.bg-hybrid-active.ui-liquid .glass-tooltip-surface::before,
-html.bg-hybrid-active.ui-liquid .glass-panel::before,
-html.bg-hybrid-active.ui-liquid .glass-light::before,
-html.bg-hybrid-active.ui-liquid .table-container::before {
-  display: none;
-}
-
-html.bg-hybrid-active thead th {
-  -webkit-backdrop-filter: blur(var(--bg-hybrid-header-blur)) saturate(1.1);
-  backdrop-filter: blur(var(--bg-hybrid-header-blur)) saturate(1.1);
-}
-
-html.dark.bg-hybrid-active:not(.ui-shadow) thead th {
-  background: oklch(0% 0 0 / 0.88);
-  border-bottom: 1px solid var(--color-glass-divider);
-}
-
-html:not(.dark).bg-hybrid-active:not(.ui-shadow) thead th {
-  background: oklch(100% 0 0 / 0.88);
-  border-bottom: 1px solid var(--color-glass-divider);
-}
-
-html.bg-hybrid-active .user-menu,
-html.bg-hybrid-active .select-dropdown-menu,
-html.bg-hybrid-active .account-dropdown {
-  -webkit-backdrop-filter: blur(12px) saturate(1.2) !important;
-  backdrop-filter: blur(12px) saturate(1.2) !important;
-}
-
-html.dark.bg-hybrid-active .user-menu,
-html.dark.bg-hybrid-active .select-dropdown-menu,
-html.dark.bg-hybrid-active .account-dropdown {
-  background: oklch(0% 0 0 / 0.78);
-}
-
-html:not(.dark).bg-hybrid-active .user-menu,
-html:not(.dark).bg-hybrid-active .select-dropdown-menu,
-html:not(.dark).bg-hybrid-active .account-dropdown {
-  background: oklch(100% 0 0 / 0.9);
-}
-
 @media (prefers-reduced-motion: reduce) {
   html.ui-liquid .glass-shell::before,
   html.ui-liquid .glass-surface::before,
@@ -2600,10 +2516,6 @@ html:not(.dark).bg-hybrid-active .account-dropdown {
   html.ui-liquid .glass-panel::before,
   html.ui-liquid .glass-light::before,
   html.ui-liquid .table-container::before {
-    filter: none;
-  }
-
-  .bg-blur-slice--liquid canvas {
     filter: none;
   }
 }
