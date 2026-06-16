@@ -222,3 +222,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.54.0** `feat` [#262](https://github.com/Dark-Avian-Labs/Codex/pull/262): fable5 audit
 - **v1.55.0** `feat` [#263](https://github.com/Dark-Avian-Labs/Codex/pull/263): liquid glass theme
 - **v1.55.1** `chore` [#264](https://github.com/Dark-Avian-Labs/Codex/pull/264): update dependencies
+- **v1.55.2** `chore` [#266](https://github.com/Dark-Avian-Labs/Codex/pull/266): update dependencies
