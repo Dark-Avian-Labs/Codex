@@ -2556,6 +2556,14 @@ html.bg-hybrid-active thead th {
   backdrop-filter: blur(var(--bg-hybrid-header-blur)) saturate(1.1);
 }
 
+html.dark.bg-hybrid-active:not(.ui-shadow) thead th {
+  background: oklch(0% 0 0 / 0.35);
+}
+
+html:not(.dark).bg-hybrid-active:not(.ui-shadow) thead th {
+  background: color-mix(in oklab, var(--color-glass-hover) 50%, transparent);
+}
+
 @media (prefers-reduced-motion: reduce) {
   html.ui-liquid .glass-shell::before,
   html.ui-liquid .glass-surface::before,

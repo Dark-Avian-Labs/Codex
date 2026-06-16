@@ -16,6 +16,9 @@ const PANEL_SELECTOR = [
   '.glass-panel',
   '.glass-light',
   '.table-container',
+  '.user-menu',
+  '.select-dropdown-menu',
+  '.account-dropdown',
 ].join(',');
 const HYBRID_CLASS = 'bg-hybrid-active';
 const DEFAULT_BG_BLUR_PX = 12;
@@ -133,12 +136,40 @@ export function useAsciiBackgroundCanvas(
       gradientCtx.setTransform(dpiScale, 0, 0, dpiScale, 0, 0);
       const start = getComputedStyle(root).getPropertyValue('--color-bg-start').trim() || '#05060d';
       const end = getComputedStyle(root).getPropertyValue('--color-bg-end').trim() || '#11131d';
+      const glow =
+        getComputedStyle(root).getPropertyValue('--color-bg-glow').trim() || 'rgba(80,90,120,0.14)';
       const ramp = gradientCtx.createLinearGradient(0, 0, 0, viewportH);
       ramp.addColorStop(0, start);
       ramp.addColorStop(0.35, start);
       ramp.addColorStop(0.72, end);
       ramp.addColorStop(1, end);
       gradientCtx.fillStyle = ramp;
+      gradientCtx.fillRect(0, 0, viewportW, viewportH);
+
+      const g1 = gradientCtx.createRadialGradient(
+        viewportW * 0.1,
+        viewportH * 0.1,
+        0,
+        viewportW * 0.1,
+        viewportH * 0.1,
+        viewportW * 0.4,
+      );
+      g1.addColorStop(0, glow);
+      g1.addColorStop(1, 'transparent');
+      gradientCtx.fillStyle = g1;
+      gradientCtx.fillRect(0, 0, viewportW, viewportH);
+
+      const g2 = gradientCtx.createRadialGradient(
+        viewportW * 0.85,
+        viewportH * 0.15,
+        0,
+        viewportW * 0.85,
+        viewportH * 0.15,
+        viewportW * 0.45,
+      );
+      g2.addColorStop(0, glow);
+      g2.addColorStop(1, 'transparent');
+      gradientCtx.fillStyle = g2;
       gradientCtx.fillRect(0, 0, viewportW, viewportH);
 
       const image = gradientCtx.getImageData(0, 0, gradientCanvas.width, gradientCanvas.height);
