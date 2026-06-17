@@ -6,9 +6,9 @@ allowBuilds:
   '@clerk/shared': true
   better-sqlite3: true
 catalog:
-  "@clerk/react": ^6.9.1
-  "@clerk/express": ^2.1.26
-  "@dotenvx/dotenvx": ^1.71.3
+  "@clerk/react": ^6.10.0
+  "@clerk/express": ^2.1.27
+  "@dotenvx/dotenvx": ^1.72.0
   "@fontsource-variable/geist": ^5.2.9
   "@fontsource-variable/geist-mono": ^5.2.8
   "@fontsource-variable/cascadia-mono": ^5.2.2
@@ -23,7 +23,7 @@ catalog:
   "@types/react": ^19.2.17
   "@types/react-dom": ^19.2.3
   "@vitejs/plugin-react": ^6.0.2
-  better-sqlite3: ^12.10.1
+  better-sqlite3: ^12.11.1
   better-sqlite3-session-store: ^0.1.0
   clsx: ^2.1.1
   compression: ^1.8.1
@@ -35,8 +35,8 @@ catalog:
   express-session: ^1.19.0
   globals: ^17.6.0
   helmet: ^8.2.0
-  oxfmt: ^0.54.0
-  oxlint: ^1.69.0
+  oxfmt: ^0.55.0
+  oxlint: ^1.70.0
   react: ^19.2.7
   react-dom: ^19.2.7
   react-router-dom: ^7.17.0
