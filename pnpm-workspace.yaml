@@ -8,7 +8,7 @@ allowBuilds:
 catalog:
   "@clerk/react": ^6.10.0
   "@clerk/express": ^2.1.27
-  "@dotenvx/dotenvx": ^1.72.0
+  "@dotenvx/dotenvx": ^1.73.1
   "@fontsource-variable/geist": ^5.2.9
   "@fontsource-variable/geist-mono": ^5.2.8
   "@fontsource-variable/cascadia-mono": ^5.2.2
@@ -39,7 +39,7 @@ catalog:
   oxlint: ^1.70.0
   react: ^19.2.7
   react-dom: ^19.2.7
-  react-router-dom: ^7.17.0
+  react-router-dom: ^7.18.0
   tailwind-merge: ^3.6.0
   tailwindcss: ^4.3.1
   typescript: ^6.0.3
