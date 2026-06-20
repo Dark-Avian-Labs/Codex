@@ -8,10 +8,10 @@ catalogs:
   default:
     '@clerk/express':
       specifier: ^2.1.29
-      version: 2.1.29
+      version: 2.1.30
     '@clerk/react':
       specifier: ^6.10.3
-      version: 6.10.3
+      version: 6.10.4
     '@dotenvx/dotenvx':
       specifier: ^1.74.3
       version: 1.74.3
@@ -141,10 +141,10 @@ importers:
     dependencies:
       '@clerk/express':
         specifier: 'catalog:'
-        version: 2.1.29(express@5.2.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        version: 2.1.30(express@5.2.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@clerk/react':
         specifier: 'catalog:'
-        version: 6.10.3(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        version: 6.10.4(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@codex/core':
         specifier: workspace:*
         version: link:packages/core
@@ -298,7 +298,7 @@ importers:
     dependencies:
       '@clerk/express':
         specifier: 'catalog:'
-        version: 2.1.29(express@5.2.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        version: 2.1.30(express@5.2.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@dotenvx/dotenvx':
         specifier: 'catalog:'
         version: 1.74.3
@@ -423,25 +423,25 @@ packages:
     resolution: {integrity: sha512-6zABk/ECA/QYSCQ1NGiVwwbQerUCZ+TQbp64Q3AgmfNvurHH0j8TtXa1qbShXA6qqkpAj4V5W8pP6mLe1mcMqA==}
     engines: {node: '>=18'}
 
-  '@clerk/backend@3.8.1':
-    resolution: {integrity: sha512-Q3ezkBJ7cFc0POEgdfyMnLHzAdPpb8jgTSdqA3Vt39rq/LiwRp4ebS2CHkrnrkews/8cwFhTQ6yNynPcpZFh8Q==}
+  '@clerk/backend@3.8.2':
+    resolution: {integrity: sha512-E/o2t3sEyRfB0/YvKd29cHHT/qxdvUwO35AHOFIcCwZ3GxcbfPjyvytsJf+ozwJd+3H89ROy5zcSEPPGnZa/zA==}
     engines: {node: '>=20.9.0'}
 
-  '@clerk/express@2.1.29':
-    resolution: {integrity: sha512-AAz+FX2+S+CAIzcX9l+6SX8kNZqqzbAXlXRTfT1mhZTd0t28V6UEWGGmGWv/FjK8sMw1xOyDdmrauaKAr/dqyQ==}
+  '@clerk/express@2.1.30':
+    resolution: {integrity: sha512-WtZ9zCLyy60Heyi9hDgbCaDJASHPG9Eg9LnGvwZNo2uJNJlclGfEHpZ6OEXolfXFlUSkjUavwqlA6Gbj42XwGw==}
     engines: {node: '>=20.9.0'}
     peerDependencies:
       express: ^4.17.0 || ^5.0.0
 
-  '@clerk/react@6.10.3':
-    resolution: {integrity: sha512-TmDvfbJfcKBOqQDJgfHEZK1Agh8ehBl5LkZVWppCYS7mM9uHQK4Bchv94OoavlziY7Vpp31M9Ky3GoY9oiYKvQ==}
+  '@clerk/react@6.10.4':
+    resolution: {integrity: sha512-KGZVd4XK+ocYTYphuJwrq7GTRXVz5Pl5E2BhM2E+xx21t/mSOrSS8m2xAHdOzIbekSXnhjPAwhJW2belFjRpcg==}
     engines: {node: '>=20.9.0'}
     peerDependencies:
       react: ^18.0.0 || ~19.0.3 || ~19.1.4 || ~19.2.3 || ~19.3.0-0
       react-dom: ^18.0.0 || ~19.0.3 || ~19.1.4 || ~19.2.3 || ~19.3.0-0
 
-  '@clerk/shared@4.19.1':
-    resolution: {integrity: sha512-0VDUXJ47FRDwPyu61uYTNy7HLMUrDAo7ig8JVqyKWb07ysUw7miXk1MKOsIEQ3Nm0g8lzj13LBv43J7o870GUw==}
+  '@clerk/shared@4.20.0':
+    resolution: {integrity: sha512-5t3YEnjwEwaect59N0Ycb5aDBbVGe3hICmy21X+n00IR1skmSTXPmPk/67bTktgEbGHxot2RGqhQbi2bFQV6AA==}
     engines: {node: '>=20.9.0'}
     peerDependencies:
       react: ^18.0.0 || ~19.0.3 || ~19.1.4 || ~19.2.3 || ~19.3.0-0
@@ -2812,8 +2812,8 @@ packages:
     resolution: {integrity: sha512-hunMQrEy1T6Jr2uEVjrAIqjwWcQTgOAcIM52C8MY1EZSD3DDNft04XzvYKPqjED65bNVVko0YI38nYeEHCX3yw==}
     engines: {node: '>=12'}
 
-  semver@7.8.4:
-    resolution: {integrity: sha512-rUCObTnP32Q08R2uuIrt7r9PlEonuTmtuXYcW6s5kjdlj3xbnwe+21yXptAUYcMAABLkYYTtnmzb3w3EDZfueA==}
+  semver@7.8.5:
+    resolution: {integrity: sha512-Y7/KDsb8LjooZpwaqGyulO6DQlksgCncchHGk+sZIY4SBvUocMBEFH5Ur1fI4dV+Jvl0w6cjvucaIi40puRioA==}
     engines: {node: '>=10'}
     hasBin: true
 
@@ -3357,33 +3357,33 @@ snapshots:
 
   '@bcoe/v8-coverage@1.0.2': {}
 
-  '@clerk/backend@3.8.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@clerk/backend@3.8.2(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
     dependencies:
-      '@clerk/shared': 4.19.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@clerk/shared': 4.20.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       standardwebhooks: 1.0.0
       tslib: 2.8.1
     transitivePeerDependencies:
       - react
       - react-dom
 
-  '@clerk/express@2.1.29(express@5.2.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@clerk/express@2.1.30(express@5.2.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
     dependencies:
-      '@clerk/backend': 3.8.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      '@clerk/shared': 4.19.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@clerk/backend': 3.8.2(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@clerk/shared': 4.20.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       express: 5.2.1
       tslib: 2.8.1
     transitivePeerDependencies:
       - react
       - react-dom
 
-  '@clerk/react@6.10.3(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@clerk/react@6.10.4(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
     dependencies:
-      '@clerk/shared': 4.19.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@clerk/shared': 4.20.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       react: 19.2.7
       react-dom: 19.2.7(react@19.2.7)
       tslib: 2.8.1
 
-  '@clerk/shared@4.19.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@clerk/shared@4.20.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
     dependencies:
       '@tanstack/query-core': 5.101.0
       dequal: 2.0.3
@@ -3808,7 +3808,7 @@ snapshots:
       read-pkg: 10.1.0
       registry-auth-token: 5.1.1
       semantic-release: 25.0.5(typescript@6.0.3)
-      semver: 7.8.4
+      semver: 7.8.5
       tempy: 3.2.0
 
   '@semantic-release/release-notes-generator@14.1.1(semantic-release@25.0.5(typescript@6.0.3))':
@@ -4301,7 +4301,7 @@ snapshots:
       json-schema-typed: 7.0.3
       onetime: 5.1.2
       pkg-up: 3.1.0
-      semver: 7.8.4
+      semver: 7.8.5
 
   config-chain@1.1.13:
     dependencies:
@@ -4324,7 +4324,7 @@ snapshots:
       conventional-commits-filter: 5.0.0
       handlebars: 4.7.9
       meow: 13.2.0
-      semver: 7.8.4
+      semver: 7.8.5
 
   conventional-commits-filter@5.0.0: {}
 
@@ -5040,7 +5040,7 @@ snapshots:
 
   make-dir@4.0.0:
     dependencies:
-      semver: 7.8.4
+      semver: 7.8.5
 
   marked-terminal@7.3.0(marked@15.0.12):
     dependencies:
@@ -5124,7 +5124,7 @@ snapshots:
 
   node-abi@3.92.0:
     dependencies:
-      semver: 7.8.4
+      semver: 7.8.5
 
   node-emoji@2.2.0:
     dependencies:
@@ -5136,13 +5136,13 @@ snapshots:
   normalize-package-data@6.0.2:
     dependencies:
       hosted-git-info: 7.0.2
-      semver: 7.8.4
+      semver: 7.8.5
       validate-npm-package-license: 3.0.4
 
   normalize-package-data@8.0.0:
     dependencies:
       hosted-git-info: 9.0.3
-      semver: 7.8.4
+      semver: 7.8.5
       validate-npm-package-license: 3.0.4
 
   normalize-url@9.0.1: {}
@@ -5547,7 +5547,7 @@ snapshots:
       p-reduce: 3.0.0
       read-package-up: 12.0.0
       resolve-from: 5.0.0
-      semver: 7.8.4
+      semver: 7.8.5
       signale: 1.4.0
       yargs: 18.0.0
     transitivePeerDependencies:
@@ -5557,7 +5557,7 @@ snapshots:
 
   semver-regex@4.0.5: {}
 
-  semver@7.8.4: {}
+  semver@7.8.5: {}
 
   send@1.2.1:
     dependencies:

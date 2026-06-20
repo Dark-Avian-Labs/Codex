@@ -228,3 +228,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.55.5** `chore` [#272](https://github.com/Dark-Avian-Labs/Codex/pull/272): update dependencies
 - **v1.55.6** `chore` [#275](https://github.com/Dark-Avian-Labs/Codex/pull/275): update dependencies
 - **v1.55.7** `chore` [#276](https://github.com/Dark-Avian-Labs/Codex/pull/276): update dependencies
+- **v1.55.8** `fix` [#277](https://github.com/Dark-Avian-Labs/Codex/pull/277): scrollbar
