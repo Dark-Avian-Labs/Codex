@@ -513,6 +513,10 @@ html:not(.dark) .invert-on-light {
     font-size: 1.35rem;
   }
 
+  .custom-scroll {
+    scrollbar-gutter: stable;
+  }
+
   .custom-scroll::-webkit-scrollbar {
     width: 8px;
   }
