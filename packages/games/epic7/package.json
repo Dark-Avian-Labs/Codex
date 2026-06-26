@@ -34,7 +34,7 @@
     "typescript": "catalog:"
   },
   "engines": {
-    "node": ">=25.0.0",
+    "node": ">=26.0.0",
     "pnpm": ">=10.0.0"
   }
 }

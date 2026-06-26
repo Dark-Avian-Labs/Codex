@@ -82,8 +82,8 @@
     "vitest": "catalog:"
   },
   "engines": {
-    "node": ">=25.0.0",
+    "node": ">=26.0.0",
     "pnpm": ">=11.0.0"
   },
-  "packageManager": "pnpm@11.8.0"
+  "packageManager": "pnpm@11.9.0"
 }
