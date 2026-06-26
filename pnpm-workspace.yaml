@@ -6,9 +6,9 @@ allowBuilds:
   '@clerk/shared': true
   better-sqlite3: true
 catalog:
-  "@clerk/react": ^6.10.3
-  "@clerk/express": ^2.1.29
-  "@dotenvx/dotenvx": ^1.74.3
+  "@clerk/react": ^6.11.0
+  "@clerk/express": ^2.1.31
+  "@dotenvx/dotenvx": ^1.75.1
   "@fontsource-variable/geist": ^5.2.9
   "@fontsource-variable/geist-mono": ^5.2.8
   "@fontsource-variable/cascadia-mono": ^5.2.2
@@ -19,10 +19,10 @@ catalog:
   "@types/cookie-parser": ^1.4.10
   "@types/express": ^5.0.6
   "@types/express-session": ^1.19.0
-  "@types/node": ^26.0.0
+  "@types/node": ^26.0.1
   "@types/react": ^19.2.17
   "@types/react-dom": ^19.2.3
-  "@vitejs/plugin-react": ^6.0.2
+  "@vitejs/plugin-react": ^6.0.3
   better-sqlite3: ^12.11.1
   better-sqlite3-session-store: ^0.1.0
   clsx: ^2.1.1
@@ -33,17 +33,17 @@ catalog:
   express: ^5.2.1
   express-rate-limit: ^8.5.2
   express-session: ^1.19.0
-  globals: ^17.6.0
+  globals: ^17.7.0
   helmet: ^8.2.0
-  oxfmt: ^0.55.0
-  oxlint: ^1.70.0
+  oxfmt: ^0.56.0
+  oxlint: ^1.71.0
   react: ^19.2.7
   react-dom: ^19.2.7
   react-router-dom: ^7.18.0
   tailwind-merge: ^3.6.0
   tailwindcss: ^4.3.1
   typescript: ^6.0.3
-  vite: ^8.0.16
+  vite: ^8.1.0
   vitest: ^4.1.9
   zod: ^4.4.3
 overrides:

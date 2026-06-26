@@ -26,12 +26,12 @@ The server listens on port 3001 by default.
 
 ### Key gotchas
 
-- **Node >= 25 and pnpm >= 11 required.** Use `nvm install 25` and `npm install -g pnpm@latest-11`. The `packageManager` field in `package.json` must stay an exact version (e.g. `pnpm@11.3.0`) — Corepack does not accept dist-tags like `latest-11`.
+- **Node >= 26 and pnpm >= 11 required.** Use `nvm install 26` and `npm install -g pnpm@latest-11`. The `packageManager` field in `package.json` must stay an exact version (e.g. `pnpm@11.3.0`) — Corepack does not accept dist-tags like `latest-11`.
 - **Encrypted `.env.development` / `.env.production` files.** When `DOTENV_PRIVATE_KEY_DEVELOPMENT` is set as an env var, use dotenvx to decrypt at runtime: `NODE_ENV=development pnpm dotenvx run -f .env.development -- node dist/server/index.js`. Without the private key, create a plain `.env` from `.env.example` and run with `node --env-file=.env`.
 - **Workspace packages must be built before tests or main build.** Run `pnpm --filter @codex/core --filter @codex/game-warframe --filter @codex/game-epic7 run --if-present build` before `pnpm run validate`. The full `pnpm run build` command does this automatically, but `pnpm run validate` alone does not.
 - **`SESSION_DB_PATH` and `ARMORY_DB_PATH` must be absolute paths.** `SESSION_DB_PATH` is Codex-owned (`session.db` for CSRF / Epic7 session state). `ARMORY_DB_PATH` is the read-only Armory catalog. Example: `/var/www/applications/codex/data/session.db`.
 - **Game databases must be pre-created.** Run `pnpm run db:init` after building workspace packages (or apply schema SQL from `packages/games/warframe/src/db/schema.ts` and `packages/games/epic7/src/db/schema.ts` manually). The `onOpen` callbacks assume tables already exist.
-- **`pnpm run validate` runs runtime preflight first** (`scripts/runtime-preflight.mjs`): Node 25+, pnpm major from `packageManager`, and `better-sqlite3` native bindings.
+- **`pnpm run validate` runs runtime preflight first** (`scripts/runtime-preflight.mjs`): Node 26+, pnpm major from `packageManager`, and `better-sqlite3` native bindings.
 - **Vite build picks up encrypted `.env.production`** for `VITE_BASE_PATH`, producing garbled asset paths. Fix by rebuilding the client with: `npx vite build --mode devbuild`.
 - **Clerk keys are required in production.** Set `CLERK_SECRET_KEY` and `CLERK_PUBLISHABLE_KEY` (or `VITE_CLERK_PUBLISHABLE_KEY`). See `.env.example` for session-token metadata and admin role setup.
 - **Clerk middleware returns 500 on all routes with placeholder keys.** With `pk_test_placeholder` / `sk_test_placeholder`, the Clerk middleware throws on every request. The server still starts and listens correctly — auth-dependent endpoints just fail. This is expected in local dev without real Clerk keys.
@@ -40,7 +40,7 @@ The server listens on port 3001 by default.
 
 ### Cloud VM-specific notes
 
-- **PATH override:** The Cloud VM has `/exec-daemon/node` (Node 22) ahead of nvm in PATH. Prepend nvm's Node 25 path: `export PATH="/home/ubuntu/.nvm/versions/node/v25.9.0/bin:$PATH"`.
+- **PATH override:** The Cloud VM has `/exec-daemon/node` (Node 22) ahead of nvm in PATH. Prepend nvm's Node 26 path: `export PATH="/home/ubuntu/.nvm/versions/node/v26.4.0/bin:$PATH"`.
 - **`/data` directory for tests:** Vitest resolves `PROJECT_ROOT` as `/` (because `server/config.ts` computes it relative to the TS source file). The `ensureDataDirs()` call tries to create `/data`. Run `sudo mkdir -p /data && sudo chmod 777 /data` before tests.
 - **Decrypt `.env.development`:** If `DOTENV_PRIVATE_KEY_DEVELOPMENT` is available as a secret, run `pnpm dotenvx decrypt -f .env.development`. Without the key, copy the CI plaintext template: `cp .github/ci.env.development .env.development` and append absolute DB paths.
 - **Clerk publishable key format (fallback only):** If using placeholder keys, must be `pk_test_<base64_of_fapi_host$>`. With decrypted `.env.development`, real keys are used automatically.
