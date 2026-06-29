@@ -6,8 +6,8 @@ allowBuilds:
   '@clerk/shared': true
   better-sqlite3: true
 catalog:
-  "@clerk/react": ^6.11.0
-  "@clerk/express": ^2.1.31
+  "@clerk/react": ^6.11.1
+  "@clerk/express": ^2.1.32
   "@dotenvx/dotenvx": ^1.75.1
   "@fontsource-variable/geist": ^5.2.9
   "@fontsource-variable/geist-mono": ^5.2.8
