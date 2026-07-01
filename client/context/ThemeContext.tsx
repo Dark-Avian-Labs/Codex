@@ -10,15 +10,14 @@ import {
 
 export type ThemeMode = 'light' | 'dark';
 
-export type UiStyle = 'prism' | 'shadow' | 'clear' | 'liquid';
+export type UiStyle = 'prism' | 'shadow' | 'clear';
 
-export const UI_STYLES: UiStyle[] = ['prism', 'shadow', 'clear', 'liquid'];
+export const UI_STYLES: UiStyle[] = ['prism', 'shadow', 'clear'];
 
 export const UI_STYLE_LABELS: Record<UiStyle, string> = {
   prism: 'Prism',
   shadow: 'Shadow',
   clear: 'Clear',
-  liquid: 'Liquid',
 };
 
 interface ThemeContextValue {
@@ -68,8 +67,7 @@ function parseUiStyleCookie(): UiStyle | null {
     ?.split('=')
     .slice(1)
     .join('=');
-  if (raw === 'solid') return 'clear';
-  if (raw === 'prism' || raw === 'shadow' || raw === 'clear' || raw === 'liquid') return raw;
+  if (raw === 'prism' || raw === 'shadow' || raw === 'clear') return raw;
   return null;
 }
 
@@ -89,9 +87,7 @@ function resolveInitialUiStyle(): UiStyle {
   const fromCookie = parseUiStyleCookie();
   if (fromCookie) return fromCookie;
   const stored = safeReadStorage(UI_STYLE_STORAGE_KEY);
-  if (stored === 'solid') return 'clear';
-  if (stored === 'prism' || stored === 'shadow' || stored === 'clear' || stored === 'liquid')
-    return stored;
+  if (stored === 'prism' || stored === 'shadow' || stored === 'clear') return stored;
   return 'prism';
 }
 
@@ -142,7 +138,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const root = document.documentElement;
-    root.classList.remove('ui-prism', 'ui-shadow', 'ui-clear', 'ui-liquid');
+    root.classList.remove('ui-prism', 'ui-shadow', 'ui-clear');
     root.classList.add(`ui-${uiStyle}`);
     if (!hasMountedRef.current) {
       return;
