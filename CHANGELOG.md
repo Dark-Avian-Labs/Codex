@@ -233,3 +233,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.55.10** `chore` [#284](https://github.com/Dark-Avian-Labs/Codex/pull/284): remove liquid theme
 - **v1.55.11** `chore` [#288](https://github.com/Dark-Avian-Labs/Codex/pull/288): update dependencies
 - **v1.56.0** `feat` [#292](https://github.com/Dark-Avian-Labs/Codex/pull/292): watcher of realms module
+- **v1.56.1** `fix` [#293](https://github.com/Dark-Avian-Labs/Codex/pull/293): ci pipeline
