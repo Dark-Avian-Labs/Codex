@@ -19,7 +19,9 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type Dispatch,
   type ReactNode,
+  type SetStateAction,
 } from 'react';
 
 import { HeaderSearch } from '../../components/Layout/HeaderSearch';
@@ -343,7 +345,6 @@ export function WorPage() {
   const [heroes, setHeroes] = useState<WorHero[]>([]);
   const [artifacts, setArtifacts] = useState<WorArtifact[]>([]);
   const [demons, setDemons] = useState<WorDemon[]>([]);
-  const [stats, setStats] = useState<WorStats>({ total: 0, owned: 0, maxed: 0 });
   const [accounts, setAccounts] = useState<WorAccount[]>([]);
   const [currentAccountId, setCurrentAccountId] = useState<number | null>(null);
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
@@ -403,12 +404,10 @@ export function WorPage() {
         heroes?: WorHero[];
         artifacts?: WorArtifact[];
         demons?: WorDemon[];
-        stats?: WorStats;
       };
       if (tab === 'heroes') setHeroes(body.heroes ?? []);
       if (tab === 'artifacts') setArtifacts(body.artifacts ?? []);
       if (tab === 'demons') setDemons(body.demons ?? []);
-      setStats(body.stats ?? { total: 0, owned: 0, maxed: 0 });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load data');
     } finally {
@@ -451,6 +450,18 @@ export function WorPage() {
     () => demons.filter((row) => row.name.toLowerCase().includes(search.toLowerCase())),
     [demons, search],
   );
+
+  const stats = useMemo((): WorStats => {
+    const rows = tab === 'heroes' ? heroes : tab === 'artifacts' ? artifacts : demons;
+    const owned = rows.filter((row) => row.owned === 1).length;
+    const maxed = rows.filter((row) => {
+      if (row.owned !== 1) return false;
+      if (tab === 'heroes') return row.gauge_level === HERO_AWAKENING_MAX;
+      if (tab === 'artifacts') return row.gauge_level === ARTIFACT_PROMOTION_MAX;
+      return row.gauge_level === (row as WorDemon).max_level;
+    }).length;
+    return { total: rows.length, owned, maxed };
+  }, [artifacts, demons, heroes, tab]);
 
   const switchAccount = useCallback(
     async (accountId: number) => {
@@ -623,16 +634,54 @@ export function WorPage() {
   ]);
 
   const patchOwned = useCallback(
-    async (entity: 'heroes' | 'artifacts' | 'demons', id: number, owned: number) => {
-      const response = await apiFetch(`/api/wor/${entity}/${id}/owned`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ owned }),
-      });
-      if (!response.ok) throw new Error('Failed to update owned status');
-      await loadTabData();
+    async (entity: 'heroes' | 'artifacts' | 'demons', id: number, nextOwned: number) => {
+      type OwnedRow = { id: number; owned: number; gauge_level: number };
+      let previousRow: OwnedRow | undefined;
+
+      const apply = <T extends OwnedRow>(setter: Dispatch<SetStateAction<T[]>>) => {
+        setter((previous) => {
+          previousRow = previous.find((row) => row.id === id);
+          return previous.map((row) =>
+            row.id === id
+              ? { ...row, owned: nextOwned, gauge_level: nextOwned === 0 ? 0 : row.gauge_level }
+              : row,
+          );
+        });
+      };
+
+      if (entity === 'heroes') apply(setHeroes);
+      else if (entity === 'artifacts') apply(setArtifacts);
+      else apply(setDemons);
+
+      try {
+        const response = await apiFetch(`/api/wor/${entity}/${id}/owned`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ owned: nextOwned }),
+        });
+        if (!response.ok) throw new Error('Failed to update owned status');
+      } catch (err) {
+        const rollback = <T extends OwnedRow>(setter: Dispatch<SetStateAction<T[]>>) => {
+          if (!previousRow) return;
+          setter((current) =>
+            current.map((row) =>
+              row.id === id
+                ? {
+                    ...row,
+                    owned: previousRow!.owned,
+                    gauge_level: previousRow!.gauge_level,
+                  }
+                : row,
+            ),
+          );
+        };
+        if (entity === 'heroes') rollback(setHeroes);
+        else if (entity === 'artifacts') rollback(setArtifacts);
+        else rollback(setDemons);
+        handleActionError(err);
+      }
     },
-    [loadTabData],
+    [handleActionError],
   );
 
   const patchGauge = useCallback(
@@ -642,15 +691,51 @@ export function WorPage() {
       gaugeLevel: number,
       bodyKey: 'hero_id' | 'artifact_id' | 'demon_id',
     ) => {
-      const response = await apiFetch(`/api/wor/${entity}/${id}/gauge`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ [bodyKey]: id, gauge_level: gaugeLevel }),
-      });
-      if (!response.ok) throw new Error('Failed to update gauge');
-      await loadTabData();
+      type GaugeRow = { id: number; owned: number; gauge_level: number };
+      let previousRow: GaugeRow | undefined;
+
+      const apply = <T extends GaugeRow>(setter: Dispatch<SetStateAction<T[]>>) => {
+        setter((previous) => {
+          previousRow = previous.find((row) => row.id === id);
+          return previous.map((row) =>
+            row.id === id ? { ...row, gauge_level: gaugeLevel, owned: 1 } : row,
+          );
+        });
+      };
+
+      if (entity === 'heroes') apply(setHeroes);
+      else if (entity === 'artifacts') apply(setArtifacts);
+      else apply(setDemons);
+
+      try {
+        const response = await apiFetch(`/api/wor/${entity}/${id}/gauge`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ [bodyKey]: id, gauge_level: gaugeLevel }),
+        });
+        if (!response.ok) throw new Error('Failed to update gauge');
+      } catch (err) {
+        const rollback = <T extends GaugeRow>(setter: Dispatch<SetStateAction<T[]>>) => {
+          if (!previousRow) return;
+          setter((current) =>
+            current.map((row) =>
+              row.id === id
+                ? {
+                    ...row,
+                    owned: previousRow!.owned,
+                    gauge_level: previousRow!.gauge_level,
+                  }
+                : row,
+            ),
+          );
+        };
+        if (entity === 'heroes') rollback(setHeroes);
+        else if (entity === 'artifacts') rollback(setArtifacts);
+        else rollback(setDemons);
+        handleActionError(err);
+      }
     },
-    [loadTabData],
+    [handleActionError],
   );
 
   return (
