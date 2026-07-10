@@ -2,19 +2,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import { fetchWithTimeout, FETCH_TIMEOUT_MS } from '../../http/fetchWithTimeout.js';
+import { decodeInertiaPayload } from './htmlEntities.js';
 import { FASTIDIOUS_BASE_URL } from './paths.js';
 
 export type FastidiousInertiaPage<TProps> = {
   component: string;
   props: TProps;
 };
-
-function decodeInertiaPayload(encoded: string): string {
-  return encoded
-    .replace(/&quot;/g, '"')
-    .replace(/&amp;/g, '&')
-    .replace(/&#039;/g, "'");
-}
 
 export function parseInertiaHtml<TProps>(html: string): FastidiousInertiaPage<TProps> {
   const match = html.match(/data-page="([^"]+)"/);

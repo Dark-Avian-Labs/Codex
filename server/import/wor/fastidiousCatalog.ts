@@ -17,6 +17,7 @@ import {
   sleep,
   writeCachedJson,
 } from './fastidiousClient.js';
+import { decodeHtmlEntities } from './htmlEntities.js';
 import {
   normalizeArtifactRarity,
   normalizeDamageType,
@@ -148,15 +149,6 @@ function mapHero(hero: FastidiousHero, displayOrder: number): CatalogHeroRow {
     display_order: displayOrder,
     active: 1,
   };
-}
-
-function decodeHtmlEntities(value: string): string {
-  return value
-    .replace(/&#x27;/g, "'")
-    .replace(/&#039;/g, "'")
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>');
 }
 
 function mapArtifactClass(role: FastidiousRole | null | undefined): string | null {

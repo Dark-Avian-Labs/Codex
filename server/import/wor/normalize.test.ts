@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { parseInertiaHtml } from './fastidiousClient.js';
+import { decodeHtmlEntities } from './htmlEntities.js';
 import {
   normalizeArtifactRarity,
   normalizeDemonRarity,
@@ -30,6 +31,18 @@ describe('wor normalize', () => {
 
   it('builds wiki page titles', () => {
     expect(wikiPageTitleFromName('Gul Drak')).toBe('Gul_Drak');
+  });
+});
+
+describe('wor html entities', () => {
+  it('decodes apostrophe entities without chained ampersand substitution', () => {
+    expect(decodeHtmlEntities('Blightcaller&#x27;s Claw')).toBe("Blightcaller's Claw");
+    expect(decodeHtmlEntities('city&#039;s gates')).toBe("city's gates");
+  });
+
+  it('decodes only one entity layer per pass', () => {
+    expect(decodeHtmlEntities('&amp;lt;')).toBe('&lt;');
+    expect(decodeHtmlEntities('&lt;')).toBe('<');
   });
 });
 
