@@ -9,7 +9,7 @@ allowBuilds:
 catalog:
   "@clerk/react": ^6.12.1
   "@clerk/express": ^2.1.38
-  "@dotenvx/dotenvx": ^2.3.2
+  "@dotenvx/dotenvx": ^2.3.4
   "@fontsource-variable/geist": ^5.2.9
   "@fontsource-variable/geist-mono": ^5.2.8
   "@fontsource-variable/cascadia-mono": ^5.2.2
