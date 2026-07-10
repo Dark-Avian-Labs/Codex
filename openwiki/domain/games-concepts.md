@@ -341,11 +341,13 @@ interface WorAccount {
 ### Catalog Import Pipeline
 
 **Data Sources**:
+
 - Fixture data: `scripts/data/wor-catalog-fixture.json`
 - Overrides: `scripts/data/wor-overrides.json`
 - Import script: `scripts/wor-import.mjs`
 
 **Import Process**:
+
 1. Load fixture catalog data
 2. Apply overrides for corrections and updates
 3. Validate data consistency
@@ -353,6 +355,7 @@ interface WorAccount {
 5. Update catalog version tracking
 
 **Pipeline Components** (`/server/import/wor/`):
+
 - `startupPipeline.ts`: Main import orchestration
 - `catalogQueries.ts`: Database operations for catalog data
 - `adminImportJob.ts`: Admin-triggered import functionality
@@ -360,18 +363,21 @@ interface WorAccount {
 ### Collection Management Features
 
 **Hero Progression**:
+
 - Awakening gauge levels (0-6)
 - Star rating tracking (1-5 stars)
 - Class and faction filtering
 - Tier reference integration
 
 **Artifact Management**:
+
 - Promotion gauge levels (0-6)
 - Star rating display
 - Tier-based organization
 - Collection completion tracking
 
 **Demon Collection**:
+
 - Special captain rarity handling
 - Gauge progression tracking
 - Rarity-based filtering
@@ -380,11 +386,13 @@ interface WorAccount {
 ### Account Management
 
 **Multiple Account Support**:
+
 - Multiple WoR game accounts per user
 - Server-agnostic account management
 - Current account tracking via session binding
 
 **Session Integration** (`/server/session/worSessionBinding.ts`):
+
 - Binds WoR account state to Clerk user sessions
 - Manages current account selection
 - Handles account switching with session updates

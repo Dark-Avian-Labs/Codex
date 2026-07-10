@@ -13,7 +13,7 @@ catalogs:
       specifier: ^6.12.1
       version: 6.12.1
     '@dotenvx/dotenvx':
-      specifier: ^2.3.2
+      specifier: ^2.3.4
       version: 2.3.4
     '@fontsource-variable/cascadia-mono':
       specifier: ^5.2.2
