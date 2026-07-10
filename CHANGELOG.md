@@ -236,3 +236,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.56.1** `fix` [#293](https://github.com/Dark-Avian-Labs/Codex/pull/293): ci pipeline
 - **v1.57.0** `feat` [#294](https://github.com/Dark-Avian-Labs/Codex/pull/294): adding watcher of realms import pipeline
 - **v1.58.0** `fix` [#295](https://github.com/Dark-Avian-Labs/Codex/pull/295): import logs
+- **v1.58.1** `fix` [#296](https://github.com/Dark-Avian-Labs/Codex/pull/296): import pipeline
