@@ -1,6 +1,10 @@
+import fs from 'node:fs';
+import path from 'node:path';
+
 import { FACTION_DISPLAY_NAMES, FACTIONS } from '@codex/game-wor';
 import type { FactionKey, HeroClassKey } from '@codex/game-wor';
 
+import { WOR_IMAGES_DIR } from '../../config.js';
 import { fetchWithTimeout, FETCH_TIMEOUT_MS } from '../../http/fetchWithTimeout.js';
 import { getWikiUserAgent } from '../../scraping/wikiUserAgent.js';
 import type { CatalogBundle } from './catalogQueries.js';
@@ -221,6 +225,17 @@ function pathExtFromFile(fileName: string): string {
   return dotIndex === -1 ? '.png' : fileName.slice(dotIndex);
 }
 
+function extensionFromUrl(url: string): string {
+  const fromUrl = path.extname(new URL(url).pathname);
+  return fromUrl || '.png';
+}
+
+function portraitFileExists(portraitPath: string | null | undefined): boolean {
+  if (!portraitPath?.startsWith('/wor-images/')) return false;
+  const relative = portraitPath.slice('/wor-images/'.length);
+  return fs.existsSync(path.join(WOR_IMAGES_DIR, relative));
+}
+
 function logPortraitProgress(
   onLog: ((message: string) => void) | undefined,
   processed: number,
@@ -256,17 +271,23 @@ export async function downloadClassAndFactionIcons(options: {
 
   for (const classKey of Object.keys(WIKI_CLASS_FILES) as HeroClassKey[]) {
     const wikiFile = WIKI_CLASS_FILES[classKey];
-    const relativePath = `icons/classes/${classKey}.png`;
-    const webPath = await downloadWikiFile(wikiFile, relativePath, forceDownload, summary);
-    if (!webPath && options.classIcons[classKey]) {
+    let saved = false;
+    const fastidiousUrl = options.classIcons[classKey];
+    if (fastidiousUrl) {
+      const relativePath = `icons/classes/${classKey}${extensionFromUrl(fastidiousUrl)}`;
       const result = await downloadImageToWorDir({
-        url: options.classIcons[classKey]!,
-        relativePath: `icons/classes/${classKey}${options.classIcons[classKey]!.includes('.svg') ? '.svg' : '.png'}`,
+        url: fastidiousUrl,
+        relativePath,
         forceDownload,
       });
       if (result.status === 'downloaded') summary.iconsDownloaded += 1;
       else if (result.status === 'skipped') summary.iconsSkipped += 1;
       else summary.iconsFailed += 1;
+      saved = result.status !== 'failed';
+    }
+    if (!saved) {
+      const relativePath = `icons/classes/${classKey}.png`;
+      await downloadWikiFile(wikiFile, relativePath, forceDownload, summary);
     }
     await sleep(150);
   }
@@ -274,17 +295,23 @@ export async function downloadClassAndFactionIcons(options: {
   for (const factionKey of FACTIONS.filter((faction) => faction !== 'unaffiliated')) {
     const wikiFile = WIKI_FACTION_FILES[factionKey];
     if (!wikiFile) continue;
-    const relativePath = `icons/factions/${factionKey}.png`;
-    const webPath = await downloadWikiFile(wikiFile, relativePath, forceDownload, summary);
-    if (!webPath && options.factionIcons[factionKey]) {
+    let saved = false;
+    const fastidiousUrl = options.factionIcons[factionKey];
+    if (fastidiousUrl) {
+      const relativePath = `icons/factions/${factionKey}${extensionFromUrl(fastidiousUrl)}`;
       const result = await downloadImageToWorDir({
-        url: options.factionIcons[factionKey]!,
-        relativePath: `icons/factions/${factionKey}.svg`,
+        url: fastidiousUrl,
+        relativePath,
         forceDownload,
       });
       if (result.status === 'downloaded') summary.iconsDownloaded += 1;
       else if (result.status === 'skipped') summary.iconsSkipped += 1;
       else summary.iconsFailed += 1;
+      saved = result.status !== 'failed';
+    }
+    if (!saved) {
+      const relativePath = `icons/factions/${factionKey}.png`;
+      await downloadWikiFile(wikiFile, relativePath, forceDownload, summary);
     }
     options.onLog?.(`Faction icon ${FACTION_DISPLAY_NAMES[factionKey]} processed.`);
     await sleep(150);
@@ -333,7 +360,7 @@ export async function downloadCatalogPortraits(options: {
   const heroes = [];
   for (const hero of options.bundle.heroes) {
     const existing = options.existingPortraitPaths?.heroes[hero.slug] ?? hero.portrait_path;
-    if (onlyMissing && !forceDownload && existing) {
+    if (onlyMissing && !forceDownload && existing && portraitFileExists(existing)) {
       heroes.push({ ...hero, portrait_path: existing });
       summary.portraitsSkipped += 1;
       processed += 1;
@@ -360,7 +387,7 @@ export async function downloadCatalogPortraits(options: {
   for (const artifact of options.bundle.artifacts) {
     const existing =
       options.existingPortraitPaths?.artifacts[artifact.slug] ?? artifact.portrait_path;
-    if (onlyMissing && !forceDownload && existing) {
+    if (onlyMissing && !forceDownload && existing && portraitFileExists(existing)) {
       artifacts.push({ ...artifact, portrait_path: existing });
       summary.portraitsSkipped += 1;
       processed += 1;
@@ -398,7 +425,7 @@ export async function downloadCatalogPortraits(options: {
   const demons = [];
   for (const demon of options.bundle.demons) {
     const existing = options.existingPortraitPaths?.demons[demon.slug] ?? demon.portrait_path;
-    if (onlyMissing && !forceDownload && existing) {
+    if (onlyMissing && !forceDownload && existing && portraitFileExists(existing)) {
       demons.push({ ...demon, portrait_path: existing });
       summary.portraitsSkipped += 1;
       processed += 1;

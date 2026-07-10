@@ -138,11 +138,54 @@ function WorPortrait({ portraitPath, name }: { portraitPath?: string | null; nam
   return <img src={portraitPath} alt="" width={32} height={32} loading="lazy" title={name} />;
 }
 
-function worClassIconUrl(classKey: HeroClassKey): string {
+function worClassIconUrls(classKey: HeroClassKey): { primary: string; fallback: string } {
   if (classKey === 'tactician') {
-    return '/wor-images/icons/classes/tactician.png';
+    const path = '/wor-images/icons/classes/tactician.png';
+    return { primary: path, fallback: path };
   }
-  return `/wor-images/icons/classes/${classKey}.svg`;
+  return {
+    primary: `/wor-images/icons/classes/${classKey}.svg`,
+    fallback: `/wor-images/icons/classes/${classKey}.png`,
+  };
+}
+
+function worFactionIconUrls(factionKey: FactionKey): { primary: string; fallback: string } {
+  return {
+    primary: `/wor-images/icons/factions/${factionKey}.svg`,
+    fallback: `/wor-images/icons/factions/${factionKey}.png`,
+  };
+}
+
+function WorIconWithFallback({
+  primarySrc,
+  fallbackSrc,
+  alt,
+  className,
+  size = 28,
+}: {
+  primarySrc: string;
+  fallbackSrc: string;
+  alt: string;
+  className?: string;
+  size?: number;
+}) {
+  const [src, setSrc] = useState(primarySrc);
+  useEffect(() => {
+    setSrc(primarySrc);
+  }, [primarySrc]);
+  return (
+    <img
+      className={className}
+      src={src}
+      alt={alt}
+      title={alt}
+      width={size}
+      height={size}
+      onError={() => {
+        if (src !== fallbackSrc) setSrc(fallbackSrc);
+      }}
+    />
+  );
 }
 
 function WorClassIcon({ classKey }: { classKey: string }) {
@@ -151,14 +194,13 @@ function WorClassIcon({ classKey }: { classKey: string }) {
   if (!(HERO_CLASSES as readonly string[]).includes(key)) {
     return <span className="text-muted">—</span>;
   }
+  const urls = worClassIconUrls(key);
   return (
-    <img
+    <WorIconWithFallback
       className="invert-on-light"
-      src={worClassIconUrl(key)}
+      primarySrc={urls.primary}
+      fallbackSrc={urls.fallback}
       alt={label}
-      title={label}
-      width={28}
-      height={28}
     />
   );
 }
@@ -180,12 +222,10 @@ function WorFactionIcon({ factionKey }: { factionKey: string }) {
     return <span className="text-muted">—</span>;
   }
   return (
-    <img
-      src={`/wor-images/icons/factions/${key}.svg`}
+    <WorIconWithFallback
+      primarySrc={worFactionIconUrls(key).primary}
+      fallbackSrc={worFactionIconUrls(key).fallback}
       alt={label}
-      title={label}
-      width={28}
-      height={28}
     />
   );
 }
@@ -656,10 +696,12 @@ export function WorPage() {
                   setClassFilter((previous) => (previous === heroClass ? null : heroClass))
                 }
               >
-                <img
+                <WorIconWithFallback
                   className="invert-on-light"
-                  src={worClassIconUrl(heroClass)}
+                  primarySrc={worClassIconUrls(heroClass).primary}
+                  fallbackSrc={worClassIconUrls(heroClass).fallback}
                   alt={CLASS_DISPLAY_NAMES[heroClass]}
+                  size={24}
                 />
               </button>
             ))}
@@ -685,9 +727,11 @@ export function WorPage() {
                     style={{ fontSize: 24 }}
                   />
                 ) : (
-                  <img
-                    src={`/wor-images/icons/factions/${faction}.svg`}
+                  <WorIconWithFallback
+                    primarySrc={worFactionIconUrls(faction).primary}
+                    fallbackSrc={worFactionIconUrls(faction).fallback}
                     alt={FACTION_DISPLAY_NAMES[faction]}
+                    size={24}
                   />
                 )}
               </button>
@@ -710,10 +754,12 @@ export function WorPage() {
                   setClassFilter((previous) => (previous === heroClass ? null : heroClass))
                 }
               >
-                <img
+                <WorIconWithFallback
                   className="invert-on-light"
-                  src={worClassIconUrl(heroClass)}
+                  primarySrc={worClassIconUrls(heroClass).primary}
+                  fallbackSrc={worClassIconUrls(heroClass).fallback}
                   alt={CLASS_DISPLAY_NAMES[heroClass]}
+                  size={24}
                 />
               </button>
             ))}
