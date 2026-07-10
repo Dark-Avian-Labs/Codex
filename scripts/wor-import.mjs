@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 process.chdir(root);
@@ -12,10 +12,14 @@ if (!fs.existsSync(pipelinePath)) {
   process.exit(1);
 }
 
-const { runWorStartupPipeline } = await import(pipelinePath);
+const { runWorStartupPipeline } = await import(pathToFileURL(pipelinePath));
+
+const forceImport = process.argv.includes('--force');
+const forceImages = process.argv.includes('--force-images');
+process.env.WOR_IMPORT_LIVE = process.env.WOR_IMPORT_LIVE ?? '1';
 
 try {
-  const summary = await runWorStartupPipeline();
+  const summary = await runWorStartupPipeline({ forceImport, forceImages });
   console.log('[wor:import] Complete:', summary);
 } catch (error) {
   console.error('[wor:import] Failed:', error instanceof Error ? error.message : error);

@@ -13,6 +13,7 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import feathers from '../../../packages/core/assets/feathers.svg';
 import epic7Favicon from '../../../packages/games/epic7/favicon.ico';
 import warframeFavicon from '../../../packages/games/warframe/favicon.ico';
+import worFavicon from '../../../packages/games/wor/favicon.ico';
 import {
   APP_DISPLAY_NAME,
   APP_ID,
@@ -182,6 +183,7 @@ export function Layout() {
       faviconHref = epic7Favicon;
     } else if (path.startsWith(APP_PATHS.wor)) {
       document.title = 'Codex - WoR';
+      faviconHref = worFavicon;
     } else {
       document.title = 'Codex';
     }

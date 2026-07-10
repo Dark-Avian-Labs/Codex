@@ -1,0 +1,72 @@
+{
+  "id": 71,
+  "name": "Imperial Pharaoh Guard",
+  "slug": "imperial-pharaoh-guard",
+  "rarity": "epic",
+  "demon_faction_id": null,
+  "image": "demon-soldiers/Screenshot from 2026-02-22 10-53-30.webp",
+  "description": null,
+  "published": true,
+  "order": 211,
+  "cost": 5,
+  "quantity": 1,
+  "deploy_limit": null,
+  "stat_attack": "C",
+  "stat_hp": "S",
+  "stat_defense": "B",
+  "stat_magic_resistance": "SS",
+  "stat_speed": "B",
+  "created_at": "2026-02-22T10:22:10.000000Z",
+  "updated_at": "2026-02-22T10:53:38.000000Z",
+  "demon_faction": null,
+  "skills": [
+    {
+      "id": 64,
+      "demon_soldier_id": 71,
+      "name": "HP Enhancement",
+      "description": "HP +25%",
+      "image": null,
+      "tags": ["passive"],
+      "unlocks_at_demon_level": null,
+      "order": 1,
+      "created_at": "2026-02-22T10:22:10.000000Z",
+      "updated_at": "2026-02-22T10:22:10.000000Z"
+    },
+    {
+      "id": 65,
+      "demon_soldier_id": 71,
+      "name": "HP Enhancement",
+      "description": "Max HP +10%",
+      "image": null,
+      "tags": ["passive"],
+      "unlocks_at_demon_level": 3,
+      "order": 2,
+      "created_at": "2026-02-22T10:22:10.000000Z",
+      "updated_at": "2026-02-22T10:22:10.000000Z"
+    },
+    {
+      "id": 66,
+      "demon_soldier_id": 71,
+      "name": "M. RES. Enhancement",
+      "description": "M. RES. +15%",
+      "image": null,
+      "tags": ["passive"],
+      "unlocks_at_demon_level": 5,
+      "order": 3,
+      "created_at": "2026-02-22T10:22:10.000000Z",
+      "updated_at": "2026-02-22T10:22:10.000000Z"
+    },
+    {
+      "id": 67,
+      "demon_soldier_id": 71,
+      "name": "P. DMG Reduction Enhancement",
+      "description": "P. DMG Reduction +25%",
+      "image": null,
+      "tags": ["passive"],
+      "unlocks_at_demon_level": 7,
+      "order": 4,
+      "created_at": "2026-02-22T10:22:10.000000Z",
+      "updated_at": "2026-02-22T10:22:10.000000Z"
+    }
+  ]
+}

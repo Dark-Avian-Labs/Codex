@@ -17,6 +17,7 @@
     "typecheck:client": "tsc -p tsconfig.json --noEmit",
     "build": "pnpm --filter @codex/core --filter @codex/game-warframe --filter @codex/game-epic7 --filter @codex/game-wor run --if-present build && pnpm run typecheck && tsc -p tsconfig.server.json && vite build",
     "wor:import": "node scripts/wor-import.mjs",
+    "wor:import:cache": "node scripts/generate-wor-import-cache.mjs",
     "start": "node dist/server/index.js",
     "db:init": "node scripts/db-init.mjs",
     "validate": "node run-quality-checks.mjs",

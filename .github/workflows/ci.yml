@@ -296,6 +296,7 @@ jobs:
           if [ -f background.txt ]; then cp background.txt /tmp/deploy/; fi
           mkdir -p /tmp/deploy/scripts/data
           cp scripts/data/wor-catalog-fixture.json scripts/data/wor-overrides.json /tmp/deploy/scripts/data/
+          if [ -d scripts/data/wor-import-cache ]; then cp -r scripts/data/wor-import-cache /tmp/deploy/scripts/data/; fi
           printf 'DOTENV_PRIVATE_KEY_PRODUCTION=%s\n' "$DOTENV_PRIVATE_KEY_PRODUCTION" > /tmp/deploy/.env.keys
           chmod 600 /tmp/deploy/.env.keys
           test -s /tmp/deploy/.env.keys || { echo "ERROR: Failed to create .env.keys in deployment bundle."; exit 1; }

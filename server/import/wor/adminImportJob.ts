@@ -6,6 +6,7 @@ import {
   type WorImportLogLine,
   type WorImportSummary,
 } from './startupPipeline.js';
+import type { WorPipelineStepKey } from './worPipelineSteps.js';
 
 export type WorAdminImportSnapshot = {
   runId: number;
@@ -71,6 +72,8 @@ export function isWorImportRunning(): boolean {
 
 export async function startWorAdminImport(options?: {
   forceImport?: boolean;
+  forceImages?: boolean;
+  forceSteps?: string[];
 }): Promise<{ started: boolean; reason?: string }> {
   if (state.running || activeJobPromise) {
     return { started: false, reason: 'Import already running' };
@@ -97,6 +100,8 @@ export async function startWorAdminImport(options?: {
       pushLine('info', 'Starting Watcher of Realms catalog import…');
       const summary = await runWorStartupPipeline({
         forceImport: options?.forceImport,
+        forceImages: options?.forceImages,
+        forceSteps: options?.forceSteps as WorPipelineStepKey[] | undefined,
         onLog: (line) => pushLine(line.level, line.message),
       });
       state.summary = summary;

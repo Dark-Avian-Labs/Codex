@@ -16,6 +16,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type CSSProperties,
   type ReactNode,
@@ -24,6 +25,7 @@ import {
 import { HeaderSearch } from '../../components/Layout/HeaderSearch';
 import { useLayoutSlots } from '../../components/Layout/useLayoutSlots';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
+import { MaterialSymbol } from '../../components/ui/MaterialSymbol';
 import { Modal } from '../../components/ui/Modal';
 import { apiFetch } from '../../utils/api';
 
@@ -38,15 +40,22 @@ type WorHero = {
   owned: number;
   gauge_level: number;
   reference_tier?: string | null;
+  portrait_path?: string | null;
 };
 
 type WorArtifact = {
   id: number;
   name: string;
+  class?: string | null;
   star_rating?: number;
   owned: number;
   gauge_level: number;
   reference_tier?: string | null;
+  portrait_path?: string | null;
+  exclusive_hero_slug?: string | null;
+  exclusive_hero_name?: string | null;
+  exclusive_hero_portrait?: string | null;
+  is_universal?: number;
 };
 
 type WorDemon = {
@@ -56,6 +65,7 @@ type WorDemon = {
   owned: number;
   gauge_level: number;
   max_level: number;
+  portrait_path?: string | null;
 };
 
 type WorAccount = {
@@ -117,6 +127,102 @@ function ownedDisplay(owned: number): string {
   return owned ? '\u2713' : '\u2014';
 }
 
+function isExclusiveArtifact(artifact: WorArtifact): boolean {
+  return artifact.is_universal === 0 || Boolean(artifact.exclusive_hero_slug);
+}
+
+function WorPortrait({ portraitPath, name }: { portraitPath?: string | null; name: string }) {
+  if (!portraitPath) {
+    return <span className="wor-portrait-placeholder" aria-hidden="true" />;
+  }
+  return <img src={portraitPath} alt="" width={32} height={32} loading="lazy" title={name} />;
+}
+
+function worClassIconUrl(classKey: HeroClassKey): string {
+  if (classKey === 'tactician') {
+    return '/wor-images/icons/classes/tactician.png';
+  }
+  return `/wor-images/icons/classes/${classKey}.svg`;
+}
+
+function WorClassIcon({ classKey }: { classKey: string }) {
+  const key = classKey as HeroClassKey;
+  const label = CLASS_DISPLAY_NAMES[key] ?? classKey;
+  if (!(HERO_CLASSES as readonly string[]).includes(key)) {
+    return <span className="text-muted">—</span>;
+  }
+  return (
+    <img
+      className="invert-on-light"
+      src={worClassIconUrl(key)}
+      alt={label}
+      title={label}
+      width={28}
+      height={28}
+    />
+  );
+}
+
+function WorFactionIcon({ factionKey }: { factionKey: string }) {
+  const key = factionKey as FactionKey;
+  const label = FACTION_DISPLAY_NAMES[key] ?? factionKey;
+  if (key === 'unaffiliated') {
+    return (
+      <MaterialSymbol
+        name="person_off"
+        title={label}
+        className="text-muted"
+        style={{ fontSize: 28 }}
+      />
+    );
+  }
+  if (!(FACTIONS as readonly string[]).includes(key)) {
+    return <span className="text-muted">—</span>;
+  }
+  return (
+    <img
+      src={`/wor-images/icons/factions/${key}.svg`}
+      alt={label}
+      title={label}
+      width={28}
+      height={28}
+    />
+  );
+}
+
+function WorArtifactUserCell({
+  classKey,
+  exclusiveHeroName,
+  exclusiveHeroPortrait,
+  isUniversal,
+}: {
+  classKey?: string | null;
+  exclusiveHeroName?: string | null;
+  exclusiveHeroPortrait?: string | null;
+  isUniversal?: number;
+}) {
+  const showHeroPortrait =
+    isUniversal === 0 && exclusiveHeroPortrait && exclusiveHeroPortrait.length > 0;
+  if (showHeroPortrait) {
+    const label = exclusiveHeroName ? `Exclusive to ${exclusiveHeroName}` : 'Hero exclusive';
+    return (
+      <img
+        src={exclusiveHeroPortrait}
+        alt={label}
+        title={label}
+        width={28}
+        height={28}
+        className="wor-artifact-hero-icon"
+        loading="lazy"
+      />
+    );
+  }
+  if (classKey) {
+    return <WorClassIcon classKey={classKey} />;
+  }
+  return <span className="text-muted">—</span>;
+}
+
 function gaugeLabel(tab: WorTab, level: number): string {
   if (tab === 'heroes') return HERO_AWAKENING_LABELS[level] ?? `A${level}`;
   if (tab === 'artifacts') return `${level}\u2605`;
@@ -126,6 +232,7 @@ function gaugeLabel(tab: WorTab, level: number): string {
 interface WorRowProps {
   tab: WorTab;
   name: string;
+  portraitPath?: string | null;
   owned: number;
   gaugeLevel: number;
   gaugeMax: number;
@@ -138,6 +245,7 @@ interface WorRowProps {
 const WorRow = memo(function WorRow({
   tab,
   name,
+  portraitPath,
   owned,
   gaugeLevel,
   gaugeMax,
@@ -149,55 +257,79 @@ const WorRow = memo(function WorRow({
   const gaugeDisabled = owned !== 1;
   return (
     <tr>
+      <td className="wor-portrait-cell">
+        <WorPortrait portraitPath={portraitPath} name={name} />
+      </td>
       <td className="item-name">{name}</td>
       {extraCells}
       <td className="stars-cell">{renderStars(starRating)}</td>
       <td className="status-cell">
-        <button
-          type="button"
-          className={ownedButtonClass(owned, true)}
-          onClick={onToggleOwned}
-          aria-label={`Toggle owned for ${name}`}
-        >
-          {ownedDisplay(owned)}
-        </button>
+        <div className="wor-action-cell">
+          <button
+            type="button"
+            className={ownedButtonClass(owned, true)}
+            onClick={onToggleOwned}
+            aria-label={`Toggle owned for ${name}`}
+          >
+            {ownedDisplay(owned)}
+          </button>
+        </div>
       </td>
       <td className="level-cell">
-        <button
-          type="button"
-          className="gauge-btn"
-          style={{ color: GAUGE_COLORS[gaugeLevel] ?? GAUGE_COLORS[0] }}
-          disabled={gaugeDisabled}
-          onClick={onCycleGauge}
-          aria-label={`Cycle progression for ${name}`}
-        >
-          {tab === 'artifacts' ? renderGauge(gaugeLevel, gaugeMax) : gaugeLabel(tab, gaugeLevel)}
-        </button>
+        <div className="wor-action-cell">
+          <button
+            type="button"
+            className="gauge-btn"
+            style={{ color: GAUGE_COLORS[gaugeLevel] ?? GAUGE_COLORS[0] }}
+            disabled={gaugeDisabled}
+            onClick={onCycleGauge}
+            aria-label={`Cycle progression for ${name}`}
+          >
+            {tab === 'artifacts' ? renderGauge(gaugeLevel, gaugeMax) : gaugeLabel(tab, gaugeLevel)}
+          </button>
+        </div>
       </td>
     </tr>
   );
 });
 
 export function WorPage() {
-  const { setHeaderCenter } = useLayoutSlots();
+  const { setHeaderCenter, setHeaderActions } = useLayoutSlots();
   const [tab, setTab] = useState<WorTab>('heroes');
   const [search, setSearch] = useState('');
   const [classFilter, setClassFilter] = useState<HeroClassKey | null>(null);
   const [factionFilter, setFactionFilter] = useState<FactionKey | null>(null);
+  const [exclusiveFilter, setExclusiveFilter] = useState(false);
   const [heroes, setHeroes] = useState<WorHero[]>([]);
   const [artifacts, setArtifacts] = useState<WorArtifact[]>([]);
   const [demons, setDemons] = useState<WorDemon[]>([]);
   const [stats, setStats] = useState<WorStats>({ total: 0, owned: 0, maxed: 0 });
   const [accounts, setAccounts] = useState<WorAccount[]>([]);
   const [currentAccountId, setCurrentAccountId] = useState<number | null>(null);
+  const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [accountModalOpen, setAccountModalOpen] = useState(false);
   const [accountNameDraft, setAccountNameDraft] = useState('');
+  const [accountEditId, setAccountEditId] = useState<number | null>(null);
+  const [accountEditDraft, setAccountEditDraft] = useState('');
   const [deleteAccount, setDeleteAccount] = useState<WorAccount | null>(null);
+  const accountMenuRef = useRef<HTMLDivElement | null>(null);
 
   const handleActionError = useCallback((err: unknown) => {
     setError(err instanceof Error ? err.message : 'Request failed');
+  }, []);
+
+  const currentAccount = useMemo(
+    () => accounts.find((account) => account.id === currentAccountId) ?? null,
+    [accounts, currentAccountId],
+  );
+
+  const closeAccountModal = useCallback(() => {
+    setAccountModalOpen(false);
+    setAccountNameDraft('');
+    setAccountEditId(null);
+    setAccountEditDraft('');
   }, []);
 
   const loadAccounts = useCallback(async () => {
@@ -266,8 +398,14 @@ export function WorPage() {
     [heroes, search],
   );
   const filteredArtifacts = useMemo(
-    () => artifacts.filter((row) => row.name.toLowerCase().includes(search.toLowerCase())),
-    [artifacts, search],
+    () =>
+      artifacts.filter((row) => {
+        if (!row.name.toLowerCase().includes(search.toLowerCase())) return false;
+        if (classFilter && row.class !== classFilter) return false;
+        if (exclusiveFilter && !isExclusiveArtifact(row)) return false;
+        return true;
+      }),
+    [artifacts, search, classFilter, exclusiveFilter],
   );
   const filteredDemons = useMemo(
     () => demons.filter((row) => row.name.toLowerCase().includes(search.toLowerCase())),
@@ -276,16 +414,16 @@ export function WorPage() {
 
   const switchAccount = useCallback(
     async (accountId: number) => {
+      if (currentAccountId === accountId) return;
       const response = await apiFetch('/api/wor/accounts/switch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ account_id: accountId }),
       });
       if (!response.ok) throw new Error('Failed to switch account');
-      setCurrentAccountId(accountId);
       await loadTabData();
     },
-    [loadTabData],
+    [currentAccountId, loadTabData],
   );
 
   const createAccount = useCallback(async () => {
@@ -300,10 +438,29 @@ export function WorPage() {
       const body = (await response.json().catch(() => null)) as { error?: string } | null;
       throw new Error(body?.error ?? 'Failed to create account');
     }
-    setAccountModalOpen(false);
     setAccountNameDraft('');
     await loadTabData();
   }, [accountNameDraft, loadTabData]);
+
+  const renameAccount = useCallback(
+    async (accountId: number) => {
+      const nextName = accountEditDraft.trim();
+      if (!nextName) return;
+      const response = await apiFetch(`/api/wor/accounts/${accountId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ account_id: accountId, account_name: nextName }),
+      });
+      if (!response.ok) {
+        const body = (await response.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(body?.error ?? 'Failed to rename account');
+      }
+      setAccountEditId(null);
+      setAccountEditDraft('');
+      await loadTabData();
+    },
+    [accountEditDraft, loadTabData],
+  );
 
   const confirmDeleteAccount = useCallback(async () => {
     if (!deleteAccount) return;
@@ -313,9 +470,117 @@ export function WorPage() {
       body: JSON.stringify({ account_id: deleteAccount.id }),
     });
     if (!response.ok) throw new Error('Failed to delete account');
+    if (accountEditId === deleteAccount.id) {
+      setAccountEditId(null);
+      setAccountEditDraft('');
+    }
     setDeleteAccount(null);
     await loadTabData();
-  }, [deleteAccount, loadTabData]);
+  }, [accountEditId, deleteAccount, loadTabData]);
+
+  const openDeleteAccountModal = useCallback((account: WorAccount) => {
+    setDeleteAccount(account);
+  }, []);
+
+  useEffect(() => {
+    if (!isAccountMenuOpen) {
+      return undefined;
+    }
+
+    const closeMenu = () => setIsAccountMenuOpen(false);
+    const onPointerDown = (event: MouseEvent) => {
+      if (
+        accountMenuRef.current &&
+        event.target instanceof Node &&
+        !accountMenuRef.current.contains(event.target)
+      ) {
+        closeMenu();
+      }
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        closeMenu();
+      }
+    };
+
+    document.addEventListener('mousedown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [isAccountMenuOpen]);
+
+  useEffect(() => {
+    setHeaderActions(
+      <div className="flex items-center gap-2">
+        <div className="account-selector" ref={accountMenuRef}>
+          <button
+            id="wor-account-select"
+            type="button"
+            className="account-btn"
+            aria-label="Select Watcher of Realms account"
+            aria-haspopup="listbox"
+            aria-expanded={isAccountMenuOpen}
+            aria-controls="wor-account-listbox"
+            onClick={() => setIsAccountMenuOpen((previous) => !previous)}
+          >
+            {currentAccount?.account_name ?? 'No account'}
+          </button>
+          <div
+            id="wor-account-listbox"
+            className={`account-dropdown ${isAccountMenuOpen ? 'show' : ''}`}
+            role="listbox"
+            aria-label="Watcher of Realms accounts"
+          >
+            {accounts.length === 0 ? (
+              <div className="account-dropdown-item muted" role="option">
+                No account
+              </div>
+            ) : (
+              accounts.map((account) => {
+                const isActive = account.id === currentAccountId;
+                return (
+                  <button
+                    key={account.id}
+                    type="button"
+                    role="option"
+                    aria-selected={isActive}
+                    className={`account-dropdown-item ${isActive ? 'active' : ''}`}
+                    onClick={() => {
+                      setIsAccountMenuOpen(false);
+                      if (!isActive) {
+                        void switchAccount(account.id).catch(handleActionError);
+                      }
+                    }}
+                  >
+                    {isActive ? (
+                      <MaterialSymbol name="arrow_left_alt" style={{ fontSize: 18 }} />
+                    ) : null}
+                    <span>{account.account_name}</span>
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </div>
+        <button type="button" className="header-link" onClick={() => setAccountModalOpen(true)}>
+          Game Accounts
+        </button>
+      </div>,
+    );
+    return () => {
+      setHeaderActions(null);
+    };
+  }, [
+    accounts,
+    currentAccount,
+    currentAccountId,
+    handleActionError,
+    isAccountMenuOpen,
+    setHeaderActions,
+    switchAccount,
+  ]);
 
   const patchOwned = useCallback(
     async (entity: 'heroes' | 'artifacts' | 'demons', id: number, owned: number) => {
@@ -350,53 +615,8 @@ export function WorPage() {
 
   return (
     <section className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold">Watcher of Realms</h1>
-          <p className="text-muted text-sm">
-            Total {stats.total} · Owned {stats.owned} · Maxed {stats.maxed}
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <label className="text-muted text-sm" htmlFor="wor-account-select">
-            Account
-          </label>
-          <select
-            id="wor-account-select"
-            className="form-input min-w-[10rem]"
-            value={currentAccountId ?? ''}
-            onChange={(event) => {
-              const id = Number(event.target.value);
-              if (id > 0) void switchAccount(id).catch(handleActionError);
-            }}
-          >
-            {accounts.length === 0 ? <option value="">No accounts</option> : null}
-            {accounts.map((account) => (
-              <option key={account.id} value={account.id}>
-                {account.account_name}
-              </option>
-            ))}
-          </select>
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={() => setAccountModalOpen(true)}
-          >
-            Add account
-          </button>
-          {accounts.length > 0 ? (
-            <button
-              type="button"
-              className="btn btn-danger"
-              onClick={() => {
-                const current = accounts.find((a) => a.id === currentAccountId);
-                if (current) setDeleteAccount(current);
-              }}
-            >
-              Delete
-            </button>
-          ) : null}
-        </div>
+      <div>
+        <h1 className="text-2xl font-semibold">Watcher of Realms</h1>
       </div>
 
       {error ? (
@@ -421,60 +641,132 @@ export function WorPage() {
       </div>
 
       {tab === 'heroes' ? (
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            className={`filter-chip ${classFilter === null ? 'active' : ''}`}
-            onClick={() => setClassFilter(null)}
-          >
-            All classes
-          </button>
-          {HERO_CLASSES.map((heroClass) => (
+        <div className="filter-bar" id="wor-filter-bar">
+          <div className="filter-group">
+            <span className="filter-label">Class:</span>
+            {HERO_CLASSES.map((heroClass) => (
+              <button
+                key={heroClass}
+                type="button"
+                className={`filter-icon ${classFilter === heroClass ? 'active' : ''}`}
+                title={CLASS_DISPLAY_NAMES[heroClass]}
+                aria-pressed={classFilter === heroClass}
+                aria-label={`Filter by ${CLASS_DISPLAY_NAMES[heroClass]} class`}
+                onClick={() =>
+                  setClassFilter((previous) => (previous === heroClass ? null : heroClass))
+                }
+              >
+                <img
+                  className="invert-on-light"
+                  src={worClassIconUrl(heroClass)}
+                  alt={CLASS_DISPLAY_NAMES[heroClass]}
+                />
+              </button>
+            ))}
+          </div>
+          <div className="filter-group">
+            <span className="filter-label">Faction:</span>
+            {FACTIONS.map((faction) => (
+              <button
+                key={faction}
+                type="button"
+                className={`filter-icon ${factionFilter === faction ? 'active' : ''}`}
+                title={FACTION_DISPLAY_NAMES[faction]}
+                aria-pressed={factionFilter === faction}
+                aria-label={`Filter by ${FACTION_DISPLAY_NAMES[faction]} faction`}
+                onClick={() =>
+                  setFactionFilter((previous) => (previous === faction ? null : faction))
+                }
+              >
+                {faction === 'unaffiliated' ? (
+                  <MaterialSymbol
+                    name="person_off"
+                    className="text-muted"
+                    style={{ fontSize: 24 }}
+                  />
+                ) : (
+                  <img
+                    src={`/wor-images/icons/factions/${faction}.svg`}
+                    alt={FACTION_DISPLAY_NAMES[faction]}
+                  />
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : tab === 'artifacts' ? (
+        <div className="filter-bar" id="wor-artifact-filter-bar">
+          <div className="filter-group">
+            <span className="filter-label">Class:</span>
+            {HERO_CLASSES.map((heroClass) => (
+              <button
+                key={heroClass}
+                type="button"
+                className={`filter-icon ${classFilter === heroClass ? 'active' : ''}`}
+                title={CLASS_DISPLAY_NAMES[heroClass]}
+                aria-pressed={classFilter === heroClass}
+                aria-label={`Filter by ${CLASS_DISPLAY_NAMES[heroClass]} class`}
+                onClick={() =>
+                  setClassFilter((previous) => (previous === heroClass ? null : heroClass))
+                }
+              >
+                <img
+                  className="invert-on-light"
+                  src={worClassIconUrl(heroClass)}
+                  alt={CLASS_DISPLAY_NAMES[heroClass]}
+                />
+              </button>
+            ))}
+          </div>
+          <div className="filter-group">
+            <span className="filter-label">Exclusive:</span>
             <button
-              key={heroClass}
               type="button"
-              className={`filter-chip ${classFilter === heroClass ? 'active' : ''}`}
-              onClick={() => setClassFilter(heroClass)}
+              className={`filter-icon ${exclusiveFilter ? 'active' : ''}`}
+              title="Hero exclusive artifacts"
+              aria-pressed={exclusiveFilter}
+              aria-label="Filter hero exclusive artifacts"
+              onClick={() => setExclusiveFilter((previous) => !previous)}
             >
-              {CLASS_DISPLAY_NAMES[heroClass]}
+              <MaterialSymbol name="crown" style={{ fontSize: 24 }} />
             </button>
-          ))}
-          <span className="mx-1 w-px self-stretch bg-[var(--color-glass-border)]" />
-          <button
-            type="button"
-            className={`filter-chip ${factionFilter === null ? 'active' : ''}`}
-            onClick={() => setFactionFilter(null)}
-          >
-            All factions
-          </button>
-          {FACTIONS.map((faction) => (
-            <button
-              key={faction}
-              type="button"
-              className={`filter-chip ${factionFilter === faction ? 'active' : ''}`}
-              onClick={() => setFactionFilter(faction)}
-            >
-              {FACTION_DISPLAY_NAMES[faction]}
-            </button>
-          ))}
+          </div>
         </div>
       ) : null}
 
+      <div className="stats-bar">
+        <div className="stat">
+          <span>Total:</span>
+          <span className="stat-value">{stats.total}</span>
+        </div>
+        <div className="stat">
+          <span>Owned:</span>
+          <span className="stat-value stat-owned">{stats.owned}</span>
+        </div>
+        <div className="stat">
+          <span>Maxed:</span>
+          <span className="stat-value stat-maxed">{stats.maxed}</span>
+        </div>
+      </div>
+
       <div className="table-container" aria-busy={loading}>
         <div className={`table-scroll ${loading ? 'opacity-60' : ''}`} style={tableScrollStyle}>
-          <table style={{ tableLayout: 'fixed' }}>
+          <table className="wor-table" style={{ tableLayout: 'fixed' }}>
             <thead>
               <tr>
+                <th className="wor-portrait-cell" aria-label="Portrait" />
                 <th>Name</th>
                 {tab === 'heroes' ? (
                   <>
-                    <th>Class</th>
-                    <th>Faction</th>
+                    <th className="icon-cell text-center">Class</th>
+                    <th className="icon-cell text-center">Faction</th>
                   </>
+                ) : tab === 'artifacts' ? (
+                  <th className="icon-cell text-center">Class</th>
                 ) : null}
                 <th>Rarity</th>
-                <th>Owned</th>
-                <th>
+                <th className="status-cell">Owned</th>
+                <th className="level-cell">
                   {tab === 'heroes' ? 'Awakening' : tab === 'artifacts' ? 'Promotion' : 'Level'}
                 </th>
               </tr>
@@ -482,7 +774,10 @@ export function WorPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={tab === 'heroes' ? 6 : 4} className="text-muted text-center">
+                  <td
+                    colSpan={tab === 'heroes' ? 7 : tab === 'artifacts' ? 6 : 5}
+                    className="text-muted text-center"
+                  >
                     Loading…
                   </td>
                 </tr>
@@ -492,14 +787,19 @@ export function WorPage() {
                     key={hero.id}
                     tab="heroes"
                     name={hero.name}
+                    portraitPath={hero.portrait_path}
                     owned={hero.owned}
                     gaugeLevel={hero.gauge_level}
                     gaugeMax={HERO_AWAKENING_MAX}
                     starRating={hero.star_rating}
                     extraCells={
                       <>
-                        <td>{CLASS_DISPLAY_NAMES[hero.class as HeroClassKey] ?? hero.class}</td>
-                        <td>{FACTION_DISPLAY_NAMES[hero.faction as FactionKey] ?? hero.faction}</td>
+                        <td className="icon-cell">
+                          <WorClassIcon classKey={hero.class} />
+                        </td>
+                        <td className="icon-cell">
+                          <WorFactionIcon factionKey={hero.faction} />
+                        </td>
                       </>
                     }
                     onToggleOwned={() =>
@@ -521,10 +821,21 @@ export function WorPage() {
                     key={artifact.id}
                     tab="artifacts"
                     name={artifact.name}
+                    portraitPath={artifact.portrait_path}
                     owned={artifact.owned}
                     gaugeLevel={artifact.gauge_level}
                     gaugeMax={ARTIFACT_PROMOTION_MAX}
                     starRating={artifact.star_rating}
+                    extraCells={
+                      <td className="icon-cell">
+                        <WorArtifactUserCell
+                          classKey={artifact.class}
+                          exclusiveHeroName={artifact.exclusive_hero_name}
+                          exclusiveHeroPortrait={artifact.exclusive_hero_portrait}
+                          isUniversal={artifact.is_universal}
+                        />
+                      </td>
+                    }
                     onToggleOwned={() =>
                       void patchOwned('artifacts', artifact.id, artifact.owned ? 0 : 1).catch(
                         handleActionError,
@@ -548,6 +859,7 @@ export function WorPage() {
                     key={demon.id}
                     tab="demons"
                     name={demon.name}
+                    portraitPath={demon.portrait_path}
                     owned={demon.owned}
                     gaugeLevel={demon.gauge_level}
                     gaugeMax={demon.max_level}
@@ -574,12 +886,93 @@ export function WorPage() {
 
       <Modal
         open={accountModalOpen}
-        onClose={() => setAccountModalOpen(false)}
+        onClose={closeAccountModal}
         ariaLabelledBy="wor-account-modal-title"
-        className="glass-modal-surface"
+        className="glass-modal-surface max-w-lg p-6"
       >
-        <h2 id="wor-account-modal-title">Add account</h2>
-        <div className="form-group mt-4">
+        <h2 id="wor-account-modal-title" className="mb-4 text-lg font-semibold">
+          Game Accounts
+        </h2>
+        <div className="account-manager-list">
+          {accounts.length === 0 ? (
+            <p className="text-muted text-sm">No accounts yet.</p>
+          ) : (
+            accounts.map((account) => {
+              const isEditing = accountEditId === account.id;
+              const isActive = currentAccountId === account.id;
+              return (
+                <div key={account.id} className="account-manager-row">
+                  {isEditing ? (
+                    <input
+                      id={`codex-wor-account-edit-${account.id}`}
+                      value={accountEditDraft}
+                      onChange={(event) => setAccountEditDraft(event.target.value)}
+                      aria-label={`Edit name for ${account.account_name}`}
+                    />
+                  ) : (
+                    <div className="account-manager-name">
+                      <span>{account.account_name}</span>
+                      {isActive ? <span className="account-manager-active">Active</span> : null}
+                    </div>
+                  )}
+                  <div className="account-manager-actions">
+                    {!isEditing && !isActive ? (
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={() => void switchAccount(account.id).catch(handleActionError)}
+                      >
+                        Use
+                      </button>
+                    ) : null}
+                    {isEditing ? (
+                      <>
+                        <button
+                          type="button"
+                          className="btn btn-accent"
+                          onClick={() => void renameAccount(account.id).catch(handleActionError)}
+                        >
+                          Save
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-cancel"
+                          onClick={() => {
+                            setAccountEditId(null);
+                            setAccountEditDraft('');
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          className="btn btn-secondary"
+                          onClick={() => {
+                            setAccountEditId(account.id);
+                            setAccountEditDraft(account.account_name);
+                          }}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-danger"
+                          onClick={() => openDeleteAccountModal(account)}
+                        >
+                          Delete
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+        <div className="form-group">
           <label htmlFor="wor-account-name">Account name</label>
           <input
             id="wor-account-name"
@@ -589,11 +982,7 @@ export function WorPage() {
           />
         </div>
         <div className="modal-actions">
-          <button
-            type="button"
-            className="btn btn-cancel"
-            onClick={() => setAccountModalOpen(false)}
-          >
+          <button type="button" className="btn btn-cancel" onClick={closeAccountModal}>
             Cancel
           </button>
           <button
@@ -601,7 +990,7 @@ export function WorPage() {
             className="btn btn-accent"
             onClick={() => void createAccount().catch(handleActionError)}
           >
-            Create
+            Add Account
           </button>
         </div>
       </Modal>

@@ -1,0 +1,60 @@
+{
+  "id": 55,
+  "name": "Scalekin Mage",
+  "slug": "scalekin-mage",
+  "rarity": "rare",
+  "demon_faction_id": null,
+  "image": "demon-soldiers/Screenshot from 2026-02-22 11-02-39.webp",
+  "description": null,
+  "published": true,
+  "order": 102,
+  "cost": 3,
+  "quantity": 2,
+  "deploy_limit": null,
+  "stat_attack": "C",
+  "stat_hp": "B",
+  "stat_defense": "D",
+  "stat_magic_resistance": "C",
+  "stat_speed": "C",
+  "created_at": "2026-02-22T10:22:09.000000Z",
+  "updated_at": "2026-02-22T11:02:47.000000Z",
+  "demon_faction": null,
+  "skills": [
+    {
+      "id": 22,
+      "demon_soldier_id": 55,
+      "name": "HP Enhancement",
+      "description": "Max HP +10%",
+      "image": null,
+      "tags": ["passive"],
+      "unlocks_at_demon_level": 3,
+      "order": 1,
+      "created_at": "2026-02-22T10:22:09.000000Z",
+      "updated_at": "2026-02-22T10:22:09.000000Z"
+    },
+    {
+      "id": 23,
+      "demon_soldier_id": 55,
+      "name": "ATK Enhancement",
+      "description": "ATK +15%",
+      "image": null,
+      "tags": ["passive"],
+      "unlocks_at_demon_level": 5,
+      "order": 2,
+      "created_at": "2026-02-22T10:22:09.000000Z",
+      "updated_at": "2026-02-22T10:22:09.000000Z"
+    },
+    {
+      "id": 24,
+      "demon_soldier_id": 55,
+      "name": "P. DMG Reduction Enhancement",
+      "description": "P. DMG Reduction +25%",
+      "image": null,
+      "tags": ["passive"],
+      "unlocks_at_demon_level": 7,
+      "order": 3,
+      "created_at": "2026-02-22T10:22:09.000000Z",
+      "updated_at": "2026-02-22T10:22:09.000000Z"
+    }
+  ]
+}

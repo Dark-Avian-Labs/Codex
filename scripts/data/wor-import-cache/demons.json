@@ -1,0 +1,784 @@
+{
+  "errors": {},
+  "name": "Laravel",
+  "auth": {
+    "user": null,
+    "impersonator": null
+  },
+  "sidebarOpen": true,
+  "storageUrl": "https://fastidious.gg/storage/",
+  "storageVersion": "6c7a1a65",
+  "demons": [
+    {
+      "id": 100,
+      "name": "Maw",
+      "slug": "maw",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 00-25-18.webp",
+      "rarity": "captain",
+      "rarity_label": "Captain",
+      "rarity_badge_bg": "bg-red-900/50 text-red-300",
+      "cost": 9,
+      "quantity": 1,
+      "demon_faction": null
+    },
+    {
+      "id": 101,
+      "name": "Scalekin Champion",
+      "slug": "scalekin-champion",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 00-26-01.webp",
+      "rarity": "captain",
+      "rarity_label": "Captain",
+      "rarity_badge_bg": "bg-red-900/50 text-red-300",
+      "cost": 5,
+      "quantity": 1,
+      "demon_faction": null
+    },
+    {
+      "id": 102,
+      "name": "Slaughter",
+      "slug": "slaughter",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 00-24-55.webp",
+      "rarity": "captain",
+      "rarity_label": "Captain",
+      "rarity_badge_bg": "bg-red-900/50 text-red-300",
+      "cost": 9,
+      "quantity": 1,
+      "demon_faction": {
+        "id": 5,
+        "name": "Chaos",
+        "slug": "chaos",
+        "image": null
+      }
+    },
+    {
+      "id": 103,
+      "name": "Glacius",
+      "slug": "glacius",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-28-35.webp",
+      "rarity": "captain",
+      "rarity_label": "Captain",
+      "rarity_badge_bg": "bg-red-900/50 text-red-300",
+      "cost": 6,
+      "quantity": 1,
+      "demon_faction": {
+        "id": 4,
+        "name": "Frostbourne",
+        "slug": "frostbourne",
+        "image": null
+      }
+    },
+    {
+      "id": 104,
+      "name": "Countess Mariath",
+      "slug": "countess-mariath",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-27-55.webp",
+      "rarity": "captain",
+      "rarity_label": "Captain",
+      "rarity_badge_bg": "bg-red-900/50 text-red-300",
+      "cost": 7,
+      "quantity": 1,
+      "demon_faction": {
+        "id": 6,
+        "name": "Bloodspring",
+        "slug": "bloodspring",
+        "image": null
+      }
+    },
+    {
+      "id": 85,
+      "name": "Lightning Guard",
+      "slug": "lightning-guard",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-42-41.webp",
+      "rarity": "legendary",
+      "rarity_label": "Legendary",
+      "rarity_badge_bg": "bg-amber-900/50 text-amber-300",
+      "cost": 5,
+      "quantity": 1,
+      "demon_faction": null
+    },
+    {
+      "id": 86,
+      "name": "Knight of Destruction",
+      "slug": "knight-of-destruction",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-41-59.webp",
+      "rarity": "legendary",
+      "rarity_label": "Legendary",
+      "rarity_badge_bg": "bg-amber-900/50 text-amber-300",
+      "cost": 6,
+      "quantity": 1,
+      "demon_faction": null
+    },
+    {
+      "id": 87,
+      "name": "Book Keeper",
+      "slug": "book-keeper",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-41-31.webp",
+      "rarity": "legendary",
+      "rarity_label": "Legendary",
+      "rarity_badge_bg": "bg-amber-900/50 text-amber-300",
+      "cost": 5,
+      "quantity": 1,
+      "demon_faction": null
+    },
+    {
+      "id": 88,
+      "name": "Uncommon Destroyer",
+      "slug": "uncommon-destroyer",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-40-50.webp",
+      "rarity": "legendary",
+      "rarity_label": "Legendary",
+      "rarity_badge_bg": "bg-amber-900/50 text-amber-300",
+      "cost": 7,
+      "quantity": 1,
+      "demon_faction": null
+    },
+    {
+      "id": 89,
+      "name": "The Fool",
+      "slug": "the-fool",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-40-26.webp",
+      "rarity": "legendary",
+      "rarity_label": "Legendary",
+      "rarity_badge_bg": "bg-amber-900/50 text-amber-300",
+      "cost": 5,
+      "quantity": 1,
+      "demon_faction": null
+    },
+    {
+      "id": 90,
+      "name": "Grotesque Fiend",
+      "slug": "grotesque-fiend",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-39-41.webp",
+      "rarity": "legendary",
+      "rarity_label": "Legendary",
+      "rarity_badge_bg": "bg-amber-900/50 text-amber-300",
+      "cost": 6,
+      "quantity": 1,
+      "demon_faction": {
+        "id": 5,
+        "name": "Chaos",
+        "slug": "chaos",
+        "image": null
+      }
+    },
+    {
+      "id": 91,
+      "name": "Frost Guardian",
+      "slug": "frost-guardian",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-39-08.webp",
+      "rarity": "legendary",
+      "rarity_label": "Legendary",
+      "rarity_badge_bg": "bg-amber-900/50 text-amber-300",
+      "cost": 6,
+      "quantity": 1,
+      "demon_faction": {
+        "id": 4,
+        "name": "Frostbourne",
+        "slug": "frostbourne",
+        "image": null
+      }
+    },
+    {
+      "id": 92,
+      "name": "Frozen Cleric",
+      "slug": "frozen-cleric",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-38-42.webp",
+      "rarity": "legendary",
+      "rarity_label": "Legendary",
+      "rarity_badge_bg": "bg-amber-900/50 text-amber-300",
+      "cost": 5,
+      "quantity": 1,
+      "demon_faction": {
+        "id": 4,
+        "name": "Frostbourne",
+        "slug": "frostbourne",
+        "image": null
+      }
+    },
+    {
+      "id": 93,
+      "name": "Frost Canid",
+      "slug": "frost-canid",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-36-41-v1.webp",
+      "rarity": "legendary",
+      "rarity_label": "Legendary",
+      "rarity_badge_bg": "bg-amber-900/50 text-amber-300",
+      "cost": 5,
+      "quantity": 2,
+      "demon_faction": {
+        "id": 4,
+        "name": "Frostbourne",
+        "slug": "frostbourne",
+        "image": null
+      }
+    },
+    {
+      "id": 94,
+      "name": "Ice Vermin",
+      "slug": "ice-vermin",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-36-18.webp",
+      "rarity": "legendary",
+      "rarity_label": "Legendary",
+      "rarity_badge_bg": "bg-amber-900/50 text-amber-300",
+      "cost": 3,
+      "quantity": 2,
+      "demon_faction": {
+        "id": 4,
+        "name": "Frostbourne",
+        "slug": "frostbourne",
+        "image": null
+      }
+    },
+    {
+      "id": 95,
+      "name": "Emberfire Templar",
+      "slug": "emberfire-templar",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-35-26.webp",
+      "rarity": "legendary",
+      "rarity_label": "Legendary",
+      "rarity_badge_bg": "bg-amber-900/50 text-amber-300",
+      "cost": 6,
+      "quantity": 1,
+      "demon_faction": {
+        "id": 5,
+        "name": "Chaos",
+        "slug": "chaos",
+        "image": null
+      }
+    },
+    {
+      "id": 96,
+      "name": "Twisted Sycophant",
+      "slug": "twisted-sycophant",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-34-06.webp",
+      "rarity": "legendary",
+      "rarity_label": "Legendary",
+      "rarity_badge_bg": "bg-amber-900/50 text-amber-300",
+      "cost": 5,
+      "quantity": 3,
+      "demon_faction": {
+        "id": 6,
+        "name": "Bloodspring",
+        "slug": "bloodspring",
+        "image": null
+      }
+    },
+    {
+      "id": 97,
+      "name": "Specter Skeleton Archer",
+      "slug": "specter-skeleton-archer",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-32-08.webp",
+      "rarity": "legendary",
+      "rarity_label": "Legendary",
+      "rarity_badge_bg": "bg-amber-900/50 text-amber-300",
+      "cost": 5,
+      "quantity": 1,
+      "demon_faction": {
+        "id": 6,
+        "name": "Bloodspring",
+        "slug": "bloodspring",
+        "image": null
+      }
+    },
+    {
+      "id": 98,
+      "name": "Baron Salem",
+      "slug": "baron-salem",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-31-31.webp",
+      "rarity": "legendary",
+      "rarity_label": "Legendary",
+      "rarity_badge_bg": "bg-amber-900/50 text-amber-300",
+      "cost": 6,
+      "quantity": 1,
+      "demon_faction": {
+        "id": 6,
+        "name": "Bloodspring",
+        "slug": "bloodspring",
+        "image": null
+      }
+    },
+    {
+      "id": 99,
+      "name": "Bloodmend Rats",
+      "slug": "bloodmend-rats",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-30-55.webp",
+      "rarity": "legendary",
+      "rarity_label": "Legendary",
+      "rarity_badge_bg": "bg-amber-900/50 text-amber-300",
+      "cost": 4,
+      "quantity": 4,
+      "demon_faction": {
+        "id": 5,
+        "name": "Chaos",
+        "slug": "chaos",
+        "image": null
+      }
+    },
+    {
+      "id": 60,
+      "name": "Murkling Menace",
+      "slug": "murkling-menace",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 11-00-06.webp",
+      "rarity": "epic",
+      "rarity_label": "Epic",
+      "rarity_badge_bg": "bg-purple-900/50 text-purple-300",
+      "cost": 5,
+      "quantity": 2,
+      "demon_faction": null
+    },
+    {
+      "id": 61,
+      "name": "Shadowcaster",
+      "slug": "shadowcaster",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-59-29.webp",
+      "rarity": "epic",
+      "rarity_label": "Epic",
+      "rarity_badge_bg": "bg-purple-900/50 text-purple-300",
+      "cost": 4,
+      "quantity": 2,
+      "demon_faction": null
+    },
+    {
+      "id": 62,
+      "name": "Axe Slaughterer",
+      "slug": "axe-slaughterer",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-59-00.webp",
+      "rarity": "epic",
+      "rarity_label": "Epic",
+      "rarity_badge_bg": "bg-purple-900/50 text-purple-300",
+      "cost": 6,
+      "quantity": 2,
+      "demon_faction": null
+    },
+    {
+      "id": 63,
+      "name": "Necromancer",
+      "slug": "necromancer",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-57-29.webp",
+      "rarity": "epic",
+      "rarity_label": "Epic",
+      "rarity_badge_bg": "bg-purple-900/50 text-purple-300",
+      "cost": 5,
+      "quantity": 1,
+      "demon_faction": null
+    },
+    {
+      "id": 64,
+      "name": "Soulbone Archer",
+      "slug": "soulbone-archer",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-58-13.webp",
+      "rarity": "epic",
+      "rarity_label": "Epic",
+      "rarity_badge_bg": "bg-purple-900/50 text-purple-300",
+      "cost": 4,
+      "quantity": 1,
+      "demon_faction": null
+    },
+    {
+      "id": 65,
+      "name": "Ghoul Hound",
+      "slug": "ghoul-hound",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-57-03.webp",
+      "rarity": "epic",
+      "rarity_label": "Epic",
+      "rarity_badge_bg": "bg-purple-900/50 text-purple-300",
+      "cost": 5,
+      "quantity": 3,
+      "demon_faction": null
+    },
+    {
+      "id": 66,
+      "name": "Scalekin Shaman",
+      "slug": "scalekin-shaman",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-56-33.webp",
+      "rarity": "epic",
+      "rarity_label": "Epic",
+      "rarity_badge_bg": "bg-purple-900/50 text-purple-300",
+      "cost": 3,
+      "quantity": 1,
+      "demon_faction": null
+    },
+    {
+      "id": 67,
+      "name": "Suicide",
+      "slug": "suicide",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-55-33.webp",
+      "rarity": "epic",
+      "rarity_label": "Epic",
+      "rarity_badge_bg": "bg-purple-900/50 text-purple-300",
+      "cost": 3,
+      "quantity": 2,
+      "demon_faction": null
+    },
+    {
+      "id": 68,
+      "name": "Scourge",
+      "slug": "scourge",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-54-57.webp",
+      "rarity": "epic",
+      "rarity_label": "Epic",
+      "rarity_badge_bg": "bg-purple-900/50 text-purple-300",
+      "cost": 4,
+      "quantity": 1,
+      "demon_faction": null
+    },
+    {
+      "id": 69,
+      "name": "Stitched Carrion",
+      "slug": "stitched-carrion",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-54-18.webp",
+      "rarity": "epic",
+      "rarity_label": "Epic",
+      "rarity_badge_bg": "bg-purple-900/50 text-purple-300",
+      "cost": 4,
+      "quantity": 1,
+      "demon_faction": null
+    },
+    {
+      "id": 70,
+      "name": "Fallen Templar",
+      "slug": "fallen-templar",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-53-53.webp",
+      "rarity": "epic",
+      "rarity_label": "Epic",
+      "rarity_badge_bg": "bg-purple-900/50 text-purple-300",
+      "cost": 5,
+      "quantity": 1,
+      "demon_faction": null
+    },
+    {
+      "id": 71,
+      "name": "Imperial Pharaoh Guard",
+      "slug": "imperial-pharaoh-guard",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-53-30.webp",
+      "rarity": "epic",
+      "rarity_label": "Epic",
+      "rarity_badge_bg": "bg-purple-900/50 text-purple-300",
+      "cost": 5,
+      "quantity": 1,
+      "demon_faction": null
+    },
+    {
+      "id": 72,
+      "name": "Abyssal Beholder",
+      "slug": "abyssal-beholder",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-52-57.webp",
+      "rarity": "epic",
+      "rarity_label": "Epic",
+      "rarity_badge_bg": "bg-purple-900/50 text-purple-300",
+      "cost": 5,
+      "quantity": 5,
+      "demon_faction": {
+        "id": 5,
+        "name": "Chaos",
+        "slug": "chaos",
+        "image": null
+      }
+    },
+    {
+      "id": 73,
+      "name": "White Tower&#x27;s Scholar",
+      "slug": "white-towers-scholar",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-51-36.webp",
+      "rarity": "epic",
+      "rarity_label": "Epic",
+      "rarity_badge_bg": "bg-purple-900/50 text-purple-300",
+      "cost": 4,
+      "quantity": 2,
+      "demon_faction": null
+    },
+    {
+      "id": 74,
+      "name": "Adag&#x27;s Follower",
+      "slug": "adags-follower",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-50-51.webp",
+      "rarity": "epic",
+      "rarity_label": "Epic",
+      "rarity_badge_bg": "bg-purple-900/50 text-purple-300",
+      "cost": 4,
+      "quantity": 1,
+      "demon_faction": null
+    },
+    {
+      "id": 75,
+      "name": "Scalekin Warrior",
+      "slug": "scalekin-warrior",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-50-15.webp",
+      "rarity": "epic",
+      "rarity_label": "Epic",
+      "rarity_badge_bg": "bg-purple-900/50 text-purple-300",
+      "cost": 4,
+      "quantity": 1,
+      "demon_faction": null
+    },
+    {
+      "id": 76,
+      "name": "Frozen Drifter",
+      "slug": "frozen-drifter",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-49-13.webp",
+      "rarity": "epic",
+      "rarity_label": "Epic",
+      "rarity_badge_bg": "bg-purple-900/50 text-purple-300",
+      "cost": 4,
+      "quantity": 2,
+      "demon_faction": {
+        "id": 4,
+        "name": "Frostbourne",
+        "slug": "frostbourne",
+        "image": null
+      }
+    },
+    {
+      "id": 77,
+      "name": "Garnet Guard",
+      "slug": "garnet-guard",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-48-38.webp",
+      "rarity": "epic",
+      "rarity_label": "Epic",
+      "rarity_badge_bg": "bg-purple-900/50 text-purple-300",
+      "cost": 4,
+      "quantity": 1,
+      "demon_faction": null
+    },
+    {
+      "id": 78,
+      "name": "Infernal Cleric",
+      "slug": "infernal-cleric",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-48-09.webp",
+      "rarity": "epic",
+      "rarity_label": "Epic",
+      "rarity_badge_bg": "bg-purple-900/50 text-purple-300",
+      "cost": 3,
+      "quantity": 1,
+      "demon_faction": {
+        "id": 5,
+        "name": "Chaos",
+        "slug": "chaos",
+        "image": null
+      }
+    },
+    {
+      "id": 79,
+      "name": "Frostbourne Scholar",
+      "slug": "frostbourne-scholar",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-47-36.webp",
+      "rarity": "epic",
+      "rarity_label": "Epic",
+      "rarity_badge_bg": "bg-purple-900/50 text-purple-300",
+      "cost": 3,
+      "quantity": 1,
+      "demon_faction": {
+        "id": 4,
+        "name": "Frostbourne",
+        "slug": "frostbourne",
+        "image": null
+      }
+    },
+    {
+      "id": 80,
+      "name": "Frozen Raider",
+      "slug": "frozen-raider",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-47-06.webp",
+      "rarity": "epic",
+      "rarity_label": "Epic",
+      "rarity_badge_bg": "bg-purple-900/50 text-purple-300",
+      "cost": 4,
+      "quantity": 2,
+      "demon_faction": {
+        "id": 4,
+        "name": "Frostbourne",
+        "slug": "frostbourne",
+        "image": null
+      }
+    },
+    {
+      "id": 81,
+      "name": "Chaos Shaman",
+      "slug": "chaos-shaman",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-45-26.webp",
+      "rarity": "epic",
+      "rarity_label": "Epic",
+      "rarity_badge_bg": "bg-purple-900/50 text-purple-300",
+      "cost": 3,
+      "quantity": 1,
+      "demon_faction": {
+        "id": 5,
+        "name": "Chaos",
+        "slug": "chaos",
+        "image": null
+      }
+    },
+    {
+      "id": 82,
+      "name": "Batwings Banshee",
+      "slug": "batwings-banshee",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-44-49.webp",
+      "rarity": "epic",
+      "rarity_label": "Epic",
+      "rarity_badge_bg": "bg-purple-900/50 text-purple-300",
+      "cost": 5,
+      "quantity": 2,
+      "demon_faction": {
+        "id": 6,
+        "name": "Bloodspring",
+        "slug": "bloodspring",
+        "image": null
+      }
+    },
+    {
+      "id": 83,
+      "name": "Tormented Banshee",
+      "slug": "tormented-banshee",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-44-15.webp",
+      "rarity": "epic",
+      "rarity_label": "Epic",
+      "rarity_badge_bg": "bg-purple-900/50 text-purple-300",
+      "cost": 6,
+      "quantity": 2,
+      "demon_faction": {
+        "id": 6,
+        "name": "Bloodspring",
+        "slug": "bloodspring",
+        "image": null
+      }
+    },
+    {
+      "id": 84,
+      "name": "Golden Guard",
+      "slug": "golden-guard",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 10-43-23.webp",
+      "rarity": "epic",
+      "rarity_label": "Epic",
+      "rarity_badge_bg": "bg-purple-900/50 text-purple-300",
+      "cost": 6,
+      "quantity": 1,
+      "demon_faction": null
+    },
+    {
+      "id": 53,
+      "name": "Carrion Hound",
+      "slug": "carrion-hound",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 11-03-26.webp",
+      "rarity": "rare",
+      "rarity_label": "Rare",
+      "rarity_badge_bg": "bg-blue-900/50 text-blue-300",
+      "cost": 3,
+      "quantity": 2,
+      "demon_faction": null
+    },
+    {
+      "id": 54,
+      "name": "Skeleton Guardian",
+      "slug": "skeleton-guardian",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 11-03-03.webp",
+      "rarity": "rare",
+      "rarity_label": "Rare",
+      "rarity_badge_bg": "bg-blue-900/50 text-blue-300",
+      "cost": 4,
+      "quantity": 2,
+      "demon_faction": null
+    },
+    {
+      "id": 55,
+      "name": "Scalekin Mage",
+      "slug": "scalekin-mage",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 11-02-39.webp",
+      "rarity": "rare",
+      "rarity_label": "Rare",
+      "rarity_badge_bg": "bg-blue-900/50 text-blue-300",
+      "cost": 3,
+      "quantity": 2,
+      "demon_faction": null
+    },
+    {
+      "id": 56,
+      "name": "Elite Skeleton Archer",
+      "slug": "elite-skeleton-archer",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 11-02-05.webp",
+      "rarity": "rare",
+      "rarity_label": "Rare",
+      "rarity_badge_bg": "bg-blue-900/50 text-blue-300",
+      "cost": 3,
+      "quantity": 3,
+      "demon_faction": null
+    },
+    {
+      "id": 57,
+      "name": "Fallen Reaper",
+      "slug": "fallen-reaper",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 11-01-39.webp",
+      "rarity": "rare",
+      "rarity_label": "Rare",
+      "rarity_badge_bg": "bg-blue-900/50 text-blue-300",
+      "cost": 3,
+      "quantity": 2,
+      "demon_faction": null
+    },
+    {
+      "id": 58,
+      "name": "Lizardfly Imago",
+      "slug": "lizardfly-imago",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 11-01-12.webp",
+      "rarity": "rare",
+      "rarity_label": "Rare",
+      "rarity_badge_bg": "bg-blue-900/50 text-blue-300",
+      "cost": 3,
+      "quantity": 3,
+      "demon_faction": null
+    },
+    {
+      "id": 59,
+      "name": "Small Arachnid",
+      "slug": "small-arachnid",
+      "image": "demon-soldiers/Screenshot from 2026-02-22 11-00-44.webp",
+      "rarity": "rare",
+      "rarity_label": "Rare",
+      "rarity_badge_bg": "bg-blue-900/50 text-blue-300",
+      "cost": 3,
+      "quantity": 4,
+      "demon_faction": null
+    }
+  ],
+  "factions": [
+    {
+      "id": 4,
+      "name": "Frostbourne",
+      "slug": "frostbourne",
+      "image": null
+    },
+    {
+      "id": 5,
+      "name": "Chaos",
+      "slug": "chaos",
+      "image": null
+    },
+    {
+      "id": 6,
+      "name": "Bloodspring",
+      "slug": "bloodspring",
+      "image": null
+    }
+  ],
+  "rarities": [
+    {
+      "value": "rare",
+      "label": "Rare",
+      "badge_bg": "bg-blue-900/50 text-blue-300"
+    },
+    {
+      "value": "epic",
+      "label": "Epic",
+      "badge_bg": "bg-purple-900/50 text-purple-300"
+    },
+    {
+      "value": "legendary",
+      "label": "Legendary",
+      "badge_bg": "bg-amber-900/50 text-amber-300"
+    },
+    {
+      "value": "captain",
+      "label": "Captain",
+      "badge_bg": "bg-red-900/50 text-red-300"
+    }
+  ]
+}

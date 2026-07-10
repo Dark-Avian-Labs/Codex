@@ -2,6 +2,7 @@ export {
   ARTIFACT_GAUGE_EMPTY,
   ARTIFACT_GAUGE_FILLED,
   ARTIFACT_PROMOTION_MAX,
+  ARTIFACT_RARITIES,
   CLASS_DISPLAY_NAMES,
   DEMON_RARITIES,
   FACTION_DISPLAY_NAMES,
@@ -10,10 +11,17 @@ export {
   HERO_AWAKENING_LABELS,
   HERO_AWAKENING_MAX,
   HERO_CLASSES,
+  HERO_RARITIES,
   RARITY_STAR_COUNTS,
   rarityToStarRating,
 } from './constants.js';
-export type { DemonRarityKey, FactionKey, HeroClassKey } from './constants.js';
+export type {
+  ArtifactRarityKey,
+  DemonRarityKey,
+  FactionKey,
+  HeroClassKey,
+  HeroRarityKey,
+} from './constants.js';
 export { WOR_DB_PATH, WOR_IMAGES_DIR } from './config.js';
 export {
   closeDb as closeWorDb,

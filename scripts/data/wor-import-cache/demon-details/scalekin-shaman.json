@@ -1,0 +1,72 @@
+{
+  "id": 66,
+  "name": "Scalekin Shaman",
+  "slug": "scalekin-shaman",
+  "rarity": "epic",
+  "demon_faction_id": null,
+  "image": "demon-soldiers/Screenshot from 2026-02-22 10-56-33.webp",
+  "description": null,
+  "published": true,
+  "order": 206,
+  "cost": 3,
+  "quantity": 1,
+  "deploy_limit": null,
+  "stat_attack": "C",
+  "stat_hp": "A",
+  "stat_defense": "B",
+  "stat_magic_resistance": "A",
+  "stat_speed": "C",
+  "created_at": "2026-02-22T10:22:10.000000Z",
+  "updated_at": "2026-02-22T10:56:42.000000Z",
+  "demon_faction": null,
+  "skills": [
+    {
+      "id": 53,
+      "demon_soldier_id": 66,
+      "name": "Renewal Glow",
+      "description": "Triggers when adjacent allies&#x27; HP is lower than 80% and stops moving, providing continuous healing to nearby allies for a maximum of 10 sec. Cooldown: 10 sec.",
+      "image": null,
+      "tags": ["passive"],
+      "unlocks_at_demon_level": null,
+      "order": 1,
+      "created_at": "2026-02-22T10:22:10.000000Z",
+      "updated_at": "2026-02-22T10:22:10.000000Z"
+    },
+    {
+      "id": 54,
+      "demon_soldier_id": 66,
+      "name": "HP Enhancement",
+      "description": "Max HP +10%",
+      "image": null,
+      "tags": ["passive"],
+      "unlocks_at_demon_level": 3,
+      "order": 2,
+      "created_at": "2026-02-22T10:22:10.000000Z",
+      "updated_at": "2026-02-22T10:22:10.000000Z"
+    },
+    {
+      "id": 55,
+      "demon_soldier_id": 66,
+      "name": "HP Enhancement",
+      "description": "HP +25%",
+      "image": null,
+      "tags": ["passive"],
+      "unlocks_at_demon_level": 5,
+      "order": 3,
+      "created_at": "2026-02-22T10:22:10.000000Z",
+      "updated_at": "2026-02-22T10:22:10.000000Z"
+    },
+    {
+      "id": 56,
+      "demon_soldier_id": 66,
+      "name": "P. DMG Reduction Enhancement",
+      "description": "P. DMG Reduction +25%",
+      "image": null,
+      "tags": ["passive"],
+      "unlocks_at_demon_level": 7,
+      "order": 4,
+      "created_at": "2026-02-22T10:22:10.000000Z",
+      "updated_at": "2026-02-22T10:22:10.000000Z"
+    }
+  ]
+}
