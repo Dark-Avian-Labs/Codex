@@ -282,7 +282,6 @@ export async function runWorStartupPipeline(
         `[${stepTag('fandomImages')}] WIKI_USER_AGENT not set — using Fastidious card images for portraits.`,
       );
     }
-    emit(onLog, 'info', `[${stepTag('fandomImages')}] Downloading entity portraits…`);
     const portraitResult = await downloadCatalogPortraits({
       bundle,
       imageRefs,

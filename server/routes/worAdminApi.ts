@@ -35,25 +35,64 @@ worAdminApiRouter.get('/import/stream', requireCodexAdmin, (req, res) => {
     err(res, 'WoR database unavailable', 503);
     return;
   }
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
   res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
   res.flushHeaders?.();
 
-  const send = () => {
-    res.write(`data: ${JSON.stringify(getWorAdminImportSnapshot())}\n\n`);
-  };
-  send();
-  const unsubscribe = subscribeWorAdminImport(() => {
-    send();
-  });
-  req.on('close', () => {
+  let closed = false;
+  let heartbeat: ReturnType<typeof setInterval> | null = null;
+
+  const cleanup = () => {
+    if (closed) return;
+    closed = true;
+    if (heartbeat) {
+      clearInterval(heartbeat);
+      heartbeat = null;
+    }
     unsubscribe();
-    res.end();
+  };
+
+  const canWrite = () => !closed && !res.writableEnded && !res.writableFinished && res.writable;
+
+  const sendSnapshot = () => {
+    if (!canWrite()) {
+      cleanup();
+      return;
+    }
+    try {
+      const payload = JSON.stringify(getWorAdminImportSnapshot());
+      res.write('event: snapshot\n');
+      res.write(`data: ${payload}\n\n`);
+    } catch {
+      cleanup();
+    }
+  };
+
+  const unsubscribe = subscribeWorAdminImport(() => {
+    sendSnapshot();
+  });
+
+  sendSnapshot();
+  heartbeat = setInterval(() => {
+    if (!canWrite()) {
+      cleanup();
+      return;
+    }
+    try {
+      res.write(': ping\n\n');
+    } catch {
+      cleanup();
+    }
+  }, 15_000);
+
+  req.on('close', () => {
+    cleanup();
   });
 });
 
-worAdminApiRouter.post('/import/start', requireCodexAdmin, async (req, res) => {
+worAdminApiRouter.post('/import/start', requireCodexAdmin, (req, res) => {
   if (!isWorDbAvailable()) {
     err(res, 'WoR database unavailable', 503);
     return;
@@ -64,7 +103,7 @@ worAdminApiRouter.post('/import/start', requireCodexAdmin, async (req, res) => {
     err(res, 'Import already running', 409);
     return;
   }
-  const result = await startWorAdminImport({
+  const result = startWorAdminImport({
     forceImport: data.forceImport,
     forceImages: data.forceImages,
     forceSteps: data.forceSteps,
@@ -73,7 +112,7 @@ worAdminApiRouter.post('/import/start', requireCodexAdmin, async (req, res) => {
     err(res, result.reason ?? 'Import could not start', 409);
     return;
   }
-  json(res, getWorAdminImportSnapshot());
+  json(res, { started: true, snapshot: result.snapshot }, 202);
 });
 
 worAdminApiRouter.get('/catalog/status', requireCodexAdmin, (_req, res) => {

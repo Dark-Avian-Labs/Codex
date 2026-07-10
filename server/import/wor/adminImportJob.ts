@@ -70,13 +70,17 @@ export function isWorImportRunning(): boolean {
   return state.running;
 }
 
-export async function startWorAdminImport(options?: {
+export function startWorAdminImport(options?: {
   forceImport?: boolean;
   forceImages?: boolean;
   forceSteps?: string[];
-}): Promise<{ started: boolean; reason?: string }> {
+}): { started: boolean; reason?: string; snapshot: WorAdminImportSnapshot } {
   if (state.running || activeJobPromise) {
-    return { started: false, reason: 'Import already running' };
+    return {
+      started: false,
+      reason: 'Import already running',
+      snapshot: getWorAdminImportSnapshot(),
+    };
   }
 
   const db = getWorDb() as Database.Database;
@@ -126,6 +130,5 @@ export async function startWorAdminImport(options?: {
     }
   })();
 
-  await activeJobPromise;
-  return { started: true };
+  return { started: true, snapshot: getWorAdminImportSnapshot() };
 }

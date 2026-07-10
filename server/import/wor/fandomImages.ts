@@ -125,6 +125,7 @@ async function downloadWikiFile(
   relativePath: string,
   forceDownload: boolean,
   summary: WorImageDownloadSummary,
+  countTarget: 'icon' | 'portrait' = 'icon',
 ): Promise<string | null> {
   if (!wikiConfigured()) return null;
   const fileUrl = await resolveWikiFileUrl(fileTitle);
@@ -138,9 +139,17 @@ async function downloadWikiFile(
     forceDownload,
     headers: headers ?? undefined,
   });
-  if (result.status === 'downloaded') summary.iconsDownloaded += 1;
-  else if (result.status === 'skipped') summary.iconsSkipped += 1;
-  else summary.iconsFailed += 1;
+  if (result.status === 'downloaded') {
+    if (countTarget === 'portrait') summary.portraitsDownloaded += 1;
+    else summary.iconsDownloaded += 1;
+  } else if (result.status === 'skipped') {
+    if (countTarget === 'portrait') summary.portraitsSkipped += 1;
+    else summary.iconsSkipped += 1;
+  } else if (countTarget === 'portrait') {
+    summary.portraitsFailed += 1;
+  } else {
+    summary.iconsFailed += 1;
+  }
   return result.status === 'failed' ? null : worImageWebPath(relativePath);
 }
 
@@ -162,6 +171,7 @@ async function downloadPortraitForEntity(options: {
       wikiPath,
       options.forceDownload,
       options.summary,
+      'portrait',
     );
     if (webPath) return webPath;
     options.summary.failedPortraitDetails.push({
@@ -209,6 +219,21 @@ async function downloadPortraitForEntity(options: {
 function pathExtFromFile(fileName: string): string {
   const dotIndex = fileName.lastIndexOf('.');
   return dotIndex === -1 ? '.png' : fileName.slice(dotIndex);
+}
+
+function logPortraitProgress(
+  onLog: ((message: string) => void) | undefined,
+  processed: number,
+  total: number,
+  currentLabel: string,
+  summary: WorImageDownloadSummary,
+): void {
+  if (!onLog) return;
+  if (processed === 1 || processed === total || processed % 10 === 0) {
+    onLog(
+      `Portraits ${processed}/${total} — ${currentLabel}: ${summary.portraitsDownloaded} downloaded, ${summary.portraitsSkipped} skipped, ${summary.portraitsFailed} failed.`,
+    );
+  }
 }
 
 export async function downloadClassAndFactionIcons(options: {
@@ -295,6 +320,15 @@ export async function downloadCatalogPortraits(options: {
   };
   const onlyMissing = options.onlyMissing ?? true;
   const forceDownload = options.forceDownload ?? false;
+  const heroTotal = options.bundle.heroes.length;
+  const artifactTotal = options.bundle.artifacts.length;
+  const demonTotal = options.bundle.demons.length;
+  const portraitTotal = heroTotal + artifactTotal + demonTotal;
+  let processed = 0;
+
+  options.onLog?.(
+    `Downloading ${portraitTotal} entity portraits (${heroTotal} heroes, ${artifactTotal} artifacts, ${demonTotal} demons)…`,
+  );
 
   const heroes = [];
   for (const hero of options.bundle.heroes) {
@@ -302,6 +336,8 @@ export async function downloadCatalogPortraits(options: {
     if (onlyMissing && !forceDownload && existing) {
       heroes.push({ ...hero, portrait_path: existing });
       summary.portraitsSkipped += 1;
+      processed += 1;
+      logPortraitProgress(options.onLog, processed, portraitTotal, `hero ${hero.slug}`, summary);
       continue;
     }
     const portrait = await downloadPortraitForEntity({
@@ -315,6 +351,8 @@ export async function downloadCatalogPortraits(options: {
     });
     heroes.push({ ...hero, portrait_path: portrait });
     if (!portrait) summary.missingPortraits.push(`hero:${hero.slug}`);
+    processed += 1;
+    logPortraitProgress(options.onLog, processed, portraitTotal, `hero ${hero.slug}`, summary);
     await sleep(200);
   }
 
@@ -325,6 +363,14 @@ export async function downloadCatalogPortraits(options: {
     if (onlyMissing && !forceDownload && existing) {
       artifacts.push({ ...artifact, portrait_path: existing });
       summary.portraitsSkipped += 1;
+      processed += 1;
+      logPortraitProgress(
+        options.onLog,
+        processed,
+        portraitTotal,
+        `artifact ${artifact.slug}`,
+        summary,
+      );
       continue;
     }
     const portrait = await downloadPortraitForEntity({
@@ -338,6 +384,14 @@ export async function downloadCatalogPortraits(options: {
     });
     artifacts.push({ ...artifact, portrait_path: portrait });
     if (!portrait) summary.missingPortraits.push(`artifact:${artifact.slug}`);
+    processed += 1;
+    logPortraitProgress(
+      options.onLog,
+      processed,
+      portraitTotal,
+      `artifact ${artifact.slug}`,
+      summary,
+    );
     await sleep(200);
   }
 
@@ -347,6 +401,8 @@ export async function downloadCatalogPortraits(options: {
     if (onlyMissing && !forceDownload && existing) {
       demons.push({ ...demon, portrait_path: existing });
       summary.portraitsSkipped += 1;
+      processed += 1;
+      logPortraitProgress(options.onLog, processed, portraitTotal, `demon ${demon.slug}`, summary);
       continue;
     }
     const portrait = await downloadPortraitForEntity({
@@ -360,6 +416,8 @@ export async function downloadCatalogPortraits(options: {
     });
     demons.push({ ...demon, portrait_path: portrait });
     if (!portrait) summary.missingPortraits.push(`demon:${demon.slug}`);
+    processed += 1;
+    logPortraitProgress(options.onLog, processed, portraitTotal, `demon ${demon.slug}`, summary);
     await sleep(200);
   }
 
