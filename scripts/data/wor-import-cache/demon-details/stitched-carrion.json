@@ -1,0 +1,60 @@
+{
+  "id": 69,
+  "name": "Stitched Carrion",
+  "slug": "stitched-carrion",
+  "rarity": "epic",
+  "demon_faction_id": null,
+  "image": "demon-soldiers/Screenshot from 2026-02-22 10-54-18.webp",
+  "description": null,
+  "published": true,
+  "order": 209,
+  "cost": 4,
+  "quantity": 1,
+  "deploy_limit": null,
+  "stat_attack": "A",
+  "stat_hp": "A",
+  "stat_defense": "A",
+  "stat_magic_resistance": "A",
+  "stat_speed": "C",
+  "created_at": "2026-02-22T10:22:10.000000Z",
+  "updated_at": "2026-02-22T10:54:26.000000Z",
+  "demon_faction": null,
+  "skills": [
+    {
+      "id": 57,
+      "demon_soldier_id": 69,
+      "name": "HP Enhancement",
+      "description": "Max HP +10%",
+      "image": null,
+      "tags": ["passive"],
+      "unlocks_at_demon_level": 3,
+      "order": 1,
+      "created_at": "2026-02-22T10:22:10.000000Z",
+      "updated_at": "2026-02-22T10:22:10.000000Z"
+    },
+    {
+      "id": 58,
+      "demon_soldier_id": 69,
+      "name": "HP Enhancement",
+      "description": "HP +25%",
+      "image": null,
+      "tags": ["passive"],
+      "unlocks_at_demon_level": 5,
+      "order": 2,
+      "created_at": "2026-02-22T10:22:10.000000Z",
+      "updated_at": "2026-02-22T10:22:10.000000Z"
+    },
+    {
+      "id": 59,
+      "demon_soldier_id": 69,
+      "name": "M. RES Enhancement",
+      "description": "M. RES +10%",
+      "image": null,
+      "tags": ["passive"],
+      "unlocks_at_demon_level": 7,
+      "order": 3,
+      "created_at": "2026-02-22T10:22:10.000000Z",
+      "updated_at": "2026-02-22T10:22:10.000000Z"
+    }
+  ]
+}

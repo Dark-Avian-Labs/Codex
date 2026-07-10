@@ -1,0 +1,60 @@
+{
+  "id": 59,
+  "name": "Small Arachnid",
+  "slug": "small-arachnid",
+  "rarity": "rare",
+  "demon_faction_id": null,
+  "image": "demon-soldiers/Screenshot from 2026-02-22 11-00-44.webp",
+  "description": null,
+  "published": true,
+  "order": 106,
+  "cost": 3,
+  "quantity": 4,
+  "deploy_limit": null,
+  "stat_attack": "D",
+  "stat_hp": "D",
+  "stat_defense": "D",
+  "stat_magic_resistance": "D",
+  "stat_speed": "A",
+  "created_at": "2026-02-22T10:22:10.000000Z",
+  "updated_at": "2026-02-22T11:00:55.000000Z",
+  "demon_faction": null,
+  "skills": [
+    {
+      "id": 34,
+      "demon_soldier_id": 59,
+      "name": "HP Enhancement",
+      "description": "Max HP +10%",
+      "image": null,
+      "tags": ["passive"],
+      "unlocks_at_demon_level": 3,
+      "order": 1,
+      "created_at": "2026-02-22T10:22:10.000000Z",
+      "updated_at": "2026-02-22T10:22:10.000000Z"
+    },
+    {
+      "id": 35,
+      "demon_soldier_id": 59,
+      "name": "Quantity Enhancement",
+      "description": "Quantity +1",
+      "image": null,
+      "tags": ["passive"],
+      "unlocks_at_demon_level": 5,
+      "order": 2,
+      "created_at": "2026-02-22T10:22:10.000000Z",
+      "updated_at": "2026-02-22T10:22:10.000000Z"
+    },
+    {
+      "id": 36,
+      "demon_soldier_id": 59,
+      "name": "RES Enhancement",
+      "description": "P. DMG Reduction and M. DMG Reduction +15%.",
+      "image": null,
+      "tags": ["passive"],
+      "unlocks_at_demon_level": 7,
+      "order": 3,
+      "created_at": "2026-02-22T10:22:10.000000Z",
+      "updated_at": "2026-02-22T10:22:10.000000Z"
+    }
+  ]
+}

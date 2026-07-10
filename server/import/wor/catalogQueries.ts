@@ -18,6 +18,7 @@ export type CatalogHeroRow = {
 export type CatalogArtifactRow = {
   slug: string;
   name: string;
+  class?: string | null;
   rarity: string;
   exclusive_hero_slug?: string | null;
   is_universal?: number;
@@ -96,14 +97,15 @@ export function upsertCatalogArtifacts(
 ): number {
   const stmt = db.prepare(`
     INSERT INTO catalog_artifacts (
-      slug, name, rarity, star_rating, exclusive_hero_slug, is_universal,
+      slug, name, class, rarity, star_rating, exclusive_hero_slug, is_universal,
       reference_tier, portrait_path, display_order, active
     ) VALUES (
-      @slug, @name, @rarity, @star_rating, @exclusive_hero_slug, @is_universal,
+      @slug, @name, @class, @rarity, @star_rating, @exclusive_hero_slug, @is_universal,
       @reference_tier, @portrait_path, @display_order, @active
     )
     ON CONFLICT(slug) DO UPDATE SET
       name = excluded.name,
+      class = excluded.class,
       rarity = excluded.rarity,
       star_rating = excluded.star_rating,
       exclusive_hero_slug = excluded.exclusive_hero_slug,
@@ -119,6 +121,7 @@ export function upsertCatalogArtifacts(
       stmt.run({
         slug: artifact.slug,
         name: artifact.name,
+        class: artifact.class ?? null,
         rarity: artifact.rarity,
         star_rating: rarityToStarRating(artifact.rarity),
         exclusive_hero_slug: artifact.exclusive_hero_slug ?? null,

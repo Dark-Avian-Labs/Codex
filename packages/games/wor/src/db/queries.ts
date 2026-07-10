@@ -28,6 +28,7 @@ export interface AccountArtifact {
   id: number;
   catalog_artifact_slug: string | null;
   name: string;
+  class?: string | null;
   rarity: string;
   star_rating: number;
   owned: number;
@@ -35,6 +36,10 @@ export interface AccountArtifact {
   display_order: number;
   reference_tier?: string | null;
   portrait_path?: string | null;
+  exclusive_hero_slug?: string | null;
+  exclusive_hero_name?: string | null;
+  exclusive_hero_portrait?: string | null;
+  is_universal?: number;
 }
 
 export interface AccountDemon {
@@ -254,9 +259,12 @@ export function getArtifacts(db: Database.Database, accountId: number): AccountA
       `
     SELECT aa.id, aa.catalog_artifact_slug, aa.name, aa.rarity, aa.star_rating,
            aa.owned, aa.gauge_level, aa.display_order,
-           ca.reference_tier, ca.portrait_path
+           ca.class, ca.exclusive_hero_slug, ca.is_universal,
+           ca.reference_tier, ca.portrait_path,
+           ch.name as exclusive_hero_name, ch.portrait_path as exclusive_hero_portrait
     FROM account_artifacts aa
     LEFT JOIN catalog_artifacts ca ON ca.slug = aa.catalog_artifact_slug
+    LEFT JOIN catalog_heroes ch ON ch.slug = ca.exclusive_hero_slug
     WHERE aa.account_id = ?
     ORDER BY aa.display_order ASC, aa.name ASC
   `,

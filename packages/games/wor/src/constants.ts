@@ -19,6 +19,7 @@ export const FACTIONS = [
   'chaos_dominion',
   'supreme_arbiters',
   'unnamable',
+  'unaffiliated',
 ] as const;
 export type FactionKey = (typeof FACTIONS)[number];
 
@@ -89,4 +90,5 @@ export const FACTION_DISPLAY_NAMES: Record<FactionKey, string> = {
   chaos_dominion: 'Chaos Dominion',
   supreme_arbiters: 'Supreme Arbiters',
   unnamable: 'Unnamable',
+  unaffiliated: 'Unaffiliated',
 };

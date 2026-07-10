@@ -64,7 +64,11 @@ worAdminApiRouter.post('/import/start', requireCodexAdmin, async (req, res) => {
     err(res, 'Import already running', 409);
     return;
   }
-  const result = await startWorAdminImport({ forceImport: data.forceImport });
+  const result = await startWorAdminImport({
+    forceImport: data.forceImport,
+    forceImages: data.forceImages,
+    forceSteps: data.forceSteps,
+  });
   if (!result.started) {
     err(res, result.reason ?? 'Import could not start', 409);
     return;

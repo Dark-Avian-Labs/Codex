@@ -24,6 +24,7 @@ export function ensureWorCatalogTables(db: Database.Database): void {
     CREATE TABLE IF NOT EXISTS catalog_artifacts (
       slug TEXT PRIMARY KEY,
       name TEXT NOT NULL,
+      class TEXT,
       rarity TEXT NOT NULL,
       star_rating INTEGER NOT NULL,
       exclusive_hero_slug TEXT,
@@ -55,6 +56,16 @@ export function ensureWorCatalogTables(db: Database.Database): void {
 
     INSERT OR IGNORE INTO catalog_meta (id, catalog_version) VALUES (1, 0);
   `);
+  ensureWorCatalogMigrations(db);
+}
+
+function ensureWorCatalogMigrations(db: Database.Database): void {
+  const artifactCols = db.prepare(`PRAGMA table_info(catalog_artifacts)`).all() as {
+    name: string;
+  }[];
+  if (!artifactCols.some((col) => col.name === 'class')) {
+    db.exec(`ALTER TABLE catalog_artifacts ADD COLUMN class TEXT`);
+  }
 }
 
 export function ensureWorAccountTables(db: Database.Database): void {

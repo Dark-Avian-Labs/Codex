@@ -1,0 +1,23 @@
+{
+  "id": 67,
+  "name": "Suicide",
+  "slug": "suicide",
+  "rarity": "epic",
+  "demon_faction_id": null,
+  "image": "demon-soldiers/Screenshot from 2026-02-22 10-55-33.webp",
+  "description": null,
+  "published": true,
+  "order": 207,
+  "cost": 3,
+  "quantity": 2,
+  "deploy_limit": null,
+  "stat_attack": "A",
+  "stat_hp": "D",
+  "stat_defense": "D",
+  "stat_magic_resistance": "D",
+  "stat_speed": "B",
+  "created_at": "2026-02-22T10:22:10.000000Z",
+  "updated_at": "2026-02-22T10:55:42.000000Z",
+  "demon_faction": null,
+  "skills": []
+}

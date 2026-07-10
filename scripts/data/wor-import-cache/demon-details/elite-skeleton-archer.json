@@ -1,0 +1,60 @@
+{
+  "id": 56,
+  "name": "Elite Skeleton Archer",
+  "slug": "elite-skeleton-archer",
+  "rarity": "rare",
+  "demon_faction_id": null,
+  "image": "demon-soldiers/Screenshot from 2026-02-22 11-02-05.webp",
+  "description": null,
+  "published": true,
+  "order": 103,
+  "cost": 3,
+  "quantity": 3,
+  "deploy_limit": null,
+  "stat_attack": "C",
+  "stat_hp": "C",
+  "stat_defense": "C",
+  "stat_magic_resistance": "C",
+  "stat_speed": "B",
+  "created_at": "2026-02-22T10:22:09.000000Z",
+  "updated_at": "2026-02-22T11:02:21.000000Z",
+  "demon_faction": null,
+  "skills": [
+    {
+      "id": 25,
+      "demon_soldier_id": 56,
+      "name": "HP Enhancement",
+      "description": "Max HP +10%",
+      "image": null,
+      "tags": ["passive"],
+      "unlocks_at_demon_level": 3,
+      "order": 1,
+      "created_at": "2026-02-22T10:22:09.000000Z",
+      "updated_at": "2026-02-22T10:22:09.000000Z"
+    },
+    {
+      "id": 26,
+      "demon_soldier_id": 56,
+      "name": "DEF Enhancement",
+      "description": "DEF +15%",
+      "image": null,
+      "tags": ["passive"],
+      "unlocks_at_demon_level": 5,
+      "order": 2,
+      "created_at": "2026-02-22T10:22:09.000000Z",
+      "updated_at": "2026-02-22T10:22:09.000000Z"
+    },
+    {
+      "id": 27,
+      "demon_soldier_id": 56,
+      "name": "P. DMG Reduction Enhancement",
+      "description": "P. DMG Reduction +25%",
+      "image": null,
+      "tags": ["passive"],
+      "unlocks_at_demon_level": 7,
+      "order": 3,
+      "created_at": "2026-02-22T10:22:09.000000Z",
+      "updated_at": "2026-02-22T10:22:09.000000Z"
+    }
+  ]
+}
