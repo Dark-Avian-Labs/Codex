@@ -200,3 +200,75 @@ export function getCatalogCounts(db: Database.Database): {
   ).c;
   return { heroes, artifacts, demons };
 }
+
+export function applyCatalogSlugMigrations(
+  db: Database.Database,
+  migrations: Record<string, string>,
+): number {
+  let moved = 0;
+  const transaction = db.transaction(() => {
+    for (const [fromSlug, toSlug] of Object.entries(migrations)) {
+      const targetExists = db.prepare('SELECT 1 FROM catalog_heroes WHERE slug = ?').get(toSlug);
+      if (!targetExists) continue;
+
+      const result = db
+        .prepare(
+          `UPDATE account_heroes
+           SET catalog_hero_slug = ?
+           WHERE catalog_hero_slug = ?
+             AND NOT EXISTS (
+               SELECT 1 FROM account_heroes existing
+               WHERE existing.account_id = account_heroes.account_id
+                 AND existing.catalog_hero_slug = ?
+             )`,
+        )
+        .run(toSlug, fromSlug, toSlug);
+      moved += result.changes;
+
+      db.prepare('DELETE FROM account_heroes WHERE catalog_hero_slug = ?').run(fromSlug);
+      db.prepare('UPDATE catalog_heroes SET active = 0 WHERE slug = ?').run(fromSlug);
+    }
+  });
+  transaction();
+  return moved;
+}
+
+export function deactivateStaleCatalogEntries(
+  db: Database.Database,
+  bundle: CatalogBundle,
+): {
+  heroes: number;
+  artifacts: number;
+  demons: number;
+} {
+  const heroSlugs = bundle.heroes.map((hero) => hero.slug);
+  const artifactSlugs = bundle.artifacts.map((artifact) => artifact.slug);
+  const demonSlugs = bundle.demons.map((demon) => demon.slug);
+
+  const heroes =
+    heroSlugs.length > 0
+      ? db
+          .prepare(
+            `UPDATE catalog_heroes SET active = 0 WHERE active = 1 AND slug NOT IN (${heroSlugs.map(() => '?').join(', ')})`,
+          )
+          .run(...heroSlugs).changes
+      : 0;
+  const artifacts =
+    artifactSlugs.length > 0
+      ? db
+          .prepare(
+            `UPDATE catalog_artifacts SET active = 0 WHERE active = 1 AND slug NOT IN (${artifactSlugs.map(() => '?').join(', ')})`,
+          )
+          .run(...artifactSlugs).changes
+      : 0;
+  const demons =
+    demonSlugs.length > 0
+      ? db
+          .prepare(
+            `UPDATE catalog_demons SET active = 0 WHERE active = 1 AND slug NOT IN (${demonSlugs.map(() => '?').join(', ')})`,
+          )
+          .run(...demonSlugs).changes
+      : 0;
+
+  return { heroes, artifacts, demons };
+}

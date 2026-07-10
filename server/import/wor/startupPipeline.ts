@@ -8,6 +8,8 @@ import type Database from 'better-sqlite3';
 import { WOR_IMAGES_DIR, PROJECT_ROOT } from '../../config.js';
 import {
   bumpCatalogVersion,
+  deactivateStaleCatalogEntries,
+  applyCatalogSlugMigrations,
   getCatalogCounts,
   upsertCatalogArtifacts,
   upsertCatalogDemons,
@@ -32,6 +34,7 @@ import {
   worImagesOnlyMissing,
   type WorPipelineStepOptions,
 } from './pipelineStepControl.js';
+import { WOR_CATALOG_SLUG_MIGRATIONS } from './slugMigrations.js';
 import {
   computeCurrentSourceHashes,
   fastidiousSourcesChanged,
@@ -329,17 +332,41 @@ export async function runWorStartupPipeline(
     const demonCount = upsertCatalogDemons(db, bundle.demons);
     emit(onLog, 'info', `Upserted ${demonCount} catalog demons.`);
 
+    const migrated = applyCatalogSlugMigrations(db, WOR_CATALOG_SLUG_MIGRATIONS);
+    if (migrated > 0) {
+      emit(onLog, 'info', `Remapped ${migrated} account hero row(s) from legacy catalog slugs.`);
+    }
+    const deactivated = deactivateStaleCatalogEntries(db, bundle);
+    const deactivatedTotal = deactivated.heroes + deactivated.artifacts + deactivated.demons;
+    if (deactivatedTotal > 0) {
+      emit(
+        onLog,
+        'info',
+        `Deactivated stale catalog entries: ${deactivated.heroes} heroes, ${deactivated.artifacts} artifacts, ${deactivated.demons} demons.`,
+      );
+    }
+
     bumpCatalogVersion(db);
   } else {
     emit(onLog, 'info', 'Skipping catalog upsert — no catalog bundle loaded.');
   }
 
   if (shouldRunWorStep('sync_accounts', true, options)) {
+    const pruned = worQueries.pruneInactiveCatalogAccountRows(db);
+    const prunedTotal = pruned.heroes + pruned.artifacts + pruned.demons;
+    if (prunedTotal > 0) {
+      emit(
+        onLog,
+        'info',
+        `Removed ${prunedTotal} account row(s) tied to inactive catalog entries.`,
+      );
+    }
     worQueries.syncNewCatalogEntriesToAllAccounts(db);
+    const synced = worQueries.syncAccountCatalogMetadata(db);
     emit(
       onLog,
       'info',
-      `[${stepTag('sync_accounts')}] Synced new catalog entries to all game accounts.`,
+      `[${stepTag('sync_accounts')}] Synced catalog metadata for ${synced.heroes} heroes, ${synced.artifacts} artifacts, ${synced.demons} demons across accounts.`,
     );
   }
 

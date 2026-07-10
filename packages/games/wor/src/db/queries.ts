@@ -205,6 +205,75 @@ export function syncNewCatalogEntriesToAllAccounts(db: Database.Database): void 
   transaction();
 }
 
+export function syncAccountCatalogMetadata(db: Database.Database): {
+  heroes: number;
+  artifacts: number;
+  demons: number;
+} {
+  const heroes = db
+    .prepare(
+      `UPDATE account_heroes
+       SET name = (SELECT ch.name FROM catalog_heroes ch WHERE ch.slug = account_heroes.catalog_hero_slug),
+           class = (SELECT ch.class FROM catalog_heroes ch WHERE ch.slug = account_heroes.catalog_hero_slug),
+           faction = (SELECT ch.faction FROM catalog_heroes ch WHERE ch.slug = account_heroes.catalog_hero_slug),
+           rarity = (SELECT ch.rarity FROM catalog_heroes ch WHERE ch.slug = account_heroes.catalog_hero_slug),
+           star_rating = (SELECT ch.star_rating FROM catalog_heroes ch WHERE ch.slug = account_heroes.catalog_hero_slug),
+           display_order = (SELECT ch.display_order FROM catalog_heroes ch WHERE ch.slug = account_heroes.catalog_hero_slug)
+       WHERE catalog_hero_slug IN (SELECT slug FROM catalog_heroes WHERE active = 1)`,
+    )
+    .run().changes;
+  const artifacts = db
+    .prepare(
+      `UPDATE account_artifacts
+       SET name = (SELECT ca.name FROM catalog_artifacts ca WHERE ca.slug = account_artifacts.catalog_artifact_slug),
+           rarity = (SELECT ca.rarity FROM catalog_artifacts ca WHERE ca.slug = account_artifacts.catalog_artifact_slug),
+           star_rating = (SELECT ca.star_rating FROM catalog_artifacts ca WHERE ca.slug = account_artifacts.catalog_artifact_slug),
+           display_order = (SELECT ca.display_order FROM catalog_artifacts ca WHERE ca.slug = account_artifacts.catalog_artifact_slug)
+       WHERE catalog_artifact_slug IN (SELECT slug FROM catalog_artifacts WHERE active = 1)`,
+    )
+    .run().changes;
+  const demons = db
+    .prepare(
+      `UPDATE account_demons
+       SET name = (SELECT cd.name FROM catalog_demons cd WHERE cd.slug = account_demons.catalog_demon_slug),
+           rarity = (SELECT cd.rarity FROM catalog_demons cd WHERE cd.slug = account_demons.catalog_demon_slug),
+           star_rating = (SELECT cd.star_rating FROM catalog_demons cd WHERE cd.slug = account_demons.catalog_demon_slug),
+           display_order = (SELECT cd.display_order FROM catalog_demons cd WHERE cd.slug = account_demons.catalog_demon_slug)
+       WHERE catalog_demon_slug IN (SELECT slug FROM catalog_demons WHERE active = 1)`,
+    )
+    .run().changes;
+  return { heroes, artifacts, demons };
+}
+
+export function pruneInactiveCatalogAccountRows(db: Database.Database): {
+  heroes: number;
+  artifacts: number;
+  demons: number;
+} {
+  const heroes = db
+    .prepare(
+      `DELETE FROM account_heroes
+       WHERE catalog_hero_slug IN (SELECT slug FROM catalog_heroes WHERE active = 0)
+          OR catalog_hero_slug NOT IN (SELECT slug FROM catalog_heroes)`,
+    )
+    .run().changes;
+  const artifacts = db
+    .prepare(
+      `DELETE FROM account_artifacts
+       WHERE catalog_artifact_slug IN (SELECT slug FROM catalog_artifacts WHERE active = 0)
+          OR catalog_artifact_slug NOT IN (SELECT slug FROM catalog_artifacts)`,
+    )
+    .run().changes;
+  const demons = db
+    .prepare(
+      `DELETE FROM account_demons
+       WHERE catalog_demon_slug IN (SELECT slug FROM catalog_demons WHERE active = 0)
+          OR catalog_demon_slug NOT IN (SELECT slug FROM catalog_demons)`,
+    )
+    .run().changes;
+  return { heroes, artifacts, demons };
+}
+
 export function getHeroes(
   db: Database.Database,
   accountId: number,
