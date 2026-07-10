@@ -294,6 +294,8 @@ jobs:
           if [ -f favicon.ico ]; then cp favicon.ico /tmp/deploy/; fi
           if [ -f feathers.png ]; then cp feathers.png /tmp/deploy/; fi
           if [ -f background.txt ]; then cp background.txt /tmp/deploy/; fi
+          mkdir -p /tmp/deploy/scripts/data
+          cp scripts/data/wor-catalog-fixture.json scripts/data/wor-overrides.json /tmp/deploy/scripts/data/
           printf 'DOTENV_PRIVATE_KEY_PRODUCTION=%s\n' "$DOTENV_PRIVATE_KEY_PRODUCTION" > /tmp/deploy/.env.keys
           chmod 600 /tmp/deploy/.env.keys
           test -s /tmp/deploy/.env.keys || { echo "ERROR: Failed to create .env.keys in deployment bundle."; exit 1; }
@@ -310,8 +312,8 @@ jobs:
                 --exclude='.env' \
                 --exclude='.env.local' \
                 --exclude='logs/' \
-                --exclude='data/' \
-                --exclude='import/' \
+                --exclude='/data/' \
+                --exclude='/import/' \
                 --exclude='.env.keys' \
                 --chmod=D2770,F640 \
                 --omit-dir-times \
