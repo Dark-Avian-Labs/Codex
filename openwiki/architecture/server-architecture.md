@@ -43,41 +43,43 @@ The server implements a **defense-in-depth** security approach with multiple lay
 
 ```typescript
 // Security middleware order in index.ts
-app.use(createAppHelmet());           // Security headers
-app.use(requestIdMiddleware);         // Request tracking
-app.use(loggerMiddleware);           // Request logging
-app.use(cookieParser());             // Cookie parsing
-app.use(compression());              // Response compression
-app.use(express.json());             // JSON body parsing
+app.use(createAppHelmet()); // Security headers
+app.use(requestIdMiddleware); // Request tracking
+app.use(loggerMiddleware); // Request logging
+app.use(cookieParser()); // Cookie parsing
+app.use(compression()); // Response compression
+app.use(express.json()); // JSON body parsing
 app.use(express.urlencoded({ extended: false }));
-app.use(session(sessionConfig));     // Session management
-app.use(clerkMiddleware());          // Clerk authentication
-app.use(csrfProtection());           // CSRF protection
-app.use(rateLimiting());             // Rate limiting
+app.use(session(sessionConfig)); // Session management
+app.use(clerkMiddleware()); // Clerk authentication
+app.use(csrfProtection()); // CSRF protection
+app.use(rateLimiting()); // Rate limiting
 ```
 
 ### 2. Database Connection Management
 
 **Multiple SQLite Databases**:
+
 - **Session Database**: User sessions and CSRF tokens (`session.db`)
 - **Warframe Database**: Warframe inventory data
 - **Epic Seven Database**: Epic Seven collection data
 - **Armory Database**: Read-only sync from Armory service
 
 **Connection Pooling**:
+
 ```typescript
 // db/connectionPool.ts
 export function getSessionDb(): Database {
-  return betterSqlite3(SESSION_DB_PATH, { 
-    readonly: false, 
-    fileMustExist: true 
+  return betterSqlite3(SESSION_DB_PATH, {
+    readonly: false,
+    fileMustExist: true,
   });
 }
 
 export function getWarframeDb(): Database {
   return betterSqlite3(WARFRAME_DB_PATH, {
     readonly: false,
-    fileMustExist: true
+    fileMustExist: true,
   });
 }
 ```
@@ -85,11 +87,13 @@ export function getWarframeDb(): Database {
 ### 3. Modular Game Support
 
 **Game Package Integration**:
+
 - Each game package (`@codex/game-*`) exports database and API handlers
 - Server imports game-specific functionality at runtime
 - Common patterns for game routing and error handling
 
 **Game Route Registration**:
+
 ```typescript
 // routes/game.ts
 import { warframeRouter } from './games/warframe';
@@ -113,17 +117,17 @@ export function createAppHelmet(): RequestHandler {
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "https://clerk.com"],
+        scriptSrc: ["'self'", "'unsafe-inline'", 'https://clerk.com'],
         styleSrc: ["'self'", "'unsafe-inline'"],
-        imgSrc: ["'self'", "data:", "https:"],
-        connectSrc: ["'self'", "https://clerk.com"],
-        fontSrc: ["'self'", "https:"],
+        imgSrc: ["'self'", 'data:', 'https:'],
+        connectSrc: ["'self'", 'https://clerk.com'],
+        fontSrc: ["'self'", 'https:'],
         objectSrc: ["'none'"],
-        frameSrc: ["https://clerk.com"]
-      }
+        frameSrc: ['https://clerk.com'],
+      },
     },
     crossOriginEmbedderPolicy: false,
-    crossOriginResourcePolicy: { policy: "same-site" }
+    crossOriginResourcePolicy: { policy: 'same-site' },
   });
 }
 ```
@@ -131,12 +135,14 @@ export function createAppHelmet(): RequestHandler {
 ### Clerk Authentication
 
 **Multi-Layer Authentication**:
+
 1. **Clerk Middleware**: Verifies Clerk sessions
 2. **Express Sessions**: Maintains server-side session state
 3. **CSRF Tokens**: Protects against cross-site request forgery
 4. **Role Verification**: Checks user roles from Clerk metadata
 
 **Configuration**:
+
 ```typescript
 // auth/clerkAuth.ts
 export const clerkMiddleware = ClerkExpressRequireAuth({
@@ -145,18 +151,20 @@ export const clerkMiddleware = ClerkExpressRequireAuth({
   onError: (error) => {
     log.error('Clerk authentication error:', error);
     throw error;
-  }
+  },
 });
 ```
 
 ### CSRF Protection
 
 **Synchronizer Token Pattern**:
+
 - CSRF tokens stored in user sessions
 - Tokens validated on state-changing requests
 - Exemptions for safe HTTP methods (GET, HEAD, OPTIONS)
 
 **Implementation**:
+
 ```typescript
 // auth/csrfProtection.ts
 const { csrfSynchronisedProtection } = csrfSync({
@@ -164,30 +172,32 @@ const { csrfSynchronisedProtection } = csrfSync({
   getTokenFromState: (req) => req.session.csrfToken,
   storeTokenInState: (req, token) => {
     req.session.csrfToken = token;
-  }
+  },
 });
 ```
 
 ### Rate Limiting
 
 **Per-Route Rate Limits**:
+
 - Authentication endpoints: stricter limits
 - API endpoints: moderate limits
 - Static assets: higher limits
 
 **Configuration**:
+
 ```typescript
 // auth/rateLimiting.ts
 export const authRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   limit: 10, // 10 requests per window
-  message: 'Too many authentication attempts'
+  message: 'Too many authentication attempts',
 });
 
 export const apiRateLimit = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
   limit: 60, // 60 requests per minute
-  message: 'Too many API requests'
+  message: 'Too many API requests',
 });
 ```
 
@@ -209,18 +219,19 @@ CREATE INDEX IF NOT EXISTS idx_sessions_expired ON sessions(expired);
 ### Game Database Validation
 
 **Startup Validation**:
+
 ```typescript
 // index.ts - ensureGameSchemasReady()
 function ensureGameSchemasReady(): void {
   const warframeDb = getWarframeDb();
   const epic7Db = getEpic7Db();
-  
+
   // Validate required tables exist
   assertTableExists(warframeDb, 'worksheets');
   assertTableExists(warframeDb, 'columns');
   assertTableExists(warframeDb, 'rows');
   assertTableExists(warframeDb, 'cell_values');
-  
+
   assertTableExists(epic7Db, 'game_accounts');
   assertTableExists(epic7Db, 'base_heroes');
   assertTableExists(epic7Db, 'base_artifacts');
@@ -232,6 +243,7 @@ function ensureGameSchemasReady(): void {
 ### Armory Integration
 
 **Read-Only Data Sync**:
+
 - Warframe data synchronized from Armory SQLite database
 - Periodic synchronization jobs
 - Conflict resolution and data validation
@@ -255,28 +267,25 @@ function ensureGameSchemasReady(): void {
 ### Request/Response Patterns
 
 **Validation**:
+
 - Zod schemas for all request bodies
 - Consistent error response format
 - Type-safe request/response types
 
 **Error Handling**:
+
 ```typescript
 // http/errorHandler.ts
-export function errorHandler(
-  err: Error,
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void {
+export function errorHandler(err: Error, req: Request, res: Response, next: NextFunction): void {
   const statusCode = err instanceof ValidationError ? 400 : 500;
   const message = err.message || 'Internal server error';
-  
+
   res.status(statusCode).json({
     error: {
       message,
       requestId: getRequestId(req),
-      timestamp: new Date().toISOString()
-    }
+      timestamp: new Date().toISOString(),
+    },
   });
 }
 ```
@@ -286,15 +295,18 @@ export function errorHandler(
 ### Health Check Endpoints
 
 **`GET /healthz`** - Liveness probe:
+
 - Server process running
 - Basic functionality check
 
 **`GET /readyz`** - Readiness probe:
+
 - Database connections healthy
 - External service dependencies available
 - Game schemas validated
 
 **Implementation**:
+
 ```typescript
 // probes.ts
 export function healthzHandler(req: Request, res: Response): void {
@@ -306,9 +318,9 @@ export function readyzHandler(req: Request, res: Response): void {
     sessionDb: checkDatabaseConnection(getSessionDb()),
     warframeDb: checkDatabaseConnection(getWarframeDb()),
     epic7Db: checkDatabaseConnection(getEpic7Db()),
-    clerk: checkClerkConnection()
+    clerk: checkClerkConnection(),
   };
-  
+
   const allHealthy = Object.values(checks).every(Boolean);
   res.status(allHealthy ? зато : 503).json({ checks });
 }
@@ -335,7 +347,7 @@ export const {
   CLERK_SECRET_KEY,
   CLERK_PUBLISHABLE_KEY,
   SESSION_DB_PATH,
-  ARMORY_DB_PATH
+  ARMORY_DB_PATH,
 } = process.env;
 
 // Validate required variables
@@ -351,17 +363,20 @@ if (!SESSION_DB_PATH) {
 ## Deployment Considerations
 
 ### Containerization
+
 - Multi-stage Docker builds
 - Node.js 26+ base image
 - SQLite native bindings for better-sqlite3
 
 ### Scaling Strategy
+
 - Stateless application servers
 - Shared SQLite databases on network storage
 - Read replicas for game databases
 - Session affinity for CSRF token consistency
 
 ### Monitoring
+
 - Structured logging with request IDs
 - Health check endpoints
 - Performance metrics collection

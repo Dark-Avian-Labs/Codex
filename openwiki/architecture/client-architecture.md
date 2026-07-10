@@ -82,6 +82,7 @@ interface ThemeContextType {
 ```
 
 **Theme Implementation**:
+
 - CSS custom properties for design tokens
 - HTML class-based theme switching (`html.ui-clear`, `html.ui-shadow`)
 - LocalStorage persistence for user preferences
@@ -90,6 +91,7 @@ interface ThemeContextType {
 ### 4. Authentication Integration
 
 **Clerk Authentication Flow**:
+
 1. `ClerkProvider` wraps the entire application
 2. `SignedIn`/`SignedOut` components control access
 3. Custom `AuthContext` provides app-specific auth state
@@ -113,17 +115,20 @@ App
 ### Layout Components
 
 **`Header`** (`components/layout/Header.tsx`):
+
 - Navigation links with active state tracking
 - User menu with authentication state
 - Theme selector dropdown
 - Responsive design for mobile/desktop
 
 **`Navigation`** (`components/layout/Navigation.tsx`):
+
 - Game-specific navigation tabs
 - Breadcrumb navigation
 - Access control based on user roles
 
 **`Modal`** (`components/ui/Modal.tsx`):
+
 - Reusable modal dialog component
 - Accessibility features (focus trapping, ARIA labels)
 - Animation transitions
@@ -132,18 +137,21 @@ App
 ### UI Components
 
 **`Button`** (`components/ui/Button.tsx`):
+
 - Multiple variants: `accent`, `danger`, `cancel`, `secondary`
 - Size variants: `sm`, `md`, `lg`
 - Loading states
 - Icon support
 
 **`SelectDropdown`** (`components/ui/SelectDropdown.tsx`):
+
 - Custom dropdown with positioning
 - Search functionality
 - Multi-select support
 - Custom trigger styling (`user-menu-select-trigger`)
 
 **`Toast`** (`components/ui/Toast.tsx`):
+
 - Toast notification system
 - Multiple tones: `success`, `error`, `warning`
 - Auto-dismiss with manual control
@@ -152,12 +160,14 @@ App
 ### Game Components
 
 **`InventoryTable`** (`features/warframe/components/InventoryTable.tsx`):
+
 - Table-based inventory display
 - Column sorting and filtering
 - Cell editing capabilities
 - Bulk selection actions
 
 **`CollectionTracker`** (`features/epic7/components/CollectionTracker.tsx`):
+
 - Hero and artifact collection tracking
 - Progress indicators
 - Search and filter functionality
@@ -213,16 +223,19 @@ html.ui-shadow {
 ## Performance Optimizations
 
 ### Code Splitting
+
 - Route-based code splitting via React.lazy()
 - Component-level code splitting for large features
 - Dynamic imports for heavy libraries
 
 ### Asset Optimization
+
 - Vite build optimization with tree shaking
 - Image optimization via Vite plugins
 - Font subsetting and preloading
 
 ### Memoization
+
 - React.memo() for expensive components
 - useMemo() for derived state
 - useCallback() for stable function references
@@ -230,6 +243,7 @@ html.ui-shadow {
 ## Error Handling
 
 ### Error Boundaries
+
 ```typescript
 // components/ErrorBoundary.tsx
 class ErrorBoundary extends React.Component {
@@ -241,6 +255,7 @@ class ErrorBoundary extends React.Component {
 ```
 
 ### Loading States
+
 - Suspense boundaries with custom fallbacks
 - Skeleton loading components
 - Progressive enhancement patterns

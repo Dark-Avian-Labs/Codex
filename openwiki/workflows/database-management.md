@@ -18,18 +18,19 @@ data/                           # Default data directory (configurable)
 
 ### Database Responsibilities
 
-| Database | Purpose | Read/Write | Managed By |
-|----------|---------|------------|------------|
-| `session.db` | User sessions, CSRF tokens | Read/Write | Codex |
-| `warframe.db` | Warframe inventory, worksheets | Read/Write | Codex |
-| `epic7.db` | Epic Seven collections, accounts | Read/Write | Codex |
-| `armory.db` | Warframe item catalog | Read-Only | Armory service |
+| Database      | Purpose                          | Read/Write | Managed By     |
+| ------------- | -------------------------------- | ---------- | -------------- |
+| `session.db`  | User sessions, CSRF tokens       | Read/Write | Codex          |
+| `warframe.db` | Warframe inventory, worksheets   | Read/Write | Codex          |
+| `epic7.db`    | Epic Seven collections, accounts | Read/Write | Codex          |
+| `armory.db`   | Warframe item catalog            | Read-Only  | Armory service |
 
 ## Database Configuration
 
 ### Environment Variables
 
 **Required Database Paths**:
+
 ```bash
 # Absolute paths required
 SESSION_DB_PATH=/absolute/path/to/session.db
@@ -41,6 +42,7 @@ EPIC7_DB_PATH=/absolute/path/to/epic7.db
 ```
 
 **Database Configuration**:
+
 ```bash
 # SQLite performance tuning
 SQLITE_JOURNAL_MODE=WAL          # Write-Ahead Logging
@@ -51,19 +53,18 @@ SQLITE_CACHE_SIZE=-2000          # 2000 pages cache
 ### Connection Management
 
 **Database Connection Factory** (`/packages/core/src/db/connection.ts`):
+
 ```typescript
 import Database from 'better-sqlite3';
 
 export function createDatabaseConnection(
   path: string,
-  options: { readonly?: boolean; fileMustExist?: boolean } = {}
+  options: { readonly?: boolean; fileMustExist?: boolean } = {},
 ): Database {
   return new Database(path, {
     readonly: options.readonly ?? false,
     fileMustExist: options.fileMustExist ?? true,
-    verbose: process.env.NODE_ENV === 'development' 
-      ? console.log 
-      : undefined
+    verbose: process.env.NODE_ENV === 'development' ? console.log : undefined,
   });
 }
 
@@ -89,7 +90,7 @@ CREATE TABLE IF NOT EXISTS sessions (
   expired INTEGER NOT NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_sessions_expired 
+CREATE INDEX IF NOT EXISTS idx_sessions_expired
 ON sessions(expired);
 
 -- CSRF token tracking (optional)
@@ -225,6 +226,7 @@ CREATE TABLE IF NOT EXISTS account_artifacts (
 ### Initialization Script
 
 **`pnpm run db:init`** (`/scripts/db-init.mjs`):
+
 ```javascript
 #!/usr/bin/env node
 
@@ -236,15 +238,15 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 async function initializeDatabases() {
   console.log('Initializing game databases...');
-  
+
   // Warframe database
   const warframeDb = new Database(join(__dirname, '../data/warframe.db'));
   await applyWarframeSchema(warframeDb);
-  
+
   // Epic Seven database
   const epic7Db = new Database(join(__dirname, '../data/epic7.db'));
   await applyEpic7Schema(epic7Db);
-  
+
   console.log('Database initialization complete');
 }
 
@@ -263,17 +265,18 @@ async function applyEpic7Schema(db) {
 ### Server Startup Validation
 
 **Database Health Checks** (`/server/index.ts`):
+
 ```typescript
 function ensureGameSchemasReady(): void {
   const warframeDb = getWarframeDb();
   const epic7Db = getEpic7Db();
-  
+
   // Validate required tables exist
   assertTableExists(warframeDb, 'worksheets');
   assertTableExists(warframeDb, 'columns');
   assertTableExists(warframeDb, 'rows');
   assertTableExists(warframeDb, 'cell_values');
-  
+
   assertTableExists(epic7Db, 'game_accounts');
   assertTableExists(epic7Db, 'base_heroes');
   assertTableExists(epic7Db, 'base_artifacts');
@@ -298,9 +301,10 @@ function assertTableExists(db: { prepare: (sql: string) => unknown }, tableName:
 ### Schema Migration Strategy
 
 **Versioned Migrations**:
+
 ```sql
 -- Example migration file: migrations/001_add_user_preferences.sql
-ALTER TABLE game_accounts 
+ALTER TABLE game_accounts
 ADD COLUMN preferences TEXT DEFAULT '{}';
 
 -- Migration tracking table
@@ -312,6 +316,7 @@ CREATE TABLE IF NOT EXISTS schema_migrations (
 ```
 
 **Migration Application**:
+
 ```typescript
 // /scripts/migrate.mjs
 import Database from 'better-sqlite3';
@@ -320,7 +325,7 @@ import path from 'path';
 
 async function applyMigrations(dbPath: string, migrationsDir: string) {
   const db = new Database(dbPath);
-  
+
   // Create migrations table if not exists
   db.exec(`
     CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -329,34 +334,32 @@ async function applyMigrations(dbPath: string, migrationsDir: string) {
       applied_at INTEGER NOT NULL
     )
   `);
-  
+
   // Get applied migrations
-  const applied = db.prepare(
-    'SELECT version FROM schema_migrations ORDER BY version'
-  ).all();
-  
-  const appliedVersions = new Set(applied.map(m => m.version));
-  
+  const applied = db.prepare('SELECT version FROM schema_migrations ORDER BY version').all();
+
+  const appliedVersions = new Set(applied.map((m) => m.version));
+
   // Find and apply new migrations
-  const migrationFiles = fs.readdirSync(migrationsDir)
-    .filter(f => f.endsWith('.sql'))
+  const migrationFiles = fs
+    .readdirSync(migrationsDir)
+    .filter((f) => f.endsWith('.sql'))
     .sort();
-    
+
   for (const file of migrationFiles) {
     const version = parseInt(file.split('_')[0]);
-    
+
     if (!appliedVersions.has(version)) {
-      const migrationSql = fs.readFileSync(
-        path.join(migrationsDir, file), 
-        'utf-8'
-      );
-      
+      const migrationSql = fs.readFileSync(path.join(migrationsDir, file), 'utf-8');
+
       console.log(`Applying migration: ${file}`);
       db.exec(migrationSql);
-      
-      db.prepare(
-        'INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?)'
-      ).run(version, file, Date.now());
+
+      db.prepare('INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?)').run(
+        version,
+        file,
+        Date.now(),
+      );
     }
   }
 }
@@ -365,20 +368,21 @@ async function applyMigrations(dbPath: string, migrationsDir: string) {
 ### Data Migration Utilities
 
 **Backup and Restore**:
+
 ```typescript
 // /scripts/backup.mjs
 export async function backupDatabase(sourcePath: string, backupPath: string) {
   const sourceDb = new Database(sourcePath);
   const backupDb = new Database(backupPath);
-  
+
   // Use SQLite backup API
   sourceDb.backup(backupDb, {
     progress: ({ totalPages, remainingPages }) => {
-      const percent = ((totalPages - remainingPages) / totalPages * 100).toFixed(1);
+      const percent = (((totalPages - remainingPages) / totalPages) * 100).toFixed(1);
       console.log(`Backup progress: ${percent}%`);
-    }
+    },
   });
-  
+
   console.log(`Backup completed: ${backupPath}`);
 }
 ```
@@ -388,6 +392,7 @@ export async function backupDatabase(sourcePath: string, backupPath: string) {
 ### Indexing Strategy
 
 **Warframe Database Indexes**:
+
 ```sql
 -- Frequently queried columns
 CREATE INDEX idx_worksheets_user ON worksheets(user_id);
@@ -399,6 +404,7 @@ CREATE INDEX idx_cell_values_lookup ON cell_values(worksheet_id, column_id, row_
 ```
 
 **Epic Seven Database Indexes**:
+
 ```sql
 -- Account-based queries
 CREATE INDEX idx_account_heroes_account ON account_heroes(account_id);
@@ -412,6 +418,7 @@ CREATE INDEX idx_account_artifacts_artifact ON account_artifacts(artifact_id);
 ### Query Optimization
 
 **Prepared Statements**:
+
 ```typescript
 // Use prepared statements for frequent queries
 const getWorksheetStmt = db.prepare(`
@@ -435,7 +442,7 @@ const insertManyCells = db.transaction((cells: CellValue[]) => {
       cell.row_id,
       cell.value,
       Date.now(),
-      Date.now()
+      Date.now(),
     );
   }
 });
@@ -444,28 +451,26 @@ const insertManyCells = db.transaction((cells: CellValue[]) => {
 ### Connection Pooling
 
 **Database Connection Management**:
+
 ```typescript
 // /packages/core/src/db/connectionPool.ts
 const connectionPool = new Map<string, Database>();
 
-export function getDatabaseConnection(
-  path: string, 
-  options: ConnectionOptions = {}
-): Database {
+export function getDatabaseConnection(path: string, options: ConnectionOptions = {}): Database {
   const key = `${path}:${JSON.stringify(options)}`;
-  
+
   if (!connectionPool.has(key)) {
     const db = createDatabaseConnection(path, options);
     optimizeDatabase(db);
     connectionPool.set(key, db);
-    
+
     // Clean up on process exit
     process.on('exit', () => {
       db.close();
       connectionPool.delete(key);
     });
   }
-  
+
   return connectionPool.get(key)!;
 }
 ```
@@ -475,6 +480,7 @@ export function getDatabaseConnection(
 ### Test Database Setup
 
 **SQLite Test Harness** (`/tests/helpers/sqliteTestHarness.ts`):
+
 ```typescript
 import Database from 'better-sqlite3';
 import { tmpdir } from 'os';
@@ -486,13 +492,13 @@ export function createTestDatabase(schemaSql: string): {
   cleanup: () => void;
 } {
   const testDbPath = join(
-    tmpdir(), 
-    `test_db_${Date.now()}_${Math.random().toString(36).substring(2)}.db`
+    tmpdir(),
+    `test_db_${Date.now()}_${Math.random().toString(36).substring(2)}.db`,
   );
-  
+
   const db = new Database(testDbPath);
   db.exec(schemaSql);
-  
+
   const cleanup = () => {
     db.close();
     try {
@@ -501,7 +507,7 @@ export function createTestDatabase(schemaSql: string): {
       // Ignore cleanup errors in tests
     }
   };
-  
+
   return { db, cleanup };
 }
 ```
@@ -509,12 +515,13 @@ export function createTestDatabase(schemaSql: string): {
 ### Database Test Patterns
 
 **Isolated Test Databases**:
+
 ```typescript
 // tests/warframe/db.test.ts
 describe('Warframe Database', () => {
   let db: Database;
   let cleanup: () => void;
-  
+
   beforeEach(() => {
     const { db: testDb, cleanup: testCleanup } = createTestDatabase(`
       CREATE TABLE worksheets (
@@ -529,24 +536,24 @@ describe('Warframe Database', () => {
         name TEXT NOT NULL
       );
     `);
-    
+
     db = testDb;
     cleanup = testCleanup;
   });
-  
+
   afterEach(() => {
     cleanup();
   });
-  
+
   test('should create worksheet', () => {
-    db.prepare(
-      'INSERT INTO worksheets (id, name, user_id) VALUES (?, ?, ?)'
-    ).run('test-id', 'Test Worksheet', 'user-123');
-    
-    const worksheet = db.prepare(
-      'SELECT * FROM worksheets WHERE id = ?'
-    ).get('test-id');
-    
+    db.prepare('INSERT INTO worksheets (id, name, user_id) VALUES (?, ?, ?)').run(
+      'test-id',
+      'Test Worksheet',
+      'user-123',
+    );
+
+    const worksheet = db.prepare('SELECT * FROM worksheets WHERE id = ?').get('test-id');
+
     expect(worksheet.name).toBe('Test Worksheet');
   });
 });
@@ -557,6 +564,7 @@ describe('Warframe Database', () => {
 ### Database Path Configuration
 
 **Production Deployment**:
+
 ```bash
 # Use absolute paths in production
 SESSION_DB_PATH=/var/lib/codex/session.db
@@ -566,6 +574,7 @@ EPIC7_DB_PATH=/var/lib/codex/epic7.db
 ```
 
 **Container Deployment**:
+
 ```dockerfile
 # Dockerfile
 VOLUME /data
@@ -581,12 +590,14 @@ ENV ARMORY_DB_PATH=/armory-data/armory.db
 ### Backup Strategy
 
 **Automated Backups**:
+
 ```bash
 # cron job for daily backups
 0 2 * * * /usr/bin/node /path/to/codex/scripts/backup.mjs
 ```
 
 **Backup Rotation**:
+
 - Daily backups kept for 7 days
 - Weekly backups kept for 4 weeks
 - Monthly backups kept for 12 months

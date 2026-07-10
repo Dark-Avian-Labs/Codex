@@ -53,6 +53,7 @@ The application features a modern React frontend, Express.js backend with compre
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js 26+
 - pnpm 11+
 
@@ -77,6 +78,7 @@ pnpm start
 ```
 
 For development with encrypted environments:
+
 ```bash
 # With dotenvx encryption
 NODE_ENV=development pnpm dotenvx run -f .env.development -- node dist/server/index.js
@@ -85,24 +87,29 @@ NODE_ENV=development pnpm dotenvx run -f .env.development -- node dist/server/in
 ## Key Concepts
 
 ### Monorepo Architecture
+
 Codex uses a pnpm workspace monorepo with clear separation between:
+
 - **Core package** (`@codex/core`): Shared authentication, database, middleware, validation
 - **Game packages**: Independent implementations for each supported game
 - **Main application**: Web server, routing, and UI integration layer
 
 ### Authentication Flow
+
 1. **Clerk Integration**: Primary authentication via Clerk.com
 2. **Session Management**: Custom Express.js sessions with SQLite storage
 3. **CSRF Protection**: Synchronizer token pattern for state-changing operations
 4. **Role-Based Access**: Admin/user roles managed through Clerk metadata
 
 ### Database Strategy
+
 - **Session Database**: SQLite for user sessions and CSRF tokens
 - **Game Databases**: Separate SQLite files for each game's data
 - **Armory Integration**: Read-only sync from Armory's SQLite database for Warframe
 - **Schema Management**: Automatic table creation and validation on startup
 
 ### Security Implementation
+
 - **Defense in Depth**: Multiple layers of security controls
 - **Environment Encryption**: dotenvx for encrypted environment variables
 - **Secure Headers**: Helmet.js with CSP configuration
@@ -114,26 +121,31 @@ Codex uses a pnpm workspace monorepo with clear separation between:
 Start here, then explore these key areas:
 
 ### Architecture
+
 - [Monorepo Structure](architecture/monorepo-structure.md) - Workspace setup and package relationships
 - [Client Architecture](architecture/client-architecture.md) - React app structure and routing
 - [Server Architecture](architecture/server-architecture.md) - Express.js setup and middleware
 
 ### Workflows
+
 - [Authentication](workflows/authentication.md) - Clerk integration and session management
 - [Database Management](workflows/database-management.md) - SQLite setup and game databases
 - [Development Workflow](workflows/development-workflow.md) - Build, test, and deployment processes
 
 ### Domain Concepts
+
 - [Game Concepts](domain/games-concepts.md) - Game-specific data models and features
 - [Collection System](domain/collection-system.md) - Table-based tracking system
 - [Armory Integration](domain/armory-integration.md) - Warframe data sync from Armory
 
 ### Operations
+
 - [Environment Configuration](operations/environment-configuration.md) - Environment variables and encryption
 - [Security Configuration](operations/security-configuration.md) - Security setup and best practices
 - [Monitoring & Health](operations/monitoring-health.md) - Health checks, logging, and probes
 
 ### Testing
+
 - [Test Strategy](testing/test-strategy.md) - Testing approach and tools
 - [Test Helpers](testing/test-helpers.md) - Test utilities and SQLite test harness
 
@@ -154,6 +166,7 @@ Start here, then explore these key areas:
 - Environment template: `/.env.example`
 
 ## Version Information
+
 - Current version: 1.55.11
 - Last updated: See git history for recent changes
 - Maintenance status: Actively maintained with regular releases

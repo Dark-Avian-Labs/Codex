@@ -9,6 +9,7 @@ Codex is built as a **pnpm workspace monorepo**, which allows for clear separati
 ### Root Configuration Files
 
 - **`/pnpm-workspace.yaml`**: Defines workspace packages
+
   ```yaml
   packages:
     - 'packages/core'
@@ -38,6 +39,7 @@ codex (root)
 **Purpose**: Shared authentication, database, middleware, validation, and configuration utilities.
 
 **Key Exports**:
+
 - Authentication: Clerk integration, session management
 - Database: SQLite connection management, session store
 - Middleware: Security middleware, request validation
@@ -45,6 +47,7 @@ codex (root)
 - Configuration: Environment variable management
 
 **Source Structure**:
+
 ```
 packages/core/src/
 ├── auth/           # Authentication utilities
@@ -55,6 +58,7 @@ packages/core/src/
 ```
 
 **Dependencies**:
+
 - `@clerk/express`: Clerk authentication
 - `better-sqlite3`: SQLite database
 - `express`: Web framework
@@ -65,18 +69,21 @@ packages/core/src/
 **Purpose**: Warframe inventory tracking with Armory data sync.
 
 **Key Features**:
+
 - Worksheet-based inventory system
 - Armory database integration (read-only)
 - Column and row management for table UI
 - Cell value tracking for individual items
 
 **Database Schema**:
+
 - `worksheets`: Top-level inventory categories
 - `columns`: Table column definitions
 - `rows`: Inventory item rows
 - `cell_values`: Individual cell data
 
 **Source Structure**:
+
 ```
 packages/games/warframe/src/
 ├── db/             # Database schema and queries
@@ -90,12 +97,14 @@ packages/games/warframe/src/
 **Purpose**: Epic Seven collection tracking with manually curated data.
 
 **Key Features**:
+
 - Hero and artifact collection tracking
 - Game account management
 - Base hero and artifact catalogs
 - Account-specific collection state
 
 **Database Schema**:
+
 - `game_accounts`: User game accounts
 - `base_heroes`: Hero catalog
 - `base_artifacts`: Artifact catalog
@@ -103,6 +112,7 @@ packages/games/warframe/src/
 - `account_artifacts`: User's artifact collection
 
 **Source Structure**:
+
 ```
 packages/games/epic7/src/
 ├── db/             # Database schema and queries
@@ -156,6 +166,7 @@ pnpm run typecheck
 ### Workspace Protocol
 
 Packages use the `workspace:*` protocol for internal dependencies:
+
 ```json
 {
   "dependencies": {
@@ -169,6 +180,7 @@ This ensures packages always use the local workspace version rather than publish
 ### External Dependencies
 
 External dependencies are managed at the workspace root level with:
+
 - **Hoisting**: Common dependencies are hoisted to root `node_modules`
 - **Version Consistency**: Single version policy for shared dependencies
 - **Peer Dependencies**: Properly declared for compatibility

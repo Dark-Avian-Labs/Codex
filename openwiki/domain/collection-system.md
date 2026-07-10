@@ -9,12 +9,14 @@ Codex implements a **flexible, table-based collection tracking system** that pow
 ### Table-Based Organization
 
 **Worksheets as Containers**:
+
 - Top-level organizational units
 - User-defined categorization (e.g., "Primary Weapons", "5★ Heroes")
 - Contain columns (structure) and rows (items)
 - Support hierarchical organization
 
 **Columns Define Structure**:
+
 ```typescript
 interface ColumnDefinition {
   id: string;
@@ -27,6 +29,7 @@ interface ColumnDefinition {
 ```
 
 **Rows as Collection Items**:
+
 ```typescript
 interface CollectionItem {
   id: string;
@@ -44,6 +47,7 @@ interface CollectionItem {
 ### Collection State Machine
 
 **Item States**:
+
 ```
 Unowned → Owned → Mastered → Completed
     ↑         ↑         ↑
@@ -51,6 +55,7 @@ Unowned → Owned → Mastered → Completed
 ```
 
 **State Transitions**:
+
 - `unowned`: Item not in collection
 - `owned`: Item obtained but not fully progressed
 - `mastered`: Item fully leveled/ranked (game-specific)
@@ -59,6 +64,7 @@ Unowned → Owned → Mastered → Completed
 ### Progression Tracking
 
 **Multi-dimensional Progression**:
+
 ```typescript
 interface ProgressionData {
   // Level-based progression
@@ -67,21 +73,21 @@ interface ProgressionData {
     max: number;
     percentage: number;
   };
-  
+
   // Rank/star progression
   rank?: {
     current: number;
     max: number;
     promotions: PromotionRecord[];
   };
-  
+
   // Enhancement progression
   enhancements?: {
     count: number;
     max: number;
     materials: MaterialRequirement[];
   };
-  
+
   // Custom game-specific progression
   custom?: Record<string, any>;
 }
@@ -92,6 +98,7 @@ interface ProgressionData {
 ### Inventory Organization
 
 **Worksheet Hierarchy**:
+
 ```
 Warframe Inventory/
 ├── Primary Weapons/
@@ -110,6 +117,7 @@ Warframe Inventory/
 ```
 
 **Column Templates**:
+
 ```typescript
 const weaponColumns: ColumnDefinition[] = [
   { name: 'Weapon Name', data_type: 'text', order: 0 },
@@ -119,13 +127,14 @@ const weaponColumns: ColumnDefinition[] = [
   { name: 'Forma Used', data_type: 'number', order: 4 },
   { name: 'Catalyst Installed', data_type: 'boolean', order: 5 },
   { name: 'Riven Mod', data_type: 'boolean', order: 6 },
-  { name: 'Notes', data_type: 'text', order: 7 }
+  { name: 'Notes', data_type: 'text', order: 7 },
 ];
 ```
 
 ### Mastery Tracking
 
 **Mastery Rank Calculation**:
+
 ```typescript
 function calculateMasteryProgress(inventory: WarframeItem[]): {
   totalMastery: number;
@@ -133,19 +142,17 @@ function calculateMasteryProgress(inventory: WarframeItem[]): {
   progressPercentage: number;
   nextRankThreshold: number;
 } {
-  const totalMastery = inventory.reduce((sum, item) => 
-    sum + (item.masteryValue || 0), 0
-  );
-  
+  const totalMastery = inventory.reduce((sum, item) => sum + (item.masteryValue || 0), 0);
+
   const earnedMastery = inventory
-    .filter(item => item.mastered)
+    .filter((item) => item.mastered)
     .reduce((sum, item) => sum + (item.masteryValue || 0), 0);
-    
+
   return {
     totalMastery,
     earnedMastery,
     progressPercentage: (earnedMastery / totalMastery) * 100,
-    nextRankThreshold: getNextRankThreshold(earnedMastery)
+    nextRankThreshold: getNextRankThreshold(earnedMastery),
   };
 }
 ```
@@ -153,6 +160,7 @@ function calculateMasteryProgress(inventory: WarframeItem[]): {
 ### Resource Tracking
 
 **Crafting Components**:
+
 ```typescript
 interface CraftingComponent {
   itemId: string;
@@ -176,6 +184,7 @@ function getCraftingRequirements(item: WarframeItem): CraftingComponent[] {
 ### Hero Collection
 
 **Collection Organization**:
+
 ```
 Epic Seven Collection/
 ├── By Rarity/
@@ -199,16 +208,17 @@ Epic Seven Collection/
 ```
 
 **Hero Progression Tracking**:
+
 ```typescript
 interface HeroProgression {
   // Basic info
   heroId: string;
   accountId: string;
-  
+
   // Star progression
   stars: {
     current: 1 | 2 | 3 | 4 | 5 | 6;
-    natural: 3 | 4 | 5;  // Base rarity
+    natural: 3 | 4 | 5; // Base rarity
     promotions: {
       from: number;
       to: number;
@@ -216,21 +226,21 @@ interface HeroProgression {
       materialsUsed: MaterialUsage[];
     }[];
   };
-  
+
   // Level progression
   level: {
     current: number;
-    max: number;  // Based on stars: 30(3★), 40(4★), 50(5★), 60(6★)
+    max: number; // Based on stars: 30(3★), 40(4★), 50(5★), 60(6★)
     experience: number;
   };
-  
+
   // Awakening progression
   awakening: {
     stage: 'S1' | 'S2' | 'S3' | 'S4' | 'S5' | 'S6' | 'SS';
     materials: AwakeningMaterial[];
     completed: boolean;
   };
-  
+
   // Skill enhancements
   skills: {
     s1: { level: number; max: number };
@@ -238,7 +248,7 @@ interface HeroProgression {
     s3: { level: number; max: number };
     imprint: { level: number; max: number };
   };
-  
+
   // Equipment
   equipment: {
     weapon?: ArtifactReference;
@@ -254,21 +264,22 @@ interface HeroProgression {
 ### Collection Completion Metrics
 
 **Completion Calculations**:
+
 ```typescript
 function calculateCollectionCompletion(
   account: GameAccount,
-  heroes: AccountHero[]
+  heroes: AccountHero[],
 ): CollectionMetrics {
   const totalHeroes = getTotalHeroCount();
   const ownedHeroes = heroes.length;
-  
+
   // By rarity
   const byRarity = {
     '5★': calculateCompletionForRarity('5', heroes),
     '4★': calculateCompletionForRarity('4', heroes),
-    '3★': calculateCompletionForRarity('3', heroes)
+    '3★': calculateCompletionForRarity('3', heroes),
   };
-  
+
   // By element
   const byElement = {
     fire: calculateCompletionForElement('fire', heroes),
@@ -276,15 +287,15 @@ function calculateCollectionCompletion(
     earth: calculateCompletionForElement('earth', heroes),
     wind: calculateCompletionForElement('wind', heroes),
     light: calculateCompletionForElement('light', heroes),
-    dark: calculateCompletionForElement('dark', heroes)
+    dark: calculateCompletionForElement('dark', heroes),
   };
-  
+
   return {
     overall: (ownedHeroes / totalHeroes) * 100,
     byRarity,
     byElement,
-    sixStarCount: heroes.filter(h => h.stars === 6).length,
-    fullyAwakenedCount: heroes.filter(h => h.awakening === 'SS').length
+    sixStarCount: heroes.filter((h) => h.stars === 6).length,
+    fullyAwakenedCount: heroes.filter((h) => h.awakening === 'SS').length,
   };
 }
 ```
@@ -294,16 +305,17 @@ function calculateCollectionCompletion(
 ### Bulk Operations
 
 **Mass Updates**:
+
 ```typescript
 // Update multiple items at once
 async function bulkUpdateItems(
   itemIds: string[],
-  updates: Partial<CollectionItem>
+  updates: Partial<CollectionItem>,
 ): Promise<BulkUpdateResult> {
   const db = getGameDatabase();
   const transaction = db.transaction(() => {
     const results: BulkUpdateResultItem[] = [];
-    
+
     for (const itemId of itemIds) {
       try {
         const updated = updateItem(itemId, updates);
@@ -312,21 +324,19 @@ async function bulkUpdateItems(
         results.push({ itemId, success: false, error: error.message });
       }
     }
-    
+
     return results;
   });
-  
+
   return transaction();
 }
 ```
 
 **Template Application**:
+
 ```typescript
 // Apply template to multiple items
-function applyTemplateToItems(
-  itemIds: string[],
-  template: CollectionTemplate
-): void {
+function applyTemplateToItems(itemIds: string[], template: CollectionTemplate): void {
   const updates = templateToUpdates(template);
   bulkUpdateItems(itemIds, updates);
 }
@@ -342,29 +352,30 @@ interface CollectionTemplate {
 ### Search and Filter System
 
 **Advanced Filtering**:
+
 ```typescript
 interface CollectionFilter {
   // State filters
   states?: ItemState[];
-  
+
   // Progression filters
   minLevel?: number;
   maxLevel?: number;
   minStars?: number;
   maxStars?: number;
   awakeningStage?: AwakeningStage[];
-  
+
   // Metadata filters
   metadata?: Record<string, any>;
-  
+
   // Text search
   searchText?: string;
   searchFields?: string[];
-  
+
   // Date filters
   obtainedAfter?: number;
   obtainedBefore?: number;
-  
+
   // Pagination
   limit?: number;
   offset?: number;
@@ -372,25 +383,22 @@ interface CollectionFilter {
   sortOrder?: 'asc' | 'desc';
 }
 
-function filterCollection(
-  items: CollectionItem[],
-  filter: CollectionFilter
-): CollectionItem[] {
-  return items.filter(item => {
+function filterCollection(items: CollectionItem[], filter: CollectionFilter): CollectionItem[] {
+  return items.filter((item) => {
     // Apply all filter conditions
     if (filter.states && !filter.states.includes(item.state)) {
       return false;
     }
-    
+
     if (filter.searchText) {
       const searchableText = getSearchableText(item);
       if (!searchableText.includes(filter.searchText.toLowerCase())) {
         return false;
       }
     }
-    
+
     // ... other filter conditions
-    
+
     return true;
   });
 }
@@ -399,6 +407,7 @@ function filterCollection(
 ### Import/Export System
 
 **Export Formats**:
+
 ```typescript
 interface ExportOptions {
   format: 'json' | 'csv' | 'excel';
@@ -410,7 +419,7 @@ interface ExportOptions {
 
 async function exportCollection(
   collection: CollectionItem[],
-  options: ExportOptions
+  options: ExportOptions,
 ): Promise<ExportResult> {
   switch (options.format) {
     case 'json':
@@ -424,6 +433,7 @@ async function exportCollection(
 ```
 
 **Import Validation**:
+
 ```typescript
 interface ImportValidationResult {
   valid: boolean;
@@ -438,10 +448,7 @@ interface ImportValidationResult {
   };
 }
 
-async function validateImport(
-  data: any,
-  format: ImportFormat
-): Promise<ImportValidationResult> {
+async function validateImport(data: any, format: ImportFormat): Promise<ImportValidationResult> {
   // Validate data structure
   // Check required fields
   // Validate references exist
@@ -455,23 +462,25 @@ async function validateImport(
 ### Cross-Collection References
 
 **Item References**:
+
 ```typescript
 // Reference from collection item to catalog item
 interface CatalogReference {
   catalog: 'warframe' | 'epic7' | 'generic';
   itemId: string;
-  version?: string;  // For versioned catalogs
+  version?: string; // For versioned catalogs
 }
 
 // Example: Warframe item referencing Armory catalog
 const weaponReference: CatalogReference = {
   catalog: 'warframe',
   itemId: 'weapon_primary_boltor',
-  version: 'armory_v2.5'
+  version: 'armory_v2.5',
 };
 ```
 
 **Collection Relationships**:
+
 ```typescript
 // Relationships between collection items
 interface CollectionRelationship {
@@ -490,13 +499,14 @@ const craftingRelationship: CollectionRelationship = {
   sourceId: 'warframe_rhino',
   targetId: 'resource_neural_sensors',
   type: 'component',
-  metadata: { quantity: 1, requirementType: 'mandatory' }
+  metadata: { quantity: 1, requirementType: 'mandatory' },
 };
 ```
 
 ### Derived Collections
 
 **Smart Collections**:
+
 ```typescript
 // Dynamically generated collections based on rules
 interface SmartCollectionRule {
@@ -520,14 +530,15 @@ const formaNeededCollection: SmartCollection = {
   name: 'Weapons Needing Forma',
   rules: [
     { field: 'formaUsed', operator: 'lessThan', value: 3 },
-    { field: 'mastered', operator: 'equals', value: false }
+    { field: 'mastered', operator: 'equals', value: false },
   ],
   autoUpdate: true,
-  itemCount: 0  // Calculated dynamically
+  itemCount: 0, // Calculated dynamically
 };
 ```
 
 **Collection Views**:
+
 ```typescript
 // Different ways to view the same collection
 interface CollectionView {
@@ -535,7 +546,7 @@ interface CollectionView {
   collectionId: string;
   name: string;
   type: 'grid' | 'list' | 'table' | 'chart';
-  columns: string[];  // Which columns to show
+  columns: string[]; // Which columns to show
   sortBy: string;
   sortOrder: 'asc' | 'desc';
   filters: CollectionFilter[];
@@ -551,6 +562,7 @@ interface CollectionView {
 ### Collection Indexing
 
 **Database Indexes**:
+
 ```sql
 -- Indexes for common collection queries
 CREATE INDEX idx_collection_items_user ON collection_items(user_id);
@@ -560,8 +572,8 @@ CREATE INDEX idx_collection_items_updated ON collection_items(updated_at);
 
 -- Composite indexes for specific queries
 CREATE INDEX idx_collection_search ON collection_items(
-  user_id, 
-  state, 
+  user_id,
+  state,
   updated_at
 );
 ```
@@ -569,14 +581,15 @@ CREATE INDEX idx_collection_search ON collection_items(
 ### Caching Strategy
 
 **Collection Cache**:
+
 ```typescript
 interface CollectionCache {
   // Cache user's collection data
   userCollections: Map<string, CachedCollection>;
-  
+
   // Cache collection metadata
   collectionMetadata: Map<string, CollectionMetadata>;
-  
+
   // Cache filter results
   filterResults: Map<string, FilterCache>;
 }
@@ -586,15 +599,18 @@ class CollectionCacheManager {
     const key = `collection:${userId}`;
     return this.userCollections.get(key);
   }
-  
+
   setCachedCollection(userId: string, collection: CachedCollection): void {
     const key = `collection:${userId}`;
     this.userCollections.set(key, collection);
-    
+
     // Set expiration
-    setTimeout(() => {
-      this.userCollections.delete(key);
-    }, 5 * 60 * 1000); // 5 minutes
+    setTimeout(
+      () => {
+        this.userCollections.delete(key);
+      },
+      5 * 60 * 1000,
+    ); // 5 minutes
   }
 }
 ```
@@ -602,6 +618,7 @@ class CollectionCacheManager {
 ### Pagination and Lazy Loading
 
 **Incremental Loading**:
+
 ```typescript
 interface PaginatedCollection {
   items: CollectionItem[];
@@ -615,21 +632,21 @@ async function loadCollectionPage(
   userId: string,
   page: number,
   pageSize: number,
-  filter?: CollectionFilter
+  filter?: CollectionFilter,
 ): Promise<PaginatedCollection> {
   const offset = (page - 1) * pageSize;
-  
+
   const [items, total] = await Promise.all([
     getCollectionItems(userId, filter, offset, pageSize),
-    getCollectionCount(userId, filter)
+    getCollectionCount(userId, filter),
   ]);
-  
+
   return {
     items,
     total,
     page,
     pageSize,
-    hasMore: offset + items.length < total
+    hasMore: offset + items.length < total,
   };
 }
 ```
@@ -639,13 +656,14 @@ async function loadCollectionPage(
 ### Custom Fields
 
 **User-Defined Fields**:
+
 ```typescript
 interface CustomField {
   id: string;
   name: string;
   dataType: 'text' | 'number' | 'boolean' | 'date' | 'select';
   defaultValue?: any;
-  options?: string[];  // For select fields
+  options?: string[]; // For select fields
   validation?: {
     min?: number;
     max?: number;
@@ -654,10 +672,7 @@ interface CustomField {
   };
 }
 
-function addCustomField(
-  collectionId: string,
-  field: CustomField
-): void {
+function addCustomField(collectionId: string, field: CustomField): void {
   // Add column to database
   // Update collection schema
   // Migrate existing items
@@ -667,6 +682,7 @@ function addCustomField(
 ### Collection Templates
 
 **Template System**:
+
 ```typescript
 interface CollectionTemplate {
   id: string;
@@ -685,50 +701,49 @@ const warframeWeaponTemplate: CollectionTemplate = {
   name: 'Warframe Weapons',
   game: 'warframe',
   columns: weaponColumns,
-  defaultFilters: [
-    { states: ['owned', 'mastered'] }
-  ]
+  defaultFilters: [{ states: ['owned', 'mastered'] }],
 };
 ```
 
 ### Plugin System
 
 **Collection Plugins**:
+
 ```typescript
 interface CollectionPlugin {
   id: string;
   name: string;
   version: string;
-  
+
   // Hooks
   beforeSave?: (item: CollectionItem) => CollectionItem | Promise<CollectionItem>;
   afterSave?: (item: CollectionItem) => void | Promise<void>;
   beforeDelete?: (item: CollectionItem) => boolean | Promise<boolean>;
   afterDelete?: (item: CollectionItem) => void | Promise<void>;
-  
+
   // Custom operations
   operations?: Record<string, (item: CollectionItem, ...args: any[]) => any>;
-  
+
   // UI extensions
   uiComponents?: Record<string, React.ComponentType>;
 }
 
 class CollectionPluginManager {
   private plugins: Map<string, CollectionPlugin> = new Map();
-  
+
   registerPlugin(plugin: CollectionPlugin): void {
     this.plugins.set(plugin.id, plugin);
   }
-  
+
   async applyBeforeSaveHooks(item: CollectionItem): Promise<CollectionItem> {
     let modifiedItem = item;
-    
+
     for (const plugin of this.plugins.values()) {
       if (plugin.beforeSave) {
         modifiedItem = await plugin.beforeSave(modifiedItem);
       }
     }
-    
+
     return modifiedItem;
   }
 }

@@ -7,12 +7,14 @@ Codex supports multiple games through a modular architecture. Each game has its 
 ## Supported Games
 
 ### Warframe
+
 **Type**: Inventory tracking system  
 **Data Source**: Armory SQLite database sync  
 **Primary Use**: Weapon, frame, and item inventory management  
 **Key Feature**: Worksheet-based table organization
 
 ### Epic Seven
+
 **Type**: Collection tracker  
 **Data Source**: Manually curated lists  
 **Primary Use**: Hero and artifact collection tracking  
@@ -23,21 +25,25 @@ Codex supports multiple games through a modular architecture. Each game has its 
 ### Core Concepts
 
 **Worksheets**: Top-level containers for organizing inventory data
+
 - Each worksheet represents a logical grouping (e.g., "Primary Weapons", "Frames")
 - Contains columns, rows, and cell values
 - User-defined organization structure
 
 **Columns**: Define the structure of data within a worksheet
+
 - Each column has a name and data type (text, number, boolean, etc.)
 - Columns define the "schema" for rows in the worksheet
 - Order determines display order in UI
 
 **Rows**: Individual inventory items
+
 - Each row represents a single item (weapon, frame, etc.)
 - Contains metadata and order information
 - Linked to Armory catalog entries
 
 **Cell Values**: Specific data points for items
+
 - Value for a specific column in a specific row
 - Can be text, numbers, booleans, or references
 - Supports tracking of item states (owned, mastered, etc.)
@@ -86,18 +92,21 @@ interface CellValue {
 ### Armory Integration
 
 **Data Sync Flow**:
+
 ```
 Armory Database → Codex Warframe Database → UI Display
      (read-only)         (read/write)      (user interface)
 ```
 
 **Sync Process**:
+
 1. Periodic synchronization from Armory SQLite database
 2. Catalog updates (new weapons, frames, items)
 3. Worksheet template updates
 4. Conflict resolution for user-modified data
 
 **Sync State Management** (`/server/services/warframeSyncState.ts`):
+
 ```typescript
 interface SyncState {
   lastSyncTime: number;
@@ -109,7 +118,7 @@ interface SyncState {
 export async function waitForWarframeSyncIdle(): Promise<void> {
   // Wait for any ongoing sync to complete
   while (syncState.syncInProgress) {
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
   }
 }
 ```
@@ -117,18 +126,21 @@ export async function waitForWarframeSyncIdle(): Promise<void> {
 ### Inventory Management Features
 
 **Bulk Operations**:
+
 - Select multiple items across worksheets
 - Bulk status updates (e.g., mark all as "owned")
 - Export/import inventory data
 - Template application to multiple items
 
 **Search and Filter**:
+
 - Full-text search across inventory
 - Column-specific filtering
 - Saved filter presets
 - Cross-worksheet searching
 
 **Progression Tracking**:
+
 - Mastery rank tracking
 - Item completion status
 - Crafting requirements
@@ -139,16 +151,19 @@ export async function waitForWarframeSyncIdle(): Promise<void> {
 ### Core Concepts
 
 **Game Accounts**: User's Epic Seven game accounts
+
 - Multiple accounts per user (different servers)
 - Account-specific progression tracking
 - Server-specific data (Global, Asia, etc.)
 
 **Base Catalog**: Reference data for heroes and artifacts
+
 - Static list of all heroes and artifacts
 - Metadata: rarity, element, role, zodiac
 - Curated manually (not synced from external source)
 
 **Account Collections**: User-owned heroes and artifacts
+
 - Tracks which heroes/artifacts user has obtained
 - Progression data: stars, level, awakening
 - Notes and custom metadata
@@ -215,18 +230,21 @@ interface AccountArtifact {
 ### Collection Management Features
 
 **Hero Progression**:
+
 - Star promotion tracking (3★ → 4★ → 5★ → 6★)
 - Level tracking (1-60)
 - Awakening progression (S1-S6, SS)
 - Skill enhancement tracking
 
 **Artifact Management**:
+
 - Level tracking (1-85)
 - Main stat and substat recording
 - Set completion tracking
 - Enhancement level tracking
 
 **Collection Analysis**:
+
 - Completion percentage by rarity
 - Element distribution
 - Role balance
@@ -235,16 +253,18 @@ interface AccountArtifact {
 ### Account Management
 
 **Multiple Account Support**:
+
 ```typescript
 // User can have accounts on different servers
 const accounts = [
   { server: 'global', account_name: 'Player1' },
   { server: 'asia', account_name: 'PlayerAsia' },
-  { server: 'europe', account_name: 'PlayerEU' }
+  { server: 'europe', account_name: 'PlayerEU' },
 ];
 ```
 
 **Account Switching**:
+
 - Seamless switching between accounts
 - Shared base catalog across accounts
 - Account-specific collection data
@@ -274,6 +294,7 @@ packages/games/{game-name}/
 ### Database Initialization
 
 **Schema Validation**:
+
 ```typescript
 // Each game package exports initialization function
 export function initializeDatabase(db: Database): void {
@@ -284,6 +305,7 @@ export function initializeDatabase(db: Database): void {
 ```
 
 **Reference Data Seeding**:
+
 ```typescript
 // Epic Seven base hero seeding
 export function seedReferenceData(db: Database): void {
@@ -294,17 +316,17 @@ export function seedReferenceData(db: Database): void {
       rarity: '5',
       element: 'dark',
       role: 'warrior',
-      created_at: Date.now()
+      created_at: Date.now(),
     },
     // ... more heroes
   ];
-  
+
   const stmt = db.prepare(`
     INSERT OR IGNORE INTO base_heroes 
     (id, name, rarity, element, role, zodiac, created_at)
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `);
-  
+
   for (const hero of heroes) {
     stmt.run(
       hero.id,
@@ -313,7 +335,7 @@ export function seedReferenceData(db: Database): void {
       hero.element,
       hero.role,
       hero.zodiac,
-      hero.created_at
+      hero.created_at,
     );
   }
 }
@@ -322,14 +344,15 @@ export function seedReferenceData(db: Database): void {
 ### API Integration
 
 **Game-Specific Routes**:
+
 ```typescript
 // /server/games/warframe/routes.ts
 import { Router } from 'express';
-import { 
-  getWorksheets, 
+import {
+  getWorksheets,
   createWorksheet,
   updateWorksheet,
-  deleteWorksheet 
+  deleteWorksheet,
 } from '@codex/game-warframe';
 
 const router = Router();
@@ -343,6 +366,7 @@ export default router;
 ```
 
 **Middleware Integration**:
+
 ```typescript
 // Game-specific middleware
 import { requireWarframeAccess } from './middleware';
@@ -379,6 +403,7 @@ router.use('/warframe/*', requireWarframeAccess);
 ### Example: Adding "Game X"
 
 **Step 1 - Create Package**:
+
 ```bash
 mkdir -p packages/games/gamex
 cd packages/games/gamex
@@ -388,6 +413,7 @@ pnpm init
 ```
 
 **Step 2 - Implement Schema**:
+
 ```typescript
 // packages/games/gamex/src/db/schema.ts
 export const schemaSql = `
@@ -404,28 +430,31 @@ CREATE TABLE gamex_items (
 ```
 
 **Step 3 - Add to Workspace**:
+
 ```yaml
 # pnpm-workspace.yaml
 packages:
   - 'packages/core'
   - 'packages/games/warframe'
   - 'packages/games/epic7'
-  - 'packages/games/gamex'  # Add new game
+  - 'packages/games/gamex' # Add new game
 ```
 
 **Step 4 - Update Root Package**:
+
 ```json
 {
   "dependencies": {
     "@codex/core": "workspace:*",
     "@codex/game-warframe": "workspace:*",
     "@codex/game-epic7": "workspace:*",
-    "@codex/game-gamex": "workspace:*"  // Add new game
+    "@codex/game-gamex": "workspace:*" // Add new game
   }
 }
 ```
 
 **Step 5 - Add Server Routes**:
+
 ```typescript
 // server/games/gamex/routes.ts
 import { Router } from 'express';
@@ -442,6 +471,7 @@ app.use('/api/gamex', gamexRouter);
 ```
 
 **Step 6 - Add Client Features**:
+
 ```typescript
 // client/features/gamex/GamexInventory.tsx
 export default function GamexInventory() {
@@ -457,12 +487,14 @@ export default function GamexInventory() {
 ### Warframe Business Rules
 
 **Inventory Validation**:
+
 - Weapon mastery tracking requires specific data points
 - Frame components must be tracked for crafting
 - Resource requirements validation
 - Trade eligibility rules
 
 **Sync Rules**:
+
 - Read-only access to Armory data
 - User modifications preserved during sync
 - Conflict resolution precedence
@@ -471,12 +503,14 @@ export default function GamexInventory() {
 ### Epic Seven Business Rules
 
 **Hero Progression Rules**:
+
 - Star promotion path: 3★ → 4★ → 5★ → 6★
 - Level cap by stars: 30 (3★), 40 (4★), 50 (5★), 60 (6★)
 - Awakening material requirements
 - Skill enhancement costs
 
 **Artifact Rules**:
+
 - Level cap: 85 for 5★ artifacts
 - Main stat types by slot
 - Substats generation rules

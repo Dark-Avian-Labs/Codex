@@ -9,6 +9,7 @@ Codex uses a comprehensive environment configuration system with support for enc
 ### File Hierarchy
 
 **Development vs Production**:
+
 ```
 .env.example          # Template with documentation
 .env                  # Plain development (optional)
@@ -18,6 +19,7 @@ Codex uses a comprehensive environment configuration system with support for enc
 ```
 
 **Configuration Priority**:
+
 1. System environment variables (highest priority)
 2. `.env` file (if exists)
 3. Encrypted `.env.development` or `.env.production` (based on NODE_ENV)
@@ -27,47 +29,47 @@ Codex uses a comprehensive environment configuration system with support for enc
 
 #### Required Variables
 
-| Variable | Description | Example | Validation |
-|----------|-------------|---------|------------|
-| `SESSION_SECRET` | Session encryption secret | `supersecretkeywithatleast32chars` | Min 32 chars |
-| `SESSION_DB_PATH` | Absolute path to session SQLite | `/var/lib/codex/session.db` | Must exist |
-| `ARMORY_DB_PATH` | Absolute path to Armory SQLite | `/var/lib/armory/armory.db` | Must exist |
-| `BASE_DOMAIN` | Apex domain for the application | `example.com` | Required |
-| `CLERK_SECRET_KEY` | Clerk secret key (production) | `sk_live_...` | Required in prod |
-| `CLERK_PUBLISHABLE_KEY` | Clerk publishable key | `pk_live_...` | Required |
+| Variable                | Description                     | Example                            | Validation       |
+| ----------------------- | ------------------------------- | ---------------------------------- | ---------------- |
+| `SESSION_SECRET`        | Session encryption secret       | `supersecretkeywithatleast32chars` | Min 32 chars     |
+| `SESSION_DB_PATH`       | Absolute path to session SQLite | `/var/lib/codex/session.db`        | Must exist       |
+| `ARMORY_DB_PATH`        | Absolute path to Armory SQLite  | `/var/lib/armory/armory.db`        | Must exist       |
+| `BASE_DOMAIN`           | Apex domain for the application | `example.com`                      | Required         |
+| `CLERK_SECRET_KEY`      | Clerk secret key (production)   | `sk_live_...`                      | Required in prod |
+| `CLERK_PUBLISHABLE_KEY` | Clerk publishable key           | `pk_live_...`                      | Required         |
 
 #### Optional Variables with Defaults
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `PORT` | `3001` | Server port |
-| `HOST` | `0.0.0.0` | Server bind address |
-| `NODE_ENV` | `development` | Environment mode |
-| `APP_ID` | `codex` | Application identifier |
-| `APP_SUBDOMAIN` | `APP_ID` | Public host subdomain |
-| `TRUST_PROXY` | `0` | Enable behind reverse proxy |
-| `SECURE_COOKIES` | `1` in production | Enable secure cookies |
-| `BASE_PROTOCOL` | `https` | `http` or `https` |
-| `SESSION_COOKIE_NAME` | `codex_session` | Session cookie name |
-| `COOKIE_DOMAIN` | Derived from BASE_DOMAIN | Cookie domain |
-| `ALLOWED_APP_ORIGINS` | `*` | CORS allowed origins |
+| Variable              | Default                  | Description                 |
+| --------------------- | ------------------------ | --------------------------- |
+| `PORT`                | `3001`                   | Server port                 |
+| `HOST`                | `0.0.0.0`                | Server bind address         |
+| `NODE_ENV`            | `development`            | Environment mode            |
+| `APP_ID`              | `codex`                  | Application identifier      |
+| `APP_SUBDOMAIN`       | `APP_ID`                 | Public host subdomain       |
+| `TRUST_PROXY`         | `0`                      | Enable behind reverse proxy |
+| `SECURE_COOKIES`      | `1` in production        | Enable secure cookies       |
+| `BASE_PROTOCOL`       | `https`                  | `http` or `https`           |
+| `SESSION_COOKIE_NAME` | `codex_session`          | Session cookie name         |
+| `COOKIE_DOMAIN`       | Derived from BASE_DOMAIN | Cookie domain               |
+| `ALLOWED_APP_ORIGINS` | `*`                      | CORS allowed origins        |
 
 #### Game Database Paths
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `WARFRAME_DB_PATH` | `./data/warframe.db` | Warframe database path |
-| `EPIC7_DB_PATH` | `./data/epic7.db` | Epic Seven database path |
+| Variable           | Default              | Description              |
+| ------------------ | -------------------- | ------------------------ |
+| `WARFRAME_DB_PATH` | `./data/warframe.db` | Warframe database path   |
+| `EPIC7_DB_PATH`    | `./data/epic7.db`    | Epic Seven database path |
 
-#### Client Variables (VITE_*)
+#### Client Variables (VITE\_\*)
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `VITE_CLERK_PUBLISHABLE_KEY` | Clerk publishable key for client | `pk_test_...` |
-| `VITE_APP_NAME` | Application name | `Codex` |
-| `VITE_APP_ID` | Application ID | `codex` |
-| `VITE_BASE_PATH` | Base URL path | `/` |
-| `VITE_API_BASE_URL` | API base URL | `https://codex.example.com/api` |
+| Variable                     | Description                      | Example                         |
+| ---------------------------- | -------------------------------- | ------------------------------- |
+| `VITE_CLERK_PUBLISHABLE_KEY` | Clerk publishable key for client | `pk_test_...`                   |
+| `VITE_APP_NAME`              | Application name                 | `Codex`                         |
+| `VITE_APP_ID`                | Application ID                   | `codex`                         |
+| `VITE_BASE_PATH`             | Base URL path                    | `/`                             |
+| `VITE_API_BASE_URL`          | API base URL                     | `https://codex.example.com/api` |
 
 ## dotenvx Encryption System
 
@@ -78,11 +80,13 @@ dotenvx provides encrypted environment files for secure configuration management
 ### Key Management
 
 **Key Storage**:
+
 - `.env.keys`: Local encryption key file (NEVER commit)
 - Environment variables: `DOTENV_PRIVATE_KEY_*`
 - Secret managers: Vault, AWS Secrets Manager, etc.
 
 **Key Naming Convention**:
+
 ```bash
 DOTENV_PRIVATE_KEY_DEVELOPMENT    # Development environment key
 DOTENV_PRIVATE_KEY_PRODUCTION     # Production environment key
@@ -91,6 +95,7 @@ DOTENV_PRIVATE_KEY_PRODUCTION     # Production environment key
 ### Encryption Workflow
 
 **Initial Setup**:
+
 ```bash
 # 1. Create plain .env file from template
 cp .env.example .env
@@ -106,6 +111,7 @@ pnpm dlx dotenvx encrypt -f .env -o .env.development
 ```
 
 **Development Usage**:
+
 ```bash
 # Method 1: Using dotenvx run (requires key in .env.keys)
 NODE_ENV=development pnpm dotenvx run -f .env.development -- node dist/server/index.js
@@ -116,6 +122,7 @@ NODE_ENV=development node dist/server/index.js
 ```
 
 **Production Usage**:
+
 ```bash
 # Key from environment variable
 export DOTENV_PRIVATE_KEY_PRODUCTION="your-production-key"
@@ -127,6 +134,7 @@ NODE_ENV=production pnpm dotenvx run -f .env.production -- node dist/server/inde
 ### Security Considerations
 
 **Key Rotation**:
+
 ```bash
 # Rotate encryption key
 pnpm dlx dotenvx rekey -f .env.development
@@ -138,6 +146,7 @@ pnpm dlx dotenvx rekey -f .env.development
 
 **Multi-Environment Security**:
 -## Use separate keys for development and production
+
 - Limit development key access
 - Production keys in secure secret manager
 - Regular key rotation schedule
@@ -147,13 +156,14 @@ pnpm dlx dotenvx rekey -f .env.development
 ### Server Configuration (`/server/config.ts`)
 
 **Configuration Loading**:
+
 ```typescript
 import { config } from '@dotenvx/dotenvx';
 
 // Load environment based on NODE_ENV
 config({
   path: `.env.${process.env.NODE_ENV || 'development'}`,
-  debug: process.env.NODE_ENV === 'development'
+  debug: process.env.NODE_ENV === 'development',
 });
 
 // Export validated configuration
@@ -177,42 +187,46 @@ if (!SESSION_DB_PATH) {
 ```
 
 **Derived Configuration**:
+
 ```typescript
 // Calculate derived values
-export const COOKIE_DOMAIN = process.env.COOKIE_DOMAIN 
+export const COOKIE_DOMAIN = process.env.COOKIE_DOMAIN
   ? `.${process.env.COOKIE_DOMAIN.replace(/^\./, '')}`
   : undefined;
 
-export const APP_PUBLIC_BASE_URL = process.env.APP_PUBLIC_BASE_URL 
-  || `${BASE_PROTOCOL}://${APP_SUBDOMAIN}.${BASE_DOMAIN}`;
+export const APP_PUBLIC_BASE_URL =
+  process.env.APP_PUBLIC_BASE_URL || `${BASE_PROTOCOL}://${APP_SUBDOMAIN}.${BASE_DOMAIN}`;
 
-export const SECURE_COOKIES = process.env.SECURE_COOKIES !== '0' 
-  && (NODE_ENV === 'production' || process.env.SECURE_COOKIES === '1');
+export const SECURE_COOKIES =
+  process.env.SECURE_COOKIES !== '0' &&
+  (NODE_ENV === 'production' || process.env.SECURE_COOKIES === '1');
 ```
 
 ### Client Configuration
 
 **Vite Environment Variables**:
+
 ```typescript
 // vite.config.ts
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-  
+
   return {
     define: {
       'import.meta.env.VITE_APP_NAME': JSON.stringify(
-        env.VITE_APP_NAME?.trim() || env.APP_NAME?.trim() || 'Codex'
+        env.VITE_APP_NAME?.trim() || env.APP_NAME?.trim() || 'Codex',
       ),
       'import.meta.env.VITE_APP_ID': JSON.stringify(
-        env.VITE_APP_ID?.trim() || env.APP_ID?.trim() || 'codex'
+        env.VITE_APP_ID?.trim() || env.APP_ID?.trim() || 'codex',
       ),
       'import.meta.env.VITE_APP_VERSION': JSON.stringify(appVersion),
-    }
+    },
   };
 });
 ```
 
 **Client-Side Access**:
+
 ```typescript
 // Access environment variables in client code
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -225,6 +239,7 @@ const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 ### Development Configuration
 
 **`.env.development` Example**:
+
 ```bash
 # Development-specific configuration
 NODE_ENV=development
@@ -261,6 +276,7 @@ SESSION_COOKIE_NAME=codex_session_dev
 ### Production Configuration
 
 **`.env.production` Example**:
+
 ```bash
 # Production configuration
 NODE_ENV=production
@@ -301,6 +317,7 @@ ALLOWED_APP_ORIGINS=https://codex.example.com
 ### CI/CD Configuration
 
 **GitHub CI Example** (`/.github/ci.env.development`):
+
 ```bash
 # CI environment template
 NODE_ENV=test
@@ -339,11 +356,13 @@ SESSION_COOKIE_NAME=codex_session_test
 ### Path Requirements
 
 **Absolute Paths Required**:
+
 - `SESSION_DB_PATH`: Must be absolute
 - `ARMORY_DB_PATH`: Must be absolute
 - Game database paths: Absolute recommended
 
 **Path Examples**:
+
 ```bash
 # Linux/macOS
 SESSION_DB_PATH=/var/lib/codex/session.db
@@ -358,17 +377,18 @@ SESSION_DB_PATH=/data/session.db
 ### Shared Database Deployment
 
 **Multi-Service Database Sharing**:
+
 ```bash
 # Armory and Codex sharing database volume
 # docker-compose.yml
 volumes:
   armory-data:
-  
+
 services:
   armory:
     volumes:
       - armory-data:/var/lib/armory
-      
+
   codex:
     volumes:
       - armory-data:/var/lib/armory:ro  # Read-only mount
@@ -377,6 +397,7 @@ services:
 ```
 
 **Permission Considerations**:
+
 ```bash
 # Set appropriate permissions
 chown -R codex:codex /var/lib/codex
@@ -389,6 +410,7 @@ chmod 640 /var/lib/codex/*.db
 ### Clerk Authentication
 
 **Key Configuration**:
+
 ```bash
 # Development placeholders (cause 500 errors but allow startup)
 CLERK_SECRET_KEY=sk_test_placeholder
@@ -400,6 +422,7 @@ CLERK_PUBLISHABLE_KEY=pk_live_abcdef1234567890
 ```
 
 **Placeholder Key Issues**:
+
 - Clerk middleware throws 500 on all routes with placeholder keys
 - Server starts successfully
 - Authentication-dependent endpoints fail
@@ -408,6 +431,7 @@ CLERK_PUBLISHABLE_KEY=pk_live_abcdef1234567890
 ### Session Security
 
 **Secret Requirements**:
+
 ```bash
 # Minimum 32 characters
 SESSION_SECRET=this_is_a_very_long_secret_with_at_least_32_chars
@@ -417,15 +441,16 @@ openssl rand -base64 32
 ```
 
 **Cookie Configuration**:
+
 ```typescript
 const sessionConfig = {
   cookie: {
-    httpOnly: true,      // Prevent JavaScript access
+    httpOnly: true, // Prevent JavaScript access
     secure: SECURE_COOKIES, // HTTPS only in production
-    sameSite: 'lax',     // CSRF protection
+    sameSite: 'lax', // CSRF protection
     domain: COOKIE_DOMAIN,
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
-  }
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+  },
 };
 ```
 
@@ -434,6 +459,7 @@ const sessionConfig = {
 ### Preflight Checks (`/scripts/runtime-preflight.mjs`)
 
 **Validation Steps**:
+
 1. Node.js version check (>= 26)
 2. pnpm version check (>= 11)
 3. better-sqlite3 native bindings check
@@ -441,6 +467,7 @@ const sessionConfig = {
 5. Database path validation
 
 **Usage**:
+
 ```bash
 # Manual validation
 node scripts/runtime-preflight.mjs
@@ -452,6 +479,7 @@ pnpm run validate  # includes preflight
 ### Server Startup Validation
 
 **Configuration Validation** (`/server/config.ts`):
+
 ```typescript
 // Validate on server import
 if (!SESSION_SECRET || SESSION_SECRET.length < 32) {
@@ -470,11 +498,12 @@ if (NODE_ENV === 'production') {
 ```
 
 **Database Validation** (`/server/index.ts`):
+
 ```typescript
 function ensureGameSchemasReady(): void {
   const warframeDb = getWarframeDb();
   const epic7Db = getEpic7Db();
-  
+
   // Check required tables exist
   assertTableExists(warframeDb, 'worksheets');
   assertTableExists(epic7Db, 'game_accounts');
@@ -487,6 +516,7 @@ function ensureGameSchemasReady(): void {
 ### Common Configuration Issues
 
 **Database Path Errors**:
+
 ```bash
 # Error: Database path must be absolute
 SESSION_DB_PATH=./data/session.db  # Wrong
@@ -498,6 +528,7 @@ pnpm run db:init
 ```
 
 **Clerk Authentication Errors**:
+
 ```bash
 # Error: 500 on all routes with placeholder keys
 # Expected behavior - use real keys or accept 500s in dev
@@ -505,6 +536,7 @@ pnpm run db:init
 ```
 
 **Environment Loading Issues**:
+
 ```bash
 # dotenvx decrypt fails
 # Check .env.keys file exists
@@ -518,6 +550,7 @@ pnpm run db:init
 ### Debug Commands
 
 **Environment Inspection**:
+
 ```bash
 # Check loaded environment variables
 node -e "console.log(process.env.NODE_ENV)"
@@ -528,6 +561,7 @@ pnpm dlx dotenvx status -f .env.development
 ```
 
 **Configuration Validation**:
+
 ```bash
 # Run preflight checks
 node scripts/runtime-preflight.mjs
