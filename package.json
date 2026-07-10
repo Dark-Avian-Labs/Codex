@@ -7,14 +7,16 @@
   "workspaces": [
     "packages/core",
     "packages/games/warframe",
-    "packages/games/epic7"
+    "packages/games/epic7",
+    "packages/games/wor"
   ],
   "type": "module",
   "scripts": {
     "typecheck": "pnpm run typecheck:server && pnpm run typecheck:client",
-    "typecheck:server": "pnpm --filter @codex/core --filter @codex/game-warframe --filter @codex/game-epic7 run --if-present build && tsc -p tsconfig.server.json --noEmit",
+    "typecheck:server": "pnpm --filter @codex/core --filter @codex/game-warframe --filter @codex/game-epic7 --filter @codex/game-wor run --if-present build && tsc -p tsconfig.server.json --noEmit",
     "typecheck:client": "tsc -p tsconfig.json --noEmit",
-    "build": "pnpm --filter @codex/core --filter @codex/game-warframe --filter @codex/game-epic7 run --if-present build && pnpm run typecheck && tsc -p tsconfig.server.json && vite build",
+    "build": "pnpm --filter @codex/core --filter @codex/game-warframe --filter @codex/game-epic7 --filter @codex/game-wor run --if-present build && pnpm run typecheck && tsc -p tsconfig.server.json && vite build",
+    "wor:import": "node scripts/wor-import.mjs",
     "start": "node dist/server/index.js",
     "db:init": "node scripts/db-init.mjs",
     "validate": "node run-quality-checks.mjs",
@@ -32,6 +34,7 @@
     "@codex/core": "workspace:*",
     "@codex/game-epic7": "workspace:*",
     "@codex/game-warframe": "workspace:*",
+    "@codex/game-wor": "workspace:*",
     "@dotenvx/dotenvx": "catalog:",
     "@fontsource-variable/cascadia-mono": "catalog:",
     "@fontsource-variable/geist": "catalog:",

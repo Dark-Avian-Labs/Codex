@@ -26,12 +26,14 @@ const lazyNamed = <TModule extends Record<string, unknown>>(
 const HomePage = lazyNamed(() => import('../features/selector/HomePage'), 'HomePage');
 const WarframePage = lazyNamed(() => import('../features/warframe/WarframePage'), 'WarframePage');
 const Epic7Page = lazyNamed(() => import('../features/epic7/Epic7Page'), 'Epic7Page');
+const WorPage = lazyNamed(() => import('../features/wor/WorPage'), 'WorPage');
 const LegalPage = lazyNamed(() => import('../features/legal/LegalPage'), 'LegalPage');
 const AdminPage = lazyNamed(() => import('../features/admin/AdminPage'), 'AdminPage');
 const WarframeAdminPage = lazyNamed(
   () => import('../features/admin/WarframeAdminPage'),
   'WarframeAdminPage',
 );
+const WorAdminPage = lazyNamed(() => import('../features/admin/WorAdminPage'), 'WorAdminPage');
 const NotFoundPage = lazyNamed(() => import('../features/not-found/NotFoundPage'), 'NotFoundPage');
 const CodexLandingPage = lazyNamed(
   () => import('../features/auth/CodexLandingPage'),
@@ -141,6 +143,14 @@ export function AppRoutes() {
               }
             />
             <Route
+              path={APP_PATHS.wor}
+              element={
+                <RequireAuth>
+                  <WorPage />
+                </RequireAuth>
+              }
+            />
+            <Route
               path={APP_PATHS.epic7Admin}
               element={
                 <RequireAuth>
@@ -153,6 +163,14 @@ export function AppRoutes() {
               element={
                 <RequireAuth>
                   <WarframeAdminPage />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path={APP_PATHS.worAdmin}
+              element={
+                <RequireAuth>
+                  <WorAdminPage />
                 </RequireAuth>
               }
             />

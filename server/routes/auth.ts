@@ -11,7 +11,7 @@ import { ensureSessionBoundToClerkUser } from '../session/epic7SessionBinding.js
 
 export const authRouter = Router();
 
-const FALLBACK_CODEX_GAMES = ['warframe', 'epic7'] as const;
+const FALLBACK_CODEX_GAMES = ['warframe', 'epic7', 'wor'] as const;
 const CODEX_GAMES = REGISTRY_CODEX_GAMES.length > 0 ? REGISTRY_CODEX_GAMES : FALLBACK_CODEX_GAMES;
 
 authRouter.get('/csrf', (_req, res) => {

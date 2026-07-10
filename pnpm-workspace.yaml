@@ -2,6 +2,7 @@ packages:
   - packages/core
   - packages/games/warframe
   - packages/games/epic7
+  - packages/games/wor
 allowBuilds:
   '@clerk/shared': true
   better-sqlite3: true

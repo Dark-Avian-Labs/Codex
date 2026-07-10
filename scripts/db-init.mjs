@@ -82,17 +82,20 @@ process.env.DATA_DIR = process.env.DATA_DIR?.trim() || path.join(root, 'data');
 
 const warframeDbPath = resolveGameDbPath('WARFRAME_DB_PATH', 'warframe.db');
 const epic7DbPath = resolveGameDbPath('EPIC7_DB_PATH', 'epic7.db');
+const worDbPath = resolveGameDbPath('WOR_DB_PATH', 'wor.db');
 process.env.WARFRAME_DB_PATH = warframeDbPath;
 process.env.EPIC7_DB_PATH = epic7DbPath;
+process.env.WOR_DB_PATH = worDbPath;
 
 const coreDist = path.join(root, 'packages/core/dist/db/sqlitePragmas.js');
 const warframeDist = path.join(root, 'packages/games/warframe/dist/db/schema.js');
 const epic7Dist = path.join(root, 'packages/games/epic7/dist/db/schema.js');
+const worDist = path.join(root, 'packages/games/wor/dist/db/schema.js');
 
-for (const file of [coreDist, warframeDist, epic7Dist]) {
+for (const file of [coreDist, warframeDist, epic7Dist, worDist]) {
   if (!fs.existsSync(file)) {
     console.error(
-      `[db:init] Missing ${file}. Run: pnpm --filter @codex/core --filter @codex/game-warframe --filter @codex/game-epic7 run build`,
+      `[db:init] Missing ${file}. Run: pnpm --filter @codex/core --filter @codex/game-warframe --filter @codex/game-epic7 --filter @codex/game-wor run build`,
     );
     process.exit(1);
   }
@@ -101,6 +104,7 @@ for (const file of [coreDist, warframeDist, epic7Dist]) {
 const { DEFAULT_SQLITE_PRAGMAS } = await importBuilt(coreDist);
 const warframeSchema = await importBuilt(warframeDist);
 const epic7Schema = await importBuilt(epic7Dist);
+const worSchema = await importBuilt(worDist);
 
 const {
   ensureWarframeCoreTables,
@@ -114,6 +118,7 @@ const {
 } = warframeSchema;
 
 const { ensureEpic7CoreTables, ensureUniqueBaseNameIndexes } = epic7Schema;
+const { ensureWorCoreTables, ensureSingleActiveAccountIndex } = worSchema;
 
 initDatabase(warframeDbPath, 'warframe', (db) => {
   applyDefaultPragmas(db, DEFAULT_SQLITE_PRAGMAS);
@@ -131,4 +136,10 @@ initDatabase(epic7DbPath, 'epic7', (db) => {
   applyDefaultPragmas(db, DEFAULT_SQLITE_PRAGMAS);
   ensureEpic7CoreTables(db);
   ensureUniqueBaseNameIndexes(db);
+});
+
+initDatabase(worDbPath, 'wor', (db) => {
+  applyDefaultPragmas(db, DEFAULT_SQLITE_PRAGMAS);
+  ensureWorCoreTables(db);
+  ensureSingleActiveAccountIndex(db);
 });

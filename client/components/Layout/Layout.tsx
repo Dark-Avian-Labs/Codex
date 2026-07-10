@@ -69,12 +69,21 @@ export function Layout() {
   }, [menuItemIds]);
   const isWarframeRoute = location.pathname.startsWith(APP_PATHS.warframe);
   const isEpic7Route = location.pathname.startsWith(APP_PATHS.epic7);
+  const isWorRoute = location.pathname.startsWith(APP_PATHS.wor);
   const adminPath = isWarframeRoute
     ? APP_PATHS.warframeAdmin
     : isEpic7Route
       ? APP_PATHS.epic7Admin
-      : APP_PATHS.admin;
-  const brandTitle = isWarframeRoute ? 'Warframe' : isEpic7Route ? 'Epic7' : '';
+      : isWorRoute
+        ? APP_PATHS.worAdmin
+        : APP_PATHS.admin;
+  const brandTitle = isWarframeRoute
+    ? 'Warframe'
+    : isEpic7Route
+      ? 'Epic7'
+      : isWorRoute
+        ? 'WoR'
+        : '';
   const baseTitle = APP_DISPLAY_NAME;
   const setMenuItemRef = (id: string) => (node: HTMLElement | null) => {
     menuItemNodeMap.current[id] = node;
@@ -171,6 +180,8 @@ export function Layout() {
     } else if (path.startsWith(APP_PATHS.epic7)) {
       document.title = 'Codex - Epic7';
       faviconHref = epic7Favicon;
+    } else if (path.startsWith(APP_PATHS.wor)) {
+      document.title = 'Codex - WoR';
     } else {
       document.title = 'Codex';
     }

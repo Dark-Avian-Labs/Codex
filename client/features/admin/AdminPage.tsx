@@ -238,7 +238,7 @@ export function AdminPage() {
 
   if (!isAdmin) {
     return (
-      <section className="rounded-2xl border border-[var(--color-glass-border)] bg-[var(--color-glass)] p-6">
+      <section className="glass-shell rounded-2xl p-6">
         <h1 className="mb-2 text-2xl font-semibold">Admin</h1>
         <p className="text-muted text-sm">Admin access is required.</p>
       </section>
@@ -246,7 +246,7 @@ export function AdminPage() {
   }
 
   return (
-    <section className="space-y-4">
+    <section className="glass-shell space-y-4 rounded-2xl p-6">
       <h1 className="text-2xl font-semibold">Epic7 Admin: Base Tables</h1>
       {error ? (
         <p className="text-danger text-sm" role="alert">
