@@ -15,10 +15,11 @@ Codex is built as a **pnpm workspace monorepo**, which allows for clear separati
     - 'packages/core'
     - 'packages/games/warframe'
     - 'packages/games/epic7'
+    - 'packages/games/wor'
   ```
 
 - **Root `package.json`**: Main application dependencies and scripts
-  - Workspace references: `@codex/core`, `@codex/game-warframe`, `@codex/game-epic7`
+  - Workspace references: `@codex/core`, `@codex/game-warframe`, `@codex/game-epic7`, `@codex/game-wor`
   - Build script builds workspace packages first, then main app
   - Type checking spans workspace packages and main app
 
@@ -29,6 +30,7 @@ codex (root)
 ├── @codex/core (shared infrastructure)
 ├── @codex/game-warframe (depends on core)
 ├── @codex/game-epic7 (depends on core)
+├── @codex/game-wor (depends on core)
 └── main application (depends on all packages)
 ```
 

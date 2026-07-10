@@ -6,6 +6,7 @@
 
 - **Warframe**: Inventory tracking backed by data synced from Armory
 - **Epic Seven**: Collection tracking with manually curated lists
+- **Watcher of Realms (WoR)**: Hero, artifact, and demon collection tracking with catalog import pipeline
 
 The application features a modern React frontend, Express.js backend with comprehensive security, Clerk authentication, and SQLite database storage with per-game isolation.
 
@@ -33,7 +34,8 @@ The application features a modern React frontend, Express.js backend with compre
 │   ├── core/                # Shared auth, session, DB, middleware
 │   └── games/               # Game-specific implementations
 │       ├── warframe/        # Warframe inventory tracking
-│       └── epic7/           # Epic Seven collection tracking
+│       ├── epic7/           # Epic Seven collection tracking
+│       └── wor/             # Watcher of Realms collection tracking
 ├── shared/                  # TypeScript types shared between client/server
 ├── tests/                   # Test files and helpers
 └── scripts/                 # Build and utility scripts
