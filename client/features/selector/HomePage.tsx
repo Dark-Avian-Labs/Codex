@@ -6,6 +6,7 @@ import { GlassCard } from '../../components/ui/GlassCard';
 
 const warframeStyle = { '--color-accent': '#ea580c' } as CSSProperties;
 const epic7Style = { '--color-accent': '#a855f7' } as CSSProperties;
+const worStyle = { '--color-accent': '#0ea5e9' } as CSSProperties;
 
 export function HomePage() {
   return (
@@ -16,7 +17,7 @@ export function HomePage() {
           Select a game workspace to manage your collection and progress.
         </p>
       </GlassCard>
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Link to={APP_PATHS.warframe} className="game-card" style={warframeStyle}>
           <h2>Warframe</h2>
           <p>Track worksheet status and completion.</p>
@@ -24,6 +25,10 @@ export function HomePage() {
         <Link to={APP_PATHS.epic7} className="game-card" style={epic7Style}>
           <h2>Epic Seven</h2>
           <p>Manage heroes, artifacts, and accounts.</p>
+        </Link>
+        <Link to={APP_PATHS.wor} className="game-card" style={worStyle}>
+          <h2>Watcher of Realms</h2>
+          <p>Track heroes, artifacts, and demons.</p>
         </Link>
       </div>
     </div>

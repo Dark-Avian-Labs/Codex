@@ -58,7 +58,7 @@ export const DATA_DIR = path.join(PROJECT_ROOT, 'data');
 process.env.DATA_DIR = DATA_DIR;
 
 function resolveGameDbEnvPath(
-  envKey: 'WARFRAME_DB_PATH' | 'EPIC7_DB_PATH',
+  envKey: 'WARFRAME_DB_PATH' | 'EPIC7_DB_PATH' | 'WOR_DB_PATH',
   defaultFilename: string,
 ): string {
   const raw = process.env[envKey]?.trim();
@@ -74,6 +74,25 @@ function resolveGameDbEnvPath(
 
 export const WARFRAME_DB_PATH = resolveGameDbEnvPath('WARFRAME_DB_PATH', 'warframe.db');
 export const EPIC7_DB_PATH = resolveGameDbEnvPath('EPIC7_DB_PATH', 'epic7.db');
+export const WOR_DB_PATH = resolveGameDbEnvPath('WOR_DB_PATH', 'wor.db');
+
+function resolveWorImagesDir(): string {
+  const raw = process.env.WOR_IMAGES_DIR?.trim();
+  const resolved = raw
+    ? path.isAbsolute(raw)
+      ? raw
+      : path.resolve(PROJECT_ROOT, raw)
+    : path.join(DATA_DIR, 'wor-images');
+  const dataDirResolved = path.resolve(DATA_DIR);
+  const relative = path.relative(dataDirResolved, path.resolve(resolved));
+  if (relative.startsWith('..') || path.isAbsolute(relative)) {
+    throw new Error('WOR_IMAGES_DIR must resolve inside DATA_DIR.');
+  }
+  process.env.WOR_IMAGES_DIR = resolved;
+  return resolved;
+}
+
+export const WOR_IMAGES_DIR = resolveWorImagesDir();
 
 function resolveSessionDbPath(): string {
   const session = process.env.SESSION_DB_PATH?.trim();
@@ -189,6 +208,8 @@ export function ensureDataDirs(): void {
   fs.mkdirSync(path.dirname(ARMORY_DB_PATH), { recursive: true });
   fs.mkdirSync(path.dirname(WARFRAME_DB_PATH), { recursive: true });
   fs.mkdirSync(path.dirname(EPIC7_DB_PATH), { recursive: true });
+  fs.mkdirSync(path.dirname(WOR_DB_PATH), { recursive: true });
+  fs.mkdirSync(WOR_IMAGES_DIR, { recursive: true });
 }
 
 ensureDataDirs();

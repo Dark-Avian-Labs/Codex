@@ -13,6 +13,7 @@ import {
 } from '@codex/core';
 import { closeEpic7Db, getEpic7Db } from '@codex/game-epic7';
 import { closeWarframeDb, getWarframeDb } from '@codex/game-warframe';
+import { closeWorDb, getWorDb } from '@codex/game-wor';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import { csrfSync } from 'csrf-sync';
@@ -35,14 +36,17 @@ import {
   SESSION_COOKIE_NAME,
   SESSION_SECRET,
   TRUST_PROXY,
+  WOR_IMAGES_DIR,
 } from './config.js';
 import { ensureSessionSchema } from './db/sessionSchema.js';
 import { refreshEpic7DbAvailability } from './epic7DbState.js';
 import { getRequestId, requestIdMiddleware } from './http/requestId.js';
+import { catalogNeedsImport, runWorStartupPipeline } from './import/wor/startupPipeline.js';
 import { healthzHandler, readyzHandler } from './probes.js';
 import { apiRouter } from './routes/api.js';
 import { authRouter } from './routes/auth.js';
 import { waitForWarframeSyncIdle } from './services/warframeSyncState.js';
+import { refreshWorDbAvailability } from './worDbState.js';
 
 const require = createRequire(import.meta.url);
 const SQLiteStore = require('better-sqlite3-session-store')(session);
@@ -84,9 +88,31 @@ function ensureGameSchemasReady(): void {
   assertTableExists(epic7Db, 'base_artifacts');
   assertTableExists(epic7Db, 'account_heroes');
   assertTableExists(epic7Db, 'account_artifacts');
+
+  const worDb = getWorDb();
+  assertTableExists(worDb, 'game_accounts');
+  assertTableExists(worDb, 'catalog_heroes');
+  assertTableExists(worDb, 'catalog_artifacts');
+  assertTableExists(worDb, 'catalog_demons');
+  assertTableExists(worDb, 'account_heroes');
+  assertTableExists(worDb, 'account_artifacts');
+  assertTableExists(worDb, 'account_demons');
 }
 ensureGameSchemasReady();
 void refreshEpic7DbAvailability();
+void refreshWorDbAvailability().then(async () => {
+  try {
+    const db = getWorDb();
+    if (catalogNeedsImport(db)) {
+      log('info', 'WoR catalog empty — running fixture bootstrap import');
+      await runWorStartupPipeline();
+    }
+  } catch (error) {
+    log('error', 'WoR startup catalog bootstrap failed', {
+      err: error instanceof Error ? error.message : String(error),
+    });
+  }
+});
 
 const app = express();
 if (TRUST_PROXY) app.set('trust proxy', 1);
@@ -115,8 +141,10 @@ const RATE_LIMIT_SKIP_PATHS = new Set([
   '/admin',
   '/warframe/admin',
   '/epic7/admin',
+  '/wor/admin',
   '/warframe',
   '/epic7',
+  '/wor',
   '/',
   '/auth/login',
   '/auth/profile',
@@ -294,6 +322,13 @@ const staticAssetLimiter = createRateLimiter(STATIC_ASSET_RATE_LIMIT_MAX);
 const clientDir = path.join(PROJECT_ROOT, 'dist', 'client');
 const clientIndexPath = path.join(clientDir, 'index.html');
 app.use(
+  '/wor-images',
+  staticAssetLimiter,
+  express.static(WOR_IMAGES_DIR, {
+    maxAge: '7d',
+  }),
+);
+app.use(
   '/assets',
   staticAssetLimiter,
   express.static(path.join(clientDir, 'assets'), {
@@ -325,6 +360,9 @@ app.get('/warframe/admin', publicPageLimiter, (_req, res) => {
 app.get('/epic7/admin', publicPageLimiter, (_req, res) => {
   res.sendFile(clientIndexPath);
 });
+app.get('/wor/admin', publicPageLimiter, (_req, res) => {
+  res.sendFile(clientIndexPath);
+});
 app.get('/sign-in', publicPageLimiter, (_req, res) => {
   res.sendFile(clientIndexPath);
 });
@@ -341,6 +379,9 @@ app.get('/warframe', publicPageLimiter, (_req, res) => {
   res.sendFile(clientIndexPath);
 });
 app.get('/epic7', publicPageLimiter, (_req, res) => {
+  res.sendFile(clientIndexPath);
+});
+app.get('/wor', publicPageLimiter, (_req, res) => {
   res.sendFile(clientIndexPath);
 });
 app.get('/', publicPageLimiter, (_req, res) => {
@@ -403,6 +444,7 @@ function shutdown(): void {
       closeSessionDb();
       closeWarframeDb();
       closeEpic7Db();
+      closeWorDb();
     } catch (err) {
       log('error', 'Failed to close DB connections during shutdown', {
         err: err instanceof Error ? err.message : String(err),

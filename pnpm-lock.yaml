@@ -154,6 +154,9 @@ importers:
       '@codex/game-warframe':
         specifier: workspace:*
         version: link:packages/games/warframe
+      '@codex/game-wor':
+        specifier: workspace:*
+        version: link:packages/games/wor
       '@dotenvx/dotenvx':
         specifier: 'catalog:'
         version: 2.3.2
@@ -360,6 +363,31 @@ importers:
         version: 7.0.2
 
   packages/games/warframe:
+    dependencies:
+      '@codex/core':
+        specifier: workspace:*
+        version: link:../../core
+      better-sqlite3:
+        specifier: 'catalog:'
+        version: 12.11.1
+      express:
+        specifier: 'catalog:'
+        version: 5.2.1
+    devDependencies:
+      '@types/better-sqlite3':
+        specifier: 'catalog:'
+        version: 7.6.13
+      '@types/express':
+        specifier: 'catalog:'
+        version: 5.0.6
+      '@types/node':
+        specifier: 'catalog:'
+        version: 26.1.1
+      typescript:
+        specifier: 'catalog:'
+        version: 7.0.2
+
+  packages/games/wor:
     dependencies:
       '@codex/core':
         specifier: workspace:*

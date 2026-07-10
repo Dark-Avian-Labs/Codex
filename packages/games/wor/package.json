@@ -1,0 +1,40 @@
+{
+  "name": "@codex/game-wor",
+  "version": "1.0.0",
+  "description": "Codex Watcher of Realms game module",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./constants": {
+      "import": "./dist/constants.js",
+      "types": "./dist/constants.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "lint": "oxlint .",
+    "format": "oxfmt --write .",
+    "check-format": "oxfmt --check ."
+  },
+  "dependencies": {
+    "@codex/core": "workspace:*",
+    "better-sqlite3": "catalog:",
+    "express": "catalog:"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "catalog:",
+    "@types/express": "catalog:",
+    "@types/node": "catalog:",
+    "typescript": "catalog:"
+  },
+  "engines": {
+    "node": ">=26.0.0",
+    "pnpm": ">=10.0.0"
+  }
+}

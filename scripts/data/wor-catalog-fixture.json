@@ -1,0 +1,63 @@
+{
+  "heroes": [
+    {
+      "slug": "valeria",
+      "name": "Valeria",
+      "class": "marksman",
+      "faction": "watchguard",
+      "rarity": "legendary",
+      "display_order": 1,
+      "reference_tier": "S"
+    },
+    {
+      "slug": "arwyn",
+      "name": "Arwyn",
+      "class": "fighter",
+      "faction": "north_throne",
+      "rarity": "epic",
+      "display_order": 2,
+      "reference_tier": "A"
+    },
+    {
+      "slug": "thorne",
+      "name": "Thorne",
+      "class": "defender",
+      "faction": "watchguard",
+      "rarity": "rare",
+      "display_order": 3
+    }
+  ],
+  "artifacts": [
+    {
+      "slug": "blade-of-dawn",
+      "name": "Blade of Dawn",
+      "rarity": "legendary",
+      "display_order": 1,
+      "reference_tier": "S"
+    },
+    {
+      "slug": "wardens-shield",
+      "name": "Warden's Shield",
+      "rarity": "epic",
+      "display_order": 2
+    }
+  ],
+  "demons": [
+    {
+      "slug": "emberfiend",
+      "name": "Emberfiend",
+      "rarity": "epic",
+      "faction_group": "infernal",
+      "max_level": 6,
+      "display_order": 1
+    },
+    {
+      "slug": "frost-wraith",
+      "name": "Frost Wraith",
+      "rarity": "rare",
+      "faction_group": "chaos",
+      "max_level": 5,
+      "display_order": 2
+    }
+  ]
+}

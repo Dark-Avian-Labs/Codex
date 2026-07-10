@@ -15,6 +15,7 @@ import { Modal } from '../../components/ui/Modal';
 import { apiFetch } from '../../utils/api';
 import { useAuth } from '../auth/AuthContext';
 import { TAB_ORDER as WORKSHEET_ORDER, WORKSHEET_LABELS } from '../warframe/warframeConstants.js';
+import { WarframeSyncAdminTool } from './WarframeSyncAdminTool';
 
 const NAME_PREVIEW_LIMIT = 10;
 
@@ -292,7 +293,7 @@ function cellDisplay(
 
 export function WarframeAdminPage() {
   const { auth } = useAuth();
-  const { setHeaderCenter, setHeaderActions } = useLayoutSlots();
+  const { setHeaderCenter } = useLayoutSlots();
   const isAdmin = auth.status === 'ok' && auth.isCodexAdmin;
   const [worksheets, setWorksheets] = useState<Worksheet[]>([]);
   const [worksheetId, setWorksheetId] = useState<number | null>(null);
@@ -300,7 +301,6 @@ export function WarframeAdminPage() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [loadingData, setLoadingData] = useState(false);
-  const [runningSync, setRunningSync] = useState(false);
   const [syncReportOpen, setSyncReportOpen] = useState(false);
   const [lastSyncReport, setLastSyncReport] = useState<SyncResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -310,7 +310,6 @@ export function WarframeAdminPage() {
     {},
   );
   const mountedRef = useRef(true);
-  const syncAbortRef = useRef<AbortController | null>(null);
   const worksheetIdRef = useRef<number | null>(null);
   const dataLoadGenerationRef = useRef(0);
 
@@ -322,7 +321,6 @@ export function WarframeAdminPage() {
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
-      syncAbortRef.current?.abort();
     };
   }, []);
 
@@ -431,96 +429,13 @@ export function WarframeAdminPage() {
     setLastSyncReport(null);
   }, []);
 
-  const handleSync = useCallback(async (): Promise<void> => {
-    syncAbortRef.current?.abort();
-    const controller = new AbortController();
-    syncAbortRef.current = controller;
-    setRunningSync(true);
-    setError(null);
-    try {
-      const response = await apiFetch('/api/warframe/admin/sync-source', {
-        method: 'POST',
-        signal: controller.signal,
-      });
-      const body = (await response.json().catch(() => null)) as
-        | SyncResult
-        | { error?: string; runId?: number; pollUrl?: string }
-        | null;
-      if (!response.ok || (body && 'error' in body && body.error)) {
-        throw new Error((body && 'error' in body && body.error) || 'Failed to run sync');
-      }
-
-      if (response.status === 202 && body && 'runId' in body && typeof body.runId === 'number') {
-        const pollUrl =
-          typeof body.pollUrl === 'string'
-            ? body.pollUrl
-            : `/api/warframe/admin/sync/runs/${body.runId}`;
-        const deadline = Date.now() + 30 * 60 * 1000;
-        let result: SyncResult | null = null;
-        while (Date.now() < deadline) {
-          if (controller.signal.aborted || !mountedRef.current) {
-            return;
-          }
-          await new Promise((resolve) => setTimeout(resolve, 1500));
-          if (controller.signal.aborted || !mountedRef.current) {
-            return;
-          }
-          const pollRes = await apiFetch(pollUrl, { signal: controller.signal });
-          const pollBody = (await pollRes.json().catch(() => null)) as {
-            status?: string;
-            summary?: SyncResult | null;
-            error?: string | null;
-          } | null;
-          if (!pollRes.ok || !pollBody) {
-            throw new Error('Failed to poll sync status');
-          }
-          if (pollBody.status === 'failed') {
-            throw new Error(pollBody.error || 'Sync failed');
-          }
-          if (pollBody.status === 'succeeded' && pollBody.summary) {
-            result = pollBody.summary;
-            break;
-          }
-        }
-        if (controller.signal.aborted || !mountedRef.current) {
-          return;
-        }
-        if (!result) {
-          throw new Error('Sync timed out while waiting for completion');
-        }
-        setSummary(result.summary ?? null);
-        setCleanup(result.cleanup ?? null);
-        setLastSyncReport(result);
-        setSyncReportOpen(true);
-      } else {
-        if (controller.signal.aborted || !mountedRef.current) {
-          return;
-        }
-        const result = body as SyncResult;
-        setSummary(result.summary ?? null);
-        setCleanup(result.cleanup ?? null);
-        setLastSyncReport(result);
-        setSyncReportOpen(true);
-      }
-      if (controller.signal.aborted || !mountedRef.current) {
-        return;
-      }
-      await loadWorksheets();
-      const currentWorksheetId = worksheetIdRef.current;
-      if (currentWorksheetId !== null) {
-        await loadWorksheetData(currentWorksheetId);
-      }
-      await loadPreview();
-    } catch (err) {
-      if (controller.signal.aborted || !mountedRef.current) {
-        return;
-      }
-      setError(err instanceof Error ? err.message : 'Failed to run sync');
-    } finally {
-      if (mountedRef.current && !controller.signal.aborted) {
-        setRunningSync(false);
-      }
+  const handleSyncComplete = useCallback(async (): Promise<void> => {
+    await loadWorksheets();
+    const currentWorksheetId = worksheetIdRef.current;
+    if (currentWorksheetId !== null) {
+      await loadWorksheetData(currentWorksheetId);
     }
+    await loadPreview();
   }, [loadPreview, loadWorksheetData, loadWorksheets]);
 
   useEffect(() => {
@@ -554,22 +469,6 @@ export function WarframeAdminPage() {
     };
   }, [search, setHeaderCenter]);
 
-  useEffect(() => {
-    setHeaderActions(
-      <button
-        type="button"
-        className="header-link"
-        onClick={() => void handleSync()}
-        disabled={runningSync}
-      >
-        {runningSync ? 'Syncing...' : 'Sync From Armory'}
-      </button>,
-    );
-    return () => {
-      setHeaderActions(null);
-    };
-  }, [handleSync, runningSync, setHeaderActions]);
-
   if (!isAdmin) {
     return (
       <section className="rounded-2xl border border-[var(--color-glass-border)] bg-[var(--color-glass)] p-6">
@@ -596,8 +495,17 @@ export function WarframeAdminPage() {
       />
       <h1 className="text-2xl font-semibold">Warframe Admin</h1>
       <p className="text-muted text-sm">
-        Opening this page loads a preview only. Import runs from the header action button.
+        Preview worksheet sync impact below. Run the import from the sync tool panel.
       </p>
+      <WarframeSyncAdminTool
+        onSyncComplete={async (result) => {
+          setSummary(result.summary ?? null);
+          setCleanup(result.cleanup ?? null);
+          setLastSyncReport(result);
+          setSyncReportOpen(true);
+          await handleSyncComplete();
+        }}
+      />
       {error ? (
         <p className="text-danger text-sm" role="alert">
           {error}
