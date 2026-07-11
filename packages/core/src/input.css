@@ -1828,6 +1828,14 @@ html:not(.dark) .invert-on-light {
     vertical-align: middle;
   }
 
+  .wor-completed-row {
+    background: color-mix(in oklab, var(--color-success) 12%, transparent);
+  }
+
+  .wor-completed-row:hover {
+    background: color-mix(in oklab, var(--color-success) 18%, transparent);
+  }
+
   .stars-cell {
     text-align: left;
     width: 200px;

@@ -91,6 +91,24 @@ for (const [assetPath, src] of Object.entries(ICON_MODULES)) {
 }
 
 const tableScrollStyle = { '--header-offset': '340px' } as CSSProperties;
+const HIDE_COMPLETED_STORAGE_KEY = 'codex-wor-hide-completed';
+
+function readHideCompletedPreference(): boolean {
+  try {
+    return localStorage.getItem(HIDE_COMPLETED_STORAGE_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function applyHideCompleted<T extends { owned: number }>(
+  rows: T[],
+  search: string,
+  hideCompleted: boolean,
+): T[] {
+  if (!hideCompleted || search.trim().length > 0) return rows;
+  return rows.filter((row) => row.owned !== 1);
+}
 
 function renderStars(count?: number): string | ReactNode {
   if (!count || count <= 0) return '-';
@@ -298,7 +316,7 @@ const WorRow = memo(function WorRow({
 }: WorRowProps) {
   const gaugeDisabled = owned !== 1;
   return (
-    <tr>
+    <tr className={owned === 1 ? 'wor-completed-row' : undefined}>
       <td className="wor-portrait-cell">
         <WorPortrait portraitPath={portraitPath} name={name} />
       </td>
@@ -342,6 +360,7 @@ export function WorPage() {
   const [classFilter, setClassFilter] = useState<HeroClassKey | null>(null);
   const [factionFilter, setFactionFilter] = useState<FactionKey | null>(null);
   const [exclusiveFilter, setExclusiveFilter] = useState(false);
+  const [hideCompleted, setHideCompleted] = useState(readHideCompletedPreference);
   const [heroes, setHeroes] = useState<WorHero[]>([]);
   const [artifacts, setArtifacts] = useState<WorArtifact[]>([]);
   const [demons, setDemons] = useState<WorDemon[]>([]);
@@ -450,6 +469,28 @@ export function WorPage() {
     () => demons.filter((row) => row.name.toLowerCase().includes(search.toLowerCase())),
     [demons, search],
   );
+
+  const visibleHeroes = useMemo(
+    () => applyHideCompleted(filteredHeroes, search, hideCompleted),
+    [filteredHeroes, hideCompleted, search],
+  );
+  const visibleArtifacts = useMemo(
+    () => applyHideCompleted(filteredArtifacts, search, hideCompleted),
+    [filteredArtifacts, hideCompleted, search],
+  );
+  const visibleDemons = useMemo(
+    () => applyHideCompleted(filteredDemons, search, hideCompleted),
+    [filteredDemons, hideCompleted, search],
+  );
+
+  const handleHideCompletedChange = useCallback((nextValue: boolean) => {
+    setHideCompleted(nextValue);
+    try {
+      localStorage.setItem(HIDE_COMPLETED_STORAGE_KEY, nextValue ? '1' : '0');
+    } catch {
+      // ignore storage failures
+    }
+  }, []);
 
   const stats = useMemo((): WorStats => {
     const rows = tab === 'heroes' ? heroes : tab === 'artifacts' ? artifacts : demons;
@@ -862,17 +903,49 @@ export function WorPage() {
       ) : null}
 
       <div className="stats-bar">
-        <div className="stat">
-          <span>Total:</span>
-          <span className="stat-value">{stats.total}</span>
+        <div className="stats-bar-stats">
+          <div className="stat">
+            <span>Total:</span>
+            <span className="stat-value">{stats.total}</span>
+          </div>
+          <div className="stat">
+            <span>Owned:</span>
+            <span className="stat-value stat-owned">{stats.owned}</span>
+          </div>
+          <div className="stat">
+            <span>Maxed:</span>
+            <span className="stat-value stat-maxed">{stats.maxed}</span>
+          </div>
         </div>
-        <div className="stat">
-          <span>Owned:</span>
-          <span className="stat-value stat-owned">{stats.owned}</span>
-        </div>
-        <div className="stat">
-          <span>Maxed:</span>
-          <span className="stat-value stat-maxed">{stats.maxed}</span>
+        <div className="stats-bar-actions">
+          <button
+            type="button"
+            onClick={() => handleHideCompletedChange(!hideCompleted)}
+            aria-pressed={hideCompleted}
+            className="border-glass-border text-muted hover:border-glass-border-hover hover:bg-glass-hover hover:text-foreground inline-flex cursor-pointer items-center gap-2 rounded-lg border px-2.5 py-1.5 text-sm transition-[color,background-color,border-color,box-shadow] duration-200"
+            title='Toggle "Hide completed"'
+          >
+            <span>Hide completed</span>
+            <span
+              className={`inline-flex h-5 w-5 items-center justify-center rounded text-xs font-bold transition-colors ${
+                hideCompleted
+                  ? 'bg-success/20 text-success hover:bg-success/30'
+                  : 'bg-muted/10 text-muted/40 hover:bg-muted/20'
+              }`}
+              aria-hidden="true"
+            >
+              {hideCompleted ? (
+                <MaterialSymbol
+                  name="check"
+                  filled
+                  className="leading-none"
+                  style={{ fontSize: 15 }}
+                />
+              ) : (
+                <MaterialSymbol name="close" className="leading-none" style={{ fontSize: 15 }} />
+              )}
+            </span>
+          </button>
         </div>
       </div>
 
@@ -909,7 +982,7 @@ export function WorPage() {
                   </td>
                 </tr>
               ) : tab === 'heroes' ? (
-                filteredHeroes.map((hero) => (
+                visibleHeroes.map((hero) => (
                   <WorRow
                     key={hero.id}
                     tab="heroes"
@@ -943,7 +1016,7 @@ export function WorPage() {
                   />
                 ))
               ) : tab === 'artifacts' ? (
-                filteredArtifacts.map((artifact) => (
+                visibleArtifacts.map((artifact) => (
                   <WorRow
                     key={artifact.id}
                     tab="artifacts"
@@ -981,7 +1054,7 @@ export function WorPage() {
                   />
                 ))
               ) : (
-                filteredDemons.map((demon) => (
+                visibleDemons.map((demon) => (
                   <WorRow
                     key={demon.id}
                     tab="demons"
