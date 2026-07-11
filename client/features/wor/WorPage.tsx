@@ -740,10 +740,6 @@ export function WorPage() {
 
   return (
     <section className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-semibold">Watcher of Realms</h1>
-      </div>
-
       {error ? (
         <p className="text-danger text-sm" role="alert">
           {error}

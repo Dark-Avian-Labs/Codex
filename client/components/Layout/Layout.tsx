@@ -83,7 +83,7 @@ export function Layout() {
     : isEpic7Route
       ? 'Epic7'
       : isWorRoute
-        ? 'WoR'
+        ? 'Watcher of Realms'
         : '';
   const baseTitle = APP_DISPLAY_NAME;
   const setMenuItemRef = (id: string) => (node: HTMLElement | null) => {
@@ -182,7 +182,7 @@ export function Layout() {
       document.title = 'Codex - Epic7';
       faviconHref = epic7Favicon;
     } else if (path.startsWith(APP_PATHS.wor)) {
-      document.title = 'Codex - WoR';
+      document.title = 'Codex - Watcher of Realms';
       faviconHref = worFavicon;
     } else {
       document.title = 'Codex';
