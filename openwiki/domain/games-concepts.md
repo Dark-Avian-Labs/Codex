@@ -286,19 +286,21 @@ const accounts = [
 - Heroes have classes (fighter, mage, marksman, defender, healer, tactician)
 - Factions (Watchguard, North Throne, Nightmare Council, etc.)
 - Rarity system (common, uncommon, rare, epic, legendary)
-- Gauge progression system for awakening
+- Gauge progression system for awakening (levels 0-6)
 
 **Artifact Collection**: Tracks artifact ownership and promotion level
 
 - Artifact rarity (common, uncommon, rare, epic, legendary, mythic)
-- Promotion gauge system
+- Promotion gauge system (levels 0-6)
 - Reference tier ratings for optimization
+- Star rating display (1-6 stars)
 
 **Demon Collection**: Tracks demon ownership and gauge level
 
 - Demon rarity (rare, epic, legendary, captain)
 - Special captain rarity with unique mechanics
 - Gauge progression for demon enhancements
+- Reference tier integration
 
 ### Data Model
 
@@ -338,50 +340,80 @@ interface WorAccount {
 }
 ```
 
-### Catalog Import Pipeline
+### Enhanced Catalog Import Pipeline
 
-**Data Sources**:
+**Multi-Source Data Import**:
 
-- Fixture data: `scripts/data/wor-catalog-fixture.json`
-- Overrides: `scripts/data/wor-overrides.json`
-- Import script: `scripts/wor-import.mjs`
+- **Fastidious Catalog** (`/server/import/wor/fastidiousCatalog.ts`): External API integration for up-to-date catalog data
+- **Fandom Wiki Images** (`/server/import/wor/fandomImages.ts`): Portrait and icon download from official wiki
+- **Manual Overrides** (`/server/import/wor/overrides.ts`): Curated corrections and updates
+- **Fixture Data**: Backup catalog data in `scripts/data/wor-catalog-fixture.json`
 
-**Import Process**:
+**Pipeline Steps** (`/server/import/wor/worPipelineSteps.ts`):
 
-1. Load fixture catalog data
-2. Apply overrides for corrections and updates
-3. Validate data consistency
-4. Upsert into database tables
-5. Update catalog version tracking
+1. **Schema**: Database table creation and validation
+2. **Fastidious Catalog**: External catalog data import
+3. **Fandom Images**: Wiki portrait and icon downloads
+4. **Manual Overrides**: Apply curated corrections
+5. **Seed Validation**: Data consistency checks
+6. **Sync Accounts**: Synchronize catalog data with user accounts
 
-**Pipeline Components** (`/server/import/wor/`):
+**Pipeline Control** (`/server/import/wor/pipelineStepControl.ts`):
 
-- `startupPipeline.ts`: Main import orchestration
-- `catalogQueries.ts`: Database operations for catalog data
-- `adminImportJob.ts`: Admin-triggered import functionality
+```typescript
+// Conditional step execution based on configuration
+export function shouldRunStep(step: WorPipelineStepKey): boolean {
+  // Example: Skip wiki image downloads if not configured
+  if (step === 'fandomImages' && !process.env.WIKI_USER_AGENT) {
+    return false;
+  }
+  return true;
+}
+```
+
+**Image Management System**:
+
+- **Portrait Downloads**: High-resolution hero/artifact/demon portraits from wiki
+- **Icon Downloads**: Class and faction icons for UI display
+- **Fallback System**: Uses Fastidious storage URLs when wiki unavailable
+- **Caching**: Local storage in `scripts/data/wor-import-cache/`
+
+**Admin Import Tools** (`/client/features/admin/WorImportAdminTool.tsx`):
+
+- Web interface for triggering manual catalog imports
+- Step-by-step execution with progress tracking
+- Error reporting and validation feedback
+- Import history and status monitoring
 
 ### Collection Management Features
 
 **Hero Progression**:
 
-- Awakening gauge levels (0-6)
-- Star rating tracking (1-5 stars)
-- Class and faction filtering
-- Tier reference integration
+- Awakening gauge levels (0-6) with visual indicators
+- Star rating tracking (1-5 stars) with custom asset display
+- Class and faction filtering with icon integration
+- Tier reference integration for optimization guidance
 
 **Artifact Management**:
 
-- Promotion gauge levels (0-6)
-- Star rating display
-- Tier-based organization
-- Collection completion tracking
+- Promotion gauge levels (0-6) with completion tracking
+- Star rating display (1-6 stars) with custom assets
+- Tier-based organization for collection planning
+- Collection completion analytics with progress gauges
 
 **Demon Collection**:
 
-- Special captain rarity handling
-- Gauge progression tracking
-- Rarity-based filtering
-- Collection analytics
+- Special captain rarity handling with unique UI treatment
+- Gauge progression tracking for demon enhancements
+- Rarity-based filtering for collection organization
+- Collection analytics with missing item identification
+
+**Stats Optimization** (`/client/features/wor/WorPage.tsx`):
+
+- Memoized calculation functions for performance
+- Efficient patch handling for incremental updates
+- Real-time collection statistics with caching
+- Responsive UI with optimized rendering
 
 ### Account Management
 
@@ -390,12 +422,30 @@ interface WorAccount {
 - Multiple WoR game accounts per user
 - Server-agnostic account management
 - Current account tracking via session binding
+- Seamless account switching
 
 **Session Integration** (`/server/session/worSessionBinding.ts`):
 
 - Binds WoR account state to Clerk user sessions
 - Manages current account selection
 - Handles account switching with session updates
+- Persistent account state across sessions
+
+### Database Synchronization
+
+**Catalog-Account Sync** (`/server/import/wor/catalogQueries.ts`):
+
+- Automatic synchronization of catalog changes to user accounts
+- Conflict resolution for user-modified data
+- Incremental updates with version tracking
+- Data validation and integrity checks
+
+**Slug Migrations** (`/server/import/wor/slugMigrations.ts`):
+
+- Automated slug normalization for consistency
+- Historical data migration support
+- Forward/backward compatibility
+- Change tracking and rollback capabilities
 
 ## Common Patterns
 
