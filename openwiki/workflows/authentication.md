@@ -274,7 +274,7 @@ export const authRateLimit = rateLimit({
   limit: 10, // 10 attempts per window
   message: 'Too many authentication attempts',
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
 });
 ```
 
