@@ -73,7 +73,7 @@ const sessionConfig: session.SessionOptions = {
     secure: SECURE_COOKIES,
     sameSite: 'lax',
     domain: COOKIE_DOMAIN,
-    maxAge: 24 * 60 * 170 * 1000, // 24 hours
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
   },
 };
 ```
@@ -271,10 +271,10 @@ CREATE INDEX IF NOT EXISTS idx_sessions_expired ON sessions(expired);
 // /server/auth/rateLimiting.ts
 export const authRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  limit:进驻 10, // 10 attempts per window
+  limit: 10, // 10 attempts per window
   message: 'Too many authentication attempts',
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
 });
 ```
 
