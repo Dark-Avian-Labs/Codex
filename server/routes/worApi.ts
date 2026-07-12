@@ -50,6 +50,20 @@ function getDbOrFail(res: Response): ReturnType<typeof getWorDb> | null {
 
 type WorDatabase = ReturnType<typeof getWorDb>;
 
+/**
+ * Reconciles the WOR account selection stored in session with the accounts owned by the
+ * authenticated Clerk user.
+ *
+ * Side effects:
+ * - Ensures the WOR session is bound to `clerkUserId`.
+ * - Clears WOR session account fields if the currently selected account is no longer owned.
+ * - Patches `wor_account_id` and `wor_account_name` in session when selecting an active account.
+ *
+ * @param db Database handle for WOR queries.
+ * @param req Express request containing session state.
+ * @param clerkUserId Authenticated Clerk user id.
+ * @returns The reconciled account id, or `null` when no valid account can be selected.
+ */
 function reconcileWorSessionAccount(
   db: WorDatabase,
   req: Request,
@@ -133,12 +147,8 @@ worApiRouter.get('/worksheets', (_req, res) => {
 
 worApiRouter.get('/heroes', (req, res) => {
   runWithDb(res, (db) => {
-    const clerkUserId = requireClerkUserId(req);
-    const accountId = resolveAccountId(db, req, clerkUserId);
-    if (!accountId) {
-      err(res, 'No game account selected. Please create one first.');
-      return;
-    }
+    const accountId = requireAccountId(db, req, res);
+    if (!accountId) return;
     const classFilter = String(req.query.class ?? '').trim();
     const factionFilter = String(req.query.faction ?? '').trim();
     const heroes = q.getHeroes(db, accountId, classFilter, factionFilter);
@@ -149,12 +159,8 @@ worApiRouter.get('/heroes', (req, res) => {
 
 worApiRouter.get('/artifacts', (req, res) => {
   runWithDb(res, (db) => {
-    const clerkUserId = requireClerkUserId(req);
-    const accountId = resolveAccountId(db, req, clerkUserId);
-    if (!accountId) {
-      err(res, 'No game account selected. Please create one first.');
-      return;
-    }
+    const accountId = requireAccountId(db, req, res);
+    if (!accountId) return;
     const artifacts = q.getArtifacts(db, accountId);
     const stats = q.getArtifactStats(db, accountId);
     json(res, { artifacts, stats, gauge_max: ARTIFACT_PROMOTION_MAX });
