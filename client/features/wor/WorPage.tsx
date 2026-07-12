@@ -791,10 +791,12 @@ export function WorPage() {
         {(['heroes', 'artifacts', 'demons'] as const).map((item) => (
           <button
             key={item}
+            id={`wor-tab-${item}`}
             type="button"
             role="tab"
             className={`tab ${tab === item ? 'active' : ''}`}
             aria-selected={tab === item}
+            aria-controls="wor-panel"
             onClick={() => setTab(item)}
           >
             {item.charAt(0).toUpperCase() + item.slice(1)}
@@ -802,285 +804,290 @@ export function WorPage() {
         ))}
       </div>
 
-      {tab === 'heroes' ? (
-        <div className="filter-bar" id="wor-filter-bar">
-          <div className="filter-group">
-            <span className="filter-label">Class:</span>
-            {HERO_CLASSES.map((heroClass) => (
-              <button
-                key={heroClass}
-                type="button"
-                className={`filter-icon ${classFilter === heroClass ? 'active' : ''}`}
-                title={CLASS_DISPLAY_NAMES[heroClass]}
-                aria-pressed={classFilter === heroClass}
-                aria-label={`Filter by ${CLASS_DISPLAY_NAMES[heroClass]} class`}
-                onClick={() =>
-                  setClassFilter((previous) => (previous === heroClass ? null : heroClass))
-                }
-              >
-                <WorIconWithFallback
-                  className="invert-on-light"
-                  primarySrc={worClassIconUrls(heroClass).primary}
-                  fallbackSrc={worClassIconUrls(heroClass).fallback}
-                  alt={CLASS_DISPLAY_NAMES[heroClass]}
-                  size={24}
-                />
-              </button>
-            ))}
-          </div>
-          <div className="filter-group">
-            <span className="filter-label">Faction:</span>
-            {FACTIONS.map((faction) => (
-              <button
-                key={faction}
-                type="button"
-                className={`filter-icon ${factionFilter === faction ? 'active' : ''}`}
-                title={FACTION_DISPLAY_NAMES[faction]}
-                aria-pressed={factionFilter === faction}
-                aria-label={`Filter by ${FACTION_DISPLAY_NAMES[faction]} faction`}
-                onClick={() =>
-                  setFactionFilter((previous) => (previous === faction ? null : faction))
-                }
-              >
-                {faction === 'unaffiliated' ? (
-                  <MaterialSymbol
-                    name="person_off"
-                    className="text-muted"
-                    style={{ fontSize: 24 }}
-                  />
-                ) : (
+      <div id="wor-panel" role="tabpanel" aria-labelledby={`wor-tab-${tab}`}>
+        {tab === 'heroes' ? (
+          <div className="filter-bar" id="wor-filter-bar">
+            <div className="filter-group">
+              <span className="filter-label">Class:</span>
+              {HERO_CLASSES.map((heroClass) => (
+                <button
+                  key={heroClass}
+                  type="button"
+                  className={`filter-icon ${classFilter === heroClass ? 'active' : ''}`}
+                  title={CLASS_DISPLAY_NAMES[heroClass]}
+                  aria-pressed={classFilter === heroClass}
+                  aria-label={`Filter by ${CLASS_DISPLAY_NAMES[heroClass]} class`}
+                  onClick={() =>
+                    setClassFilter((previous) => (previous === heroClass ? null : heroClass))
+                  }
+                >
                   <WorIconWithFallback
-                    primarySrc={worFactionIconUrls(faction).primary}
-                    fallbackSrc={worFactionIconUrls(faction).fallback}
-                    alt={FACTION_DISPLAY_NAMES[faction]}
+                    className="invert-on-light"
+                    primarySrc={worClassIconUrls(heroClass).primary}
+                    fallbackSrc={worClassIconUrls(heroClass).fallback}
+                    alt={CLASS_DISPLAY_NAMES[heroClass]}
                     size={24}
                   />
-                )}
-              </button>
-            ))}
+                </button>
+              ))}
+            </div>
+            <div className="filter-group">
+              <span className="filter-label">Faction:</span>
+              {FACTIONS.map((faction) => (
+                <button
+                  key={faction}
+                  type="button"
+                  className={`filter-icon ${factionFilter === faction ? 'active' : ''}`}
+                  title={FACTION_DISPLAY_NAMES[faction]}
+                  aria-pressed={factionFilter === faction}
+                  aria-label={`Filter by ${FACTION_DISPLAY_NAMES[faction]} faction`}
+                  onClick={() =>
+                    setFactionFilter((previous) => (previous === faction ? null : faction))
+                  }
+                >
+                  {faction === 'unaffiliated' ? (
+                    <MaterialSymbol
+                      name="person_off"
+                      className="text-muted"
+                      style={{ fontSize: 24 }}
+                    />
+                  ) : (
+                    <WorIconWithFallback
+                      primarySrc={worFactionIconUrls(faction).primary}
+                      fallbackSrc={worFactionIconUrls(faction).fallback}
+                      alt={FACTION_DISPLAY_NAMES[faction]}
+                      size={24}
+                    />
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-      ) : tab === 'artifacts' ? (
-        <div className="filter-bar" id="wor-artifact-filter-bar">
-          <div className="filter-group">
-            <span className="filter-label">Class:</span>
-            {HERO_CLASSES.map((heroClass) => (
+        ) : tab === 'artifacts' ? (
+          <div className="filter-bar" id="wor-artifact-filter-bar">
+            <div className="filter-group">
+              <span className="filter-label">Class:</span>
+              {HERO_CLASSES.map((heroClass) => (
+                <button
+                  key={heroClass}
+                  type="button"
+                  className={`filter-icon ${classFilter === heroClass ? 'active' : ''}`}
+                  title={CLASS_DISPLAY_NAMES[heroClass]}
+                  aria-pressed={classFilter === heroClass}
+                  aria-label={`Filter by ${CLASS_DISPLAY_NAMES[heroClass]} class`}
+                  onClick={() =>
+                    setClassFilter((previous) => (previous === heroClass ? null : heroClass))
+                  }
+                >
+                  <WorIconWithFallback
+                    className="invert-on-light"
+                    primarySrc={worClassIconUrls(heroClass).primary}
+                    fallbackSrc={worClassIconUrls(heroClass).fallback}
+                    alt={CLASS_DISPLAY_NAMES[heroClass]}
+                    size={24}
+                  />
+                </button>
+              ))}
+            </div>
+            <div className="filter-group">
+              <span className="filter-label">Exclusive:</span>
               <button
-                key={heroClass}
                 type="button"
-                className={`filter-icon ${classFilter === heroClass ? 'active' : ''}`}
-                title={CLASS_DISPLAY_NAMES[heroClass]}
-                aria-pressed={classFilter === heroClass}
-                aria-label={`Filter by ${CLASS_DISPLAY_NAMES[heroClass]} class`}
-                onClick={() =>
-                  setClassFilter((previous) => (previous === heroClass ? null : heroClass))
-                }
+                className={`filter-icon ${exclusiveFilter ? 'active' : ''}`}
+                title="Hero exclusive artifacts"
+                aria-pressed={exclusiveFilter}
+                aria-label="Filter hero exclusive artifacts"
+                onClick={() => setExclusiveFilter((previous) => !previous)}
               >
-                <WorIconWithFallback
-                  className="invert-on-light"
-                  primarySrc={worClassIconUrls(heroClass).primary}
-                  fallbackSrc={worClassIconUrls(heroClass).fallback}
-                  alt={CLASS_DISPLAY_NAMES[heroClass]}
-                  size={24}
-                />
+                <MaterialSymbol name="crown" style={{ fontSize: 24 }} />
               </button>
-            ))}
+            </div>
           </div>
-          <div className="filter-group">
-            <span className="filter-label">Exclusive:</span>
+        ) : null}
+
+        <div className="stats-bar">
+          <div className="stats-bar-stats">
+            <div className="stat">
+              <span>Total:</span>
+              <span className="stat-value">{stats.total}</span>
+            </div>
+            <div className="stat">
+              <span>Owned:</span>
+              <span className="stat-value stat-owned">{stats.owned}</span>
+            </div>
+            <div className="stat">
+              <span>Maxed:</span>
+              <span className="stat-value stat-maxed">{stats.maxed}</span>
+            </div>
+          </div>
+          <div className="stats-bar-actions">
             <button
               type="button"
-              className={`filter-icon ${exclusiveFilter ? 'active' : ''}`}
-              title="Hero exclusive artifacts"
-              aria-pressed={exclusiveFilter}
-              aria-label="Filter hero exclusive artifacts"
-              onClick={() => setExclusiveFilter((previous) => !previous)}
+              onClick={() => handleHideCompletedChange(!hideCompleted)}
+              aria-pressed={hideCompleted}
+              className="border-glass-border text-muted hover:border-glass-border-hover hover:bg-glass-hover hover:text-foreground inline-flex cursor-pointer items-center gap-2 rounded-lg border px-2.5 py-1.5 text-sm transition-[color,background-color,border-color,box-shadow] duration-200"
+              title='Toggle "Hide completed"'
             >
-              <MaterialSymbol name="crown" style={{ fontSize: 24 }} />
+              <span>Hide completed</span>
+              <span
+                className={`inline-flex h-5 w-5 items-center justify-center rounded text-xs font-bold transition-colors ${
+                  hideCompleted
+                    ? 'bg-success/20 text-success hover:bg-success/30'
+                    : 'bg-muted/10 text-muted/40 hover:bg-muted/20'
+                }`}
+                aria-hidden="true"
+              >
+                {hideCompleted ? (
+                  <MaterialSymbol
+                    name="check"
+                    filled
+                    className="leading-none"
+                    style={{ fontSize: 15 }}
+                  />
+                ) : (
+                  <MaterialSymbol name="close" className="leading-none" style={{ fontSize: 15 }} />
+                )}
+              </span>
             </button>
           </div>
         </div>
-      ) : null}
 
-      <div className="stats-bar">
-        <div className="stats-bar-stats">
-          <div className="stat">
-            <span>Total:</span>
-            <span className="stat-value">{stats.total}</span>
-          </div>
-          <div className="stat">
-            <span>Owned:</span>
-            <span className="stat-value stat-owned">{stats.owned}</span>
-          </div>
-          <div className="stat">
-            <span>Maxed:</span>
-            <span className="stat-value stat-maxed">{stats.maxed}</span>
-          </div>
-        </div>
-        <div className="stats-bar-actions">
-          <button
-            type="button"
-            onClick={() => handleHideCompletedChange(!hideCompleted)}
-            aria-pressed={hideCompleted}
-            className="border-glass-border text-muted hover:border-glass-border-hover hover:bg-glass-hover hover:text-foreground inline-flex cursor-pointer items-center gap-2 rounded-lg border px-2.5 py-1.5 text-sm transition-[color,background-color,border-color,box-shadow] duration-200"
-            title='Toggle "Hide completed"'
-          >
-            <span>Hide completed</span>
-            <span
-              className={`inline-flex h-5 w-5 items-center justify-center rounded text-xs font-bold transition-colors ${
-                hideCompleted
-                  ? 'bg-success/20 text-success hover:bg-success/30'
-                  : 'bg-muted/10 text-muted/40 hover:bg-muted/20'
-              }`}
-              aria-hidden="true"
-            >
-              {hideCompleted ? (
-                <MaterialSymbol
-                  name="check"
-                  filled
-                  className="leading-none"
-                  style={{ fontSize: 15 }}
-                />
-              ) : (
-                <MaterialSymbol name="close" className="leading-none" style={{ fontSize: 15 }} />
-              )}
-            </span>
-          </button>
-        </div>
-      </div>
-
-      <div className="table-container" aria-busy={loading}>
-        <div className={`table-scroll ${loading ? 'opacity-60' : ''}`} style={tableScrollStyle}>
-          <table className="wor-table" style={{ tableLayout: 'fixed' }}>
-            <thead>
-              <tr>
-                <th className="wor-portrait-cell" aria-label="Portrait" />
-                <th>Name</th>
-                {tab === 'heroes' ? (
-                  <>
-                    <th className="icon-cell text-center">Class</th>
-                    <th className="icon-cell text-center">Faction</th>
-                  </>
-                ) : tab === 'artifacts' ? (
-                  <th className="icon-cell text-center">Class</th>
-                ) : null}
-                <th>Rarity</th>
-                <th className="status-cell">Owned</th>
-                <th className="level-cell">
-                  {tab === 'heroes' ? 'Awakening' : tab === 'artifacts' ? 'Promotion' : 'Level'}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
+        <div className="table-container" aria-busy={loading}>
+          <div className={`table-scroll ${loading ? 'opacity-60' : ''}`} style={tableScrollStyle}>
+            <table className="wor-table" style={{ tableLayout: 'fixed' }}>
+              <thead>
                 <tr>
-                  <td
-                    colSpan={tab === 'heroes' ? 7 : tab === 'artifacts' ? 6 : 5}
-                    className="text-muted text-center"
-                  >
-                    Loading…
-                  </td>
+                  <th className="wor-portrait-cell" aria-label="Portrait" />
+                  <th>Name</th>
+                  {tab === 'heroes' ? (
+                    <>
+                      <th className="icon-cell text-center">Class</th>
+                      <th className="icon-cell text-center">Faction</th>
+                    </>
+                  ) : tab === 'artifacts' ? (
+                    <th className="icon-cell text-center">Class</th>
+                  ) : null}
+                  <th>Rarity</th>
+                  <th className="status-cell">Owned</th>
+                  <th className="level-cell">
+                    {tab === 'heroes' ? 'Awakening' : tab === 'artifacts' ? 'Promotion' : 'Level'}
+                  </th>
                 </tr>
-              ) : tab === 'heroes' ? (
-                visibleHeroes.map((hero) => (
-                  <WorRow
-                    key={hero.id}
-                    tab="heroes"
-                    name={hero.name}
-                    portraitPath={hero.portrait_path}
-                    owned={hero.owned}
-                    gaugeLevel={hero.gauge_level}
-                    gaugeMax={HERO_AWAKENING_MAX}
-                    starRating={hero.star_rating}
-                    extraCells={
-                      <>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td
+                      colSpan={tab === 'heroes' ? 7 : tab === 'artifacts' ? 6 : 5}
+                      className="text-muted text-center"
+                    >
+                      Loading…
+                    </td>
+                  </tr>
+                ) : tab === 'heroes' ? (
+                  visibleHeroes.map((hero) => (
+                    <WorRow
+                      key={hero.id}
+                      tab="heroes"
+                      name={hero.name}
+                      portraitPath={hero.portrait_path}
+                      owned={hero.owned}
+                      gaugeLevel={hero.gauge_level}
+                      gaugeMax={HERO_AWAKENING_MAX}
+                      starRating={hero.star_rating}
+                      extraCells={
+                        <>
+                          <td className="icon-cell">
+                            <WorClassIcon classKey={hero.class} />
+                          </td>
+                          <td className="icon-cell">
+                            <WorFactionIcon factionKey={hero.faction} />
+                          </td>
+                        </>
+                      }
+                      onToggleOwned={() =>
+                        void patchOwned('heroes', hero.id, hero.owned ? 0 : 1).catch(
+                          handleActionError,
+                        )
+                      }
+                      onCycleGauge={() => {
+                        if (hero.owned !== 1) return;
+                        const next =
+                          hero.gauge_level >= HERO_AWAKENING_MAX ? 0 : hero.gauge_level + 1;
+                        void patchGauge('heroes', hero.id, next, 'hero_id').catch(
+                          handleActionError,
+                        );
+                      }}
+                    />
+                  ))
+                ) : tab === 'artifacts' ? (
+                  visibleArtifacts.map((artifact) => (
+                    <WorRow
+                      key={artifact.id}
+                      tab="artifacts"
+                      name={artifact.name}
+                      portraitPath={artifact.portrait_path}
+                      owned={artifact.owned}
+                      gaugeLevel={artifact.gauge_level}
+                      gaugeMax={ARTIFACT_PROMOTION_MAX}
+                      starRating={artifact.star_rating}
+                      extraCells={
                         <td className="icon-cell">
-                          <WorClassIcon classKey={hero.class} />
+                          <WorArtifactUserCell
+                            classKey={artifact.class}
+                            exclusiveHeroName={artifact.exclusive_hero_name}
+                            exclusiveHeroPortrait={artifact.exclusive_hero_portrait}
+                            isUniversal={artifact.is_universal}
+                          />
                         </td>
-                        <td className="icon-cell">
-                          <WorFactionIcon factionKey={hero.faction} />
-                        </td>
-                      </>
-                    }
-                    onToggleOwned={() =>
-                      void patchOwned('heroes', hero.id, hero.owned ? 0 : 1).catch(
-                        handleActionError,
-                      )
-                    }
-                    onCycleGauge={() => {
-                      if (hero.owned !== 1) return;
-                      const next =
-                        hero.gauge_level >= HERO_AWAKENING_MAX ? 0 : hero.gauge_level + 1;
-                      void patchGauge('heroes', hero.id, next, 'hero_id').catch(handleActionError);
-                    }}
-                  />
-                ))
-              ) : tab === 'artifacts' ? (
-                visibleArtifacts.map((artifact) => (
-                  <WorRow
-                    key={artifact.id}
-                    tab="artifacts"
-                    name={artifact.name}
-                    portraitPath={artifact.portrait_path}
-                    owned={artifact.owned}
-                    gaugeLevel={artifact.gauge_level}
-                    gaugeMax={ARTIFACT_PROMOTION_MAX}
-                    starRating={artifact.star_rating}
-                    extraCells={
-                      <td className="icon-cell">
-                        <WorArtifactUserCell
-                          classKey={artifact.class}
-                          exclusiveHeroName={artifact.exclusive_hero_name}
-                          exclusiveHeroPortrait={artifact.exclusive_hero_portrait}
-                          isUniversal={artifact.is_universal}
-                        />
-                      </td>
-                    }
-                    onToggleOwned={() =>
-                      void patchOwned('artifacts', artifact.id, artifact.owned ? 0 : 1).catch(
-                        handleActionError,
-                      )
-                    }
-                    onCycleGauge={() => {
-                      if (artifact.owned !== 1) return;
-                      const next =
-                        artifact.gauge_level >= ARTIFACT_PROMOTION_MAX
-                          ? 0
-                          : artifact.gauge_level + 1;
-                      void patchGauge('artifacts', artifact.id, next, 'artifact_id').catch(
-                        handleActionError,
-                      );
-                    }}
-                  />
-                ))
-              ) : (
-                visibleDemons.map((demon) => (
-                  <WorRow
-                    key={demon.id}
-                    tab="demons"
-                    name={demon.name}
-                    portraitPath={demon.portrait_path}
-                    owned={demon.owned}
-                    gaugeLevel={demon.gauge_level}
-                    gaugeMax={demon.max_level}
-                    starRating={demon.star_rating}
-                    onToggleOwned={() =>
-                      void patchOwned('demons', demon.id, demon.owned ? 0 : 1).catch(
-                        handleActionError,
-                      )
-                    }
-                    onCycleGauge={() => {
-                      if (demon.owned !== 1) return;
-                      const next = demon.gauge_level >= demon.max_level ? 0 : demon.gauge_level + 1;
-                      void patchGauge('demons', demon.id, next, 'demon_id').catch(
-                        handleActionError,
-                      );
-                    }}
-                  />
-                ))
-              )}
-            </tbody>
-          </table>
+                      }
+                      onToggleOwned={() =>
+                        void patchOwned('artifacts', artifact.id, artifact.owned ? 0 : 1).catch(
+                          handleActionError,
+                        )
+                      }
+                      onCycleGauge={() => {
+                        if (artifact.owned !== 1) return;
+                        const next =
+                          artifact.gauge_level >= ARTIFACT_PROMOTION_MAX
+                            ? 0
+                            : artifact.gauge_level + 1;
+                        void patchGauge('artifacts', artifact.id, next, 'artifact_id').catch(
+                          handleActionError,
+                        );
+                      }}
+                    />
+                  ))
+                ) : (
+                  visibleDemons.map((demon) => (
+                    <WorRow
+                      key={demon.id}
+                      tab="demons"
+                      name={demon.name}
+                      portraitPath={demon.portrait_path}
+                      owned={demon.owned}
+                      gaugeLevel={demon.gauge_level}
+                      gaugeMax={demon.max_level}
+                      starRating={demon.star_rating}
+                      onToggleOwned={() =>
+                        void patchOwned('demons', demon.id, demon.owned ? 0 : 1).catch(
+                          handleActionError,
+                        )
+                      }
+                      onCycleGauge={() => {
+                        if (demon.owned !== 1) return;
+                        const next =
+                          demon.gauge_level >= demon.max_level ? 0 : demon.gauge_level + 1;
+                        void patchGauge('demons', demon.id, next, 'demon_id').catch(
+                          handleActionError,
+                        );
+                      }}
+                    />
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
