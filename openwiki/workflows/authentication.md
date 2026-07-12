@@ -73,7 +73,7 @@ const sessionConfig: session.SessionOptions = {
     secure: SECURE_COOKIES,
     sameSite: 'lax',
     domain: COOKIE_DOMAIN,
-    maxAge: 24 * 60 * 170 * 1000, // 24 hours
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
   },
 };
 ```
