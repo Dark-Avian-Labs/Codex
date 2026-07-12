@@ -238,3 +238,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.58.0** `fix` [#295](https://github.com/Dark-Avian-Labs/Codex/pull/295): import logs
 - **v1.58.1** `fix` [#296](https://github.com/Dark-Avian-Labs/Codex/pull/296): import pipeline
 - **v1.59.0** `fix` [#298](https://github.com/Dark-Avian-Labs/Codex/pull/298): completed rows
+- **v1.59.1** `fix` [#301](https://github.com/Dark-Avian-Labs/Codex/pull/301): spacing
