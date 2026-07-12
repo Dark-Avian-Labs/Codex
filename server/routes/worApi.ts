@@ -133,12 +133,8 @@ worApiRouter.get('/worksheets', (_req, res) => {
 
 worApiRouter.get('/heroes', (req, res) => {
   runWithDb(res, (db) => {
-    const clerkUserId = requireClerkUserId(req);
-    const accountId = resolveAccountId(db, req, clerkUserId);
-    if (!accountId) {
-      err(res, 'No game account selected. Please create one first.');
-      return;
-    }
+    const accountId = requireAccountId(db, req, res);
+    if (!accountId) return;
     const classFilter = String(req.query.class ?? '').trim();
     const factionFilter = String(req.query.faction ?? '').trim();
     const heroes = q.getHeroes(db, accountId, classFilter, factionFilter);
@@ -149,12 +145,8 @@ worApiRouter.get('/heroes', (req, res) => {
 
 worApiRouter.get('/artifacts', (req, res) => {
   runWithDb(res, (db) => {
-    const clerkUserId = requireClerkUserId(req);
-    const accountId = resolveAccountId(db, req, clerkUserId);
-    if (!accountId) {
-      err(res, 'No game account selected. Please create one first.');
-      return;
-    }
+    const accountId = requireAccountId(db, req, res);
+    if (!accountId) return;
     const artifacts = q.getArtifacts(db, accountId);
     const stats = q.getArtifactStats(db, accountId);
     json(res, { artifacts, stats, gauge_max: ARTIFACT_PROMOTION_MAX });
