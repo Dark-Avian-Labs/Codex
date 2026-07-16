@@ -232,7 +232,7 @@ async function loadDemonDetail(
       await sleep(500);
       return page.props.demon;
     } catch {
-      // fall through to cached fallback below
+      // ignore
     }
   }
   if (fs.existsSync(detailPath)) {

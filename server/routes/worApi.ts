@@ -50,20 +50,6 @@ function getDbOrFail(res: Response): ReturnType<typeof getWorDb> | null {
 
 type WorDatabase = ReturnType<typeof getWorDb>;
 
-/**
- * Reconciles the WOR account selection stored in session with the accounts owned by the
- * authenticated Clerk user.
- *
- * Side effects:
- * - Ensures the WOR session is bound to `clerkUserId`.
- * - Clears WOR session account fields if the currently selected account is no longer owned.
- * - Patches `wor_account_id` and `wor_account_name` in session when selecting an active account.
- *
- * @param db Database handle for WOR queries.
- * @param req Express request containing session state.
- * @param clerkUserId Authenticated Clerk user id.
- * @returns The reconciled account id, or `null` when no valid account can be selected.
- */
 function reconcileWorSessionAccount(
   db: WorDatabase,
   req: Request,

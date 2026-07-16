@@ -8,23 +8,23 @@ Codex supports multiple games through a modular architecture. Each game has its 
 
 ### Warframe
 
-**Type**: Inventory tracking system  
-**Data Source**: Armory SQLite database sync  
-**Primary Use**: Weapon, frame, and item inventory management  
+**Type**: Inventory tracking system
+**Data Source**: Armory SQLite database sync
+**Primary Use**: Weapon, frame, and item inventory management
 **Key Feature**: Worksheet-based table organization
 
 ### Epic Seven
 
-**Type**: Collection tracker  
-**Data Source**: Manually curated lists  
-**Primary Use**: Hero and artifact collection tracking  
+**Type**: Collection tracker
+**Data Source**: Manually curated lists
+**Primary Use**: Hero and artifact collection tracking
 **Key Feature**: Account-based progression tracking
 
 ### Watcher of Realms (WoR)
 
-**Type**: Hero, artifact, and demon collection tracker  
-**Data Source**: Catalog import pipeline with fixture data and overrides  
-**Primary Use**: Collection completion tracking with gauge progression  
+**Type**: Hero, artifact, and demon collection tracker
+**Data Source**: Catalog import pipeline with fixture data and overrides
+**Primary Use**: Collection completion tracking with gauge progression
 **Key Feature**: Hero awakening, artifact promotion, and demon collection systems
 
 ## Warframe Implementation
@@ -440,13 +440,6 @@ export function shouldRunStep(step: WorPipelineStepKey): boolean {
 - Incremental updates with version tracking
 - Data validation and integrity checks
 
-**Slug Migrations** (`/server/import/wor/slugMigrations.ts`):
-
-- Automated slug normalization for consistency
-- Historical data migration support
-- Forward/backward compatibility
-- Change tracking and rollback capabilities
-
 ## Common Patterns
 
 ### Game Package Structure
@@ -499,7 +492,7 @@ export function seedReferenceData(db: Database): void {
   ];
 
   const stmt = db.prepare(`
-    INSERT OR IGNORE INTO base_heroes 
+    INSERT OR IGNORE INTO base_heroes
     (id, name, rarity, element, role, zodiac, created_at)
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `);

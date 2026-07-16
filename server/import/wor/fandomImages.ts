@@ -236,6 +236,36 @@ function portraitFileExists(portraitPath: string | null | undefined): boolean {
   return fs.existsSync(path.join(WOR_IMAGES_DIR, relative));
 }
 
+/** Fastidious card images are stored as `.webp`; wiki portraits use other extensions. */
+export function isFastidiousFallbackPortrait(portraitPath: string | null | undefined): boolean {
+  if (!portraitPath) return false;
+  return /\.webp$/i.test(portraitPath);
+}
+
+/**
+ * Attempt a portrait download only when missing, still on a Fastidious fallback card,
+ * or when the caller forced a full image refresh.
+ */
+export function shouldAttemptPortraitDownload(options: {
+  existingPath: string | null | undefined;
+  fileExists: boolean;
+  onlyMissing: boolean;
+  forceDownload: boolean;
+}): boolean {
+  if (options.forceDownload || !options.onlyMissing) return true;
+  if (!options.existingPath || !options.fileExists) return true;
+  return isFastidiousFallbackPortrait(options.existingPath);
+}
+
+function resolvePortraitPathAfterAttempt(
+  downloaded: string | null,
+  existing: string | null | undefined,
+): string | null {
+  if (downloaded) return downloaded;
+  if (existing && portraitFileExists(existing)) return existing;
+  return null;
+}
+
 function logPortraitProgress(
   onLog: ((message: string) => void) | undefined,
   processed: number,
@@ -354,28 +384,40 @@ export async function downloadCatalogPortraits(options: {
   let processed = 0;
 
   options.onLog?.(
-    `Downloading ${portraitTotal} entity portraits (${heroTotal} heroes, ${artifactTotal} artifacts, ${demonTotal} demons)…`,
+    onlyMissing && !forceDownload
+      ? `Checking portraits for missing or Fastidious-fallback entities (${heroTotal} heroes, ${artifactTotal} artifacts, ${demonTotal} demons)…`
+      : `Downloading ${portraitTotal} entity portraits (${heroTotal} heroes, ${artifactTotal} artifacts, ${demonTotal} demons)…`,
   );
 
   const heroes = [];
   for (const hero of options.bundle.heroes) {
     const existing = options.existingPortraitPaths?.heroes[hero.slug] ?? hero.portrait_path;
-    if (onlyMissing && !forceDownload && existing && portraitFileExists(existing)) {
+    if (
+      !shouldAttemptPortraitDownload({
+        existingPath: existing,
+        fileExists: portraitFileExists(existing),
+        onlyMissing,
+        forceDownload,
+      })
+    ) {
       heroes.push({ ...hero, portrait_path: existing });
       summary.portraitsSkipped += 1;
       processed += 1;
       logPortraitProgress(options.onLog, processed, portraitTotal, `hero ${hero.slug}`, summary);
       continue;
     }
-    const portrait = await downloadPortraitForEntity({
-      kind: 'hero',
-      slug: hero.slug,
-      name: hero.name,
-      fastidiousFile: options.imageRefs.heroes[hero.slug],
-      imageRefs: options.imageRefs,
-      forceDownload,
-      summary,
-    });
+    const portrait = resolvePortraitPathAfterAttempt(
+      await downloadPortraitForEntity({
+        kind: 'hero',
+        slug: hero.slug,
+        name: hero.name,
+        fastidiousFile: options.imageRefs.heroes[hero.slug],
+        imageRefs: options.imageRefs,
+        forceDownload,
+        summary,
+      }),
+      existing,
+    );
     heroes.push({ ...hero, portrait_path: portrait });
     if (!portrait) summary.missingPortraits.push(`hero:${hero.slug}`);
     processed += 1;
@@ -387,7 +429,14 @@ export async function downloadCatalogPortraits(options: {
   for (const artifact of options.bundle.artifacts) {
     const existing =
       options.existingPortraitPaths?.artifacts[artifact.slug] ?? artifact.portrait_path;
-    if (onlyMissing && !forceDownload && existing && portraitFileExists(existing)) {
+    if (
+      !shouldAttemptPortraitDownload({
+        existingPath: existing,
+        fileExists: portraitFileExists(existing),
+        onlyMissing,
+        forceDownload,
+      })
+    ) {
       artifacts.push({ ...artifact, portrait_path: existing });
       summary.portraitsSkipped += 1;
       processed += 1;
@@ -400,15 +449,18 @@ export async function downloadCatalogPortraits(options: {
       );
       continue;
     }
-    const portrait = await downloadPortraitForEntity({
-      kind: 'artifact',
-      slug: artifact.slug,
-      name: artifact.name,
-      fastidiousFile: options.imageRefs.artifacts[artifact.slug],
-      imageRefs: options.imageRefs,
-      forceDownload,
-      summary,
-    });
+    const portrait = resolvePortraitPathAfterAttempt(
+      await downloadPortraitForEntity({
+        kind: 'artifact',
+        slug: artifact.slug,
+        name: artifact.name,
+        fastidiousFile: options.imageRefs.artifacts[artifact.slug],
+        imageRefs: options.imageRefs,
+        forceDownload,
+        summary,
+      }),
+      existing,
+    );
     artifacts.push({ ...artifact, portrait_path: portrait });
     if (!portrait) summary.missingPortraits.push(`artifact:${artifact.slug}`);
     processed += 1;
@@ -425,22 +477,32 @@ export async function downloadCatalogPortraits(options: {
   const demons = [];
   for (const demon of options.bundle.demons) {
     const existing = options.existingPortraitPaths?.demons[demon.slug] ?? demon.portrait_path;
-    if (onlyMissing && !forceDownload && existing && portraitFileExists(existing)) {
+    if (
+      !shouldAttemptPortraitDownload({
+        existingPath: existing,
+        fileExists: portraitFileExists(existing),
+        onlyMissing,
+        forceDownload,
+      })
+    ) {
       demons.push({ ...demon, portrait_path: existing });
       summary.portraitsSkipped += 1;
       processed += 1;
       logPortraitProgress(options.onLog, processed, portraitTotal, `demon ${demon.slug}`, summary);
       continue;
     }
-    const portrait = await downloadPortraitForEntity({
-      kind: 'demon',
-      slug: demon.slug,
-      name: demon.name,
-      fastidiousFile: options.imageRefs.demons[demon.slug],
-      imageRefs: options.imageRefs,
-      forceDownload,
-      summary,
-    });
+    const portrait = resolvePortraitPathAfterAttempt(
+      await downloadPortraitForEntity({
+        kind: 'demon',
+        slug: demon.slug,
+        name: demon.name,
+        fastidiousFile: options.imageRefs.demons[demon.slug],
+        imageRefs: options.imageRefs,
+        forceDownload,
+        summary,
+      }),
+      existing,
+    );
     demons.push({ ...demon, portrait_path: portrait });
     if (!portrait) summary.missingPortraits.push(`demon:${demon.slug}`);
     processed += 1;
