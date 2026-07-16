@@ -9,7 +9,6 @@ import { WOR_IMAGES_DIR, PROJECT_ROOT } from '../../config.js';
 import {
   bumpCatalogVersion,
   deactivateStaleCatalogEntries,
-  applyCatalogSlugMigrations,
   getCatalogCounts,
   upsertCatalogArtifacts,
   upsertCatalogDemons,
@@ -30,11 +29,11 @@ import {
   WOR_IMPORT_FIXTURE_CACHE_DIR,
 } from './paths.js';
 import {
+  shouldFetchFastidiousCatalog,
   shouldRunWorStep,
   worImagesOnlyMissing,
   type WorPipelineStepOptions,
 } from './pipelineStepControl.js';
-import { WOR_CATALOG_SLUG_MIGRATIONS } from './slugMigrations.js';
 import {
   computeCurrentSourceHashes,
   fastidiousSourcesChanged,
@@ -169,13 +168,11 @@ export async function runWorStartupPipeline(
   const previousHashes = readProcessedSourceHashes();
   const currentHashes = computeCurrentSourceHashes(cacheDir);
 
-  // schema
   if (shouldRunWorStep('schema', true, options)) {
     emit(onLog, 'info', `[${stepTag('schema')}] Ensuring WoR catalog tables…`);
     ensureWorCoreTables(db);
   }
 
-  // fastidiousCatalog
   const catalogWouldRun =
     live ||
     fs.existsSync(path.join(cacheDir, 'heroes.json')) ||
@@ -204,7 +201,11 @@ export async function runWorStartupPipeline(
     } else if (
       shouldRunWorStep(
         'fastidiousCatalog',
-        fastidiousSourcesChanged(currentHashes, previousHashes),
+        shouldFetchFastidiousCatalog({
+          live,
+          sourcesChanged: fastidiousSourcesChanged(currentHashes, previousHashes),
+          forceImport: options.forceImport,
+        }),
         options,
       )
     ) {
@@ -217,8 +218,9 @@ export async function runWorStartupPipeline(
       imageRefs = result.imageRefs;
       classIcons = result.classIcons;
       factionIcons = result.factionIcons;
-      writeProcessedSourceHashes({ ...currentHashes });
-      updateSourceHashesInDb(db, currentHashes);
+      const refreshedHashes = computeCurrentSourceHashes(cacheDir);
+      writeProcessedSourceHashes(refreshedHashes);
+      updateSourceHashesInDb(db, refreshedHashes);
     } else {
       emit(onLog, 'info', `[${stepTag('fastidiousCatalog')}] Skipped — source cache unchanged.`);
       const result = await fetchFastidiousCatalog({
@@ -254,7 +256,6 @@ export async function runWorStartupPipeline(
     throw new Error('Catalog bundle unavailable after fastidiousCatalog step.');
   }
 
-  // manualOverrides
   if (
     shouldRunWorStep('manualOverrides', overridesChanged(currentHashes, previousHashes), options)
   ) {
@@ -266,7 +267,6 @@ export async function runWorStartupPipeline(
     bundle = applyWorOverrides(bundle);
   }
 
-  // fandomImages
   const imagesWouldRun =
     live || Boolean(process.env.WIKI_USER_AGENT?.trim()) || Object.keys(classIcons).length > 0;
   if (bundle && imageRefs && shouldRunWorStep('fandomImages', imagesWouldRun, options)) {
@@ -307,7 +307,6 @@ export async function runWorStartupPipeline(
     emit(onLog, 'info', `[${stepTag('fandomImages')}] Skipped.`);
   }
 
-  // seedValidation
   if (bundle && shouldRunWorStep('seedValidation', true, options)) {
     emit(onLog, 'info', `[${stepTag('seedValidation')}] Validating catalog bundle…`);
     const validation = validateWorCatalogBundle(bundle);
@@ -332,10 +331,6 @@ export async function runWorStartupPipeline(
     const demonCount = upsertCatalogDemons(db, bundle.demons);
     emit(onLog, 'info', `Upserted ${demonCount} catalog demons.`);
 
-    const migrated = applyCatalogSlugMigrations(db, WOR_CATALOG_SLUG_MIGRATIONS);
-    if (migrated > 0) {
-      emit(onLog, 'info', `Remapped ${migrated} account hero row(s) from legacy catalog slugs.`);
-    }
     const deactivated = deactivateStaleCatalogEntries(db, bundle);
     const deactivatedTotal = deactivated.heroes + deactivated.artifacts + deactivated.demons;
     if (deactivatedTotal > 0) {

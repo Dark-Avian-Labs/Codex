@@ -9,7 +9,6 @@ function decodeWithEntityMap(value: string, entities: Record<string, string>): s
   return value.replace(pattern, (entity) => entities[entity] ?? entity);
 }
 
-/** Decode HTML attribute entities from Inertia `data-page` payloads (single pass). */
 export function decodeInertiaPayload(encoded: string): string {
   return decodeWithEntityMap(encoded, {
     '&quot;': '"',
@@ -19,7 +18,6 @@ export function decodeInertiaPayload(encoded: string): string {
   });
 }
 
-/** Decode HTML entities in Fastidious display names (single pass). */
 export function decodeHtmlEntities(value: string): string {
   return decodeWithEntityMap(value, {
     '&#x27;': "'",

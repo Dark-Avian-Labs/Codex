@@ -54,6 +54,10 @@ export async function downloadImageToWorDir(options: {
   const hashPath = `${localPath}.hash`;
   fs.mkdirSync(path.dirname(localPath), { recursive: true });
 
+  if (!options.forceDownload && fs.existsSync(localPath)) {
+    return { relativePath: options.relativePath, status: 'skipped' };
+  }
+
   try {
     const response = await fetchWithTimeout(
       options.url,
@@ -72,14 +76,6 @@ export async function downloadImageToWorDir(options: {
       return { relativePath: options.relativePath, status: 'failed', error: 'empty body' };
     }
     const nextHash = hashBuffer(buffer);
-    if (
-      !options.forceDownload &&
-      fs.existsSync(localPath) &&
-      fs.existsSync(hashPath) &&
-      fs.readFileSync(hashPath, 'utf8').trim() === nextHash
-    ) {
-      return { relativePath: options.relativePath, status: 'skipped' };
-    }
     fs.writeFileSync(localPath, buffer);
     fs.writeFileSync(hashPath, `${nextHash}\n`, 'utf8');
     return { relativePath: options.relativePath, status: 'downloaded' };

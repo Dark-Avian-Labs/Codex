@@ -201,38 +201,6 @@ export function getCatalogCounts(db: Database.Database): {
   return { heroes, artifacts, demons };
 }
 
-export function applyCatalogSlugMigrations(
-  db: Database.Database,
-  migrations: Record<string, string>,
-): number {
-  let moved = 0;
-  const transaction = db.transaction(() => {
-    for (const [fromSlug, toSlug] of Object.entries(migrations)) {
-      const targetExists = db.prepare('SELECT 1 FROM catalog_heroes WHERE slug = ?').get(toSlug);
-      if (!targetExists) continue;
-
-      const result = db
-        .prepare(
-          `UPDATE account_heroes
-           SET catalog_hero_slug = ?
-           WHERE catalog_hero_slug = ?
-             AND NOT EXISTS (
-               SELECT 1 FROM account_heroes existing
-               WHERE existing.account_id = account_heroes.account_id
-                 AND existing.catalog_hero_slug = ?
-             )`,
-        )
-        .run(toSlug, fromSlug, toSlug);
-      moved += result.changes;
-
-      db.prepare('DELETE FROM account_heroes WHERE catalog_hero_slug = ?').run(fromSlug);
-      db.prepare('UPDATE catalog_heroes SET active = 0 WHERE slug = ?').run(fromSlug);
-    }
-  });
-  transaction();
-  return moved;
-}
-
 export function deactivateStaleCatalogEntries(
   db: Database.Database,
   bundle: CatalogBundle,

@@ -17,6 +17,14 @@ export function shouldRunWorStep(
   return wouldRun;
 }
 
+export function shouldFetchFastidiousCatalog(options: {
+  live: boolean;
+  sourcesChanged: boolean;
+  forceImport?: boolean;
+}): boolean {
+  return Boolean(options.forceImport) || options.live || options.sourcesChanged;
+}
+
 export function worImagesOnlyMissing(options: WorPipelineStepOptions): boolean {
   return !options.forceImages && !options.forceSteps?.includes('fandomImages');
 }

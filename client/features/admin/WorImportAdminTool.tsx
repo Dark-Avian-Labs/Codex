@@ -160,7 +160,7 @@ export function WorImportAdminTool() {
             checked={forceImages}
             onChange={(event) => setForceImages(event.target.checked)}
           />
-          Force image re-download
+          Force image re-download (including existing wiki portraits)
         </label>
       </div>
       {error ? (
