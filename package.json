@@ -78,7 +78,7 @@
     "globals": "catalog:",
     "oxfmt": "catalog:",
     "oxlint": "catalog:",
-    "semantic-release": "^25.0.7",
+    "semantic-release": "^25.0.8",
     "supertest": "^7.2.2",
     "tailwindcss": "catalog:",
     "typescript": "catalog:",
