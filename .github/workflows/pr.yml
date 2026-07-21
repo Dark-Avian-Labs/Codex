@@ -16,8 +16,8 @@ concurrency:
 
 jobs:
   validate:
-    runs-on: blacksmith-4vcpu-ubuntu-2404
-    timeout-minutes: 10
+    runs-on: blacksmith-8vcpu-ubuntu-2404
+    timeout-minutes: 20
 
     steps:
       - name: Checkout code
@@ -27,22 +27,13 @@ jobs:
         uses: pnpm/action-setup@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
 
       - name: Install dependencies (fresh lockfile)
         uses: ./.github/actions/pnpm-install-fresh
-
-      - name: Check formatting
-        run: pnpm run check-format
-
-      - name: Check linting
-        run: pnpm run lint
-
-      - name: Check types
-        run: pnpm run typecheck
 
       - name: Prepare test environment
         env:
@@ -67,6 +58,16 @@ jobs:
             echo "::notice title=CI env::No DOTENV_PRIVATE_KEY_DEVELOPMENT (Dependabot/forks). Using .github/ci.env.development plus RUNNER_TEMP DB paths. Optional: add this secret under Settings → Secrets and variables → Actions → Dependabot to use the committed encrypted .env.development instead."
           fi
 
+      - name: Run quality checks
+        env:
+          DOTENV_PRIVATE_KEY_DEVELOPMENT: ${{ secrets.DOTENV_PRIVATE_KEY_DEVELOPMENT }}
+        run: |
+          if [ "$USE_DOTENVX" = "true" ]; then
+            pnpm exec dotenvx run --strict -f .env.development -- pnpm run validate
+          else
+            pnpm run validate
+          fi
+
       - name: Build project
         env:
           DOTENV_PRIVATE_KEY_DEVELOPMENT: ${{ secrets.DOTENV_PRIVATE_KEY_DEVELOPMENT }}
@@ -76,19 +77,6 @@ jobs:
           else
             pnpm run build
           fi
-
-      - name: Run tests
-        env:
-          DOTENV_PRIVATE_KEY_DEVELOPMENT: ${{ secrets.DOTENV_PRIVATE_KEY_DEVELOPMENT }}
-        run: |
-          if [ "$USE_DOTENVX" = "true" ]; then
-            pnpm exec dotenvx run --strict -f .env.development -- pnpm run test
-          else
-            pnpm run test
-          fi
-
-      - name: Verify better-sqlite3 native bindings
-        run: node -e "import('better-sqlite3').then(m => { const db = new m.default(':memory:'); db.close(); console.log('sqlite ok'); })"
 
       - name: Test coverage report
         env:

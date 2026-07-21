@@ -1,12 +1,14 @@
 # Codex
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Cursor](https://img.shields.io/badge/Cursor-IDE-141414?logo=cursor&logoColor=white)](https://cursor.com)
+[![CI](https://github.com/Dark-Avian-Labs/Codex/actions/workflows/ci.yml/badge.svg)](https://github.com/Dark-Avian-Labs/Codex/actions/workflows/ci.yml)
+[![PR](https://github.com/Dark-Avian-Labs/Codex/actions/workflows/pr.yml/badge.svg)](https://github.com/Dark-Avian-Labs/Codex/actions/workflows/pr.yml)
 ![Node](https://img.shields.io/badge/Node-%3E%3D26-339933?logo=node.js&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-6.x-3178C6?logo=typescript&logoColor=white)
 ![React](https://img.shields.io/badge/React-19.x-61DAFB?logo=react&logoColor=black)
 ![Vite](https://img.shields.io/badge/Vite-8.x-646CFF?logo=vite&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.x-06B6D4?logo=tailwindcss&logoColor=white)
+[![Cursor](https://img.shields.io/badge/Cursor-IDE-141414?logo=cursor&logoColor=white)](https://cursor.com)
 
 Codex is a table-based collection tracker for games. Support for each game lives in workspace packages (Epic7 with a manually curated list, Warframe backed by data synced from Armory). Sign-in, access control, and profile settings use [Clerk](https://clerk.com) directly.
 
@@ -15,7 +17,7 @@ Codex is a table-based collection tracker for games. Support for each game lives
 - Node.js 26+
 - pnpm 11+
 
-## Setup
+## Quick start
 
 1. Install Node.js and pnpm using your preferred method for your OS.
 
@@ -29,7 +31,6 @@ Codex is a table-based collection tracker for games. Support for each game lives
 
    ```bash
    cp .env.example .env
-   nano .env
    ```
 
 4. Build and run:
@@ -38,6 +39,12 @@ Codex is a table-based collection tracker for games. Support for each game lives
    pnpm run build
    pnpm start
    ```
+
+## Examples
+
+```bash
+curl -sS http://127.0.0.1:3001/api/health
+```
 
 ## dotenvx and encrypted env files
 
@@ -56,7 +63,7 @@ Suggested secret naming when vault is enabled:
 
 Use one key per environment to reduce blast radius.
 
-## Environment variables
+## Environment
 
 | Variable                            | Description                                                                        |
 | ----------------------------------- | ---------------------------------------------------------------------------------- |
@@ -91,6 +98,7 @@ Client `VITE_*` variables are listed in `.env.example`.
 
 | Script                  | Description                                                                        |
 | ----------------------- | ---------------------------------------------------------------------------------- |
+| `pnpm run validate`     | Runtime preflight (Node 26+, pnpm, SQLite native), format, lint, typecheck, tests. |
 | `pnpm run db:init`      | Initialize Warframe and Epic7 SQLite schemas (requires built game packages).       |
 | `pnpm run build`        | Build workspace packages, typecheck, compile server, and Vite client build.        |
 | `pnpm start`            | Run production server from `dist/`.                                                |
@@ -99,9 +107,12 @@ Client `VITE_*` variables are listed in `.env.example`.
 | `pnpm run lint:fix`     | Run Oxlint with `--fix`.                                                           |
 | `pnpm run format`       | Run Oxfmt.                                                                         |
 | `pnpm run check-format` | Verify Oxfmt formatting.                                                           |
-| `pnpm run validate`     | Runtime preflight (Node 26+, pnpm, SQLite native), format, lint, typecheck, tests. |
 | `pnpm run test`         | Run Vitest once.                                                                   |
 | `pnpm run test:watch`   | Run Vitest in watch mode.                                                          |
+
+## Development
+
+Agent-oriented docs: [openwiki/quickstart.md](openwiki/quickstart.md). Org standards: AppBase `docs/org-standards/`.
 
 ## License
 
