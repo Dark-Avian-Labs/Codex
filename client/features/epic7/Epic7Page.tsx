@@ -933,14 +933,15 @@ export function Epic7Page() {
       <HeaderSearch
         inputId="codex-epic7-header-search"
         ariaLabel="Search Epic Seven entries"
-        value={search}
+        value=""
         onChange={setSearch}
       />,
     );
     return () => {
       setHeaderCenter(null);
     };
-  }, [search, setHeaderCenter, setSearch]);
+    // Mount once — do not recreate on `search` or debounced updates will fight the input.
+  }, [setHeaderCenter, setSearch]);
 
   useEffect(() => {
     setHeaderActions(

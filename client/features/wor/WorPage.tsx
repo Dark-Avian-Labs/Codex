@@ -442,14 +442,15 @@ export function WorPage() {
     setHeaderCenter(
       <HeaderSearch
         inputId="codex-wor-search"
-        value={search}
+        value=""
         onChange={setSearch}
         ariaLabel="Search Watcher of Realms collection"
         placeholder="Search..."
       />,
     );
     return () => setHeaderCenter(null);
-  }, [search, setHeaderCenter]);
+    // Mount once — do not recreate on `search` or debounced updates will fight the input.
+  }, [setHeaderCenter]);
 
   const filteredHeroes = useMemo(
     () => heroes.filter((row) => row.name.toLowerCase().includes(search.toLowerCase())),
