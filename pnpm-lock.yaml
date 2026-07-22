@@ -13,8 +13,8 @@ catalogs:
       specifier: ^6.12.5
       version: 6.12.5
     '@dotenvx/dotenvx':
-      specifier: ^2.14.0
-      version: 2.14.0
+      specifier: ^2.15.1
+      version: 2.15.1
     '@fontsource-variable/cascadia-mono':
       specifier: ^5.3.0
       version: 5.3.0
@@ -158,8 +158,8 @@ importers:
         specifier: workspace:*
         version: link:packages/games/wor
       '@dotenvx/dotenvx':
-        specifier: 'catalog:'
-        version: 2.14.0
+        specifier: 2.15.1
+        version: 2.15.1
       '@fontsource-variable/cascadia-mono':
         specifier: 'catalog:'
         version: 5.3.0
@@ -304,7 +304,7 @@ importers:
         version: 2.1.43(express@5.2.1(supports-color@7.2.0))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@dotenvx/dotenvx':
         specifier: 'catalog:'
-        version: 2.14.0
+        version: 2.15.1
       better-sqlite3:
         specifier: 'catalog:'
         version: 12.11.1
@@ -484,8 +484,8 @@ packages:
     resolution: {integrity: sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==}
     engines: {node: '>=0.1.90'}
 
-  '@dotenvx/dotenvx@2.14.0':
-    resolution: {integrity: sha512-cNXKhPSSwl5H8udv31bLnBz8SW/R/9Ijbi96rUIovmG62i8B5zcp9IvWY3tAe/i4IPZaROGaJNZIsOD8OuUR2g==}
+  '@dotenvx/dotenvx@2.15.1':
+    resolution: {integrity: sha512-t5eUkF4HV5qMAY+lg2ZYzPhso5i8EJHPvYKkzot0R4V08ivMs/w4HVe95bR9U2AGTTlSU5AA141mA6dRYRrn6g==}
     hasBin: true
 
   '@dotenvx/primitives@2.1.0':
@@ -3479,7 +3479,7 @@ snapshots:
   '@colors/colors@1.5.0':
     optional: true
 
-  '@dotenvx/dotenvx@2.14.0':
+  '@dotenvx/dotenvx@2.15.1':
     dependencies:
       '@dotenvx/primitives': 2.1.0
       '@dotenvx/tooling': 1.0.2
