@@ -638,14 +638,15 @@ export function WarframePage() {
       <HeaderSearch
         inputId="codex-warframe-header-search"
         ariaLabel="Search Warframe items"
-        value={search}
+        value=""
         onChange={setSearch}
       />,
     );
     return () => {
       setHeaderCenter(null);
     };
-  }, [search, setHeaderCenter]);
+    // Mount once — do not recreate on `search` or debounced updates will fight the input.
+  }, [setHeaderCenter]);
 
   function handleRetry(): void {
     retryLoad();
