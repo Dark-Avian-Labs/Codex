@@ -23,8 +23,7 @@ export function SignUpPage() {
       subtitle="One account for Codex and Armory. We only store your user id in our apps."
     >
       <SignUp
-        routing="path"
-        path="/sign-up"
+        routing="hash"
         signInUrl="/sign-in"
         fallbackRedirectUrl={redirectUrl}
         appearance={buildClerkAppearance(mode)}
