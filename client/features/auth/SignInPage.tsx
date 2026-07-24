@@ -23,8 +23,7 @@ export function SignInPage() {
       subtitle="Track Warframe and Epic Seven progress with your Dark Avian Labs account."
     >
       <SignIn
-        routing="path"
-        path="/sign-in"
+        routing="hash"
         signUpUrl="/sign-up"
         fallbackRedirectUrl={redirectUrl}
         appearance={buildClerkAppearance(mode)}
