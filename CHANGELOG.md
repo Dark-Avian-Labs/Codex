@@ -242,3 +242,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.59.2** `fix` [#307](https://github.com/Dark-Avian-Labs/Codex/pull/307): import pipeline
 - **v1.59.3** `chore` [#313](https://github.com/Dark-Avian-Labs/Codex/pull/313): chore/org standards alignment
 - **v1.59.4** `chore` [#315](https://github.com/Dark-Avian-Labs/Codex/pull/315): fix/header search debounce race
+- **v1.59.5** `chore` [#319](https://github.com/Dark-Avian-Labs/Codex/pull/319): fix/clerk auth hash routing
