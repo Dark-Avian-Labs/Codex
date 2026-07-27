@@ -1,5 +1,15 @@
 {
-  "heroes": {},
+  "heroes": {
+    "xasny": {
+      "name": "Xasny",
+      "class": "fighter",
+      "faction": "esoteria_order",
+      "rarity": "epic",
+      "damage_type": "Magic",
+      "is_lord": 0,
+      "active": 1
+    }
+  },
   "artifacts": {},
   "demons": {}
 }
