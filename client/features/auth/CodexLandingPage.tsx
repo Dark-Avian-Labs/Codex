@@ -1,5 +1,5 @@
 import { Show } from '@clerk/react';
-import { Navigate } from 'react-router-dom';
+import { Navigate } from 'react-router';
 
 import { AccountRequiredPage } from './AccountRequiredPage';
 

@@ -54,7 +54,7 @@
     "helmet": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "react-router-dom": "catalog:",
+    "react-router": "catalog:",
     "tailwind-merge": "catalog:"
   },
   "devDependencies": {
@@ -89,5 +89,5 @@
     "node": ">=26.0.0",
     "pnpm": ">=11.0.0"
   },
-  "packageManager": "pnpm@11.15.1"
+  "packageManager": "pnpm@11.17.0"
 }

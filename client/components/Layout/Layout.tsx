@@ -8,7 +8,7 @@ import {
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
 } from 'react';
-import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation } from 'react-router';
 
 import feathers from '../../../packages/core/assets/feathers.svg';
 import epic7Favicon from '../../../packages/games/epic7/favicon.ico';
