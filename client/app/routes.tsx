@@ -6,7 +6,7 @@ import {
   type ErrorInfo,
   type ReactNode,
 } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router';
 
 import { Layout } from '../components/Layout/Layout';
 import { LazySuspenseFallback } from '../components/ui/LazySuspenseFallback';

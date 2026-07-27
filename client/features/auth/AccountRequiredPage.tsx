@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { LEGAL_PAGE_URL } from '../../app/config';
 import { APP_PATHS } from '../../app/paths';

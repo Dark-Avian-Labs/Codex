@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { APP_PATHS } from '../../app/paths';
 import { GlassCard } from '../../components/ui/GlassCard';

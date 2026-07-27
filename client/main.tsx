@@ -3,7 +3,7 @@ import '../packages/core/src/input.css';
 
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter } from 'react-router';
 
 import { App } from './App';
 import { ThemeProvider } from './context/ThemeContext';
