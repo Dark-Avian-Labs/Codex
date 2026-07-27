@@ -245,3 +245,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.59.5** `chore` [#319](https://github.com/Dark-Avian-Labs/Codex/pull/319): fix/clerk auth hash routing
 - **v1.59.6** `chore` [#322](https://github.com/Dark-Avian-Labs/Codex/pull/322): dependabot/npm_and_yarn/production dependencies 9d3913ff82
 - **v1.59.7** `chore` [#323](https://github.com/Dark-Avian-Labs/Codex/pull/323): fix/react router 8
+- **v1.60.0** `chore` [#324](https://github.com/Dark-Avian-Labs/Codex/pull/324): feat/wor override add xasny
