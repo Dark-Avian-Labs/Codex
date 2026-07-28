@@ -14,7 +14,7 @@ const projectRoot = process.cwd();
 const envKeysPath = path.join(projectRoot, '.env.keys');
 if (fs.existsSync(envKeysPath)) {
   try {
-    loadEnv({ path: envKeysPath });
+    loadEnv({ path: envKeysPath, quiet: true });
   } catch (error) {
     console.error(`[Config] Failed to load environment keys from "${envKeysPath}".`, error);
     throw error;
@@ -24,7 +24,7 @@ if (fs.existsSync(envKeysPath)) {
 const envPath = resolveEnvFilePath(projectRoot);
 if (envPath) {
   try {
-    loadEnv({ path: envPath });
+    loadEnv({ path: envPath, quiet: true });
   } catch (error) {
     console.error(`[Config] Failed to load environment via loadEnv from "${envPath}".`, error);
     throw error;
