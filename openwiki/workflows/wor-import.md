@@ -3,7 +3,7 @@ type: Workflow
 title: WoR Catalog Import
 description: Fastidious catalog fetch, Fandom/Fastidious images, validation, and account sync for Watcher of Realms.
 tags: [wor, import, fastidious, fandom]
-timestamp: 2026-07-18T21:05:00Z
+timestamp: 2026-07-30T17:05:00Z
 ---
 
 # WoR Catalog Import
@@ -18,6 +18,7 @@ Watcher of Realms has no live game API. Codex builds catalog tables via a pipeli
 | Orchestrator       | `server/import/wor/startupPipeline.ts`                                |
 | Fastidious         | `server/import/wor/fastidiousCatalog.ts`, `fastidiousClient.ts`       |
 | Images             | `server/import/wor/fandomImages.ts`, `images.ts`                      |
+| Import lease       | `server/import/wor/importLease.ts` (DB `import_lease`)                |
 | Validate / upsert  | `validateCatalog.ts`, `catalogQueries.ts`                             |
 | Admin job / API    | `server/import/wor/adminImportJob.ts`, `server/routes/worAdminApi.ts` |
 | CLI                | `scripts/wor-import.mjs` (`pnpm run wor:import`)                      |
@@ -33,19 +34,23 @@ Watcher of Realms has no live game API. Codex builds catalog tables via a pipeli
 5. `seedValidation` — validate before write
 6. `sync_accounts` — refresh account rows from catalog
 
-In the orchestrator, overrides are applied before portrait download so wiki-only additions (e.g. heroes missing from Fastidious) still get Fandom images.
+In the orchestrator, overrides are applied before portrait download so wiki-only additions (e.g. heroes missing from Fastidious) still get Fandom images. Catalog upserts, deactivation, version bump, and account sync run in **one** immediate SQLite transaction after downloads complete.
 
-Options: `forceImport`, `forceImages`, `forceSteps[]`, fixture path, log callback.
+Options: `forceImport`, `forceImages`, `forceSteps[]` (zod enum of step keys), fixture path, log callback.
 
 ## Entry points
 
-| Trigger      | Behavior                                                                                                    |
-| ------------ | ----------------------------------------------------------------------------------------------------------- |
-| Server boot  | If `catalogNeedsImport` (empty catalog), run `runWorStartupPipeline()` — failures log, do not crash process |
-| Admin UI/API | Status + SSE stream; single-flight (rejects if import already running)                                      |
-| CLI          | Built `dist` required; `--force` / `--force-images`; live mode via `WOR_IMPORT_LIVE` unless offline/test    |
+| Trigger      | Behavior                                                                                                                       |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| Server boot  | If `catalogNeedsImport` (empty catalog), run `runWorStartupPipeline()` — failures log, do not crash process                    |
+| Admin UI/API | Status + SSE stream; acquires DB `import_lease` (plus in-process single-flight) so multi-instance deploys do not double-import |
+| CLI          | Built `dist` required; `--force` / `--force-images`; live mode via `WOR_IMPORT_LIVE` unless offline/test                       |
 
 Offline/fixture: when live import is disabled, use cache under `scripts/data/wor-import-cache` or `scripts/data/wor-catalog-fixture.json`.
+
+## Images / `/wor-images`
+
+Downloads allow only HTTPS hosts (Fastidious / known Fandom/wikia CDNs), reject redirects (`redirect: 'error'`), cap response size, and restrict saved extensions to image types with magic-byte checks. Static `/wor-images` serves with safe image Content-Types and `nosniff`. Path containment under `WOR_IMAGES_DIR` (inside `DATA_DIR`) is enforced.
 
 ## Manual overrides (`scripts/data/wor-overrides.json`)
 
@@ -60,7 +65,7 @@ Use adds for wiki-only entities Fastidious has not shipped yet. Re-run admin/CLI
 
 - Build server before CLI import.
 - Duplicate step definitions (`shared/` vs `server/import/wor/`) — labels live on the server copy.
-- Concurrent admin imports are rejected.
+- Concurrent imports: process-local guard **and** DB lease; release lease on failure/completion.
 - Image dir defaults under `./data/`; Fandom API needs a proper wiki user agent.
 - Override-only adds still need a catalog re-import to land in SQLite / account rows.
 

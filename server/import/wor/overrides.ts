@@ -93,13 +93,6 @@ function applyEntityOverrides<T extends { slug: string; display_order?: number }
   return [...patched, ...added];
 }
 
-/**
- * Apply `scripts/data/wor-overrides.json`.
- *
- * - Entries whose slug already exists are merged as field patches.
- * - Entries whose slug is absent from Fastidious are treated as catalog additions
- *   (required identity fields must be present).
- */
 export function applyWorOverrides(
   bundle: CatalogBundle,
   overridesPath = WOR_OVERRIDES_PATH,

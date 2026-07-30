@@ -3,7 +3,7 @@ type: Workflow
 title: Database Management
 description: Session, Armory, and per-game SQLite paths — db:init, schemas, and sync prerequisites.
 tags: [sqlite, database, db-init]
-timestamp: 2026-07-18T20:40:00Z
+timestamp: 2026-07-30T17:05:00Z
 ---
 
 # Database Management
@@ -18,9 +18,9 @@ Codex isolates state across several SQLite files. Game schemas ship inside works
 | `ARMORY_DB_PATH`   | **Required absolute** | Read-only Armory catalog                  | Owned by Armory                              |
 | `WARFRAME_DB_PATH` | Relative OK           | Warframe worksheets/catalog               | `packages/games/warframe/src/db/schema.ts`   |
 | `EPIC7_DB_PATH`    | Relative OK           | Epic7 base + accounts                     | `packages/games/epic7/src/db/schema.ts`      |
-| `WOR_DB_PATH`      | Relative OK           | WoR catalog + accounts                    | `packages/games/wor/src/db/schema.ts`        |
+| `WOR_DB_PATH`      | Relative OK           | WoR catalog + accounts + `import_lease`   | `packages/games/wor/src/db/schema.ts`        |
 
-Optional: `WOR_IMAGES_DIR` for WoR portraits (default under `./data/`).
+Optional: `WOR_IMAGES_DIR` for WoR portraits (default under `./data/`; must resolve inside `DATA_DIR`).
 
 ## db:init
 
@@ -37,11 +37,21 @@ Server boot (`server/index.ts`) asserts required tables already exist — it doe
 
 Warframe admin sync opens `ARMORY_DB_PATH` with `better-sqlite3` **readonly** (`server/services/warframeSync.ts`). Build/start Armory and import its catalog before expecting sync to succeed.
 
+### Warframe sync ops
+
+| Concern             | Path / note                                                                                       |
+| ------------------- | ------------------------------------------------------------------------------------------------- |
+| Sync implementation | `server/services/warframeSync.ts` (yields between users so the event loop stays responsive)       |
+| Lease / heartbeat   | `warframeSyncJobs.ts` / `warframeSyncState.ts` — renew while running; assert owner before batches |
+| Preview             | `POST /api/warframe/admin/sync-preview` (CSRF-protected; not GET)                                 |
+| Force-release lease | `POST /api/warframe/admin/sync/release-lease` — refused while an in-process sync is still running |
+
 ## What to watch out for
 
 - Never use relative `../Armory/...` casually in production — mount explicit absolute paths.
 - Missing package `dist` → `db:init` exits with a build hint.
 - Do not write to Armory’s DB from Codex.
+- WoR admin/startup import acquires `import_lease` in `wor.db` — see [WoR catalog import](wor-import.md).
 
 ## Related
 

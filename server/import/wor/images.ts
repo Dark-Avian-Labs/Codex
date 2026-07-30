@@ -5,6 +5,34 @@ import path from 'node:path';
 import { WOR_IMAGES_DIR } from '../../config.js';
 import { fetchWithTimeout, FETCH_TIMEOUT_MS } from '../../http/fetchWithTimeout.js';
 
+export const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+
+export const ALLOWED_IMAGE_EXTENSIONS = ['.png', '.webp', '.jpg', '.jpeg', '.gif'] as const;
+export type AllowedImageExtension = (typeof ALLOWED_IMAGE_EXTENSIONS)[number];
+
+const ALLOWED_IMAGE_EXT_SET = new Set<string>(ALLOWED_IMAGE_EXTENSIONS);
+
+const IMAGE_CONTENT_TYPES: Record<AllowedImageExtension, string> = {
+  '.png': 'image/png',
+  '.webp': 'image/webp',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif',
+};
+
+const ALLOWED_IMAGE_HOSTS = new Set([
+  'fastidious.gg',
+  'www.fastidious.gg',
+  'static.wikia.nocookie.net',
+  'vignette.wikia.nocookie.net',
+  'images.wikia.com',
+]);
+
+type DetectedImage = {
+  ext: AllowedImageExtension;
+  mime: string;
+};
+
 export type ImageDownloadResult = {
   relativePath: string;
   status: 'downloaded' | 'skipped' | 'failed';
@@ -15,18 +43,126 @@ function hashBuffer(buffer: Buffer): string {
   return createHash('sha256').update(buffer).digest('hex');
 }
 
-function extensionFromUrl(url: string, contentType: string | null): string {
-  const fromUrl = path.extname(new URL(url).pathname);
-  if (fromUrl) return fromUrl;
-  if (contentType?.includes('svg')) return '.svg';
-  if (contentType?.includes('webp')) return '.webp';
-  if (contentType?.includes('png')) return '.png';
-  return '.png';
+export function isAllowedImageHost(hostname: string): boolean {
+  const host = hostname.trim().toLowerCase();
+  if (!host) return false;
+  if (ALLOWED_IMAGE_HOSTS.has(host)) return true;
+  return host.endsWith('.wikia.nocookie.net');
 }
 
-function resolveWorImagePath(relativePath: string): string | null {
+export function assertTrustedImageUrl(urlString: string): URL {
+  let url: URL;
+  try {
+    url = new URL(urlString);
+  } catch {
+    throw new Error('invalid image URL');
+  }
+  if (url.protocol !== 'https:') {
+    throw new Error('image URL must use HTTPS');
+  }
+  if (url.username || url.password) {
+    throw new Error('image URL must not include credentials');
+  }
+  if (!isAllowedImageHost(url.hostname)) {
+    throw new Error(`image host not allowed: ${url.hostname}`);
+  }
+  return url;
+}
+
+export function detectImageType(buffer: Buffer): DetectedImage | null {
+  if (
+    buffer.length >= 8 &&
+    buffer[0] === 0x89 &&
+    buffer[1] === 0x50 &&
+    buffer[2] === 0x4e &&
+    buffer[3] === 0x47
+  ) {
+    return { ext: '.png', mime: 'image/png' };
+  }
+  if (buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
+    return { ext: '.jpg', mime: 'image/jpeg' };
+  }
+  if (
+    buffer.length >= 12 &&
+    buffer.toString('ascii', 0, 4) === 'RIFF' &&
+    buffer.toString('ascii', 8, 12) === 'WEBP'
+  ) {
+    return { ext: '.webp', mime: 'image/webp' };
+  }
+  if (buffer.length >= 6) {
+    const gifHeader = buffer.toString('ascii', 0, 6);
+    if (gifHeader === 'GIF87a' || gifHeader === 'GIF89a') {
+      return { ext: '.gif', mime: 'image/gif' };
+    }
+  }
+  return null;
+}
+
+function contentTypeLooksLikeImage(contentType: string | null): boolean {
+  if (!contentType) return true;
+  const mime = contentType.split(';')[0]?.trim().toLowerCase() ?? '';
+  if (!mime || mime === 'application/octet-stream') return true;
+  return (
+    mime === 'image/png' ||
+    mime === 'image/jpeg' ||
+    mime === 'image/jpg' ||
+    mime === 'image/webp' ||
+    mime === 'image/gif'
+  );
+}
+
+export async function readResponseBodyCapped(
+  response: Response,
+  maxBytes: number = MAX_IMAGE_BYTES,
+): Promise<Buffer> {
+  if (!response.body) {
+    const declared = Number(response.headers.get('content-length') ?? '');
+    if (Number.isFinite(declared) && declared > maxBytes) {
+      throw new Error(`response exceeds ${maxBytes} bytes`);
+    }
+    const buffer = Buffer.from(await response.arrayBuffer());
+    if (buffer.length > maxBytes) {
+      throw new Error(`response exceeds ${maxBytes} bytes`);
+    }
+    return buffer;
+  }
+
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (!value) continue;
+      total += value.byteLength;
+      if (total > maxBytes) {
+        throw new Error(`response exceeds ${maxBytes} bytes`);
+      }
+      chunks.push(value);
+    }
+  } catch (error) {
+    try {
+      await reader.cancel();
+    } catch {
+      // ignore cancel failures
+    }
+    throw error;
+  }
+  return Buffer.concat(chunks);
+}
+
+function stripExtension(relativePath: string): string {
+  return relativePath.replace(/\.[a-z0-9]+$/i, '');
+}
+
+export function resolveWorImagePath(relativePath: string): string | null {
   const normalized = path.normalize(relativePath).replace(/^(\.\.(\/|\\|$))+/, '');
   if (path.isAbsolute(normalized) || normalized.includes('..')) {
+    return null;
+  }
+  const ext = path.extname(normalized).toLowerCase();
+  if (!ALLOWED_IMAGE_EXT_SET.has(ext)) {
     return null;
   }
   const imagesRoot = path.resolve(WOR_IMAGES_DIR);
@@ -37,31 +173,63 @@ function resolveWorImagePath(relativePath: string): string | null {
   return localPath;
 }
 
+export function contentTypeForImagePath(filePath: string): string | null {
+  const ext = path.extname(filePath).toLowerCase() as AllowedImageExtension;
+  return IMAGE_CONTENT_TYPES[ext] ?? null;
+}
+
+export function isAllowedImageExtension(ext: string): boolean {
+  return ALLOWED_IMAGE_EXT_SET.has(ext.toLowerCase());
+}
+
 export async function downloadImageToWorDir(options: {
   url: string;
   relativePath: string;
   forceDownload?: boolean;
   headers?: Record<string, string>;
 }): Promise<ImageDownloadResult> {
-  const localPath = resolveWorImagePath(options.relativePath);
-  if (!localPath) {
+  let trustedUrl: URL;
+  try {
+    trustedUrl = assertTrustedImageUrl(options.url);
+  } catch (error) {
+    return {
+      relativePath: options.relativePath,
+      status: 'failed',
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+
+  const baseRelative = stripExtension(options.relativePath);
+  if (
+    !baseRelative ||
+    baseRelative.includes('..') ||
+    path.isAbsolute(baseRelative) ||
+    path.normalize(baseRelative).startsWith('..')
+  ) {
     return {
       relativePath: options.relativePath,
       status: 'failed',
       error: 'invalid relative path',
     };
   }
-  const hashPath = `${localPath}.hash`;
-  fs.mkdirSync(path.dirname(localPath), { recursive: true });
 
-  if (!options.forceDownload && fs.existsSync(localPath)) {
-    return { relativePath: options.relativePath, status: 'skipped' };
+  if (!options.forceDownload) {
+    for (const ext of ALLOWED_IMAGE_EXTENSIONS) {
+      const candidateRelative = `${baseRelative}${ext}`;
+      const candidateLocal = resolveWorImagePath(candidateRelative);
+      if (candidateLocal && fs.existsSync(candidateLocal)) {
+        return { relativePath: candidateRelative, status: 'skipped' };
+      }
+    }
   }
 
   try {
     const response = await fetchWithTimeout(
-      options.url,
-      { headers: options.headers },
+      trustedUrl,
+      {
+        headers: options.headers,
+        redirect: 'error',
+      },
       FETCH_TIMEOUT_MS.binaryImage,
     );
     if (!response.ok) {
@@ -71,14 +239,46 @@ export async function downloadImageToWorDir(options: {
         error: `HTTP ${response.status}`,
       };
     }
-    const buffer = Buffer.from(await response.arrayBuffer());
+
+    const headerType = response.headers.get('content-type');
+    if (!contentTypeLooksLikeImage(headerType)) {
+      return {
+        relativePath: options.relativePath,
+        status: 'failed',
+        error: `unexpected content-type: ${headerType}`,
+      };
+    }
+
+    const buffer = await readResponseBodyCapped(response, MAX_IMAGE_BYTES);
     if (buffer.length === 0) {
       return { relativePath: options.relativePath, status: 'failed', error: 'empty body' };
     }
+
+    const detected = detectImageType(buffer);
+    if (!detected) {
+      return {
+        relativePath: options.relativePath,
+        status: 'failed',
+        error: 'unrecognized image magic bytes',
+      };
+    }
+
+    const relativePath = `${baseRelative}${detected.ext}`;
+    const localPath = resolveWorImagePath(relativePath);
+    if (!localPath) {
+      return {
+        relativePath,
+        status: 'failed',
+        error: 'invalid relative path',
+      };
+    }
+
+    const hashPath = `${localPath}.hash`;
+    fs.mkdirSync(path.dirname(localPath), { recursive: true });
     const nextHash = hashBuffer(buffer);
     fs.writeFileSync(localPath, buffer);
     fs.writeFileSync(hashPath, `${nextHash}\n`, 'utf8');
-    return { relativePath: options.relativePath, status: 'downloaded' };
+    return { relativePath, status: 'downloaded' };
   } catch (error) {
     return {
       relativePath: options.relativePath,
@@ -103,10 +303,13 @@ export function buildFastidiousStorageUrl(
 
 export function relativeImagePathWithExtension(
   baseRelativePath: string,
-  url: string,
+  _url: string,
   contentType: string | null,
 ): string {
-  const ext = extensionFromUrl(url, contentType);
-  const withoutExt = baseRelativePath.replace(/\.[a-z0-9]+$/i, '');
-  return `${withoutExt}${ext}`;
+  const withoutExt = stripExtension(baseRelativePath);
+  if (contentType?.includes('webp')) return `${withoutExt}.webp`;
+  if (contentType?.includes('jpeg') || contentType?.includes('jpg')) return `${withoutExt}.jpg`;
+  if (contentType?.includes('gif')) return `${withoutExt}.gif`;
+  if (contentType?.includes('png')) return `${withoutExt}.png`;
+  return `${withoutExt}.png`;
 }

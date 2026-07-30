@@ -110,18 +110,10 @@ export const ARMORY_DB_PATH = requireAbsoluteSqlitePath(
 
 const _port = parseInt(process.env.PORT || '3001', 10);
 export const PORT = Number.isFinite(_port) && _port > 0 ? _port : 3001;
-export const HOST = process.env.HOST || '0.0.0.0';
+export const HOST = process.env.HOST || '127.0.0.1';
 export const APP_NAME = process.env.APP_NAME?.trim() || 'Codex';
 export const APP_ID = process.env.APP_ID?.trim() || 'codex';
 export const NODE_ENV = process.env.NODE_ENV || 'production';
-
-const DEV_SESSION_SECRET = 'codex-dev-only-session-secret-32ch';
-const rawSessionSecret =
-  process.env.SESSION_SECRET?.trim() || (NODE_ENV === 'production' ? '' : DEV_SESSION_SECRET);
-if (NODE_ENV === 'production' && rawSessionSecret.length < 32) {
-  throw new Error('SESSION_SECRET must be set and at least 32 characters in production.');
-}
-export const SESSION_SECRET = rawSessionSecret;
 
 function parseBooleanEnv(value: string | undefined): boolean | undefined {
   if (value == null) return undefined;
@@ -130,6 +122,33 @@ function parseBooleanEnv(value: string | undefined): boolean | undefined {
   if (normalized === 'false' || normalized === '0') return false;
   return undefined;
 }
+
+const DEV_SESSION_SECRET = 'codex-dev-only-session-secret-32ch';
+const envSessionSecret = process.env.SESSION_SECRET?.trim() || '';
+const allowInsecureDev = parseBooleanEnv(process.env.ALLOW_INSECURE_DEV) === true;
+
+function resolveSessionSecret(): string {
+  if (NODE_ENV === 'production') {
+    if (envSessionSecret.length < 32) {
+      throw new Error('SESSION_SECRET must be set and at least 32 characters in production.');
+    }
+    return envSessionSecret;
+  }
+  if (envSessionSecret.length > 0) {
+    return envSessionSecret;
+  }
+  if (allowInsecureDev) {
+    console.warn(
+      '[Config] Using hardcoded SESSION_SECRET because ALLOW_INSECURE_DEV=1. Do not use this outside local development.',
+    );
+    return DEV_SESSION_SECRET;
+  }
+  throw new Error(
+    'SESSION_SECRET must be set, or set ALLOW_INSECURE_DEV=1 for local development only.',
+  );
+}
+
+export const SESSION_SECRET = resolveSessionSecret();
 
 export const TRUST_PROXY = parseBooleanEnv(process.env.TRUST_PROXY) ?? false;
 export const SECURE_COOKIES =

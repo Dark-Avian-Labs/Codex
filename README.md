@@ -65,26 +65,26 @@ Use one key per environment to reduce blast radius.
 
 ## Environment
 
-| Variable                            | Description                                                                        |
-| ----------------------------------- | ---------------------------------------------------------------------------------- |
-| `PORT`, `HOST`                      | Server bind address (defaults: `3001`, `0.0.0.0`).                                 |
-| `NODE_ENV`                          | Typically `development`, `test`, or `production`.                                  |
-| `SESSION_SECRET`                    | Required; at least 32 characters.                                                  |
-| `TRUST_PROXY`                       | Optional; set to `1` behind a reverse proxy (default: off).                        |
-| `SECURE_COOKIES`                    | Optional; defaults to on in production.                                            |
-| `BASE_DOMAIN`                       | Required. Apex domain (e.g. `example.com`).                                        |
-| `BASE_PROTOCOL`                     | `http` or `https` (invalid values fall back to `https` with a warning).            |
-| `APP_ID`                            | Codex app id (default: `codex`).                                                   |
-| `APP_PUBLIC_BASE_URL`               | Optional explicit public URL; otherwise derived from `BASE_DOMAIN` + subdomain.    |
-| `APP_SUBDOMAIN`                     | Public host subdomain (default: `APP_ID`). Used to build the public URL.           |
-| `CLERK_SECRET_KEY`                  | **Required in production.** Clerk secret key for server-side session verification. |
-| `CLERK_PUBLISHABLE_KEY`             | Clerk publishable key for the server (falls back to `VITE_CLERK_PUBLISHABLE_KEY`). |
-| `SESSION_DB_PATH`                   | **Required absolute path** to Codex session SQLite (`session.db`).                 |
-| `ARMORY_DB_PATH`                    | **Required absolute path** to the shared Armory SQLite database.                   |
-| `WARFRAME_DB_PATH`, `EPIC7_DB_PATH` | Per-game SQLite paths (defaults under `./data/` if unset in game packages).        |
-| `COOKIE_DOMAIN`                     | Optional; normalized to a leading-dot cookie domain.                               |
-| `SESSION_COOKIE_NAME`               | Session cookie name for Codex.                                                     |
-| `ALLOWED_APP_ORIGINS`               | Optional; used with CORS configuration in the server.                              |
+| Variable                            | Description                                                                                                          |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `PORT`, `HOST`                      | Server bind address (defaults: `3001`, `127.0.0.1`). Set `HOST=0.0.0.0` to bind all interfaces.                      |
+| `NODE_ENV`                          | Typically `development`, `test`, or `production`.                                                                    |
+| `SESSION_SECRET`                    | Required; at least 32 characters. Or `ALLOW_INSECURE_DEV=1` for local hardcoded fallback.                            |
+| `TRUST_PROXY`                       | Optional; set to `1` behind a reverse proxy (default: off).                                                          |
+| `SECURE_COOKIES`                    | Optional; defaults to on in production. Session cookie uses SameSite=Lax (enough for sibling apps on the same apex). |
+| `BASE_DOMAIN`                       | Required. Apex domain (e.g. `example.com`).                                                                          |
+| `BASE_PROTOCOL`                     | `http` or `https` (invalid values fall back to `https` with a warning).                                              |
+| `APP_ID`                            | Codex app id (default: `codex`).                                                                                     |
+| `APP_PUBLIC_BASE_URL`               | Optional explicit public URL; otherwise derived from `BASE_DOMAIN` + subdomain.                                      |
+| `APP_SUBDOMAIN`                     | Public host subdomain (default: `APP_ID`). Used to build the public URL.                                             |
+| `CLERK_SECRET_KEY`                  | **Required in production.** Clerk secret key for server-side session verification.                                   |
+| `CLERK_PUBLISHABLE_KEY`             | Clerk publishable key for the server (falls back to `VITE_CLERK_PUBLISHABLE_KEY`).                                   |
+| `SESSION_DB_PATH`                   | **Required absolute path** to Codex session SQLite (`session.db`).                                                   |
+| `ARMORY_DB_PATH`                    | **Required absolute path** to the shared Armory SQLite database.                                                     |
+| `WARFRAME_DB_PATH`, `EPIC7_DB_PATH` | Per-game SQLite paths (defaults under `./data/` if unset in game packages).                                          |
+| `COOKIE_DOMAIN`                     | Optional; defaults to `.${BASE_DOMAIN}` so sibling apps share the session cookie.                                    |
+| `SESSION_COOKIE_NAME`               | Session cookie name for Codex.                                                                                       |
+| `ALLOWED_APP_ORIGINS`               | Comma-separated full-trust peer origins for CSRF/CORS (Codex + Armory, etc.).                                        |
 
 Client `VITE_*` variables are listed in `.env.example`.
 

@@ -2,6 +2,11 @@ import { getWorDb } from '@codex/game-wor';
 import type Database from 'better-sqlite3';
 
 import {
+  isWorImportLeaseHeld,
+  releaseWorImportLease,
+  tryAcquireWorImportLease,
+} from './importLease.js';
+import {
   runWorStartupPipeline,
   type WorImportLogLine,
   type WorImportSummary,
@@ -34,6 +39,7 @@ let state: WorAdminImportSnapshot = {
 };
 
 let activeJobPromise: Promise<void> | null = null;
+let activeLockToken: string | null = null;
 
 function nowIso(): string {
   return new Date().toISOString();
@@ -67,7 +73,17 @@ export function subscribeWorAdminImport(listener: SnapshotListener): () => void 
 }
 
 export function isWorImportRunning(): boolean {
-  return state.running;
+  if (state.running) return true;
+  try {
+    return isWorImportLeaseHeld(getWorDb() as Database.Database);
+  } catch {
+    return false;
+  }
+}
+
+function parseForceSteps(forceSteps: string[] | undefined): WorPipelineStepKey[] | undefined {
+  if (!forceSteps?.length) return undefined;
+  return forceSteps as WorPipelineStepKey[];
 }
 
 export function startWorAdminImport(options?: {
@@ -84,9 +100,29 @@ export function startWorAdminImport(options?: {
   }
 
   const db = getWorDb() as Database.Database;
+  if (isWorImportLeaseHeld(db)) {
+    return {
+      started: false,
+      reason: 'Import lease held by another process',
+      snapshot: getWorAdminImportSnapshot(),
+    };
+  }
+
   const runId = Number(
     db.prepare(`INSERT INTO import_runs (status) VALUES ('running')`).run().lastInsertRowid,
   );
+  const lockToken = tryAcquireWorImportLease(db, runId);
+  if (!lockToken) {
+    db.prepare(
+      `UPDATE import_runs SET status = 'failed', finished_at = datetime('now'), error = ? WHERE id = ?`,
+    ).run('Failed to acquire import lease', runId);
+    return {
+      started: false,
+      reason: 'Import lease held by another process',
+      snapshot: getWorAdminImportSnapshot(),
+    };
+  }
+  activeLockToken = lockToken;
 
   state = {
     runId,
@@ -105,8 +141,9 @@ export function startWorAdminImport(options?: {
       const summary = await runWorStartupPipeline({
         forceImport: options?.forceImport,
         forceImages: options?.forceImages,
-        forceSteps: options?.forceSteps as WorPipelineStepKey[] | undefined,
+        forceSteps: parseForceSteps(options?.forceSteps),
         onLog: (line) => pushLine(line.level, line.message),
+        importLockToken: lockToken,
       });
       state.summary = summary;
       state.finishedAt = nowIso();
@@ -125,6 +162,10 @@ export function startWorAdminImport(options?: {
       ).run(message, JSON.stringify({ lines: state.lines }), runId);
       pushLine('error', message);
     } finally {
+      if (activeLockToken) {
+        releaseWorImportLease(db, activeLockToken);
+        activeLockToken = null;
+      }
       activeJobPromise = null;
       notify();
     }

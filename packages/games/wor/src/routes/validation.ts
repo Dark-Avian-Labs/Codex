@@ -58,7 +58,18 @@ export const deleteAccountSchema = z.object({
 export const adminImportRunSchema = z.object({
   forceImport: z.boolean().optional(),
   forceImages: z.boolean().optional(),
-  forceSteps: z.array(z.string()).optional(),
+  forceSteps: z
+    .array(
+      z.enum([
+        'schema',
+        'fastidiousCatalog',
+        'fandomImages',
+        'manualOverrides',
+        'seedValidation',
+        'sync_accounts',
+      ]),
+    )
+    .optional(),
 });
 
 export const adminOverridesSchema = z.object({

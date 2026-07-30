@@ -41,6 +41,8 @@ import {
 import { ensureSessionSchema } from './db/sessionSchema.js';
 import { refreshEpic7DbAvailability } from './epic7DbState.js';
 import { getRequestId, requestIdMiddleware } from './http/requestId.js';
+import { timingSafeEqualString } from './http/timingSafeEqual.js';
+import { contentTypeForImagePath, isAllowedImageExtension } from './import/wor/images.js';
 import { catalogNeedsImport, runWorStartupPipeline } from './import/wor/startupPipeline.js';
 import { healthzHandler, readyzHandler } from './probes.js';
 import { apiRouter } from './routes/api.js';
@@ -185,7 +187,7 @@ const cookieOptions: express.CookieOptions = {
   maxAge: 7 * 24 * 60 * 60 * 1000,
   httpOnly: true,
   secure: SECURE_COOKIES,
-  sameSite: SECURE_COOKIES ? 'none' : 'lax',
+  sameSite: 'lax',
   domain: COOKIE_DOMAIN,
 };
 
@@ -200,7 +202,7 @@ app.use(
   }),
 );
 
-const { csrfSynchronisedProtection, generateToken } = csrfSync({
+const { generateToken, getTokenFromRequest, getTokenFromState, invalidCsrfTokenError } = csrfSync({
   getTokenFromRequest: (req: Request) => {
     if (req.body?._csrf) return req.body._csrf as string;
     const header = req.headers['x-csrf-token'] || req.headers['x-xsrf-token'];
@@ -217,7 +219,27 @@ const { csrfSynchronisedProtection, generateToken } = csrfSync({
     }
   },
 });
-app.use(csrfSynchronisedProtection);
+
+const CSRF_IGNORED_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
+app.use((req, res, next) => {
+  (req as Request & { csrfToken?: (overwrite?: boolean) => string }).csrfToken = (overwrite) =>
+    generateToken(req, overwrite);
+  if (CSRF_IGNORED_METHODS.has(req.method.toUpperCase())) {
+    next();
+    return;
+  }
+  const received = getTokenFromRequest(req);
+  const stored = getTokenFromState(req);
+  if (
+    typeof received === 'string' &&
+    typeof stored === 'string' &&
+    timingSafeEqualString(received, stored)
+  ) {
+    next();
+    return;
+  }
+  next(invalidCsrfTokenError);
+});
 app.use((req, res, next) => {
   (res.locals as { csrfToken?: string }).csrfToken = generateToken(req);
   next();
@@ -304,10 +326,14 @@ app.use((req: Request, res: Response, next) => {
   next();
 });
 
+app.use('/api', (_req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store');
+  next();
+});
+
 app.use('/api/auth', authRouter);
 
 app.get('/api/version', (_req, res) => {
-  res.setHeader('Cache-Control', 'no-store');
   res.json({ version: APP_VERSION });
 });
 
@@ -324,8 +350,26 @@ const clientIndexPath = path.join(clientDir, 'index.html');
 app.use(
   '/wor-images',
   staticAssetLimiter,
+  (req, res, next) => {
+    const ext = path.extname(req.path).toLowerCase();
+    if (!isAllowedImageExtension(ext)) {
+      res.status(404).end();
+      return;
+    }
+    next();
+  },
   express.static(WOR_IMAGES_DIR, {
     maxAge: '7d',
+    setHeaders(res, filePath) {
+      const contentType = contentTypeForImagePath(filePath);
+      if (contentType) {
+        res.setHeader('Content-Type', contentType);
+      } else {
+        res.setHeader('Content-Type', 'application/octet-stream');
+        res.setHeader('Content-Disposition', 'attachment');
+      }
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+    },
   }),
 );
 app.use(

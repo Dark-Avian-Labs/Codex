@@ -129,8 +129,8 @@ describeWithSqlite('warframe arcanes sync', () => {
     removeTempDbDir(codexTmp.tmpDir);
   });
 
-  it('syncs Arcanes into catalog_rows with per-item max_level', () => {
-    runWarframeSync(codexDb, {
+  it('syncs Arcanes into catalog_rows with per-item max_level', async () => {
+    await runWarframeSync(codexDb, {
       execute: true,
       initiatedByClerkUserId: 'admin_test',
     });

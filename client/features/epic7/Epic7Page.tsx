@@ -940,7 +940,6 @@ export function Epic7Page() {
     return () => {
       setHeaderCenter(null);
     };
-    // Mount once — do not recreate on `search` or debounced updates will fight the input.
   }, [setHeaderCenter, setSearch]);
 
   useEffect(() => {

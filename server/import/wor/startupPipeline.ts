@@ -21,6 +21,11 @@ import {
   type WorImageDownloadSummary,
 } from './fandomImages.js';
 import { fetchFastidiousCatalog, type FastidiousImageRef } from './fastidiousCatalog.js';
+import {
+  releaseWorImportLease,
+  renewWorImportLease,
+  tryAcquireWorImportLease,
+} from './importLease.js';
 import { applyWorOverrides } from './overrides.js';
 import {
   ensureWorImportDirs,
@@ -65,6 +70,7 @@ export type WorStartupPipelineOptions = WorPipelineStepOptions & {
   fixturePath?: string;
   overridesPath?: string;
   onLog?: (line: WorImportLogLine) => void;
+  importLockToken?: string;
 };
 
 const DEFAULT_FIXTURE = path.join(PROJECT_ROOT, 'scripts', 'data', 'wor-catalog-fixture.json');
@@ -157,6 +163,33 @@ export async function runWorStartupPipeline(
   ensureWorImportDirs();
   fs.mkdirSync(WOR_IMAGES_DIR, { recursive: true });
 
+  const ownsLease = !options.importLockToken;
+  let lockToken: string;
+  if (options.importLockToken) {
+    lockToken = options.importLockToken;
+  } else {
+    const acquired = tryAcquireWorImportLease(db, null);
+    if (!acquired) {
+      throw new Error('WoR import lease held by another process.');
+    }
+    lockToken = acquired;
+  }
+
+  try {
+    return await runWorStartupPipelineBody(db, options, onLog, lockToken);
+  } finally {
+    if (ownsLease) {
+      releaseWorImportLease(db, lockToken);
+    }
+  }
+}
+
+async function runWorStartupPipelineBody(
+  db: Database.Database,
+  options: WorStartupPipelineOptions,
+  onLog: WorStartupPipelineOptions['onLog'],
+  lockToken: string,
+): Promise<WorImportSummary> {
   let bundle: CatalogBundle | null = null;
   let imageRefs: FastidiousImageRef | null = null;
   let classIcons: Awaited<ReturnType<typeof fetchFastidiousCatalog>>['classIcons'] = {};
@@ -167,6 +200,8 @@ export async function runWorStartupPipeline(
   const live = isWorImportLiveEnabled();
   const previousHashes = readProcessedSourceHashes();
   const currentHashes = computeCurrentSourceHashes(cacheDir);
+
+  renewWorImportLease(db, lockToken);
 
   if (shouldRunWorStep('schema', true, options)) {
     emit(onLog, 'info', `[${stepTag('schema')}] Ensuring WoR catalog tables…`);
@@ -323,30 +358,31 @@ export async function runWorStartupPipeline(
     }
   }
 
-  if (bundle) {
-    const heroCount = upsertCatalogHeroes(db, bundle.heroes);
-    emit(onLog, 'info', `Upserted ${heroCount} catalog heroes.`);
-    const artifactCount = upsertCatalogArtifacts(db, bundle.artifacts);
-    emit(onLog, 'info', `Upserted ${artifactCount} catalog artifacts.`);
-    const demonCount = upsertCatalogDemons(db, bundle.demons);
-    emit(onLog, 'info', `Upserted ${demonCount} catalog demons.`);
+  renewWorImportLease(db, lockToken);
+  db.transaction(() => {
+    if (bundle) {
+      const heroCount = upsertCatalogHeroes(db, bundle.heroes);
+      emit(onLog, 'info', `Upserted ${heroCount} catalog heroes.`);
+      const artifactCount = upsertCatalogArtifacts(db, bundle.artifacts);
+      emit(onLog, 'info', `Upserted ${artifactCount} catalog artifacts.`);
+      const demonCount = upsertCatalogDemons(db, bundle.demons);
+      emit(onLog, 'info', `Upserted ${demonCount} catalog demons.`);
 
-    const deactivated = deactivateStaleCatalogEntries(db, bundle);
-    const deactivatedTotal = deactivated.heroes + deactivated.artifacts + deactivated.demons;
-    if (deactivatedTotal > 0) {
-      emit(
-        onLog,
-        'info',
-        `Deactivated stale catalog entries: ${deactivated.heroes} heroes, ${deactivated.artifacts} artifacts, ${deactivated.demons} demons.`,
-      );
+      const deactivated = deactivateStaleCatalogEntries(db, bundle);
+      const deactivatedTotal = deactivated.heroes + deactivated.artifacts + deactivated.demons;
+      if (deactivatedTotal > 0) {
+        emit(
+          onLog,
+          'info',
+          `Deactivated stale catalog entries: ${deactivated.heroes} heroes, ${deactivated.artifacts} artifacts, ${deactivated.demons} demons.`,
+        );
+      }
+
+      bumpCatalogVersion(db);
+    } else {
+      emit(onLog, 'info', 'Skipping catalog upsert — no catalog bundle loaded.');
     }
 
-    bumpCatalogVersion(db);
-  } else {
-    emit(onLog, 'info', 'Skipping catalog upsert — no catalog bundle loaded.');
-  }
-
-  if (shouldRunWorStep('sync_accounts', true, options)) {
     const pruned = worQueries.pruneInactiveCatalogAccountRows(db);
     const prunedTotal = pruned.heroes + pruned.artifacts + pruned.demons;
     if (prunedTotal > 0) {
@@ -363,7 +399,7 @@ export async function runWorStartupPipeline(
       'info',
       `[${stepTag('sync_accounts')}] Synced catalog metadata for ${synced.heroes} heroes, ${synced.artifacts} artifacts, ${synced.demons} demons across accounts.`,
     );
-  }
+  }).immediate();
 
   const counts = getCatalogCounts(db);
   emit(
