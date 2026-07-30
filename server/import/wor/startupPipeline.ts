@@ -164,18 +164,21 @@ export async function runWorStartupPipeline(
   fs.mkdirSync(WOR_IMAGES_DIR, { recursive: true });
 
   const ownsLease = !options.importLockToken;
-  let lockToken = options.importLockToken ?? null;
-  if (!lockToken) {
-    lockToken = tryAcquireWorImportLease(db, null);
-    if (!lockToken) {
+  let lockToken: string;
+  if (options.importLockToken) {
+    lockToken = options.importLockToken;
+  } else {
+    const acquired = tryAcquireWorImportLease(db, null);
+    if (!acquired) {
       throw new Error('WoR import lease held by another process.');
     }
+    lockToken = acquired;
   }
 
   try {
     return await runWorStartupPipelineBody(db, options, onLog, lockToken);
   } finally {
-    if (ownsLease && lockToken) {
+    if (ownsLease) {
       releaseWorImportLease(db, lockToken);
     }
   }
