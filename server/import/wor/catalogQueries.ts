@@ -213,30 +213,37 @@ export function deactivateStaleCatalogEntries(
   const artifactSlugs = bundle.artifacts.map((artifact) => artifact.slug);
   const demonSlugs = bundle.demons.map((demon) => demon.slug);
 
-  const heroes =
-    heroSlugs.length > 0
-      ? db
-          .prepare(
-            `UPDATE catalog_heroes SET active = 0 WHERE active = 1 AND slug NOT IN (${heroSlugs.map(() => '?').join(', ')})`,
-          )
-          .run(...heroSlugs).changes
-      : 0;
-  const artifacts =
-    artifactSlugs.length > 0
-      ? db
-          .prepare(
-            `UPDATE catalog_artifacts SET active = 0 WHERE active = 1 AND slug NOT IN (${artifactSlugs.map(() => '?').join(', ')})`,
-          )
-          .run(...artifactSlugs).changes
-      : 0;
-  const demons =
-    demonSlugs.length > 0
-      ? db
-          .prepare(
-            `UPDATE catalog_demons SET active = 0 WHERE active = 1 AND slug NOT IN (${demonSlugs.map(() => '?').join(', ')})`,
-          )
-          .run(...demonSlugs).changes
-      : 0;
+  return {
+    heroes: deactivateMissingSlugs(db, 'catalog_heroes', heroSlugs),
+    artifacts: deactivateMissingSlugs(db, 'catalog_artifacts', artifactSlugs),
+    demons: deactivateMissingSlugs(db, 'catalog_demons', demonSlugs),
+  };
+}
 
-  return { heroes, artifacts, demons };
+/** Stay under SQLite's default bind-variable limit (999) with headroom. */
+const SQLITE_IN_BATCH_SIZE = 500;
+
+function deactivateMissingSlugs(
+  db: Database.Database,
+  table: 'catalog_heroes' | 'catalog_artifacts' | 'catalog_demons',
+  keepSlugs: string[],
+): number {
+  if (keepSlugs.length === 0) return 0;
+
+  const keep = new Set(keepSlugs);
+  const activeRows = db.prepare(`SELECT slug FROM ${table} WHERE active = 1`).all() as {
+    slug: string;
+  }[];
+  const stale = activeRows.map((row) => row.slug).filter((slug) => !keep.has(slug));
+  if (stale.length === 0) return 0;
+
+  let changes = 0;
+  for (let offset = 0; offset < stale.length; offset += SQLITE_IN_BATCH_SIZE) {
+    const chunk = stale.slice(offset, offset + SQLITE_IN_BATCH_SIZE);
+    const placeholders = chunk.map(() => '?').join(', ');
+    changes += db
+      .prepare(`UPDATE ${table} SET active = 0 WHERE active = 1 AND slug IN (${placeholders})`)
+      .run(...chunk).changes;
+  }
+  return changes;
 }

@@ -78,8 +78,14 @@ function reconcileWorSessionAccount(
   return currentAccountId;
 }
 
-function resolveAccountId(db: WorDatabase, req: Request, clerkUserId: string): number | null {
-  return reconcileWorSessionAccount(db, req, clerkUserId);
+function requireAccountId(db: WorDatabase, req: Request, res: Response): number | null {
+  const clerkUserId = requireClerkUserId(req);
+  const accountId = reconcileWorSessionAccount(db, req, clerkUserId);
+  if (!accountId) {
+    err(res, 'No game account selected. Please create one first.');
+    return null;
+  }
+  return accountId;
 }
 
 function runWithDb(res: Response, fn: (db: WorDatabase) => void | Promise<void>): void {
@@ -109,16 +115,6 @@ function runWithDb(res: Response, fn: (db: WorDatabase) => void | Promise<void>)
       err(res, 'Internal server error', 500);
     }
   })();
-}
-
-function requireAccountId(db: WorDatabase, req: Request, res: Response): number | null {
-  const clerkUserId = requireClerkUserId(req);
-  const accountId = resolveAccountId(db, req, clerkUserId);
-  if (!accountId) {
-    err(res, 'No game account selected. Please create one first.');
-    return null;
-  }
-  return accountId;
 }
 
 worApiRouter.get('/worksheets', (_req, res) => {
@@ -155,12 +151,8 @@ worApiRouter.get('/artifacts', (req, res) => {
 
 worApiRouter.get('/demons', (req, res) => {
   runWithDb(res, (db) => {
-    const clerkUserId = requireClerkUserId(req);
-    const accountId = resolveAccountId(db, req, clerkUserId);
-    if (!accountId) {
-      err(res, 'No game account selected. Please create one first.');
-      return;
-    }
+    const accountId = requireAccountId(db, req, res);
+    if (!accountId) return;
     const demons = q.getDemons(db, accountId);
     const stats = q.getDemonStats(db, accountId);
     json(res, { demons, stats });

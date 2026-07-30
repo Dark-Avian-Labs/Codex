@@ -16,7 +16,7 @@ Codex is a pnpm workspace. Shared auth/session code lives in `@codex/core`; each
 | ------------- | ------------------------------------------ |
 | Workspace     | `pnpm-workspace.yaml`, root `package.json` |
 | Core          | `packages/core/` → `@codex/core`           |
-| Games         | `packages/games/warframe                   | epic7 | wor/` |
+| Games         | `packages/games/warframe, epic7, wor/`     |
 | Server entry  | `server/index.ts`                          |
 | API mount     | `server/routes/api.ts`                     |
 | Client entry  | `client/main.tsx`                          |
