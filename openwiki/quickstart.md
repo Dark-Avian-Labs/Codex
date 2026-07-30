@@ -3,7 +3,7 @@ type: Repository Overview
 title: Codex Quickstart
 description: Entrypoint for agents and humans — what Codex is, how to run it, and where to dig deeper.
 tags: [quickstart, codex]
-timestamp: 2026-07-18T21:05:00Z
+timestamp: 2026-07-30T17:05:00Z
 ---
 
 # Codex Quickstart
@@ -73,6 +73,8 @@ Quality gate: build workspace packages first if needed, then `pnpm run validate`
 - Game DBs must be pre-created (`db:init`); server startup asserts required tables exist.
 - `pnpm run validate` does **not** build workspace packages — build `@codex/*` first if `dist` is missing.
 - Placeholder Clerk keys → middleware 500 on auth routes (server still listens).
+- `HOST` defaults to `127.0.0.1`; set `HOST=0.0.0.0` explicitly for all-interface bind.
+- Missing `SESSION_SECRET` outside production needs `ALLOW_INSECURE_DEV=1`.
 - CI env template: `.github/ci.env.development`.
 - Windows agent shells may prepend Node 22 — prefer system Node 26; rebuild `better-sqlite3` after Node changes.
 - Cloud VM: PATH may prefer Node 22; tests may need writable `/data`.

@@ -1,5 +1,5 @@
 import { log } from '@codex/core';
-import { validateBody } from '@codex/core/validation';
+import { positiveInt, validateBody } from '@codex/core/validation';
 import {
   ARTIFACT_PROMOTION_MAX,
   getWorDb,
@@ -163,9 +163,11 @@ worApiRouter.patch('/heroes/:heroId/owned', (req, res) => {
   runWithDb(res, (db) => {
     const accountId = requireAccountId(db, req, res);
     if (!accountId) return;
+    const heroId = validateBody(positiveInt, req.params.heroId, res);
+    if (heroId == null) return;
     const data = validateBody(worUpdateOwnedSchema, req.body, res);
     if (!data) return;
-    const ok = q.updateHeroOwned(db, Number(req.params.heroId), accountId, data.owned);
+    const ok = q.updateHeroOwned(db, heroId, accountId, data.owned);
     if (!ok) {
       err(res, 'Hero not found', 404);
       return;
@@ -178,9 +180,11 @@ worApiRouter.patch('/artifacts/:artifactId/owned', (req, res) => {
   runWithDb(res, (db) => {
     const accountId = requireAccountId(db, req, res);
     if (!accountId) return;
+    const artifactId = validateBody(positiveInt, req.params.artifactId, res);
+    if (artifactId == null) return;
     const data = validateBody(worUpdateOwnedSchema, req.body, res);
     if (!data) return;
-    const ok = q.updateArtifactOwned(db, Number(req.params.artifactId), accountId, data.owned);
+    const ok = q.updateArtifactOwned(db, artifactId, accountId, data.owned);
     if (!ok) {
       err(res, 'Artifact not found', 404);
       return;
@@ -193,9 +197,11 @@ worApiRouter.patch('/demons/:demonId/owned', (req, res) => {
   runWithDb(res, (db) => {
     const accountId = requireAccountId(db, req, res);
     if (!accountId) return;
+    const demonId = validateBody(positiveInt, req.params.demonId, res);
+    if (demonId == null) return;
     const data = validateBody(worUpdateOwnedSchema, req.body, res);
     if (!data) return;
-    const ok = q.updateDemonOwned(db, Number(req.params.demonId), accountId, data.owned);
+    const ok = q.updateDemonOwned(db, demonId, accountId, data.owned);
     if (!ok) {
       err(res, 'Demon not found', 404);
       return;

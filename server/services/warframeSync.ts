@@ -1,3 +1,4 @@
+import { log } from '@codex/core';
 import { warframeQueries as q } from '@codex/game-warframe';
 import {
   arcaneMaxRankFromLevelStats,
@@ -13,6 +14,7 @@ import {
 import Database from 'better-sqlite3';
 
 import { ARMORY_DB_PATH } from '../config.js';
+import { renewOrThrowWarframeSyncLease } from './warframeSyncJobs.js';
 
 const WORKSHEET_NAMES = [
   'Warframes',
@@ -743,6 +745,7 @@ type RunSyncOptions = {
   execute: boolean;
   clerkUserIds?: string[];
   initiatedByClerkUserId?: string;
+  lockToken?: string;
 };
 
 function catalogRowsHasActiveColumn(codexDb: Database.Database): boolean {
@@ -1051,10 +1054,10 @@ function markRowOrphaned(codexDb: Database.Database, rowId: number, execute: boo
   codexDb.prepare('UPDATE rows SET orphaned = 1 WHERE id = ?').run(rowId);
 }
 
-export function runWarframeSync(
+export async function runWarframeSync(
   codexDb: Database.Database,
   options: RunSyncOptions,
-): WarframeSyncResult {
+): Promise<WarframeSyncResult> {
   if (
     options.execute &&
     (typeof options.initiatedByClerkUserId !== 'string' ||
@@ -1063,6 +1066,7 @@ export function runWarframeSync(
     throw new Error('A valid initiating admin user id is required for execute mode.');
   }
   const mode = options.execute ? 'execute' : 'preview';
+  const syncStartedAt = Date.now();
   const armoryDb = new Database(ARMORY_DB_PATH, {
     readonly: true,
     fileMustExist: true,
@@ -1104,6 +1108,10 @@ export function runWarframeSync(
     }
 
     for (const clerkUserId of clerkUserIds) {
+      if (options.lockToken) {
+        renewOrThrowWarframeSyncLease(options.lockToken);
+      }
+
       const syncUser = (): void => {
         const sheetsByWorksheet = new Map<
           WorksheetName,
@@ -1287,7 +1295,19 @@ export function runWarframeSync(
       } else {
         syncUser();
       }
+
+      await new Promise<void>((resolve) => setImmediate(resolve));
     }
+
+    log('info', 'Warframe sync finished', {
+      mode,
+      users: users.length,
+      elapsedMs: Date.now() - syncStartedAt,
+      added: summary.added,
+      deleted: summary.deleted,
+      markedUnavailable: summary.markedUnavailable,
+      mismatched: summary.mismatched,
+    });
 
     return {
       mode,

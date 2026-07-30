@@ -102,7 +102,7 @@ describeWithSqlite('warframe modular weapons sync', () => {
     removeTempDbDir(codexTmp.tmpDir);
   });
 
-  it('treats modular worksheet rows from codex_modular_weapons as matched, not mismatched', () => {
+  it('treats modular worksheet rows from codex_modular_weapons as matched, not mismatched', async () => {
     const userId = 'user_modular_test';
     const sheetId = codexDb
       .prepare(`INSERT INTO worksheets (clerk_user_id, name, display_order) VALUES (?, 'Modular Weapons', 0)`)
@@ -120,11 +120,11 @@ describeWithSqlite('warframe modular weapons sync', () => {
         .run(sheetId, itemName, index);
     });
 
-    const preview = runWarframeSync(codexDb, { execute: false, clerkUserIds: [userId] });
+    const preview = await runWarframeSync(codexDb, { execute: false, clerkUserIds: [userId] });
     const modularSheet = preview.users[0]?.worksheets.find((sheet) => sheet.worksheet === 'Modular Weapons');
     expect(modularSheet?.mismatched).toEqual([]);
 
-    runWarframeSync(codexDb, {
+    await runWarframeSync(codexDb, {
       execute: true,
       clerkUserIds: [userId],
       initiatedByClerkUserId: 'admin_test',

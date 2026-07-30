@@ -28,6 +28,7 @@ import {
 } from '../services/warframeSyncJobs.js';
 import {
   acquireWarframeSyncSlot,
+  forceReleaseWarframeSyncSlot,
   isWarframeSyncRunning,
   releaseWarframeSyncSlot,
   runWarframeSyncGuarded,
@@ -233,8 +234,11 @@ warframeApiRouter.patch('/cells', (req, res) => {
         return;
       }
       res.status(200).json({ success: true, value: data.value });
-    } catch {
-      res.status(400).json({
+    } catch (error) {
+      log('error', 'Failed to update Warframe cell', {
+        err: error instanceof Error ? error.message : String(error),
+      });
+      res.status(500).json({
         error: 'Failed to update cell.',
       });
     }
@@ -367,7 +371,7 @@ warframeApiRouter.patch('/admin/cells', requireCodexAdmin, (req, res) => {
   });
 });
 
-warframeApiRouter.get('/admin/sync-preview', requireCodexAdmin, (req, res) => {
+warframeApiRouter.post('/admin/sync-preview', requireCodexAdmin, (req, res) => {
   const clerkUserId = requireClerkUserId(req);
   runWithWarframeDb(res, async (db) => {
     try {
@@ -389,6 +393,18 @@ warframeApiRouter.get('/admin/sync-preview', requireCodexAdmin, (req, res) => {
       res.status(500).json({ error: 'Failed to build Warframe sync preview.' });
     }
   });
+});
+
+warframeApiRouter.post('/admin/sync/release-lease', requireCodexAdmin, (_req, res) => {
+  const result = forceReleaseWarframeSyncSlot();
+  if (result === 'busy') {
+    res.status(409).json({
+      released: false,
+      error: 'Cannot release lease while a sync is running in this process.',
+    });
+    return;
+  }
+  res.status(200).json({ released: result === 'released' });
 });
 
 warframeApiRouter.get('/admin/sync/runs/:id', requireCodexAdmin, (req, res) => {
@@ -471,9 +487,10 @@ warframeApiRouter.post('/admin/sync-source', requireCodexAdmin, (req, res) => {
       try {
         updateWarframeSyncRun(run.id, { status: 'running' });
         log('info', 'Starting Warframe sync execution', { runId: run.id });
-        const result = runWarframeSync(db, {
+        const result = await runWarframeSync(db, {
           execute: true,
           initiatedByClerkUserId: adminUserId,
+          lockToken,
         });
         const pendingMeta = getWarframeSyncRunRow(run.id)?.summary_json;
         let initiatorMasked: string | undefined;

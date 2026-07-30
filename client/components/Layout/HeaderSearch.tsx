@@ -22,8 +22,6 @@ export const HeaderSearch = memo(function HeaderSearch({
   const [text, setText] = useState(value);
   const debounceTimerRef = useRef<number | null>(null);
   const onChangeRef = useRef(onChange);
-  // Last value we pushed to the parent. Used so a lagging parent `value` cannot
-  // overwrite newer keystrokes / backspaces while debounce is in flight.
   const lastEmittedRef = useRef(value);
   onChangeRef.current = onChange;
 
@@ -35,8 +33,6 @@ export const HeaderSearch = memo(function HeaderSearch({
   };
 
   useEffect(() => {
-    // Only mirror external resets (clear from outside, route remount, etc.).
-    // Ignore echoes of our own debounced onChange — those can be stale vs local text.
     if (value === lastEmittedRef.current) {
       return;
     }

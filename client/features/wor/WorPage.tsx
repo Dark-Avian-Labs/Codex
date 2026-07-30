@@ -447,7 +447,6 @@ export function WorPage() {
       />,
     );
     return () => setHeaderCenter(null);
-    // Mount once — do not recreate on `search` or debounced updates will fight the input.
   }, [setHeaderCenter]);
 
   const filteredHeroes = useMemo(

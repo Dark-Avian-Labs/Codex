@@ -220,7 +220,6 @@ export function deactivateStaleCatalogEntries(
   };
 }
 
-/** Stay under SQLite's default bind-variable limit (999) with headroom. */
 const SQLITE_IN_BATCH_SIZE = 500;
 
 function deactivateMissingSlugs(

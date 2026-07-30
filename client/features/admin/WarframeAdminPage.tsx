@@ -379,7 +379,7 @@ export function WarframeAdminPage() {
 
   const loadPreview = useCallback(async (): Promise<void> => {
     try {
-      const response = await apiFetch('/api/warframe/admin/sync-preview');
+      const response = await apiFetch('/api/warframe/admin/sync-preview', { method: 'POST' });
       if (!response.ok) throw new Error('Failed to load sync preview');
       const body = (await response.json()) as SyncResult;
       setSummary(body.summary ?? null);

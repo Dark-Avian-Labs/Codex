@@ -133,7 +133,8 @@ export function ensureWorAccountTables(db: Database.Database): void {
     CREATE TABLE IF NOT EXISTS import_lease (
       id INTEGER PRIMARY KEY CHECK (id = 1),
       run_id INTEGER,
-      locked_at TEXT
+      locked_at TEXT,
+      lock_token TEXT
     );
 
     INSERT OR IGNORE INTO import_lease (id) VALUES (1);
@@ -143,6 +144,21 @@ export function ensureWorAccountTables(db: Database.Database): void {
     CREATE INDEX IF NOT EXISTS idx_account_artifacts_account ON account_artifacts(account_id);
     CREATE INDEX IF NOT EXISTS idx_account_demons_account ON account_demons(account_id);
   `);
+  ensureWorImportLeaseMigrations(db);
+}
+
+function ensureWorImportLeaseMigrations(db: Database.Database): void {
+  const cols = db.prepare(`PRAGMA table_info(import_lease)`).all() as { name: string }[];
+  if (cols.length === 0) return;
+  if (cols.some((col) => col.name === 'lock_token')) return;
+  try {
+    db.exec(`ALTER TABLE import_lease ADD COLUMN lock_token TEXT`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (!/duplicate column/i.test(message)) {
+      throw error;
+    }
+  }
 }
 
 export function ensureWorCoreTables(db: Database.Database): void {

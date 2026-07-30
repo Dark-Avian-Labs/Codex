@@ -154,7 +154,7 @@ async function downloadWikiFile(
   } else {
     summary.iconsFailed += 1;
   }
-  return result.status === 'failed' ? null : worImageWebPath(relativePath);
+  return result.status === 'failed' ? null : worImageWebPath(result.relativePath);
 }
 
 async function downloadPortraitForEntity(options: {
@@ -208,7 +208,7 @@ async function downloadPortraitForEntity(options: {
       });
       return null;
     }
-    return worImageWebPath(relativePath);
+    return worImageWebPath(result.relativePath);
   }
 
   options.summary.portraitsFailed += 1;
@@ -222,12 +222,29 @@ async function downloadPortraitForEntity(options: {
 
 function pathExtFromFile(fileName: string): string {
   const dotIndex = fileName.lastIndexOf('.');
-  return dotIndex === -1 ? '.png' : fileName.slice(dotIndex);
+  const ext = (dotIndex === -1 ? '.png' : fileName.slice(dotIndex)).toLowerCase();
+  if (ext === '.png' || ext === '.webp' || ext === '.jpg' || ext === '.jpeg' || ext === '.gif') {
+    return ext;
+  }
+  return '.png';
 }
 
-function extensionFromUrl(url: string): string {
-  const fromUrl = path.extname(new URL(url).pathname);
-  return fromUrl || '.png';
+function safeImageExtensionHint(url: string): string {
+  try {
+    const fromUrl = path.extname(new URL(url).pathname).toLowerCase();
+    if (
+      fromUrl === '.png' ||
+      fromUrl === '.webp' ||
+      fromUrl === '.jpg' ||
+      fromUrl === '.jpeg' ||
+      fromUrl === '.gif'
+    ) {
+      return fromUrl;
+    }
+  } catch {
+    // ignore
+  }
+  return '.png';
 }
 
 function portraitFileExists(portraitPath: string | null | undefined): boolean {
@@ -236,16 +253,11 @@ function portraitFileExists(portraitPath: string | null | undefined): boolean {
   return fs.existsSync(path.join(WOR_IMAGES_DIR, relative));
 }
 
-/** Fastidious card images are stored as `.webp`; wiki portraits use other extensions. */
 export function isFastidiousFallbackPortrait(portraitPath: string | null | undefined): boolean {
   if (!portraitPath) return false;
   return /\.webp$/i.test(portraitPath);
 }
 
-/**
- * Attempt a portrait download only when missing, still on a Fastidious fallback card,
- * or when the caller forced a full image refresh.
- */
 export function shouldAttemptPortraitDownload(options: {
   existingPath: string | null | undefined;
   fileExists: boolean;
@@ -304,7 +316,7 @@ export async function downloadClassAndFactionIcons(options: {
     let saved = false;
     const fastidiousUrl = options.classIcons[classKey];
     if (fastidiousUrl) {
-      const relativePath = `icons/classes/${classKey}${extensionFromUrl(fastidiousUrl)}`;
+      const relativePath = `icons/classes/${classKey}${safeImageExtensionHint(fastidiousUrl)}`;
       const result = await downloadImageToWorDir({
         url: fastidiousUrl,
         relativePath,
@@ -328,7 +340,7 @@ export async function downloadClassAndFactionIcons(options: {
     let saved = false;
     const fastidiousUrl = options.factionIcons[factionKey];
     if (fastidiousUrl) {
-      const relativePath = `icons/factions/${factionKey}${extensionFromUrl(fastidiousUrl)}`;
+      const relativePath = `icons/factions/${factionKey}${safeImageExtensionHint(fastidiousUrl)}`;
       const result = await downloadImageToWorDir({
         url: fastidiousUrl,
         relativePath,

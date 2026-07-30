@@ -1,6 +1,7 @@
 import { EventEmitter } from 'node:events';
 
 import {
+  forceReleaseWarframeSyncLease as forceReleaseWarframeSyncLeaseRow,
   isWarframeSyncLeaseHeld,
   releaseWarframeSyncLease,
   tryAcquireWarframeSyncLease,
@@ -36,6 +37,18 @@ export function releaseWarframeSyncSlot(lockToken: string): void {
   releaseWarframeSyncLease(lockToken);
   running = false;
   syncStateEmitter.emit('stopped');
+}
+
+export function forceReleaseWarframeSyncSlot(): 'released' | 'not_held' | 'busy' {
+  if (running) {
+    return 'busy';
+  }
+  const released = forceReleaseWarframeSyncLeaseRow();
+  if (released) {
+    syncStateEmitter.emit('stopped');
+    return 'released';
+  }
+  return 'not_held';
 }
 
 export async function runWarframeSyncGuarded<T>(

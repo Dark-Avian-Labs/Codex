@@ -230,6 +230,46 @@ export function tryAcquireWarframeSyncLease(runId: number | null): string | null
   return lockToken;
 }
 
+export function renewWarframeSyncLease(lockToken: string): boolean {
+  ensureWarframeSyncJobsSchema();
+  const updated = getSessionDb()
+    .prepare(
+      `UPDATE warframe_sync_lease
+       SET acquired_at = datetime('now')
+       WHERE id = ? AND lock_token = ?`,
+    )
+    .run(LEASE_ROW_ID, lockToken);
+  return updated.changes === 1;
+}
+
+export function renewOrThrowWarframeSyncLease(lockToken: string): void {
+  if (!renewWarframeSyncLease(lockToken)) {
+    throw new Error('Warframe sync lease is no longer held by this process.');
+  }
+}
+
+export function assertWarframeSyncLeaseOwner(lockToken: string): void {
+  renewOrThrowWarframeSyncLease(lockToken);
+}
+
+export function forceReleaseWarframeSyncLease(): boolean {
+  ensureWarframeSyncJobsSchema();
+  const db = getSessionDb();
+  return db.transaction(() => {
+    const row = db
+      .prepare('SELECT lock_token FROM warframe_sync_lease WHERE id = ?')
+      .get(LEASE_ROW_ID) as { lock_token: string | null } | undefined;
+    if (!row?.lock_token) return false;
+    db.prepare(
+      'UPDATE warframe_sync_lease SET lock_token = NULL, run_id = NULL, acquired_at = NULL WHERE id = ?',
+    ).run(LEASE_ROW_ID);
+    db.prepare('UPDATE warframe_sync_runs SET lock_token = NULL WHERE lock_token = ?').run(
+      row.lock_token,
+    );
+    return true;
+  })();
+}
+
 export function releaseWarframeSyncLease(lockToken: string): void {
   ensureWarframeSyncJobsSchema();
   const db = getSessionDb();
