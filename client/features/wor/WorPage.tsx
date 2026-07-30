@@ -19,9 +19,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
-  type Dispatch,
   type ReactNode,
-  type SetStateAction,
 } from 'react';
 
 import { HeaderSearch } from '../../components/Layout/HeaderSearch';
@@ -129,9 +127,8 @@ function renderStars(count?: number): string | ReactNode {
 }
 
 function renderGauge(level: number, max: number): string {
-  return Array.from({ length: max + 1 }, (_, index) =>
-    index <= level ? ARTIFACT_GAUGE_FILLED : ARTIFACT_GAUGE_EMPTY,
-  ).join('');
+  const filled = Math.max(0, Math.min(level, max));
+  return `${ARTIFACT_GAUGE_FILLED.repeat(filled)}${ARTIFACT_GAUGE_EMPTY.repeat(Math.max(0, max - filled))}`;
 }
 
 function ownedButtonClass(owned: number, interactive: boolean): string {
@@ -241,13 +238,8 @@ function WorFactionIcon({ factionKey }: { factionKey: string }) {
   if (!(FACTIONS as readonly string[]).includes(key)) {
     return <span className="text-muted">—</span>;
   }
-  return (
-    <WorIconWithFallback
-      primarySrc={worFactionIconUrls(key).primary}
-      fallbackSrc={worFactionIconUrls(key).fallback}
-      alt={label}
-    />
-  );
+  const urls = worFactionIconUrls(key);
+  return <WorIconWithFallback primarySrc={urls.primary} fallbackSrc={urls.fallback} alt={label} />;
 }
 
 function WorArtifactUserCell({
@@ -375,6 +367,12 @@ export function WorPage() {
   const [accountEditDraft, setAccountEditDraft] = useState('');
   const [deleteAccount, setDeleteAccount] = useState<WorAccount | null>(null);
   const accountMenuRef = useRef<HTMLDivElement | null>(null);
+  const heroesRef = useRef(heroes);
+  const artifactsRef = useRef(artifacts);
+  const demonsRef = useRef(demons);
+  heroesRef.current = heroes;
+  artifactsRef.current = artifacts;
+  demonsRef.current = demons;
 
   const handleActionError = useCallback((err: unknown) => {
     setError(err instanceof Error ? err.message : 'Request failed');
@@ -677,23 +675,19 @@ export function WorPage() {
 
   const patchOwned = useCallback(
     async (entity: 'heroes' | 'artifacts' | 'demons', id: number, nextOwned: number) => {
-      type OwnedRow = { id: number; owned: number; gauge_level: number };
-      let previousRow: OwnedRow | undefined;
+      const sourceRef =
+        entity === 'heroes' ? heroesRef : entity === 'artifacts' ? artifactsRef : demonsRef;
+      const previousRow = sourceRef.current.find((row) => row.id === id);
+      const nextRows = sourceRef.current.map((row) =>
+        row.id === id
+          ? { ...row, owned: nextOwned, gauge_level: nextOwned === 0 ? 0 : row.gauge_level }
+          : row,
+      );
+      sourceRef.current = nextRows;
 
-      const apply = <T extends OwnedRow>(setter: Dispatch<SetStateAction<T[]>>) => {
-        setter((previous) => {
-          previousRow = previous.find((row) => row.id === id);
-          return previous.map((row) =>
-            row.id === id
-              ? { ...row, owned: nextOwned, gauge_level: nextOwned === 0 ? 0 : row.gauge_level }
-              : row,
-          );
-        });
-      };
-
-      if (entity === 'heroes') apply(setHeroes);
-      else if (entity === 'artifacts') apply(setArtifacts);
-      else apply(setDemons);
+      if (entity === 'heroes') setHeroes(nextRows as WorHero[]);
+      else if (entity === 'artifacts') setArtifacts(nextRows as WorArtifact[]);
+      else setDemons(nextRows as WorDemon[]);
 
       try {
         const response = await apiFetch(`/api/wor/${entity}/${id}/owned`, {
@@ -703,23 +697,21 @@ export function WorPage() {
         });
         if (!response.ok) throw new Error('Failed to update owned status');
       } catch (err) {
-        const rollback = <T extends OwnedRow>(setter: Dispatch<SetStateAction<T[]>>) => {
-          if (!previousRow) return;
-          setter((current) =>
-            current.map((row) =>
-              row.id === id
-                ? {
-                    ...row,
-                    owned: previousRow!.owned,
-                    gauge_level: previousRow!.gauge_level,
-                  }
-                : row,
-            ),
+        if (previousRow) {
+          const rollbackRows = sourceRef.current.map((row) =>
+            row.id === id
+              ? {
+                  ...row,
+                  owned: previousRow.owned,
+                  gauge_level: previousRow.gauge_level,
+                }
+              : row,
           );
-        };
-        if (entity === 'heroes') rollback(setHeroes);
-        else if (entity === 'artifacts') rollback(setArtifacts);
-        else rollback(setDemons);
+          sourceRef.current = rollbackRows;
+          if (entity === 'heroes') setHeroes(rollbackRows as WorHero[]);
+          else if (entity === 'artifacts') setArtifacts(rollbackRows as WorArtifact[]);
+          else setDemons(rollbackRows as WorDemon[]);
+        }
         handleActionError(err);
       }
     },
@@ -733,21 +725,17 @@ export function WorPage() {
       gaugeLevel: number,
       bodyKey: 'hero_id' | 'artifact_id' | 'demon_id',
     ) => {
-      type GaugeRow = { id: number; owned: number; gauge_level: number };
-      let previousRow: GaugeRow | undefined;
+      const sourceRef =
+        entity === 'heroes' ? heroesRef : entity === 'artifacts' ? artifactsRef : demonsRef;
+      const previousRow = sourceRef.current.find((row) => row.id === id);
+      const nextRows = sourceRef.current.map((row) =>
+        row.id === id ? { ...row, gauge_level: gaugeLevel, owned: 1 } : row,
+      );
+      sourceRef.current = nextRows;
 
-      const apply = <T extends GaugeRow>(setter: Dispatch<SetStateAction<T[]>>) => {
-        setter((previous) => {
-          previousRow = previous.find((row) => row.id === id);
-          return previous.map((row) =>
-            row.id === id ? { ...row, gauge_level: gaugeLevel, owned: 1 } : row,
-          );
-        });
-      };
-
-      if (entity === 'heroes') apply(setHeroes);
-      else if (entity === 'artifacts') apply(setArtifacts);
-      else apply(setDemons);
+      if (entity === 'heroes') setHeroes(nextRows as WorHero[]);
+      else if (entity === 'artifacts') setArtifacts(nextRows as WorArtifact[]);
+      else setDemons(nextRows as WorDemon[]);
 
       try {
         const response = await apiFetch(`/api/wor/${entity}/${id}/gauge`, {
@@ -757,23 +745,21 @@ export function WorPage() {
         });
         if (!response.ok) throw new Error('Failed to update gauge');
       } catch (err) {
-        const rollback = <T extends GaugeRow>(setter: Dispatch<SetStateAction<T[]>>) => {
-          if (!previousRow) return;
-          setter((current) =>
-            current.map((row) =>
-              row.id === id
-                ? {
-                    ...row,
-                    owned: previousRow!.owned,
-                    gauge_level: previousRow!.gauge_level,
-                  }
-                : row,
-            ),
+        if (previousRow) {
+          const rollbackRows = sourceRef.current.map((row) =>
+            row.id === id
+              ? {
+                  ...row,
+                  owned: previousRow.owned,
+                  gauge_level: previousRow.gauge_level,
+                }
+              : row,
           );
-        };
-        if (entity === 'heroes') rollback(setHeroes);
-        else if (entity === 'artifacts') rollback(setArtifacts);
-        else rollback(setDemons);
+          sourceRef.current = rollbackRows;
+          if (entity === 'heroes') setHeroes(rollbackRows as WorHero[]);
+          else if (entity === 'artifacts') setArtifacts(rollbackRows as WorArtifact[]);
+          else setDemons(rollbackRows as WorDemon[]);
+        }
         handleActionError(err);
       }
     },
@@ -834,34 +820,37 @@ export function WorPage() {
             </div>
             <div className="filter-group">
               <span className="filter-label">Faction:</span>
-              {FACTIONS.map((faction) => (
-                <button
-                  key={faction}
-                  type="button"
-                  className={`filter-icon ${factionFilter === faction ? 'active' : ''}`}
-                  title={FACTION_DISPLAY_NAMES[faction]}
-                  aria-pressed={factionFilter === faction}
-                  aria-label={`Filter by ${FACTION_DISPLAY_NAMES[faction]} faction`}
-                  onClick={() =>
-                    setFactionFilter((previous) => (previous === faction ? null : faction))
-                  }
-                >
-                  {faction === 'unaffiliated' ? (
-                    <MaterialSymbol
-                      name="person_off"
-                      className="text-muted"
-                      style={{ fontSize: 24 }}
-                    />
-                  ) : (
-                    <WorIconWithFallback
-                      primarySrc={worFactionIconUrls(faction).primary}
-                      fallbackSrc={worFactionIconUrls(faction).fallback}
-                      alt={FACTION_DISPLAY_NAMES[faction]}
-                      size={24}
-                    />
-                  )}
-                </button>
-              ))}
+              {FACTIONS.map((faction) => {
+                const urls = faction === 'unaffiliated' ? null : worFactionIconUrls(faction);
+                return (
+                  <button
+                    key={faction}
+                    type="button"
+                    className={`filter-icon ${factionFilter === faction ? 'active' : ''}`}
+                    title={FACTION_DISPLAY_NAMES[faction]}
+                    aria-pressed={factionFilter === faction}
+                    aria-label={`Filter by ${FACTION_DISPLAY_NAMES[faction]} faction`}
+                    onClick={() =>
+                      setFactionFilter((previous) => (previous === faction ? null : faction))
+                    }
+                  >
+                    {faction === 'unaffiliated' || !urls ? (
+                      <MaterialSymbol
+                        name="person_off"
+                        className="text-muted"
+                        style={{ fontSize: 24 }}
+                      />
+                    ) : (
+                      <WorIconWithFallback
+                        primarySrc={urls.primary}
+                        fallbackSrc={urls.fallback}
+                        alt={FACTION_DISPLAY_NAMES[faction]}
+                        size={24}
+                      />
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
         ) : tab === 'artifacts' ? (
@@ -1187,6 +1176,12 @@ export function WorPage() {
             className="form-input"
             value={accountNameDraft}
             onChange={(event) => setAccountNameDraft(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                void createAccount().catch(handleActionError);
+              }
+            }}
           />
         </div>
         <div className="modal-actions">
