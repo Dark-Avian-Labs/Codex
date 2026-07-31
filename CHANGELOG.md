@@ -249,3 +249,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.60.1** `chore` [#326](https://github.com/Dark-Avian-Labs/Codex/pull/326): fix/dotenvx quiet load
 - **v1.60.2** `chore` [#328](https://github.com/Dark-Avian-Labs/Codex/pull/328): fix/wor ci and review findings
 - **v1.60.3** `chore` [#329](https://github.com/Dark-Avian-Labs/Codex/pull/329): fix/security audit hardening
+- **v1.60.4** `chore` [#331](https://github.com/Dark-Avian-Labs/Codex/pull/331): dependabot/npm_and_yarn/production dependencies 00664c08f1
