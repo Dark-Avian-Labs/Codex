@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: useblacksmith/checkout@v1
+        uses: useblacksmith/checkout@v1.1
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6

@@ -45,7 +45,7 @@ jobs:
 
     steps:
       - name: Checkout full history
-        uses: useblacksmith/checkout@v1
+        uses: useblacksmith/checkout@v1.1
         with:
           fetch-depth: 0
 
@@ -130,7 +130,7 @@ jobs:
 
     steps:
       - name: Checkout full history
-        uses: useblacksmith/checkout@v1
+        uses: useblacksmith/checkout@v1.1
         with:
           fetch-depth: 0
           token: ${{ secrets.CI_PAT }}
@@ -173,7 +173,7 @@ jobs:
 
     steps:
       - name: Checkout release target
-        uses: useblacksmith/checkout@v1
+        uses: useblacksmith/checkout@v1.1
         with:
           ref: ${{ needs.version.outputs.target_sha }}
 
@@ -201,7 +201,7 @@ jobs:
 
     steps:
       - name: Checkout release target
-        uses: useblacksmith/checkout@v1
+        uses: useblacksmith/checkout@v1.1
         with:
           ref: ${{ needs.version.outputs.target_sha }}
 
