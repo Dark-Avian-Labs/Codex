@@ -7,14 +7,14 @@ settings:
 catalogs:
   default:
     '@clerk/express':
-      specifier: ^2.1.47
-      version: 2.1.47
+      specifier: ^2.1.48
+      version: 2.1.48
     '@clerk/react':
-      specifier: ^6.12.8
-      version: 6.12.8
+      specifier: ^6.12.9
+      version: 6.12.9
     '@dotenvx/dotenvx':
-      specifier: ^2.19.0
-      version: 2.19.0
+      specifier: ^2.19.1
+      version: 2.19.1
     '@fontsource-variable/cascadia-mono':
       specifier: ^5.3.0
       version: 5.3.0
@@ -141,10 +141,10 @@ importers:
     dependencies:
       '@clerk/express':
         specifier: 'catalog:'
-        version: 2.1.47(express@5.2.1(supports-color@7.2.0))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+        version: 2.1.48(express@5.2.1(supports-color@7.2.0))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@clerk/react':
         specifier: 'catalog:'
-        version: 6.12.8(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+        version: 6.12.9(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@codex/core':
         specifier: workspace:*
         version: link:packages/core
@@ -158,8 +158,8 @@ importers:
         specifier: workspace:*
         version: link:packages/games/wor
       '@dotenvx/dotenvx':
-        specifier: 'catalog:'
-        version: 2.19.0
+        specifier: 2.19.1
+        version: 2.19.1
       '@fontsource-variable/cascadia-mono':
         specifier: 'catalog:'
         version: 5.3.0
@@ -301,10 +301,10 @@ importers:
     dependencies:
       '@clerk/express':
         specifier: 'catalog:'
-        version: 2.1.47(express@5.2.1(supports-color@7.2.0))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+        version: 2.1.48(express@5.2.1(supports-color@7.2.0))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@dotenvx/dotenvx':
         specifier: 'catalog:'
-        version: 2.19.0
+        version: 2.19.1
       better-sqlite3:
         specifier: 'catalog:'
         version: 13.0.2
@@ -451,25 +451,25 @@ packages:
     resolution: {integrity: sha512-6zABk/ECA/QYSCQ1NGiVwwbQerUCZ+TQbp64Q3AgmfNvurHH0j8TtXa1qbShXA6qqkpAj4V5W8pP6mLe1mcMqA==}
     engines: {node: '>=18'}
 
-  '@clerk/backend@3.13.2':
-    resolution: {integrity: sha512-z6rPQzEj1SbGmjMoyGnECY1R7YrcD4dJILlWLXFvSUsWxb8csAYzcXp50T2kVtV3ThlcjOMrI0oDQyqvTdt65A==}
+  '@clerk/backend@3.14.0':
+    resolution: {integrity: sha512-WsphTvDFHDuQilKI7dyVE5qmt7USu8qSrujAq6SqpEHbVFfNBfINDNuzxlF9M2skOTfHFfgiTE8Jjb1egIBGLg==}
     engines: {node: '>=20.9.0'}
 
-  '@clerk/express@2.1.47':
-    resolution: {integrity: sha512-fX4R7Cp1cODBxEqkaK9vMhvxvgqVkIzLE4gcO89/DPXeOfUvKWlMvbJeRLC/nsI4mwL9ymdrHYCsdLBDBuehsQ==}
+  '@clerk/express@2.1.48':
+    resolution: {integrity: sha512-edF/ETJdJrjltkGlhgKHSLQ2yk1K6zurRjWn0gIdzydWd988JumeLheUCNSPAs8Az2eOoMfr3UwfFEXuzAsuJw==}
     engines: {node: '>=20.9.0'}
     peerDependencies:
       express: ^4.17.0 || ^5.0.0
 
-  '@clerk/react@6.12.8':
-    resolution: {integrity: sha512-F/wECRGlE9JtBcS7XqutCQAI5gKXVaOSamAH9x6YPtAP0hMKlNJIaHuLEjVMKNbOerMFm3iV6k8cZ+6JnDFcMQ==}
+  '@clerk/react@6.12.9':
+    resolution: {integrity: sha512-lQ1UOJhHGDweLCDf4IgT5r3rgkch1Gx21hNqK2/kOohJrJd/XM89fq2F7VK9Kg/Byc14TsfCh64Dm8ej2MyRWw==}
     engines: {node: '>=20.9.0'}
     peerDependencies:
       react: ^18.0.0 || ~19.0.3 || ~19.1.4 || ~19.2.3 || ~19.3.0-0
       react-dom: ^18.0.0 || ~19.0.3 || ~19.1.4 || ~19.2.3 || ~19.3.0-0
 
-  '@clerk/shared@4.25.8':
-    resolution: {integrity: sha512-ob0E/YJAoDTO4CzHI0nasXGsJUc1cFo0jxPO8xVz/A0+C1R0k1da0EJD8L6F03DzKMn3efSa4mOy3BXTpBVZqw==}
+  '@clerk/shared@4.25.9':
+    resolution: {integrity: sha512-nw3maGzqPrwmUKjGffOM9Zvw24IyOllq0TkQGzsTfQX312WLu2u5CNvjKntMb6Ok6kXa1Zdc77zmPLn1/EAIFA==}
     engines: {node: '>=20.9.0'}
     peerDependencies:
       react: ^18.0.0 || ~19.0.3 || ~19.1.4 || ~19.2.3 || ~19.3.0-0
@@ -484,12 +484,12 @@ packages:
     resolution: {integrity: sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==}
     engines: {node: '>=0.1.90'}
 
-  '@dotenvx/dotenvx@2.19.0':
-    resolution: {integrity: sha512-DPy8Xbe+wV8gDRAC9Kr324dkgH4aQS7tPGh1YLkBSBICFvAQNe5umnpRT7IZ0yJ3VlsfWVFJ6+2s9dcZjtQOAw==}
+  '@dotenvx/dotenvx@2.19.1':
+    resolution: {integrity: sha512-OTTjLHzAm2/V7OwshVBfwe9YPKpRaeuGYS6Tq3TLu5dugmvuqtVWP4FOWud2KEnbTY8FNY6Wb4gMyDNUwfU1Uw==}
     hasBin: true
 
-  '@dotenvx/primitives@2.1.1':
-    resolution: {integrity: sha512-FvG4D0x5nELUxGjeGviXJnVHluK4jIeB3ebOTObgCMbc0/hc7byzUsl3nURTSyBcSCy9dQdOZ12zOIknircMkA==}
+  '@dotenvx/primitives@2.1.2':
+    resolution: {integrity: sha512-d7cmVY8LA4SlgSCDyB7tOPLPpinE1959/hXEd+euUGeAK/6QBEmdD+yDOrcanbzBwwqQxpYts0ETa+W+GOgLtg==}
 
   '@dotenvx/tooling@1.0.3':
     resolution: {integrity: sha512-Gd6qQol/ICb4MPRWpiIH56y+pR9AVB7kPBkbhrLSGLtAiF4Qgy+k651/f2pze0Xbm3H5XewbPfIm4y9K+ic30Q==}
@@ -3321,33 +3321,33 @@ snapshots:
 
   '@bcoe/v8-coverage@1.0.2': {}
 
-  '@clerk/backend@3.13.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
+  '@clerk/backend@3.14.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
-      '@clerk/shared': 4.25.8(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@clerk/shared': 4.25.9(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       standardwebhooks: 1.0.0
       tslib: 2.8.1
     transitivePeerDependencies:
       - react
       - react-dom
 
-  '@clerk/express@2.1.47(express@5.2.1(supports-color@7.2.0))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
+  '@clerk/express@2.1.48(express@5.2.1(supports-color@7.2.0))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
-      '@clerk/backend': 3.13.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@clerk/shared': 4.25.8(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@clerk/backend': 3.14.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@clerk/shared': 4.25.9(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       express: 5.2.1(supports-color@7.2.0)
       tslib: 2.8.1
     transitivePeerDependencies:
       - react
       - react-dom
 
-  '@clerk/react@6.12.8(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
+  '@clerk/react@6.12.9(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
-      '@clerk/shared': 4.25.8(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@clerk/shared': 4.25.9(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       react: 19.2.8
       react-dom: 19.2.8(react@19.2.8)
       tslib: 2.8.1
 
-  '@clerk/shared@4.25.8(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
+  '@clerk/shared@4.25.9(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
       '@tanstack/query-core': 5.101.4
       dequal: 2.0.3
@@ -3360,13 +3360,13 @@ snapshots:
   '@colors/colors@1.5.0':
     optional: true
 
-  '@dotenvx/dotenvx@2.19.0':
+  '@dotenvx/dotenvx@2.19.1':
     dependencies:
-      '@dotenvx/primitives': 2.1.1
+      '@dotenvx/primitives': 2.1.2
       '@dotenvx/tooling': 1.0.3
       yocto-spinner: 1.2.2
 
-  '@dotenvx/primitives@2.1.1': {}
+  '@dotenvx/primitives@2.1.2': {}
 
   '@dotenvx/tooling@1.0.3': {}
 
