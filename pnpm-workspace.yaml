@@ -7,8 +7,8 @@ allowBuilds:
   '@clerk/shared': true
   better-sqlite3: true
 catalog:
-  "@clerk/react": ^6.12.9
-  "@clerk/express": ^2.1.48
+  "@clerk/react": ^6.12.10
+  "@clerk/express": ^2.1.49
   "@dotenvx/dotenvx": ^2.19.1
   "@fontsource-variable/geist": ^5.3.0
   "@fontsource-variable/geist-mono": ^5.3.0
@@ -21,9 +21,9 @@ catalog:
   "@types/express": ^5.0.6
   "@types/express-session": ^1.19.0
   "@types/node": ^26.1.2
-  "@types/react": ^19.2.17
-  "@types/react-dom": ^19.2.3
-  "@vitejs/plugin-react": ^6.0.4
+  "@types/react": ^19.2.18
+  "@types/react-dom": ^19.2.4
+  "@vitejs/plugin-react": ^6.0.5
   better-sqlite3: ^13.0.2
   better-sqlite3-session-store: ^0.1.0
   clsx: ^2.1.1
@@ -44,7 +44,7 @@ catalog:
   tailwind-merge: ^3.6.0
   tailwindcss: ^4.3.3
   typescript: ^7.0.2
-  vite: ^8.1.5
+  vite: ^8.2.0
   vitest: ^4.1.10
   zod: ^4.4.3
 overrides:
