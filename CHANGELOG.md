@@ -251,3 +251,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.60.3** `chore` [#329](https://github.com/Dark-Avian-Labs/Codex/pull/329): fix/security audit hardening
 - **v1.60.4** `chore` [#331](https://github.com/Dark-Avian-Labs/Codex/pull/331): dependabot/npm_and_yarn/production dependencies 00664c08f1
 - **v1.60.5** `chore` [#333](https://github.com/Dark-Avian-Labs/Codex/pull/333): dependabot/npm_and_yarn/types/better sqlite3 9.6.0
+- **v1.60.6** `chore(deps)`: update @fontsource-variable/material-symbols-rounded to version 5.3.2 in pnpm-lock.yaml and pnpm-workspace.yaml
