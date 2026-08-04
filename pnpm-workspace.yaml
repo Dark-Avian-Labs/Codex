@@ -34,7 +34,7 @@ catalog:
   express: ^5.2.1
   express-rate-limit: ^8.6.1
   express-session: ^1.19.0
-  globals: ^17.8.0
+  globals: ^17.9.0
   helmet: ^8.3.0
   oxfmt: ^0.61.0
   oxlint: ^1.76.0
