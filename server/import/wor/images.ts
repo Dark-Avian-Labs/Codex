@@ -7,7 +7,7 @@ import { fetchWithTimeout, FETCH_TIMEOUT_MS } from '../../http/fetchWithTimeout.
 
 export const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 
-export const ALLOWED_IMAGE_EXTENSIONS = ['.png', '.webp', '.jpg', '.jpeg', '.gif'] as const;
+export const ALLOWED_IMAGE_EXTENSIONS = ['.png', '.webp', '.jpg', '.jpeg', '.gif', '.svg'] as const;
 export type AllowedImageExtension = (typeof ALLOWED_IMAGE_EXTENSIONS)[number];
 
 const ALLOWED_IMAGE_EXT_SET = new Set<string>(ALLOWED_IMAGE_EXTENSIONS);
@@ -18,6 +18,7 @@ const IMAGE_CONTENT_TYPES: Record<AllowedImageExtension, string> = {
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
   '.gif': 'image/gif',
+  '.svg': 'image/svg+xml',
 };
 
 const ALLOWED_IMAGE_HOSTS = new Set([
@@ -69,6 +70,24 @@ export function assertTrustedImageUrl(urlString: string): URL {
   return url;
 }
 
+function detectSvgImage(buffer: Buffer): DetectedImage | null {
+  const head = buffer
+    .subarray(0, Math.min(buffer.length, 512))
+    .toString('utf8')
+    .replace(/^\uFEFF/, '')
+    .trimStart();
+  if (/^<!DOCTYPE\s+html/i.test(head) || /^<html[\s>]/i.test(head)) {
+    return null;
+  }
+  const stripped = head
+    .replace(/^<\?xml\b[^>]*\?>\s*/i, '')
+    .replace(/^(?:<!--[\s\S]*?-->\s*)+/g, '');
+  if (/^<svg[\s>]/i.test(stripped)) {
+    return { ext: '.svg', mime: 'image/svg+xml' };
+  }
+  return null;
+}
+
 export function detectImageType(buffer: Buffer): DetectedImage | null {
   if (
     buffer.length >= 8 &&
@@ -95,7 +114,7 @@ export function detectImageType(buffer: Buffer): DetectedImage | null {
       return { ext: '.gif', mime: 'image/gif' };
     }
   }
-  return null;
+  return detectSvgImage(buffer);
 }
 
 function contentTypeLooksLikeImage(contentType: string | null): boolean {
@@ -107,7 +126,10 @@ function contentTypeLooksLikeImage(contentType: string | null): boolean {
     mime === 'image/jpeg' ||
     mime === 'image/jpg' ||
     mime === 'image/webp' ||
-    mime === 'image/gif'
+    mime === 'image/gif' ||
+    mime === 'image/svg+xml' ||
+    mime === 'text/xml' ||
+    mime === 'application/xml'
   );
 }
 
@@ -186,6 +208,7 @@ export async function downloadImageToWorDir(options: {
   url: string;
   relativePath: string;
   forceDownload?: boolean;
+  requireExactExtension?: boolean;
   headers?: Record<string, string>;
 }): Promise<ImageDownloadResult> {
   let trustedUrl: URL;
@@ -214,11 +237,22 @@ export async function downloadImageToWorDir(options: {
   }
 
   if (!options.forceDownload) {
-    for (const ext of ALLOWED_IMAGE_EXTENSIONS) {
-      const candidateRelative = `${baseRelative}${ext}`;
-      const candidateLocal = resolveWorImagePath(candidateRelative);
-      if (candidateLocal && fs.existsSync(candidateLocal)) {
-        return { relativePath: candidateRelative, status: 'skipped' };
+    if (options.requireExactExtension) {
+      const hintedExt = path.extname(options.relativePath).toLowerCase();
+      const exactRelative = isAllowedImageExtension(hintedExt)
+        ? `${baseRelative}${hintedExt}`
+        : options.relativePath;
+      const exactLocal = resolveWorImagePath(exactRelative);
+      if (exactLocal && fs.existsSync(exactLocal)) {
+        return { relativePath: exactRelative, status: 'skipped' };
+      }
+    } else {
+      for (const ext of ALLOWED_IMAGE_EXTENSIONS) {
+        const candidateRelative = `${baseRelative}${ext}`;
+        const candidateLocal = resolveWorImagePath(candidateRelative);
+        if (candidateLocal && fs.existsSync(candidateLocal)) {
+          return { relativePath: candidateRelative, status: 'skipped' };
+        }
       }
     }
   }
@@ -307,6 +341,7 @@ export function relativeImagePathWithExtension(
   contentType: string | null,
 ): string {
   const withoutExt = stripExtension(baseRelativePath);
+  if (contentType?.includes('svg')) return `${withoutExt}.svg`;
   if (contentType?.includes('webp')) return `${withoutExt}.webp`;
   if (contentType?.includes('jpeg') || contentType?.includes('jpg')) return `${withoutExt}.jpg`;
   if (contentType?.includes('gif')) return `${withoutExt}.gif`;

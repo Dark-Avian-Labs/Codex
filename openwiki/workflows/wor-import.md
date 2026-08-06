@@ -50,7 +50,7 @@ Offline/fixture: when live import is disabled, use cache under `scripts/data/wor
 
 ## Images / `/wor-images`
 
-Downloads allow only HTTPS hosts (Fastidious / known Fandom/wikia CDNs), reject redirects (`redirect: 'error'`), cap response size, and restrict saved extensions to image types with magic-byte checks. Static `/wor-images` serves with safe image Content-Types and `nosniff`. Path containment under `WOR_IMAGES_DIR` (inside `DATA_DIR`) is enforced.
+Downloads allow only HTTPS hosts (Fastidious / known Fandom/wikia CDNs), reject redirects (`redirect: 'error'`), cap response size, and restrict saved extensions to image types (png/webp/jpeg/gif/svg) with magic-byte / SVG-root checks. Static `/wor-images` serves with safe image Content-Types and `nosniff`. Path containment under `WOR_IMAGES_DIR` (inside `DATA_DIR`) is enforced. Class/faction emblems from Fastidious are typically SVG and are stored/served as such (safe in `<img>` context).
 
 ## Manual overrides (`scripts/data/wor-overrides.json`)
 

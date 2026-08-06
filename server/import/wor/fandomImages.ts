@@ -223,7 +223,14 @@ async function downloadPortraitForEntity(options: {
 function pathExtFromFile(fileName: string): string {
   const dotIndex = fileName.lastIndexOf('.');
   const ext = (dotIndex === -1 ? '.png' : fileName.slice(dotIndex)).toLowerCase();
-  if (ext === '.png' || ext === '.webp' || ext === '.jpg' || ext === '.jpeg' || ext === '.gif') {
+  if (
+    ext === '.png' ||
+    ext === '.webp' ||
+    ext === '.jpg' ||
+    ext === '.jpeg' ||
+    ext === '.gif' ||
+    ext === '.svg'
+  ) {
     return ext;
   }
   return '.png';
@@ -237,7 +244,8 @@ function safeImageExtensionHint(url: string): string {
       fromUrl === '.webp' ||
       fromUrl === '.jpg' ||
       fromUrl === '.jpeg' ||
-      fromUrl === '.gif'
+      fromUrl === '.gif' ||
+      fromUrl === '.svg'
     ) {
       return fromUrl;
     }
@@ -321,6 +329,7 @@ export async function downloadClassAndFactionIcons(options: {
         url: fastidiousUrl,
         relativePath,
         forceDownload,
+        requireExactExtension: true,
       });
       if (result.status === 'downloaded') summary.iconsDownloaded += 1;
       else if (result.status === 'skipped') summary.iconsSkipped += 1;
@@ -345,6 +354,7 @@ export async function downloadClassAndFactionIcons(options: {
         url: fastidiousUrl,
         relativePath,
         forceDownload,
+        requireExactExtension: true,
       });
       if (result.status === 'downloaded') summary.iconsDownloaded += 1;
       else if (result.status === 'skipped') summary.iconsSkipped += 1;

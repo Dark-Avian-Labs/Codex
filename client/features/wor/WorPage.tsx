@@ -187,9 +187,21 @@ function WorIconWithFallback({
   size?: number;
 }) {
   const [src, setSrc] = useState(primarySrc);
+  const [failed, setFailed] = useState(false);
   useEffect(() => {
     setSrc(primarySrc);
+    setFailed(false);
   }, [primarySrc]);
+  if (failed) {
+    return (
+      <span
+        className={className}
+        title={alt}
+        aria-label={alt}
+        style={{ display: 'block', width: size, height: size }}
+      />
+    );
+  }
   return (
     <img
       className={className}
@@ -199,7 +211,11 @@ function WorIconWithFallback({
       width={size}
       height={size}
       onError={() => {
-        if (src !== fallbackSrc) setSrc(fallbackSrc);
+        if (src !== fallbackSrc) {
+          setSrc(fallbackSrc);
+          return;
+        }
+        setFailed(true);
       }}
     />
   );
@@ -791,106 +807,87 @@ export function WorPage() {
       </div>
 
       <div id="wor-panel" role="tabpanel" aria-labelledby={`wor-tab-${tab}`}>
-        {tab === 'heroes' ? (
-          <div className="filter-bar" id="wor-filter-bar">
-            <div className="filter-group">
-              <span className="filter-label">Class:</span>
-              {HERO_CLASSES.map((heroClass) => (
-                <button
-                  key={heroClass}
-                  type="button"
-                  className={`filter-icon ${classFilter === heroClass ? 'active' : ''}`}
-                  title={CLASS_DISPLAY_NAMES[heroClass]}
-                  aria-pressed={classFilter === heroClass}
-                  aria-label={`Filter by ${CLASS_DISPLAY_NAMES[heroClass]} class`}
-                  onClick={() =>
-                    setClassFilter((previous) => (previous === heroClass ? null : heroClass))
-                  }
-                >
-                  <WorIconWithFallback
-                    className="invert-on-light"
-                    primarySrc={worClassIconUrls(heroClass).primary}
-                    fallbackSrc={worClassIconUrls(heroClass).fallback}
-                    alt={CLASS_DISPLAY_NAMES[heroClass]}
-                    size={24}
-                  />
-                </button>
-              ))}
-            </div>
-            <div className="filter-group">
-              <span className="filter-label">Faction:</span>
-              {FACTIONS.map((faction) => {
-                const urls = faction === 'unaffiliated' ? null : worFactionIconUrls(faction);
-                return (
+        {tab === 'heroes' || tab === 'artifacts' ? (
+          <div
+            className="filter-bar"
+            id={tab === 'heroes' ? 'wor-filter-bar' : 'wor-artifact-filter-bar'}
+          >
+            {[
+              <div key="class" className="filter-group">
+                <span className="filter-label">Class:</span>
+                {HERO_CLASSES.map((heroClass) => (
                   <button
-                    key={faction}
+                    key={heroClass}
                     type="button"
-                    className={`filter-icon ${factionFilter === faction ? 'active' : ''}`}
-                    title={FACTION_DISPLAY_NAMES[faction]}
-                    aria-pressed={factionFilter === faction}
-                    aria-label={`Filter by ${FACTION_DISPLAY_NAMES[faction]} faction`}
+                    className={`filter-icon ${classFilter === heroClass ? 'active' : ''}`}
+                    title={CLASS_DISPLAY_NAMES[heroClass]}
+                    aria-pressed={classFilter === heroClass}
+                    aria-label={`Filter by ${CLASS_DISPLAY_NAMES[heroClass]} class`}
                     onClick={() =>
-                      setFactionFilter((previous) => (previous === faction ? null : faction))
+                      setClassFilter((previous) => (previous === heroClass ? null : heroClass))
                     }
                   >
-                    {faction === 'unaffiliated' || !urls ? (
-                      <MaterialSymbol
-                        name="person_off"
-                        className="text-muted"
-                        style={{ fontSize: 24 }}
-                      />
-                    ) : (
-                      <WorIconWithFallback
-                        primarySrc={urls.primary}
-                        fallbackSrc={urls.fallback}
-                        alt={FACTION_DISPLAY_NAMES[faction]}
-                        size={24}
-                      />
-                    )}
+                    <WorIconWithFallback
+                      className="invert-on-light"
+                      primarySrc={worClassIconUrls(heroClass).primary}
+                      fallbackSrc={worClassIconUrls(heroClass).fallback}
+                      alt={CLASS_DISPLAY_NAMES[heroClass]}
+                      size={24}
+                    />
                   </button>
-                );
-              })}
-            </div>
-          </div>
-        ) : tab === 'artifacts' ? (
-          <div className="filter-bar" id="wor-artifact-filter-bar">
-            <div className="filter-group">
-              <span className="filter-label">Class:</span>
-              {HERO_CLASSES.map((heroClass) => (
-                <button
-                  key={heroClass}
-                  type="button"
-                  className={`filter-icon ${classFilter === heroClass ? 'active' : ''}`}
-                  title={CLASS_DISPLAY_NAMES[heroClass]}
-                  aria-pressed={classFilter === heroClass}
-                  aria-label={`Filter by ${CLASS_DISPLAY_NAMES[heroClass]} class`}
-                  onClick={() =>
-                    setClassFilter((previous) => (previous === heroClass ? null : heroClass))
-                  }
-                >
-                  <WorIconWithFallback
-                    className="invert-on-light"
-                    primarySrc={worClassIconUrls(heroClass).primary}
-                    fallbackSrc={worClassIconUrls(heroClass).fallback}
-                    alt={CLASS_DISPLAY_NAMES[heroClass]}
-                    size={24}
-                  />
-                </button>
-              ))}
-            </div>
-            <div className="filter-group">
-              <span className="filter-label">Exclusive:</span>
-              <button
-                type="button"
-                className={`filter-icon ${exclusiveFilter ? 'active' : ''}`}
-                title="Hero exclusive artifacts"
-                aria-pressed={exclusiveFilter}
-                aria-label="Filter hero exclusive artifacts"
-                onClick={() => setExclusiveFilter((previous) => !previous)}
-              >
-                <MaterialSymbol name="crown" style={{ fontSize: 24 }} />
-              </button>
-            </div>
+                ))}
+              </div>,
+              tab === 'heroes' ? (
+                <div key="faction" className="filter-group">
+                  <span className="filter-label">Faction:</span>
+                  {FACTIONS.map((faction) => {
+                    const urls = faction === 'unaffiliated' ? null : worFactionIconUrls(faction);
+                    return (
+                      <button
+                        key={faction}
+                        type="button"
+                        className={`filter-icon ${factionFilter === faction ? 'active' : ''}`}
+                        title={FACTION_DISPLAY_NAMES[faction]}
+                        aria-pressed={factionFilter === faction}
+                        aria-label={`Filter by ${FACTION_DISPLAY_NAMES[faction]} faction`}
+                        onClick={() =>
+                          setFactionFilter((previous) => (previous === faction ? null : faction))
+                        }
+                      >
+                        {faction === 'unaffiliated' || !urls ? (
+                          <MaterialSymbol
+                            name="person_off"
+                            className="text-muted"
+                            style={{ fontSize: 24 }}
+                          />
+                        ) : (
+                          <WorIconWithFallback
+                            primarySrc={urls.primary}
+                            fallbackSrc={urls.fallback}
+                            alt={FACTION_DISPLAY_NAMES[faction]}
+                            size={24}
+                          />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div key="exclusive" className="filter-group">
+                  <span className="filter-label">Exclusive:</span>
+                  <button
+                    type="button"
+                    className={`filter-icon ${exclusiveFilter ? 'active' : ''}`}
+                    title="Hero exclusive artifacts"
+                    aria-pressed={exclusiveFilter}
+                    aria-label="Filter hero exclusive artifacts"
+                    onClick={() => setExclusiveFilter((previous) => !previous)}
+                  >
+                    <MaterialSymbol name="crown" style={{ fontSize: 24 }} />
+                  </button>
+                </div>
+              ),
+            ]}
           </div>
         ) : null}
 
