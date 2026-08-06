@@ -33,7 +33,7 @@ describe('assertTrustedImageUrl', () => {
 });
 
 describe('detectImageType', () => {
-  it('detects png/jpeg/webp/gif and rejects svg/html', () => {
+  it('detects png/jpeg/webp/gif/svg and rejects html', () => {
     expect(detectImageType(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))?.ext).toBe('.png');
     expect(detectImageType(Buffer.from([0xff, 0xd8, 0xff, 0xe0]))?.ext).toBe('.jpg');
     const webp = Buffer.alloc(12);
@@ -41,8 +41,10 @@ describe('detectImageType', () => {
     webp.write('WEBP', 8);
     expect(detectImageType(webp)?.ext).toBe('.webp');
     expect(detectImageType(Buffer.from('GIF89a'))?.ext).toBe('.gif');
-    expect(detectImageType(Buffer.from('<svg xmlns'))).toBeNull();
-    expect(detectImageType(Buffer.from('<!DOCTYPE html>'))).toBeNull();
+    expect(detectImageType(Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"></svg>'))?.ext).toBe('.svg');
+    expect(detectImageType(Buffer.from('<?xml version="1.0"?><svg viewBox="0 0 1 1"></svg>'))?.ext).toBe('.svg');
+    expect(detectImageType(Buffer.from('<!DOCTYPE html><html><body>x</body></html>'))).toBeNull();
+    expect(detectImageType(Buffer.from('<html><body>x</body></html>'))).toBeNull();
   });
 });
 
