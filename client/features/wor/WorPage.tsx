@@ -88,7 +88,7 @@ for (const [assetPath, src] of Object.entries(ICON_MODULES)) {
   ICONS[file.replace('.png', '')] = src;
 }
 
-const tableScrollStyle = { '--header-offset': '340px' } as CSSProperties;
+const tableScrollStyle = { '--header-offset': '365px' } as CSSProperties;
 const HIDE_COMPLETED_STORAGE_KEY = 'codex-wor-hide-completed';
 
 function readHideCompletedPreference(): boolean {
@@ -911,16 +911,12 @@ export function WorPage() {
               type="button"
               onClick={() => handleHideCompletedChange(!hideCompleted)}
               aria-pressed={hideCompleted}
-              className="border-glass-border text-muted hover:border-glass-border-hover hover:bg-glass-hover hover:text-foreground inline-flex cursor-pointer items-center gap-2 rounded-lg border px-2.5 py-1.5 text-sm transition-[color,background-color,border-color,box-shadow] duration-200"
+              className="stats-bar-toggle"
               title='Toggle "Hide completed"'
             >
               <span>Hide completed</span>
               <span
-                className={`inline-flex h-5 w-5 items-center justify-center rounded text-xs font-bold transition-colors ${
-                  hideCompleted
-                    ? 'bg-success/20 text-success hover:bg-success/30'
-                    : 'bg-muted/10 text-muted/40 hover:bg-muted/20'
-                }`}
+                className={`stats-bar-toggle-indicator ${hideCompleted ? 'is-on' : ''}`}
                 aria-hidden="true"
               >
                 {hideCompleted ? (
@@ -928,10 +924,10 @@ export function WorPage() {
                     name="check"
                     filled
                     className="leading-none"
-                    style={{ fontSize: 15 }}
+                    style={{ fontSize: 14 }}
                   />
                 ) : (
-                  <MaterialSymbol name="close" className="leading-none" style={{ fontSize: 15 }} />
+                  <MaterialSymbol name="close" className="leading-none" style={{ fontSize: 14 }} />
                 )}
               </span>
             </button>
