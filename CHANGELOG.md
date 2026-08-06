@@ -254,3 +254,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.60.6** `chore(deps)`: update @fontsource-variable/material-symbols-rounded to version 5.3.2 in pnpm-lock.yaml and pnpm-workspace.yaml
 - **v1.60.7** `chore` [#336](https://github.com/Dark-Avian-Labs/Codex/pull/336): dependabot/npm_and_yarn/production dependencies e972ab8ec9
 - **v1.60.8** `chore` [#337](https://github.com/Dark-Avian-Labs/Codex/pull/337): dependabot/npm_and_yarn/production dependencies 7d54b66ae0
+- **v1.60.9** `chore` [#338](https://github.com/Dark-Avian-Labs/Codex/pull/338): dependabot/npm_and_yarn/production dependencies 9aeb7c0105
