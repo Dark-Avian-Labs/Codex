@@ -359,8 +359,8 @@ jobs:
         uses: iShark5060/actions-discord-status@v1
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
-          status: ${{ contains(needs.*.result, 'failure') && 'failure' || contains(needs.*.result, 'cancelled') && 'cancelled' || contains(needs.*.result, 'skipped') && 'skipped' || 'success' }}
+          job_results: ${{ join(needs.*.result, '\n') }}
+          mention_on: failure
           content: '<@${{ secrets.DISCORD_USERID }}>'
           title: ${{ github.workflow}}
           description: ${{ contains(needs.*.result, 'failure') && 'CI failed. Please review logs before redeploying.' || contains(needs.*.result, 'cancelled') && 'CI was cancelled before completion.' || needs.deployment-check.outputs.deploy == 'false' && 'CI was skipped because deployment-check determined no deployable changes.' || contains(needs.*.result, 'skipped') && 'CI was skipped due to upstream conditions.' || 'CI succeeded. New build is deployed and available now.' }}
-          color: ${{ contains(needs.*.result, 'failure') && '0xff0000' || contains(needs.*.result, 'cancelled') && '0xffaa00' || contains(needs.*.result, 'skipped') && '0x808080' || '0x00ff00' }}
