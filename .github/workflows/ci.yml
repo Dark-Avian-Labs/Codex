@@ -359,7 +359,7 @@ jobs:
         uses: iShark5060/actions-discord-status@v1
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
-          job_results: ${{ join(needs.*.result, '\n') }}
+          job_results: ${{ join(needs.*.result, ',') }}
           mention_on: failure
           content: '<@${{ secrets.DISCORD_USERID }}>'
           title: ${{ github.workflow}}
