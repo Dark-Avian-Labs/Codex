@@ -3,7 +3,7 @@ type: Domain Concept
 title: Games and Collections
 description: Warframe worksheets, Epic Seven curated catalogs, and Watcher of Realms import-backed collections.
 tags: [warframe, epic7, wor, collection]
-timestamp: 2026-07-18T20:40:00Z
+timestamp: 2026-08-09T11:10:00Z
 ---
 
 # Games and Collections
@@ -40,7 +40,7 @@ Model: `base_heroes` / `base_artifacts` curated by admins; `game_accounts` with 
 | Import  | `server/import/wor/`, `scripts/wor-import.mjs` |
 | UI      | `client/features/wor/`                         |
 
-Model: catalog tables for heroes/artifacts/demons plus account copies. Catalog can bootstrap on startup when empty and via admin/CLI import (Fastidious + Fandom images). Deep dive: [WoR catalog import](../workflows/wor-import.md).
+Model: catalog tables for heroes/artifacts/demons plus account copies. Heroes store primary `faction` and optional `faction_secondary` (Fastidious dual-faction heroes); faction filters match either. Catalog can bootstrap on startup when empty and via admin/CLI import (Fastidious + Fandom images). Deep dive: [WoR catalog import](../workflows/wor-import.md).
 
 ## What to watch out for
 

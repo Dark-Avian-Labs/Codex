@@ -195,7 +195,6 @@ const REQUIRED_WOR_TABLES = [
   'import_lease',
 ] as const;
 
-/** Fail fast when `db:init` was skipped — onOpen must not create tables. */
 export function assertWorCoreTablesExist(db: Database.Database): void {
   for (const table of REQUIRED_WOR_TABLES) {
     const row = db
@@ -209,7 +208,6 @@ export function assertWorCoreTablesExist(db: Database.Database): void {
   }
 }
 
-/** Additive column migrations safe to run after tables already exist. */
 export function ensureWorSchemaMigrations(db: Database.Database): void {
   ensureWorCatalogMigrations(db);
   ensureWorAccountMigrations(db);

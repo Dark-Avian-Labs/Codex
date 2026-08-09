@@ -3,7 +3,7 @@ type: Architecture Overview
 title: Client UI Architecture
 description: Codex SPA feature layout, routing, Layout slots, and the three game UX models.
 tags: [client, react, ui, features]
-timestamp: 2026-07-18T21:05:00Z
+timestamp: 2026-08-09T11:10:00Z
 ---
 
 # Client UI Architecture
@@ -35,7 +35,7 @@ Layout brand/admin links switch by pathname prefix (`warframe` / `epic7` / `wor`
 | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Warframe   | Worksheets → table rows → cell status cycles (`Obtained` / `Complete`) and Helminth; optional [advanced progress](../domain/warframe-advanced-progress.md) |
 | Epic Seven | Account switcher + hero/artifact tabs, gauges, owned toggles                                                                                               |
-| WoR        | Account switcher + heroes/artifacts/demons tabs                                                                                                            |
+| WoR        | Account switcher + heroes/artifacts/demons tabs; rarity star filters; heroes may show two faction emblems                                                  |
 
 There is no shared “collection table” abstraction across games — do not force Warframe worksheet patterns onto Epic7/WoR.
 
