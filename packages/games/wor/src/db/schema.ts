@@ -63,7 +63,14 @@ export function ensureWorCatalogTables(db: Database.Database): void {
 function ensureColumn(db: Database.Database, table: string, column: string, ddl: string): void {
   const cols = db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[];
   if (cols.some((col) => col.name === column)) return;
-  db.exec(`ALTER TABLE ${table} ADD COLUMN ${ddl}`);
+  try {
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${ddl}`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (!/duplicate column/i.test(message)) {
+      throw error;
+    }
+  }
 }
 
 function ensureWorCatalogMigrations(db: Database.Database): void {
@@ -175,6 +182,40 @@ export function ensureWorCoreTables(db: Database.Database): void {
   ensureWorAccountTables(db);
 }
 
+const REQUIRED_WOR_TABLES = [
+  'catalog_heroes',
+  'catalog_artifacts',
+  'catalog_demons',
+  'catalog_meta',
+  'game_accounts',
+  'account_heroes',
+  'account_artifacts',
+  'account_demons',
+  'import_runs',
+  'import_lease',
+] as const;
+
+/** Fail fast when `db:init` was skipped — onOpen must not create tables. */
+export function assertWorCoreTablesExist(db: Database.Database): void {
+  for (const table of REQUIRED_WOR_TABLES) {
+    const row = db
+      .prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?")
+      .get(table);
+    if (!row) {
+      throw new Error(
+        `WoR database is missing required table "${table}". Run \`pnpm run db:init\` before starting the server.`,
+      );
+    }
+  }
+}
+
+/** Additive column migrations safe to run after tables already exist. */
+export function ensureWorSchemaMigrations(db: Database.Database): void {
+  ensureWorCatalogMigrations(db);
+  ensureWorAccountMigrations(db);
+  ensureWorImportLeaseMigrations(db);
+}
+
 function repairDuplicateActiveAccounts(db: Database.Database): boolean {
   const duplicates = db
     .prepare(
@@ -256,7 +297,8 @@ export function createSchema(db: Database.Database): void {
 
 const { getDb, closeDb } = createDbSingleton(WOR_DB_PATH, {
   onOpen: (db: Database.Database) => {
-    ensureWorCoreTables(db);
+    assertWorCoreTablesExist(db);
+    ensureWorSchemaMigrations(db);
     ensureSingleActiveAccountIndex(db);
   },
 });

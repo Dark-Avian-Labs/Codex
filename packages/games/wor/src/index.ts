@@ -31,7 +31,9 @@ export { WOR_DB_PATH, WOR_IMAGES_DIR } from './config.js';
 export {
   closeDb as closeWorDb,
   getDb as getWorDb,
+  assertWorCoreTablesExist,
   ensureWorCoreTables,
+  ensureWorSchemaMigrations,
   resetWorSchema,
   createSchema,
 } from './db/schema.js';
