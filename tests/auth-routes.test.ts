@@ -14,6 +14,7 @@ const dbMocks = vi.hoisted(() => ({
   sessionOk: true,
   warframeOk: true,
   epic7Ok: true,
+  worOk: true,
   armoryOk: true,
   armoryDbPath: '',
 }));
@@ -65,9 +66,25 @@ vi.mock('@codex/game-epic7', () => ({
   }),
 }));
 
+vi.mock('@codex/game-wor', () => ({
+  getWorDb: () => ({
+    prepare: () => ({
+      get: () => {
+        if (!dbMocks.worOk) throw new Error('wor db unavailable');
+        return { ok: 1 };
+      },
+    }),
+  }),
+}));
+
 vi.mock('../server/epic7DbState.js', () => ({
   refreshEpic7DbAvailability: async () => {},
   isEpic7DbAvailable: () => dbMocks.epic7Ok,
+}));
+
+vi.mock('../server/worDbState.js', () => ({
+  refreshWorDbAvailability: async () => {},
+  isWorDbAvailable: () => dbMocks.worOk,
 }));
 
 const armoryAccessMock = vi.hoisted(() => vi.fn(async () => {}));
@@ -101,6 +118,7 @@ describe('auth and probe routes', () => {
     dbMocks.sessionOk = true;
     dbMocks.warframeOk = true;
     dbMocks.epic7Ok = true;
+    dbMocks.worOk = true;
     dbMocks.armoryOk = true;
     dbMocks.armoryDbPath = '';
     armoryAccessMock.mockReset();
