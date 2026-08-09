@@ -6,6 +6,7 @@ export type CatalogHeroRow = {
   name: string;
   class: string;
   faction: string;
+  faction_secondary?: string | null;
   rarity: string;
   damage_type?: string | null;
   is_lord?: number;
@@ -48,16 +49,17 @@ export type CatalogBundle = {
 export function upsertCatalogHeroes(db: Database.Database, heroes: CatalogHeroRow[]): number {
   const stmt = db.prepare(`
     INSERT INTO catalog_heroes (
-      slug, name, class, faction, rarity, star_rating, damage_type, is_lord,
+      slug, name, class, faction, faction_secondary, rarity, star_rating, damage_type, is_lord,
       reference_tier, portrait_path, display_order, active
     ) VALUES (
-      @slug, @name, @class, @faction, @rarity, @star_rating, @damage_type, @is_lord,
+      @slug, @name, @class, @faction, @faction_secondary, @rarity, @star_rating, @damage_type, @is_lord,
       @reference_tier, @portrait_path, @display_order, @active
     )
     ON CONFLICT(slug) DO UPDATE SET
       name = excluded.name,
       class = excluded.class,
       faction = excluded.faction,
+      faction_secondary = excluded.faction_secondary,
       rarity = excluded.rarity,
       star_rating = excluded.star_rating,
       damage_type = excluded.damage_type,
@@ -75,6 +77,7 @@ export function upsertCatalogHeroes(db: Database.Database, heroes: CatalogHeroRo
         name: hero.name,
         class: hero.class,
         faction: hero.faction,
+        faction_secondary: hero.faction_secondary ?? null,
         rarity: hero.rarity,
         star_rating: rarityToStarRating(hero.rarity),
         damage_type: hero.damage_type ?? null,

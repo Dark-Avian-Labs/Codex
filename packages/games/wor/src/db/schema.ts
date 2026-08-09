@@ -10,6 +10,7 @@ export function ensureWorCatalogTables(db: Database.Database): void {
       name TEXT NOT NULL,
       class TEXT NOT NULL,
       faction TEXT NOT NULL,
+      faction_secondary TEXT,
       rarity TEXT NOT NULL,
       star_rating INTEGER NOT NULL,
       damage_type TEXT,
@@ -59,13 +60,22 @@ export function ensureWorCatalogTables(db: Database.Database): void {
   ensureWorCatalogMigrations(db);
 }
 
-function ensureWorCatalogMigrations(db: Database.Database): void {
-  const artifactCols = db.prepare(`PRAGMA table_info(catalog_artifacts)`).all() as {
-    name: string;
-  }[];
-  if (!artifactCols.some((col) => col.name === 'class')) {
-    db.exec(`ALTER TABLE catalog_artifacts ADD COLUMN class TEXT`);
+function ensureColumn(db: Database.Database, table: string, column: string, ddl: string): void {
+  const cols = db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[];
+  if (cols.some((col) => col.name === column)) return;
+  try {
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${ddl}`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (!/duplicate column/i.test(message)) {
+      throw error;
+    }
   }
+}
+
+function ensureWorCatalogMigrations(db: Database.Database): void {
+  ensureColumn(db, 'catalog_artifacts', 'class', 'class TEXT');
+  ensureColumn(db, 'catalog_heroes', 'faction_secondary', 'faction_secondary TEXT');
 }
 
 export function ensureWorAccountTables(db: Database.Database): void {
@@ -86,6 +96,7 @@ export function ensureWorAccountTables(db: Database.Database): void {
       name TEXT NOT NULL,
       class TEXT NOT NULL,
       faction TEXT NOT NULL,
+      faction_secondary TEXT,
       rarity TEXT NOT NULL,
       star_rating INTEGER NOT NULL DEFAULT 3,
       owned INTEGER NOT NULL DEFAULT 0,
@@ -144,7 +155,12 @@ export function ensureWorAccountTables(db: Database.Database): void {
     CREATE INDEX IF NOT EXISTS idx_account_artifacts_account ON account_artifacts(account_id);
     CREATE INDEX IF NOT EXISTS idx_account_demons_account ON account_demons(account_id);
   `);
+  ensureWorAccountMigrations(db);
   ensureWorImportLeaseMigrations(db);
+}
+
+function ensureWorAccountMigrations(db: Database.Database): void {
+  ensureColumn(db, 'account_heroes', 'faction_secondary', 'faction_secondary TEXT');
 }
 
 function ensureWorImportLeaseMigrations(db: Database.Database): void {
@@ -164,6 +180,40 @@ function ensureWorImportLeaseMigrations(db: Database.Database): void {
 export function ensureWorCoreTables(db: Database.Database): void {
   ensureWorCatalogTables(db);
   ensureWorAccountTables(db);
+}
+
+const REQUIRED_WOR_TABLES = [
+  'catalog_heroes',
+  'catalog_artifacts',
+  'catalog_demons',
+  'catalog_meta',
+  'game_accounts',
+  'account_heroes',
+  'account_artifacts',
+  'account_demons',
+  'import_runs',
+  'import_lease',
+] as const;
+
+/** Fail fast when `db:init` was skipped — onOpen must not create tables. */
+export function assertWorCoreTablesExist(db: Database.Database): void {
+  for (const table of REQUIRED_WOR_TABLES) {
+    const row = db
+      .prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?")
+      .get(table);
+    if (!row) {
+      throw new Error(
+        `WoR database is missing required table "${table}". Run \`pnpm run db:init\` before starting the server.`,
+      );
+    }
+  }
+}
+
+/** Additive column migrations safe to run after tables already exist. */
+export function ensureWorSchemaMigrations(db: Database.Database): void {
+  ensureWorCatalogMigrations(db);
+  ensureWorAccountMigrations(db);
+  ensureWorImportLeaseMigrations(db);
 }
 
 function repairDuplicateActiveAccounts(db: Database.Database): boolean {
@@ -247,7 +297,8 @@ export function createSchema(db: Database.Database): void {
 
 const { getDb, closeDb } = createDbSingleton(WOR_DB_PATH, {
   onOpen: (db: Database.Database) => {
-    ensureWorCoreTables(db);
+    assertWorCoreTablesExist(db);
+    ensureWorSchemaMigrations(db);
     ensureSingleActiveAccountIndex(db);
   },
 });

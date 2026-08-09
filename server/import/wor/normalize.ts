@@ -56,6 +56,23 @@ export function normalizeFactionName(name: string): FactionKey {
   return key;
 }
 
+export function resolveHeroFactionKeys(factionNames: string[]): {
+  faction: FactionKey;
+  faction_secondary: FactionKey | null;
+} {
+  const keys: FactionKey[] = [];
+  for (const name of factionNames) {
+    const key = normalizeFactionName(name);
+    if (!keys.includes(key)) {
+      keys.push(key);
+    }
+  }
+  return {
+    faction: keys[0] ?? 'unaffiliated',
+    faction_secondary: keys[1] ?? null,
+  };
+}
+
 export function normalizeHeroClass(name: string): HeroClassKey {
   const value = name.trim().toLowerCase() as HeroClassKey;
   if (!(HERO_CLASSES as readonly string[]).includes(value)) {

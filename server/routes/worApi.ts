@@ -133,7 +133,11 @@ worApiRouter.get('/heroes', (req, res) => {
     if (!accountId) return;
     const classFilter = String(req.query.class ?? '').trim();
     const factionFilter = String(req.query.faction ?? '').trim();
-    const heroes = q.getHeroes(db, accountId, classFilter, factionFilter);
+    const rarityRaw = String(req.query.rarity ?? '').trim();
+    const rarityParsed = rarityRaw ? Number(rarityRaw) : null;
+    const rarityFilter =
+      rarityParsed != null && Number.isInteger(rarityParsed) ? rarityParsed : null;
+    const heroes = q.getHeroes(db, accountId, classFilter, factionFilter, rarityFilter);
     const stats = q.getHeroStats(db, accountId);
     json(res, { heroes, stats, gauge_max: HERO_AWAKENING_MAX });
   });

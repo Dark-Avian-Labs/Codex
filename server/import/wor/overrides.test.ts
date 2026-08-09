@@ -102,6 +102,7 @@ describe('applyWorOverrides', () => {
       name: 'Xasny',
       class: 'fighter',
       faction: 'esoteria_order',
+      faction_secondary: null,
       rarity: 'epic',
       damage_type: 'Magic',
       is_lord: 0,

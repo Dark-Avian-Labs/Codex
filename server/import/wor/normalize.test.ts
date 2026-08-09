@@ -8,6 +8,7 @@ import {
   normalizeFactionName,
   normalizeHeroClass,
   normalizeHeroRarity,
+  resolveHeroFactionKeys,
   slugifyName,
   wikiPageTitleFromName,
 } from './normalize.js';
@@ -21,6 +22,21 @@ describe('wor normalize', () => {
   it('maps faction and class labels', () => {
     expect(normalizeFactionName('North Throne')).toBe('north_throne');
     expect(normalizeHeroClass('tactician')).toBe('tactician');
+  });
+
+  it('resolves primary and secondary hero factions', () => {
+    expect(resolveHeroFactionKeys(['Infernal Blast', 'Star Piercers'])).toEqual({
+      faction: 'infernal_blast',
+      faction_secondary: 'star_piercers',
+    });
+    expect(resolveHeroFactionKeys(['Watchguard'])).toEqual({
+      faction: 'watchguard',
+      faction_secondary: null,
+    });
+    expect(resolveHeroFactionKeys([])).toEqual({
+      faction: 'unaffiliated',
+      faction_secondary: null,
+    });
   });
 
   it('maps rarities', () => {

@@ -49,6 +49,21 @@ export const RARITY_STAR_COUNTS: Record<string, number> = {
   captain: 5,
 };
 
+/** Star ratings shown in collection rarity filters (rare / epic / legendary). */
+export const FILTER_STAR_RATINGS = [3, 4, 5] as const;
+export type FilterStarRating = (typeof FILTER_STAR_RATINGS)[number];
+
+/** Artifact catalog is mostly epic+; include mythic (6★). */
+export const ARTIFACT_FILTER_STAR_RATINGS = [4, 5, 6] as const;
+export type ArtifactFilterStarRating = (typeof ARTIFACT_FILTER_STAR_RATINGS)[number];
+
+export const FILTER_STAR_RARITY_LABELS: Record<3 | 4 | 5 | 6, string> = {
+  3: 'Rare',
+  4: 'Epic',
+  5: 'Legendary',
+  6: 'Mythic',
+};
+
 export function rarityToStarRating(rarity: string): number {
   return RARITY_STAR_COUNTS[rarity] ?? 3;
 }

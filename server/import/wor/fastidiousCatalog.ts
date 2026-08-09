@@ -23,9 +23,9 @@ import {
   normalizeDamageType,
   normalizeDemonFactionGroup,
   normalizeDemonRarity,
-  normalizeFactionName,
   normalizeHeroClass,
   normalizeHeroRarity,
+  resolveHeroFactionKeys,
   slugifyName,
 } from './normalize.js';
 import { ensureWorImportDirs, FASTIDIOUS_BASE_URL, resolveWorImportCacheDir } from './paths.js';
@@ -136,15 +136,18 @@ function computeDemonMaxLevel(detail: FastidiousDemonDetail | null): number {
 }
 
 function mapHero(hero: FastidiousHero, displayOrder: number): CatalogHeroRow {
-  const primaryFaction = hero.factions[0];
+  const { faction, faction_secondary } = resolveHeroFactionKeys(
+    hero.factions.map((entry) => entry.name),
+  );
   return {
     slug: hero.slug,
     name: decodeHtmlEntities(hero.name),
     class: normalizeHeroClass(hero.role.name),
-    faction: primaryFaction ? normalizeFactionName(primaryFaction.name) : ('unaffiliated' as const),
+    faction,
+    faction_secondary,
     rarity: normalizeHeroRarity(hero.rarity.name),
     damage_type: normalizeDamageType(hero.damage_type),
-    is_lord: primaryFaction?.pivot?.is_lord ? 1 : 0,
+    is_lord: hero.factions.some((entry) => entry.pivot?.is_lord) ? 1 : 0,
     reference_tier: hero.overall_rating ?? null,
     display_order: displayOrder,
     active: 1,

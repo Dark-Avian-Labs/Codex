@@ -2,11 +2,14 @@ export {
   ARTIFACT_GAUGE_EMPTY,
   ARTIFACT_GAUGE_FILLED,
   ARTIFACT_PROMOTION_MAX,
+  ARTIFACT_FILTER_STAR_RATINGS,
   ARTIFACT_RARITIES,
   CLASS_DISPLAY_NAMES,
   DEMON_RARITIES,
   FACTION_DISPLAY_NAMES,
   FACTIONS,
+  FILTER_STAR_RARITY_LABELS,
+  FILTER_STAR_RATINGS,
   GAUGE_COLORS,
   HERO_AWAKENING_LABELS,
   HERO_AWAKENING_MAX,
@@ -16,9 +19,11 @@ export {
   rarityToStarRating,
 } from './constants.js';
 export type {
+  ArtifactFilterStarRating,
   ArtifactRarityKey,
   DemonRarityKey,
   FactionKey,
+  FilterStarRating,
   HeroClassKey,
   HeroRarityKey,
 } from './constants.js';
@@ -26,7 +31,9 @@ export { WOR_DB_PATH, WOR_IMAGES_DIR } from './config.js';
 export {
   closeDb as closeWorDb,
   getDb as getWorDb,
+  assertWorCoreTablesExist,
   ensureWorCoreTables,
+  ensureWorSchemaMigrations,
   resetWorSchema,
   createSchema,
 } from './db/schema.js';

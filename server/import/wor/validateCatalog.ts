@@ -69,6 +69,19 @@ export function validateWorCatalogBundle(bundle: CatalogBundle): WorValidationRe
         message: `Hero ${hero.slug} has invalid faction ${hero.faction}`,
       });
     }
+    if (hero.faction_secondary != null && hero.faction_secondary !== '') {
+      if (!isValidFactionKey(hero.faction_secondary)) {
+        issues.push({
+          level: 'error',
+          message: `Hero ${hero.slug} has invalid secondary faction ${hero.faction_secondary}`,
+        });
+      } else if (hero.faction_secondary === hero.faction) {
+        issues.push({
+          level: 'warning',
+          message: `Hero ${hero.slug} has duplicate primary/secondary faction ${hero.faction}`,
+        });
+      }
+    }
   }
 
   const errors = issues.filter((issue) => issue.level === 'error');
