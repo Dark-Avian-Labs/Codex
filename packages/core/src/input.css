@@ -1865,6 +1865,22 @@ html:not(.dark) .invert-on-light {
     line-height: 1;
   }
 
+  .wor-faction-icons {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+
+  .wor-faction-icons img,
+  .wor-faction-icons .material-symbol-rounded {
+    margin-inline: 0;
+  }
+
+  .wor-table .icon-cell:has(.wor-faction-icons) {
+    width: 96px;
+  }
+
   .wor-artifact-hero-icon {
     display: block;
     margin-inline: auto;

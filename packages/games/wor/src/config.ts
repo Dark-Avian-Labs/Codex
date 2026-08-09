@@ -13,6 +13,8 @@ export {
   CLASS_DISPLAY_NAMES,
   FACTION_DISPLAY_NAMES,
   FACTIONS,
+  FILTER_STAR_RARITY_LABELS,
+  FILTER_STAR_RATINGS,
   GAUGE_COLORS,
   HERO_AWAKENING_LABELS,
   HERO_AWAKENING_MAX,
@@ -20,4 +22,4 @@ export {
   RARITY_STAR_COUNTS,
   rarityToStarRating,
 } from './constants.js';
-export type { FactionKey, HeroClassKey } from './constants.js';
+export type { FactionKey, FilterStarRating, HeroClassKey } from './constants.js';

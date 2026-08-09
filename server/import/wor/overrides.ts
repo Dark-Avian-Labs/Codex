@@ -107,6 +107,7 @@ export function applyWorOverrides(
       name: override.name,
       class: override.class,
       faction: override.faction,
+      faction_secondary: override.faction_secondary ?? null,
       rarity: override.rarity,
       damage_type: override.damage_type ?? null,
       is_lord: override.is_lord ?? 0,

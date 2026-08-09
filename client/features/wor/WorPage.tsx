@@ -1,10 +1,13 @@
 import {
+  ARTIFACT_FILTER_STAR_RATINGS,
   ARTIFACT_GAUGE_EMPTY,
   ARTIFACT_GAUGE_FILLED,
   ARTIFACT_PROMOTION_MAX,
   CLASS_DISPLAY_NAMES,
   FACTION_DISPLAY_NAMES,
   FACTIONS,
+  FILTER_STAR_RARITY_LABELS,
+  FILTER_STAR_RATINGS,
   GAUGE_COLORS,
   HERO_AWAKENING_LABELS,
   HERO_AWAKENING_MAX,
@@ -36,6 +39,7 @@ type WorHero = {
   name: string;
   class: string;
   faction: string;
+  faction_secondary?: string | null;
   star_rating?: number;
   owned: number;
   gauge_level: number;
@@ -88,7 +92,7 @@ for (const [assetPath, src] of Object.entries(ICON_MODULES)) {
   ICONS[file.replace('.png', '')] = src;
 }
 
-const tableScrollStyle = { '--header-offset': '365px' } as CSSProperties;
+const tableScrollStyle = { '--header-offset': '410px' } as CSSProperties;
 const HIDE_COMPLETED_STORAGE_KEY = 'codex-wor-hide-completed';
 
 function readHideCompletedPreference(): boolean {
@@ -258,6 +262,18 @@ function WorFactionIcon({ factionKey }: { factionKey: string }) {
   return <WorIconWithFallback primarySrc={urls.primary} fallbackSrc={urls.fallback} alt={label} />;
 }
 
+function WorFactionIcons({ primary, secondary }: { primary: string; secondary?: string | null }) {
+  if (!secondary || secondary === primary) {
+    return <WorFactionIcon factionKey={primary} />;
+  }
+  return (
+    <span className="wor-faction-icons">
+      <WorFactionIcon factionKey={primary} />
+      <WorFactionIcon factionKey={secondary} />
+    </span>
+  );
+}
+
 function WorArtifactUserCell({
   classKey,
   exclusiveHeroName,
@@ -367,6 +383,7 @@ export function WorPage() {
   const [search, setSearch] = useState('');
   const [classFilter, setClassFilter] = useState<HeroClassKey | null>(null);
   const [factionFilter, setFactionFilter] = useState<FactionKey | null>(null);
+  const [rarityFilter, setRarityFilter] = useState<3 | 4 | 5 | 6 | null>(null);
   const [exclusiveFilter, setExclusiveFilter] = useState(false);
   const [hideCompleted, setHideCompleted] = useState(readHideCompletedPreference);
   const [heroes, setHeroes] = useState<WorHero[]>([]);
@@ -426,6 +443,7 @@ export function WorPage() {
       if (tab === 'heroes') {
         if (classFilter) params.set('class', classFilter);
         if (factionFilter) params.set('faction', factionFilter);
+        if (rarityFilter) params.set('rarity', String(rarityFilter));
       }
       const suffix = params.toString() ? `?${params.toString()}` : '';
       const response = await apiFetch(`/api/wor/${tab}${suffix}`);
@@ -446,11 +464,18 @@ export function WorPage() {
     } finally {
       setLoading(false);
     }
-  }, [classFilter, factionFilter, loadAccounts, tab]);
+  }, [classFilter, factionFilter, loadAccounts, rarityFilter, tab]);
 
   useEffect(() => {
     void loadTabData();
   }, [loadTabData]);
+
+  useEffect(() => {
+    const allowed = tab === 'artifacts' ? ARTIFACT_FILTER_STAR_RATINGS : FILTER_STAR_RATINGS;
+    if (rarityFilter != null && !(allowed as readonly number[]).includes(rarityFilter)) {
+      setRarityFilter(null);
+    }
+  }, [rarityFilter, tab]);
 
   useEffect(() => {
     setHeaderCenter(
@@ -474,14 +499,20 @@ export function WorPage() {
       artifacts.filter((row) => {
         if (!row.name.toLowerCase().includes(search.toLowerCase())) return false;
         if (classFilter && row.class !== classFilter) return false;
+        if (rarityFilter && row.star_rating !== rarityFilter) return false;
         if (exclusiveFilter && !isExclusiveArtifact(row)) return false;
         return true;
       }),
-    [artifacts, search, classFilter, exclusiveFilter],
+    [artifacts, search, classFilter, exclusiveFilter, rarityFilter],
   );
   const filteredDemons = useMemo(
-    () => demons.filter((row) => row.name.toLowerCase().includes(search.toLowerCase())),
-    [demons, search],
+    () =>
+      demons.filter((row) => {
+        if (!row.name.toLowerCase().includes(search.toLowerCase())) return false;
+        if (rarityFilter && row.star_rating !== rarityFilter) return false;
+        return true;
+      }),
+    [demons, search, rarityFilter],
   );
 
   const visibleHeroes = useMemo(
@@ -807,35 +838,71 @@ export function WorPage() {
       </div>
 
       <div id="wor-panel" role="tabpanel" aria-labelledby={`wor-tab-${tab}`}>
-        {tab === 'heroes' || tab === 'artifacts' ? (
+        {tab === 'heroes' || tab === 'artifacts' || tab === 'demons' ? (
           <div
             className="filter-bar"
-            id={tab === 'heroes' ? 'wor-filter-bar' : 'wor-artifact-filter-bar'}
+            id={
+              tab === 'heroes'
+                ? 'wor-filter-bar'
+                : tab === 'artifacts'
+                  ? 'wor-artifact-filter-bar'
+                  : 'wor-demon-filter-bar'
+            }
           >
             {[
-              <div key="class" className="filter-group">
-                <span className="filter-label">Class:</span>
-                {HERO_CLASSES.map((heroClass) => (
-                  <button
-                    key={heroClass}
-                    type="button"
-                    className={`filter-icon ${classFilter === heroClass ? 'active' : ''}`}
-                    title={CLASS_DISPLAY_NAMES[heroClass]}
-                    aria-pressed={classFilter === heroClass}
-                    aria-label={`Filter by ${CLASS_DISPLAY_NAMES[heroClass]} class`}
-                    onClick={() =>
-                      setClassFilter((previous) => (previous === heroClass ? null : heroClass))
-                    }
-                  >
-                    <WorIconWithFallback
-                      className="invert-on-light"
-                      primarySrc={worClassIconUrls(heroClass).primary}
-                      fallbackSrc={worClassIconUrls(heroClass).fallback}
-                      alt={CLASS_DISPLAY_NAMES[heroClass]}
-                      size={24}
-                    />
-                  </button>
-                ))}
+              tab === 'heroes' || tab === 'artifacts' ? (
+                <div key="class" className="filter-group">
+                  <span className="filter-label">Class:</span>
+                  {HERO_CLASSES.map((heroClass) => (
+                    <button
+                      key={heroClass}
+                      type="button"
+                      className={`filter-icon ${classFilter === heroClass ? 'active' : ''}`}
+                      title={CLASS_DISPLAY_NAMES[heroClass]}
+                      aria-pressed={classFilter === heroClass}
+                      aria-label={`Filter by ${CLASS_DISPLAY_NAMES[heroClass]} class`}
+                      onClick={() =>
+                        setClassFilter((previous) => (previous === heroClass ? null : heroClass))
+                      }
+                    >
+                      <WorIconWithFallback
+                        className="invert-on-light"
+                        primarySrc={worClassIconUrls(heroClass).primary}
+                        fallbackSrc={worClassIconUrls(heroClass).fallback}
+                        alt={CLASS_DISPLAY_NAMES[heroClass]}
+                        size={24}
+                      />
+                    </button>
+                  ))}
+                </div>
+              ) : null,
+              <div key="rarity" className="filter-group">
+                <span className="filter-label">Rarity:</span>
+                {(tab === 'artifacts' ? ARTIFACT_FILTER_STAR_RATINGS : FILTER_STAR_RATINGS).map(
+                  (stars) => {
+                    const label = FILTER_STAR_RARITY_LABELS[stars];
+                    const iconSrc = ICONS[`star${stars}`];
+                    return (
+                      <button
+                        key={stars}
+                        type="button"
+                        className={`filter-icon ${rarityFilter === stars ? 'active' : ''}`}
+                        title={label}
+                        aria-pressed={rarityFilter === stars}
+                        aria-label={`Filter by ${label} rarity`}
+                        onClick={() =>
+                          setRarityFilter((previous) => (previous === stars ? null : stars))
+                        }
+                      >
+                        {iconSrc ? (
+                          <img src={iconSrc} alt={`${stars} star`} width={24} height={24} />
+                        ) : (
+                          <span aria-hidden="true">{stars}★</span>
+                        )}
+                      </button>
+                    );
+                  },
+                )}
               </div>,
               tab === 'heroes' ? (
                 <div key="faction" className="filter-group">
@@ -872,7 +939,7 @@ export function WorPage() {
                     );
                   })}
                 </div>
-              ) : (
+              ) : tab === 'artifacts' ? (
                 <div key="exclusive" className="filter-group">
                   <span className="filter-label">Exclusive:</span>
                   <button
@@ -886,7 +953,7 @@ export function WorPage() {
                     <MaterialSymbol name="crown" style={{ fontSize: 24 }} />
                   </button>
                 </div>
-              ),
+              ) : null,
             ]}
           </div>
         ) : null}
@@ -983,7 +1050,10 @@ export function WorPage() {
                             <WorClassIcon classKey={hero.class} />
                           </td>
                           <td className="icon-cell">
-                            <WorFactionIcon factionKey={hero.faction} />
+                            <WorFactionIcons
+                              primary={hero.faction}
+                              secondary={hero.faction_secondary}
+                            />
                           </td>
                         </>
                       }

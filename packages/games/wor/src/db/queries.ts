@@ -1,6 +1,12 @@
 import Database from 'better-sqlite3';
 
-import { ARTIFACT_PROMOTION_MAX, HERO_AWAKENING_MAX, HERO_CLASSES, FACTIONS } from '../config.js';
+import {
+  ARTIFACT_PROMOTION_MAX,
+  FILTER_STAR_RATINGS,
+  HERO_AWAKENING_MAX,
+  HERO_CLASSES,
+  FACTIONS,
+} from '../config.js';
 
 export interface GameAccount {
   id: number;
@@ -15,6 +21,7 @@ export interface AccountHero {
   name: string;
   class: string;
   faction: string;
+  faction_secondary?: string | null;
   rarity: string;
   star_rating: number;
   owned: number;
@@ -57,6 +64,7 @@ export interface AccountDemon {
 
 const heroClasses = HERO_CLASSES as readonly string[];
 const factions = FACTIONS as readonly string[];
+const filterStarRatings = FILTER_STAR_RATINGS as readonly number[];
 
 function isValidHeroGauge(level: number): boolean {
   return Number.isInteger(level) && level >= 0 && level <= HERO_AWAKENING_MAX;
@@ -166,8 +174,8 @@ export function getUserAccountsForApi(db: Database.Database, clerkUserId: string
 export function seedAccountFromCatalog(db: Database.Database, accountId: number): void {
   db.prepare(
     `
-    INSERT INTO account_heroes (account_id, catalog_hero_slug, name, class, faction, rarity, star_rating, owned, gauge_level, display_order)
-    SELECT ?, slug, name, class, faction, rarity, star_rating, 0, 0, display_order FROM catalog_heroes
+    INSERT INTO account_heroes (account_id, catalog_hero_slug, name, class, faction, faction_secondary, rarity, star_rating, owned, gauge_level, display_order)
+    SELECT ?, slug, name, class, faction, faction_secondary, rarity, star_rating, 0, 0, display_order FROM catalog_heroes
     WHERE active = 1 AND NOT EXISTS (
       SELECT 1 FROM account_heroes ah WHERE ah.account_id = ? AND ah.catalog_hero_slug = catalog_heroes.slug
     )
@@ -216,6 +224,7 @@ export function syncAccountCatalogMetadata(db: Database.Database): {
        SET name = (SELECT ch.name FROM catalog_heroes ch WHERE ch.slug = account_heroes.catalog_hero_slug),
            class = (SELECT ch.class FROM catalog_heroes ch WHERE ch.slug = account_heroes.catalog_hero_slug),
            faction = (SELECT ch.faction FROM catalog_heroes ch WHERE ch.slug = account_heroes.catalog_hero_slug),
+           faction_secondary = (SELECT ch.faction_secondary FROM catalog_heroes ch WHERE ch.slug = account_heroes.catalog_hero_slug),
            rarity = (SELECT ch.rarity FROM catalog_heroes ch WHERE ch.slug = account_heroes.catalog_hero_slug),
            star_rating = (SELECT ch.star_rating FROM catalog_heroes ch WHERE ch.slug = account_heroes.catalog_hero_slug),
            display_order = (SELECT ch.display_order FROM catalog_heroes ch WHERE ch.slug = account_heroes.catalog_hero_slug)
@@ -279,9 +288,11 @@ export function getHeroes(
   accountId: number,
   classFilter: string,
   factionFilter: string,
+  rarityFilter: number | null = null,
 ): AccountHero[] {
   let sql = `
-    SELECT ah.id, ah.catalog_hero_slug, ah.name, ah.class, ah.faction, ah.rarity, ah.star_rating,
+    SELECT ah.id, ah.catalog_hero_slug, ah.name, ah.class, ah.faction, ah.faction_secondary,
+           ah.rarity, ah.star_rating,
            ah.owned, ah.gauge_level, ah.display_order,
            ch.reference_tier, ch.portrait_path
     FROM account_heroes ah
@@ -293,8 +304,12 @@ export function getHeroes(
     params.push(classFilter);
   }
   if (factionFilter && factions.includes(factionFilter)) {
-    sql += ' AND ah.faction = ?';
-    params.push(factionFilter);
+    sql += ' AND (ah.faction = ? OR ah.faction_secondary = ?)';
+    params.push(factionFilter, factionFilter);
+  }
+  if (rarityFilter != null && filterStarRatings.includes(rarityFilter)) {
+    sql += ' AND ah.star_rating = ?';
+    params.push(rarityFilter);
   }
   sql += ' ORDER BY ah.display_order ASC, ah.name ASC';
   return db.prepare(sql).all(...params) as AccountHero[];

@@ -10,6 +10,7 @@ export function ensureWorCatalogTables(db: Database.Database): void {
       name TEXT NOT NULL,
       class TEXT NOT NULL,
       faction TEXT NOT NULL,
+      faction_secondary TEXT,
       rarity TEXT NOT NULL,
       star_rating INTEGER NOT NULL,
       damage_type TEXT,
@@ -59,13 +60,15 @@ export function ensureWorCatalogTables(db: Database.Database): void {
   ensureWorCatalogMigrations(db);
 }
 
+function ensureColumn(db: Database.Database, table: string, column: string, ddl: string): void {
+  const cols = db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[];
+  if (cols.some((col) => col.name === column)) return;
+  db.exec(`ALTER TABLE ${table} ADD COLUMN ${ddl}`);
+}
+
 function ensureWorCatalogMigrations(db: Database.Database): void {
-  const artifactCols = db.prepare(`PRAGMA table_info(catalog_artifacts)`).all() as {
-    name: string;
-  }[];
-  if (!artifactCols.some((col) => col.name === 'class')) {
-    db.exec(`ALTER TABLE catalog_artifacts ADD COLUMN class TEXT`);
-  }
+  ensureColumn(db, 'catalog_artifacts', 'class', 'class TEXT');
+  ensureColumn(db, 'catalog_heroes', 'faction_secondary', 'faction_secondary TEXT');
 }
 
 export function ensureWorAccountTables(db: Database.Database): void {
@@ -86,6 +89,7 @@ export function ensureWorAccountTables(db: Database.Database): void {
       name TEXT NOT NULL,
       class TEXT NOT NULL,
       faction TEXT NOT NULL,
+      faction_secondary TEXT,
       rarity TEXT NOT NULL,
       star_rating INTEGER NOT NULL DEFAULT 3,
       owned INTEGER NOT NULL DEFAULT 0,
@@ -144,7 +148,12 @@ export function ensureWorAccountTables(db: Database.Database): void {
     CREATE INDEX IF NOT EXISTS idx_account_artifacts_account ON account_artifacts(account_id);
     CREATE INDEX IF NOT EXISTS idx_account_demons_account ON account_demons(account_id);
   `);
+  ensureWorAccountMigrations(db);
   ensureWorImportLeaseMigrations(db);
+}
+
+function ensureWorAccountMigrations(db: Database.Database): void {
+  ensureColumn(db, 'account_heroes', 'faction_secondary', 'faction_secondary TEXT');
 }
 
 function ensureWorImportLeaseMigrations(db: Database.Database): void {
