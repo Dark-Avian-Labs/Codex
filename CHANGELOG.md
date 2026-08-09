@@ -260,3 +260,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.60.12** `chore` [#341](https://github.com/Dark-Avian-Labs/Codex/pull/341): dependabot/npm_and_yarn/production dependencies 19f60bc429
 - **v1.60.13** `chore` [#343](https://github.com/Dark-Avian-Labs/Codex/pull/343): ci/adopt action v1.1 features
 - **v1.60.14** `chore` [#344](https://github.com/Dark-Avian-Labs/Codex/pull/344): ci/dependabot grouped updates
+- **v1.61.0** `chore` [#345](https://github.com/Dark-Avian-Labs/Codex/pull/345): feat/wor rarity and dual faction
