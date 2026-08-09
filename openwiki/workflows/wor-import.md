@@ -3,7 +3,7 @@ type: Workflow
 title: WoR Catalog Import
 description: Fastidious catalog fetch, Fandom/Fastidious images, validation, and account sync for Watcher of Realms.
 tags: [wor, import, fastidious, fandom]
-timestamp: 2026-07-30T17:05:00Z
+timestamp: 2026-08-09T11:10:00Z
 ---
 
 # WoR Catalog Import
@@ -36,6 +36,8 @@ Watcher of Realms has no live game API. Codex builds catalog tables via a pipeli
 
 In the orchestrator, overrides are applied before portrait download so wiki-only additions (e.g. heroes missing from Fastidious) still get Fandom images. Catalog upserts, deactivation, version bump, and account sync run in **one** immediate SQLite transaction after downloads complete.
 
+Heroes may carry two Fastidious factions: import maps the first to `faction` and a distinct second to `faction_secondary` (nullable). Account sync copies both; the UI shows both emblems and faction filters match either side. Re-import after schema/code changes so existing rows pick up secondary factions.
+
 Options: `forceImport`, `forceImages`, `forceSteps[]` (zod enum of step keys), fixture path, log callback.
 
 ## Entry points
@@ -54,10 +56,10 @@ Downloads allow only HTTPS hosts (Fastidious / known Fandom/wikia CDNs), reject 
 
 ## Manual overrides (`scripts/data/wor-overrides.json`)
 
-| Mode  | When                               | Required fields                                                                  |
-| ----- | ---------------------------------- | -------------------------------------------------------------------------------- |
-| Patch | Slug already in Fastidious catalog | Any subset of catalog columns                                                    |
-| Add   | Slug missing from Fastidious       | Heroes: `name`, `class`, `faction`, `rarity`. Artifacts/demons: `name`, `rarity` |
+| Mode  | When                               | Required fields                                                                                                 |
+| ----- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Patch | Slug already in Fastidious catalog | Any subset of catalog columns                                                                                   |
+| Add   | Slug missing from Fastidious       | Heroes: `name`, `class`, `faction`, `rarity` (optional `faction_secondary`). Artifacts/demons: `name`, `rarity` |
 
 Use adds for wiki-only entities Fastidious has not shipped yet. Re-run admin/CLI import after editing the file (`pnpm run wor:import` or Admin → WoR import). When Fastidious later includes the same slug, the entry becomes a normal patch merge.
 

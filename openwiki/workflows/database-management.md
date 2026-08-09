@@ -3,7 +3,7 @@ type: Workflow
 title: Database Management
 description: Session, Armory, and per-game SQLite paths — db:init, schemas, and sync prerequisites.
 tags: [sqlite, database, db-init]
-timestamp: 2026-07-30T17:05:00Z
+timestamp: 2026-08-09T11:10:00Z
 ---
 
 # Database Management
@@ -31,7 +31,7 @@ Optional: `WOR_IMAGES_DIR` for WoR portraits (default under `./data/`; must reso
 3. Requires built package schema modules under `packages/*/dist`.
 4. Applies Warframe, Epic7, and WoR ensure/create schema helpers.
 
-Server boot (`server/index.ts`) asserts required tables already exist — it does not replace `db:init`.
+Server boot (`server/index.ts`) asserts required tables already exist — it does not replace `db:init`. WoR’s package `onOpen` is **validate + additive migrations only** (`assertWorCoreTablesExist`, `ensureWorSchemaMigrations`); table creation stays in `db:init` / import `schema` step.
 
 ## Armory sync prerequisite
 
