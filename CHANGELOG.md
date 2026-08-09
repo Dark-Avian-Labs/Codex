@@ -259,3 +259,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.60.11** `chore` [#340](https://github.com/Dark-Avian-Labs/Codex/pull/340): fix/wor collection chrome height
 - **v1.60.12** `chore` [#341](https://github.com/Dark-Avian-Labs/Codex/pull/341): dependabot/npm_and_yarn/production dependencies 19f60bc429
 - **v1.60.13** `chore` [#343](https://github.com/Dark-Avian-Labs/Codex/pull/343): ci/adopt action v1.1 features
+- **v1.60.14** `chore` [#344](https://github.com/Dark-Avian-Labs/Codex/pull/344): ci/dependabot grouped updates
