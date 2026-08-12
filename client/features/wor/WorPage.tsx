@@ -41,6 +41,7 @@ type WorHero = {
   faction: string;
   faction_secondary?: string | null;
   star_rating?: number;
+  is_lord?: number;
   owned: number;
   gauge_level: number;
   reference_tier?: string | null;
@@ -151,6 +152,14 @@ function ownedDisplay(owned: number): string {
 
 function isExclusiveArtifact(artifact: WorArtifact): boolean {
   return artifact.is_universal === 0 || Boolean(artifact.exclusive_hero_slug);
+}
+
+function isRedStarHero(hero: WorHero): boolean {
+  return Boolean(hero.is_lord);
+}
+
+function isRedStarDemon(demon: WorDemon): boolean {
+  return demon.rarity === 'captain';
 }
 
 function WorPortrait({ portraitPath, name }: { portraitPath?: string | null; name: string }) {
@@ -387,6 +396,7 @@ export function WorPage() {
   const [classFilter, setClassFilter] = useState<HeroClassKey | null>(null);
   const [factionFilter, setFactionFilter] = useState<FactionKey | null>(null);
   const [rarityFilter, setRarityFilter] = useState<3 | 4 | 5 | 6 | null>(null);
+  const [redStarFilter, setRedStarFilter] = useState(false);
   const [exclusiveFilter, setExclusiveFilter] = useState(false);
   const [hideCompleted, setHideCompleted] = useState(readHideCompletedPreference);
   const [heroes, setHeroes] = useState<WorHero[]>([]);
@@ -478,7 +488,10 @@ export function WorPage() {
     if (rarityFilter != null && !(allowed as readonly number[]).includes(rarityFilter)) {
       setRarityFilter(null);
     }
-  }, [rarityFilter, tab]);
+    if (tab === 'artifacts' && redStarFilter) {
+      setRedStarFilter(false);
+    }
+  }, [rarityFilter, redStarFilter, tab]);
 
   useEffect(() => {
     setHeaderCenter(
@@ -494,8 +507,13 @@ export function WorPage() {
   }, [setHeaderCenter]);
 
   const filteredHeroes = useMemo(
-    () => heroes.filter((row) => row.name.toLowerCase().includes(search.toLowerCase())),
-    [heroes, search],
+    () =>
+      heroes.filter((row) => {
+        if (!row.name.toLowerCase().includes(search.toLowerCase())) return false;
+        if (redStarFilter && !isRedStarHero(row)) return false;
+        return true;
+      }),
+    [heroes, redStarFilter, search],
   );
   const filteredArtifacts = useMemo(
     () =>
@@ -513,9 +531,10 @@ export function WorPage() {
       demons.filter((row) => {
         if (!row.name.toLowerCase().includes(search.toLowerCase())) return false;
         if (rarityFilter && row.star_rating !== rarityFilter) return false;
+        if (redStarFilter && !isRedStarDemon(row)) return false;
         return true;
       }),
-    [demons, search, rarityFilter],
+    [demons, search, rarityFilter, redStarFilter],
   );
 
   const visibleHeroes = useMemo(
@@ -893,9 +912,10 @@ export function WorPage() {
                         title={label}
                         aria-pressed={rarityFilter === stars}
                         aria-label={`Filter by ${label} rarity`}
-                        onClick={() =>
-                          setRarityFilter((previous) => (previous === stars ? null : stars))
-                        }
+                        onClick={() => {
+                          setRedStarFilter(false);
+                          setRarityFilter((previous) => (previous === stars ? null : stars));
+                        }}
                       >
                         {iconSrc ? (
                           <img src={iconSrc} alt={`${stars} star`} width={24} height={24} />
@@ -906,6 +926,27 @@ export function WorPage() {
                     );
                   },
                 )}
+                {tab === 'heroes' || tab === 'demons' ? (
+                  <button
+                    type="button"
+                    className={`filter-icon ${redStarFilter ? 'active' : ''}`}
+                    title={tab === 'heroes' ? 'Lord' : 'Captain'}
+                    aria-pressed={redStarFilter}
+                    aria-label={
+                      tab === 'heroes' ? 'Filter by Lord heroes' : 'Filter by Captain demons'
+                    }
+                    onClick={() => {
+                      setRarityFilter(null);
+                      setRedStarFilter((previous) => !previous);
+                    }}
+                  >
+                    {ICONS.star6 ? (
+                      <img src={ICONS.star6} alt="Red star" width={24} height={24} />
+                    ) : (
+                      <span aria-hidden="true">★</span>
+                    )}
+                  </button>
+                ) : null}
               </div>,
               tab === 'heroes' ? (
                 <div key="faction" className="filter-group">
@@ -1047,6 +1088,7 @@ export function WorPage() {
                       gaugeLevel={hero.gauge_level}
                       gaugeMax={HERO_AWAKENING_MAX}
                       starRating={hero.star_rating}
+                      starIconKey={isRedStarHero(hero) ? 'star6' : undefined}
                       extraCells={
                         <>
                           <td className="icon-cell">
@@ -1124,7 +1166,7 @@ export function WorPage() {
                       gaugeLevel={demon.gauge_level}
                       gaugeMax={demon.max_level}
                       starRating={demon.star_rating}
-                      starIconKey={demon.rarity === 'captain' ? 'star6' : undefined}
+                      starIconKey={isRedStarDemon(demon) ? 'star6' : undefined}
                       onToggleOwned={() =>
                         void patchOwned('demons', demon.id, demon.owned ? 0 : 1).catch(
                           handleActionError,
