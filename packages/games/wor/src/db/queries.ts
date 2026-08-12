@@ -27,6 +27,7 @@ export interface AccountHero {
   owned: number;
   gauge_level: number;
   display_order: number;
+  is_lord?: number;
   reference_tier?: string | null;
   portrait_path?: string | null;
 }
@@ -294,6 +295,7 @@ export function getHeroes(
     SELECT ah.id, ah.catalog_hero_slug, ah.name, ah.class, ah.faction, ah.faction_secondary,
            ah.rarity, ah.star_rating,
            ah.owned, ah.gauge_level, ah.display_order,
+           COALESCE(ch.is_lord, 0) as is_lord,
            ch.reference_tier, ch.portrait_path
     FROM account_heroes ah
     LEFT JOIN catalog_heroes ch ON ch.slug = ah.catalog_hero_slug
