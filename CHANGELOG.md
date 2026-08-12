@@ -263,3 +263,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.61.0** `chore` [#345](https://github.com/Dark-Avian-Labs/Codex/pull/345): feat/wor rarity and dual faction
 - **v1.61.1** `chore` [#346](https://github.com/Dark-Avian-Labs/Codex/pull/346): chore/remove sibling menu links
 - **v1.61.2** `chore` [#347](https://github.com/Dark-Avian-Labs/Codex/pull/347): dependabot/npm_and_yarn/production dependencies 4d2e5d64ab
+- **v1.62.0** `chore` [#349](https://github.com/Dark-Avian-Labs/Codex/pull/349): feat/wor demon captain red stars
