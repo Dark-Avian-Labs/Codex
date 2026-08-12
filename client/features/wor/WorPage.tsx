@@ -65,6 +65,7 @@ type WorArtifact = {
 type WorDemon = {
   id: number;
   name: string;
+  rarity?: string;
   star_rating?: number;
   owned: number;
   gauge_level: number;
@@ -112,9 +113,9 @@ function applyHideCompleted<T extends { owned: number }>(
   return rows.filter((row) => row.owned !== 1);
 }
 
-function renderStars(count?: number): string | ReactNode {
+function renderStars(count?: number, iconKey?: string): string | ReactNode {
   if (!count || count <= 0) return '-';
-  const iconSrc = ICONS[`star${count}`];
+  const iconSrc = ICONS[iconKey ?? `star${count}`];
   if (!iconSrc) return `${count}★`;
   return (
     <>
@@ -321,6 +322,7 @@ interface WorRowProps {
   gaugeLevel: number;
   gaugeMax: number;
   starRating?: number;
+  starIconKey?: string;
   extraCells?: ReactNode;
   onToggleOwned: () => void;
   onCycleGauge: () => void;
@@ -334,6 +336,7 @@ const WorRow = memo(function WorRow({
   gaugeLevel,
   gaugeMax,
   starRating,
+  starIconKey,
   extraCells,
   onToggleOwned,
   onCycleGauge,
@@ -346,7 +349,7 @@ const WorRow = memo(function WorRow({
       </td>
       <td className="item-name">{name}</td>
       {extraCells}
-      <td className="stars-cell">{renderStars(starRating)}</td>
+      <td className="stars-cell">{renderStars(starRating, starIconKey)}</td>
       <td className="status-cell">
         <div className="wor-action-cell">
           <button
@@ -1121,6 +1124,7 @@ export function WorPage() {
                       gaugeLevel={demon.gauge_level}
                       gaugeMax={demon.max_level}
                       starRating={demon.star_rating}
+                      starIconKey={demon.rarity === 'captain' ? 'star6' : undefined}
                       onToggleOwned={() =>
                         void patchOwned('demons', demon.id, demon.owned ? 0 : 1).catch(
                           handleActionError,
