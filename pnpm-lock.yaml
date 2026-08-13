@@ -7,8 +7,8 @@ settings:
 catalogs:
   default:
     '@clerk/express':
-      specifier: ^2.1.54
-      version: 2.1.54
+      specifier: ^2.1.55
+      version: 2.1.55
     '@clerk/react':
       specifier: ^6.14.1
       version: 6.14.1
@@ -87,9 +87,6 @@ catalogs:
     express-session:
       specifier: ^1.19.0
       version: 1.19.0
-    globals:
-      specifier: ^17.9.0
-      version: 17.9.0
     helmet:
       specifier: ^8.3.0
       version: 8.3.0
@@ -141,7 +138,7 @@ importers:
     dependencies:
       '@clerk/express':
         specifier: 'catalog:'
-        version: 2.1.54(express@5.2.1(supports-color@7.2.0))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+        version: 2.1.55(express@5.2.1(supports-color@7.2.0))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@clerk/react':
         specifier: 'catalog:'
         version: 6.14.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -270,8 +267,8 @@ importers:
         specifier: 4.1.10
         version: 4.1.10(vitest@4.1.10)
       globals:
-        specifier: 'catalog:'
-        version: 17.9.0
+        specifier: 17.10.0
+        version: 17.10.0
       oxfmt:
         specifier: 'catalog:'
         version: 0.63.0
@@ -301,7 +298,7 @@ importers:
     dependencies:
       '@clerk/express':
         specifier: 'catalog:'
-        version: 2.1.54(express@5.2.1(supports-color@7.2.0))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+        version: 2.1.55(express@5.2.1(supports-color@7.2.0))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@dotenvx/dotenvx':
         specifier: 'catalog:'
         version: 2.21.0
@@ -451,12 +448,12 @@ packages:
     resolution: {integrity: sha512-6zABk/ECA/QYSCQ1NGiVwwbQerUCZ+TQbp64Q3AgmfNvurHH0j8TtXa1qbShXA6qqkpAj4V5W8pP6mLe1mcMqA==}
     engines: {node: '>=18'}
 
-  '@clerk/backend@3.16.3':
-    resolution: {integrity: sha512-6y2jfFVavG1rcRdlTdLgFWPaWVtDzzFZLXSq2Acca+KnkI2VYPjnHJqu8rAxyuRW/aOSsDSSuM8oeaHttB1VIQ==}
+  '@clerk/backend@3.16.4':
+    resolution: {integrity: sha512-7A9YlBLesYgKFn4DcaCq64Ggezmbzx+xYdWsiQLrMQV+U4Bm9LtDdyaNirQ0SStSsZy6PzL8RHw5zMmmEt0zMA==}
     engines: {node: '>=20.9.0'}
 
-  '@clerk/express@2.1.54':
-    resolution: {integrity: sha512-hRAf4/fXsxvp9XsEi8iKfuOGROr4iRid+sPZG2OyS6HTIPJyxBDe36U8pfzN5u/5uKE91uCJeA64Ie27KN12XA==}
+  '@clerk/express@2.1.55':
+    resolution: {integrity: sha512-uDmKrSYCGd4BCnH9Fo4WTNykVTciHeUqhjFx/pO3w65+no82hBfroCRmJ7PHGnuTwDR9AaTb7agVrq0uyt/RkQ==}
     engines: {node: '>=20.9.0'}
     peerDependencies:
       express: ^4.17.0 || ^5.0.0
@@ -1888,8 +1885,8 @@ packages:
   glob-to-regexp@0.4.1:
     resolution: {integrity: sha512-lkX1HJXwyMcprw/5YUZc2s7DrpAiHB21/V+E1rHUrVNokkvB6bqMzT0VfV6/86ZNabt1k14YOIaT7nDvOX3Iiw==}
 
-  globals@17.9.0:
-    resolution: {integrity: sha512-m/MvAW61QVU5VDNF1Vj8axt016h8w7L5TU1e9zlab7XIttAT2YAlCwl75K1fOqvMM9apmD7lbCIRhpfkhmxhCg==}
+  globals@17.10.0:
+    resolution: {integrity: sha512-V0kztuWST2k8A/VbxAY8+L+7+Rgo3fyA24IHRLrZp7HOzJjV0gHSaZUjK9lpP/IrBSNite2tZ1prhRkinRu1CA==}
     engines: {node: '>=18'}
 
   gopd@1.2.0:
@@ -3303,7 +3300,7 @@ snapshots:
 
   '@bcoe/v8-coverage@1.0.2': {}
 
-  '@clerk/backend@3.16.3(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
+  '@clerk/backend@3.16.4(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
       '@clerk/shared': 4.28.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       standardwebhooks: 1.0.0
@@ -3312,9 +3309,9 @@ snapshots:
       - react
       - react-dom
 
-  '@clerk/express@2.1.54(express@5.2.1(supports-color@7.2.0))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
+  '@clerk/express@2.1.55(express@5.2.1(supports-color@7.2.0))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
-      '@clerk/backend': 3.16.3(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@clerk/backend': 3.16.4(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@clerk/shared': 4.28.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       express: 5.2.1(supports-color@7.2.0)
       tslib: 2.8.1
@@ -4606,7 +4603,7 @@ snapshots:
 
   glob-to-regexp@0.4.1: {}
 
-  globals@17.9.0: {}
+  globals@17.10.0: {}
 
   gopd@1.2.0: {}
 
