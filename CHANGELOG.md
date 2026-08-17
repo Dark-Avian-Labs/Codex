@@ -266,3 +266,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.62.0** `chore` [#349](https://github.com/Dark-Avian-Labs/Codex/pull/349): feat/wor demon captain red stars
 - **v1.63.0** `chore` [#350](https://github.com/Dark-Avian-Labs/Codex/pull/350): feat/wor lord captain red star filter
 - **v1.63.1** `chore` [#351](https://github.com/Dark-Avian-Labs/Codex/pull/351): dependabot/npm_and_yarn/production dependencies 9dddd61452
+- **v1.63.2** `chore` [#352](https://github.com/Dark-Avian-Labs/Codex/pull/352): dependabot/npm_and_yarn/production dependencies b93742dd40
