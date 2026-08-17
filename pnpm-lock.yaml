@@ -28,8 +28,8 @@ catalogs:
       specifier: ^5.3.0
       version: 5.3.0
     '@fontsource-variable/material-symbols-rounded':
-      specifier: ^5.3.2
-      version: 5.3.2
+      specifier: ^5.3.3
+      version: 5.3.3
     '@tailwindcss/vite':
       specifier: ^4.3.3
       version: 4.3.3
@@ -88,7 +88,7 @@ catalogs:
       specifier: ^1.19.0
       version: 1.19.0
     globals:
-      specifier: ^17.10.0
+      specifier: ^17.11.0
       version: 17.11.0
     helmet:
       specifier: ^8.3.0
@@ -174,7 +174,7 @@ importers:
         version: 5.3.0
       '@fontsource-variable/material-symbols-rounded':
         specifier: 'catalog:'
-        version: 5.3.2
+        version: 5.3.3
       better-sqlite3:
         specifier: 'catalog:'
         version: 13.0.3
@@ -506,8 +506,8 @@ packages:
   '@fontsource-variable/inter@5.3.0':
     resolution: {integrity: sha512-OupL48va4JNofb97w6NYeF9S7W/kHNKM0Er8Dem5nqi4jeOLrVJDoE8tZEpnMJmtkvNbB1EIPPwHcdkF6b1oUA==}
 
-  '@fontsource-variable/material-symbols-rounded@5.3.2':
-    resolution: {integrity: sha512-PcdB/4NwB/Kk/zXsfDAcVcMPTt5PBCRUvmFtzBpEzfwLnKrPXFizEqo1ETocRmehnDH9y95fdiNLinHjvB9Udw==}
+  '@fontsource-variable/material-symbols-rounded@5.3.3':
+    resolution: {integrity: sha512-Gwc1/RYQJgMvNPTzAvEiQ+YvFYn+LW9n0+qNEuMkDB9NtKcb1Lnf1+jh+zF0exSuvro6qpvVZhr1VwEWkniOZA==}
 
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
@@ -3360,7 +3360,7 @@ snapshots:
 
   '@fontsource-variable/inter@5.3.0': {}
 
-  '@fontsource-variable/material-symbols-rounded@5.3.2': {}
+  '@fontsource-variable/material-symbols-rounded@5.3.3': {}
 
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:
