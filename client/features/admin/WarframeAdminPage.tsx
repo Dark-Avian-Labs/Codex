@@ -236,7 +236,7 @@ function SyncFromArmoryReportBody({
                             <span className="text-[var(--color-foreground)]">
                               Not in Armory list ({ws.mismatched.length} rows)
                             </span>{' '}
-                            — still on this worksheet; highlighted in the table until you remove or
+                            - still on this worksheet; highlighted in the table until you remove or
                             fix them.
                           </li>
                         ) : null}
