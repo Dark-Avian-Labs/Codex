@@ -10,7 +10,7 @@
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.x-06B6D4?logo=tailwindcss&logoColor=white)
 [![Cursor](https://img.shields.io/badge/Cursor-IDE-141414?logo=cursor&logoColor=white)](https://cursor.com)
 
-Codex is a table-based collection tracker for games. Support for each game lives in workspace packages (Epic7 with a manually curated list, Warframe backed by data synced from Armory). Sign-in, access control, and profile settings use [Clerk](https://clerk.com) directly.
+Codex is a table-based collection tracker for Warframe, Epic Seven, and Watcher of Realms. Each game lives in its own workspace package. Warframe worksheets sync catalog data from Armory. Epic Seven uses a curated hero and artifact list. Watcher of Realms imports heroes, artifacts, and demons from Fastidious and Fandom. Sign-in uses [Clerk](https://clerk.com).
 
 ## Requirements
 
