@@ -268,3 +268,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.63.1** `chore` [#351](https://github.com/Dark-Avian-Labs/Codex/pull/351): dependabot/npm_and_yarn/production dependencies 9dddd61452
 - **v1.63.2** `chore` [#352](https://github.com/Dark-Avian-Labs/Codex/pull/352): dependabot/npm_and_yarn/production dependencies b93742dd40
 - **v1.63.3** `chore` [#353](https://github.com/Dark-Avian-Labs/Codex/pull/353): update dependencies
+- **v1.63.4** `chore` [#354](https://github.com/Dark-Avian-Labs/Codex/pull/354): readme and deps
