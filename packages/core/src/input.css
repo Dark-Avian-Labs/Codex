@@ -174,6 +174,48 @@ html.ui-clear:not(.dark) {
   --radius-ui-sm: 3px;
 }
 
+/* Acrylic is Win11 variant D: blur + saturate, tint, exclusion, grain.
+   Do not add brightness(). That was the discarded first pass and kills chroma. */
+html.ui-acrylic {
+  --radius-ui: 8px;
+  --radius-ui-lg: 8px;
+  --radius-ui-sm: 4px;
+  --acrylic-backdrop: blur(40px) saturate(200%) contrast(1.08);
+  --acrylic-noise: url('./acrylic-noise.svg');
+  --acrylic-exclusion: rgb(127 127 127);
+}
+
+html.dark.ui-acrylic {
+  --color-glass: rgb(28 28 30 / 0.55);
+  --color-glass-border: rgb(255 255 255 / 0.08);
+  --color-glass-border-hover: rgb(255 255 255 / 0.16);
+  --color-glass-hover: rgb(255 255 255 / 0.06);
+  --color-glass-active: rgb(255 255 255 / 0.1);
+  --color-glass-divider: rgb(255 255 255 / 0.08);
+  --color-surface-modal: rgb(28 28 30 / 0.55);
+  --color-surface-thead: rgb(28 28 30 / 0.82);
+  --shadow-panel:
+    0 2px 4px rgb(0 0 0 / 0.12), 0 12px 28px rgb(0 0 0 / 0.28), 0 32px 80px rgb(0 0 0 / 0.38);
+  --acrylic-inset: inset 0 0.5px 0 rgb(255 255 255 / 0.14);
+  --acrylic-fallback: #2c2c2c;
+  --ascii-opacity: 0.06;
+}
+
+html.ui-acrylic:not(.dark) {
+  --color-glass: rgb(243 243 245 / 0.55);
+  --color-glass-border: rgb(0 0 0 / 0.08);
+  --color-glass-border-hover: rgb(0 0 0 / 0.14);
+  --color-glass-hover: rgb(0 0 0 / 0.04);
+  --color-glass-active: rgb(0 0 0 / 0.08);
+  --color-glass-divider: rgb(0 0 0 / 0.08);
+  --color-surface-modal: rgb(243 243 245 / 0.55);
+  --color-surface-thead: rgb(243 243 245 / 0.88);
+  --shadow-panel:
+    0 2px 4px rgb(0 0 0 / 0.06), 0 12px 28px rgb(0 0 0 / 0.1), 0 32px 80px rgb(0 0 0 / 0.14);
+  --acrylic-inset: inset 0 0.5px 0 rgb(255 255 255 / 0.65);
+  --acrylic-fallback: #f3f3f3;
+}
+
 html:not(.dark) .invert-on-light {
   filter: invert(1);
 }
@@ -2571,6 +2613,225 @@ html.ui-clear:not(.dark) .modal-overlay {
 html.ui-clear .stale-update-banner::before,
 html.ui-clear .stale-update-banner::after {
   display: none;
+}
+
+html.ui-acrylic .glass-shell,
+html.ui-acrylic .glass-surface,
+html.ui-acrylic .glass-modal-surface,
+html.ui-acrylic .glass-tooltip-surface,
+html.ui-acrylic .glass-panel,
+html.ui-acrylic .glass-light,
+html.ui-acrylic .modal,
+html.ui-acrylic .user-menu,
+html.ui-acrylic .select-dropdown-menu,
+html.ui-acrylic .toast-pill,
+html.ui-acrylic .table-container,
+html.ui-acrylic .panel,
+html.ui-acrylic .auth-card,
+html.ui-acrylic .account-dropdown {
+  overflow: visible;
+  border-radius: var(--radius-ui);
+  background: var(--color-glass);
+  border-color: var(--color-glass-border);
+  box-shadow: var(--acrylic-inset), var(--shadow-panel);
+  -webkit-backdrop-filter: var(--acrylic-backdrop);
+  backdrop-filter: var(--acrylic-backdrop);
+}
+
+html.ui-acrylic .modal {
+  position: relative;
+  overflow-y: auto;
+}
+
+html.ui-acrylic .glass-shell,
+html.ui-acrylic .glass-modal-surface,
+html.ui-acrylic .modal {
+  border-radius: var(--radius-ui-lg);
+}
+
+html.ui-acrylic .glass-tooltip-surface,
+html.ui-acrylic .toast-pill {
+  border-radius: 9999px;
+}
+
+html.ui-acrylic .glass-shell::before,
+html.ui-acrylic .glass-surface::before,
+html.ui-acrylic .glass-modal-surface::before,
+html.ui-acrylic .glass-tooltip-surface::before,
+html.ui-acrylic .glass-panel::before,
+html.ui-acrylic .glass-light::before,
+html.ui-acrylic .modal::before,
+html.ui-acrylic .user-menu::before,
+html.ui-acrylic .select-dropdown-menu::before,
+html.ui-acrylic .toast-pill::before,
+html.ui-acrylic .table-container::before,
+html.ui-acrylic .panel::before,
+html.ui-acrylic .auth-card::before,
+html.ui-acrylic .account-dropdown::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: var(--acrylic-exclusion);
+  opacity: 0.04;
+  mix-blend-mode: exclusion;
+}
+
+html.ui-acrylic .glass-shell::after,
+html.ui-acrylic .glass-surface::after,
+html.ui-acrylic .glass-modal-surface::after,
+html.ui-acrylic .glass-tooltip-surface::after,
+html.ui-acrylic .glass-panel::after,
+html.ui-acrylic .glass-light::after,
+html.ui-acrylic .modal::after,
+html.ui-acrylic .user-menu::after,
+html.ui-acrylic .select-dropdown-menu::after,
+html.ui-acrylic .toast-pill::after,
+html.ui-acrylic .table-container::after,
+html.ui-acrylic .panel::after,
+html.ui-acrylic .auth-card::after,
+html.ui-acrylic .account-dropdown::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background-image: var(--acrylic-noise);
+  background-size: 128px 128px;
+  opacity: 0.055;
+  mix-blend-mode: overlay;
+}
+
+html.ui-acrylic .glass-shell > *,
+html.ui-acrylic .glass-surface > *,
+html.ui-acrylic .glass-modal-surface > *,
+html.ui-acrylic .glass-tooltip-surface > *,
+html.ui-acrylic .glass-panel > *,
+html.ui-acrylic .glass-light > *,
+html.ui-acrylic .modal > *,
+html.ui-acrylic .user-menu > *,
+html.ui-acrylic .select-dropdown-menu > *,
+html.ui-acrylic .toast-pill > *,
+html.ui-acrylic .table-container > *,
+html.ui-acrylic .panel > *,
+html.ui-acrylic .auth-card > *,
+html.ui-acrylic .account-dropdown > * {
+  position: relative;
+  z-index: 1;
+}
+
+html.ui-acrylic .icon-toggle-btn,
+html.ui-acrylic .search-box,
+html.ui-acrylic .tabs,
+html.ui-acrylic .glass-button,
+html.ui-acrylic .glass-button-secondary {
+  -webkit-backdrop-filter: var(--acrylic-backdrop);
+  backdrop-filter: var(--acrylic-backdrop);
+}
+
+html.ui-acrylic .search-box,
+html.ui-acrylic .tabs,
+html.ui-acrylic .btn,
+html.ui-acrylic .header-link,
+html.ui-acrylic .user-menu-select-trigger,
+html.ui-acrylic .select-dropdown-trigger {
+  border-radius: var(--radius-ui);
+}
+
+html.ui-acrylic .btn-sm {
+  border-radius: var(--radius-ui-sm);
+}
+
+html.ui-acrylic body.modal-open #root {
+  filter: none;
+}
+
+html.ui-acrylic .modal-overlay {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background: oklch(0% 0 0 / 0.32);
+}
+
+html.ui-acrylic:not(.dark) .modal-overlay {
+  background: oklch(21% 0.04 266 / 0.18);
+}
+
+html.ui-acrylic .select-dropdown-menu {
+  isolation: auto;
+  padding: 2px 0 4px;
+}
+
+html.ui-acrylic .select-dropdown-menu--attached {
+  border-radius: 0 0 var(--radius-ui) var(--radius-ui);
+}
+
+html.ui-acrylic .select-dropdown-menu--floating {
+  border-radius: var(--radius-ui);
+}
+
+html.ui-acrylic .select-dropdown-item {
+  height: 32px;
+  margin: 2px 4px;
+  padding: 0 10px 0 12px;
+  border-radius: var(--radius-ui-sm);
+  display: flex;
+  align-items: center;
+}
+
+html.ui-acrylic .select-dropdown-item::before {
+  display: none;
+}
+
+html.ui-acrylic .user-menu {
+  min-width: 180px;
+  padding: 2px 0 4px;
+}
+
+html.ui-acrylic .user-menu-item {
+  width: auto;
+  height: 32px;
+  margin: 2px 4px;
+  padding: 0 10px 0 12px;
+  border-radius: var(--radius-ui-sm);
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+html.ui-acrylic .user-menu-divider {
+  margin: 4px 12px;
+}
+
+html.ui-acrylic .panel,
+html.ui-acrylic .auth-card,
+html.ui-acrylic .account-dropdown,
+html.ui-acrylic .filter-group,
+html.ui-acrylic .stale-update-banner {
+  border-radius: var(--radius-ui);
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  html.ui-acrylic .glass-shell,
+  html.ui-acrylic .glass-surface,
+  html.ui-acrylic .glass-modal-surface,
+  html.ui-acrylic .glass-tooltip-surface,
+  html.ui-acrylic .glass-panel,
+  html.ui-acrylic .glass-light,
+  html.ui-acrylic .modal,
+  html.ui-acrylic .user-menu,
+  html.ui-acrylic .select-dropdown-menu,
+  html.ui-acrylic .toast-pill,
+  html.ui-acrylic .table-container,
+  html.ui-acrylic .panel,
+  html.ui-acrylic .auth-card,
+  html.ui-acrylic .account-dropdown {
+    background: var(--acrylic-fallback);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

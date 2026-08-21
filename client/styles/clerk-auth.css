@@ -502,3 +502,52 @@ html.ui-clear .cl-social-btn {
   backdrop-filter: none;
   border-radius: var(--radius-ui);
 }
+
+html.ui-acrylic .clerk-profile-backdrop {
+  backdrop-filter: none;
+}
+
+html.ui-acrylic .clerk-profile-glass,
+html.ui-acrylic .clerk-profile-backdrop .cl-cardBox {
+  --clerk-profile-shell-blur: var(--acrylic-backdrop);
+  overflow: visible !important;
+  border-radius: var(--radius-ui-lg) !important;
+  border-color: var(--color-glass-border) !important;
+  background: var(--color-glass) !important;
+  box-shadow: var(--acrylic-inset), var(--shadow-panel) !important;
+  backdrop-filter: var(--acrylic-backdrop);
+  -webkit-backdrop-filter: var(--acrylic-backdrop);
+}
+
+html.ui-acrylic .clerk-profile-glass::before,
+html.ui-acrylic .clerk-profile-backdrop .cl-cardBox::before {
+  background: var(--acrylic-exclusion);
+  opacity: 0.04;
+  mix-blend-mode: exclusion;
+  z-index: 0;
+}
+
+html.ui-acrylic .clerk-profile-glass::after,
+html.ui-acrylic .clerk-profile-backdrop .cl-cardBox::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background-image: var(--acrylic-noise);
+  background-size: 128px 128px;
+  opacity: 0.055;
+  mix-blend-mode: overlay;
+}
+
+html.ui-acrylic .clerk-auth-shell .clerk-secured-strip {
+  backdrop-filter: var(--acrylic-backdrop);
+  -webkit-backdrop-filter: var(--acrylic-backdrop);
+  box-shadow: var(--acrylic-inset);
+}
+
+html.ui-acrylic .clerk-auth-shell .clerk-secured-strip,
+html.ui-acrylic .cl-social-btn {
+  border-radius: var(--radius-ui);
+}
