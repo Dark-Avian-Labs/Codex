@@ -272,3 +272,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.63.5** `chore(deps)`: update Clerk and oxfmt/oxlint versions
 - **v1.63.6** `chore(deps)` [#355](https://github.com/Dark-Avian-Labs/Codex/pull/355): bump @clerk/express in the production-dependencies group
 - **v1.64.0** `chore` [#356](https://github.com/Dark-Avian-Labs/Codex/pull/356): feat/acrylic theme and hex sides
+- **v1.65.0** `chore` [#357](https://github.com/Dark-Avian-Labs/Codex/pull/357): feat/rarity hue ladder
