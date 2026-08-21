@@ -270,3 +270,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.63.3** `chore` [#353](https://github.com/Dark-Avian-Labs/Codex/pull/353): update dependencies
 - **v1.63.4** `chore` [#354](https://github.com/Dark-Avian-Labs/Codex/pull/354): readme and deps
 - **v1.63.5** `chore(deps)`: update Clerk and oxfmt/oxlint versions
+- **v1.63.6** `chore(deps)` [#355](https://github.com/Dark-Avian-Labs/Codex/pull/355): bump @clerk/express in the production-dependencies group
