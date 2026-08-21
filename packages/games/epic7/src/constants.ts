@@ -31,21 +31,21 @@ export const ELEMENT_DISPLAY_NAMES: Record<ElementKey, string> = {
 };
 
 export const RATING_COLORS: Record<HeroRating, string> = {
-  '-': '#6b7280',
-  D: '#06b6d4',
-  C: '#22c55e',
-  B: '#3b82f6',
-  A: '#a855f7',
-  S: '#eab308',
-  SS: '#f97316',
-  SSS: '#ef4444',
+  '-': 'var(--color-rarity-gray)',
+  D: 'var(--color-rarity-teal)',
+  C: 'var(--color-rarity-green)',
+  B: 'var(--color-rarity-blue)',
+  A: 'var(--color-rarity-purple)',
+  S: 'var(--color-rarity-gold)',
+  SS: 'var(--color-rarity-orange)',
+  SSS: 'var(--color-rarity-red)',
 };
 
 export const GAUGE_COLORS: Record<number, string> = {
-  0: '#6b7280',
-  1: '#3b82f6',
-  2: '#22c55e',
-  3: '#eab308',
-  4: '#f97316',
-  5: '#ef4444',
+  0: 'var(--color-rarity-gray)',
+  1: 'var(--color-rarity-blue)',
+  2: 'var(--color-rarity-green)',
+  3: 'var(--color-rarity-gold)',
+  4: 'var(--color-rarity-orange)',
+  5: 'var(--color-rarity-red)',
 };
