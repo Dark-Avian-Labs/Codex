@@ -52,6 +52,27 @@
   --color-bg-glow: oklch(55% 0.04 252 / 0.2);
 
   --shadow-panel: 0 8px 32px oklch(0% 0 0 / 0.25);
+
+  --color-rarity-gray: oklch(72% 0.015 260);
+  --color-rarity-white: oklch(88% 0.005 264);
+  --color-rarity-green: oklch(72% 0.18 145);
+  --color-rarity-teal: oklch(74% 0.12 192);
+  --color-rarity-blue: oklch(68% 0.16 264);
+  --color-rarity-purple: oklch(66% 0.22 278);
+  --color-rarity-pink: oklch(70% 0.18 330);
+  --color-rarity-gold: oklch(80% 0.14 85);
+  --color-rarity-orange: oklch(70% 0.18 55);
+  --color-rarity-red: oklch(62% 0.2 28);
+
+  --color-rarity-common: var(--color-rarity-gray);
+  --color-rarity-uncommon: var(--color-rarity-green);
+  --color-rarity-rare: var(--color-rarity-blue);
+  --color-rarity-epic: var(--color-rarity-purple);
+  --color-rarity-legendary: var(--color-rarity-gold);
+  --color-rarity-mythic: var(--color-rarity-red);
+  --color-rarity-lord: var(--color-rarity-orange);
+  --color-rarity-exclusive: var(--color-rarity-red);
+  --color-rarity-peculiar: var(--color-rarity-pink);
 }
 
 :root {

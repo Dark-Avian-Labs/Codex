@@ -73,12 +73,12 @@ export const ARTIFACT_GAUGE_FILLED = '▰';
 export const ARTIFACT_GAUGE_EMPTY = '▱';
 
 export const GAUGE_COLORS: Record<number, string> = {
-  0: '#6b7280',
-  1: '#3b82f6',
-  2: '#22c55e',
-  3: '#eab308',
-  4: '#f97316',
-  5: '#ef4444',
+  0: 'var(--color-rarity-gray)',
+  1: 'var(--color-rarity-blue)',
+  2: 'var(--color-rarity-green)',
+  3: 'var(--color-rarity-gold)',
+  4: 'var(--color-rarity-orange)',
+  5: 'var(--color-rarity-red)',
 };
 
 export const HERO_AWAKENING_LABELS = ['A0', 'A1', 'A2', 'A3', 'A4', 'A5'] as const;
