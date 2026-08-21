@@ -77,6 +77,16 @@
   );
   --ascii-canvas-fg-bright: color-mix(in oklab, var(--color-foreground) 12%, transparent);
   --ascii-canvas-fg-accent: color-mix(in oklab, #ff0000 12%, transparent);
+  --hex-side-fill: color-mix(in oklab, var(--color-foreground) 30%, transparent);
+  --hex-design-panel-width: 335;
+  --hex-design-cluster-height: 658;
+  --hex-reference-viewport-width: 3840px;
+  --hex-reference-viewport-height: 2160px;
+  --hex-cluster-scale: clamp(
+    0.35,
+    min(100vw / var(--hex-reference-viewport-width), 100vh / var(--hex-reference-viewport-height)),
+    1
+  );
   --radius-ui: 16px;
   --radius-ui-lg: 20px;
   --radius-ui-sm: 14px;
@@ -102,6 +112,7 @@ html:not(.dark) {
   --ascii-opacity: 0.1;
   --ascii-canvas-fg-bright: color-mix(in oklab, var(--color-foreground) 18%, transparent);
   --ascii-canvas-fg-accent: color-mix(in oklab, #ff0000 18%, transparent);
+  --hex-side-fill: color-mix(in oklab, var(--color-foreground) 24%, transparent);
 }
 
 html.dark {
@@ -288,6 +299,53 @@ html:not(.dark) .invert-on-light {
 
   .min-h-page-content {
     min-height: calc(100vh - var(--app-chrome-height, 220px));
+  }
+
+  .hex-side-panel {
+    position: fixed;
+    top: 0;
+    width: calc(var(--hex-design-panel-width) * 1px * var(--hex-cluster-scale));
+    height: 100vh;
+    overflow: hidden;
+    z-index: 0;
+    pointer-events: none;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hex-side-panel--left {
+    left: 0;
+  }
+
+  .hex-side-panel--right {
+    right: 0;
+  }
+
+  .hex-side-cluster-wrap {
+    position: relative;
+    width: calc(var(--hex-design-panel-width) * 1px * var(--hex-cluster-scale));
+    height: calc(var(--hex-design-cluster-height) * 1px * var(--hex-cluster-scale));
+    flex-shrink: 0;
+  }
+
+  .hex-side-cluster {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: calc(var(--hex-design-panel-width) * 1px);
+    height: calc(var(--hex-design-cluster-height) * 1px);
+    transform: scale(var(--hex-cluster-scale));
+    transform-origin: top left;
+  }
+
+  .hex-prism {
+    position: absolute;
+    width: var(--hex-width);
+    height: var(--hex-height);
+    background-color: var(--hex-side-fill);
+    clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
   }
 
   .bg-art {
