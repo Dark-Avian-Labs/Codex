@@ -24,6 +24,7 @@ import { MaterialSymbol } from '../ui/MaterialSymbol';
 import { Menu } from '../ui/Menu';
 import { UiStyleSelector } from '../ui/UiStyleSelector';
 import { AsciiWaveBackground } from './AsciiWaveBackground';
+import { HexSideBackground } from './HexSideBackground';
 import { StaleClientUpdateBanner } from './StaleClientUpdateBanner';
 export type LayoutOutletContext = {
   setHeaderCenter: (node: ReactNode | null) => void;
@@ -215,6 +216,7 @@ export function Layout() {
       <a href="#main-content" className="skip-link">
         Skip to main content
       </a>
+      <HexSideBackground />
       <AsciiWaveBackground />
       <header className="relative z-30 h-[100px] px-6">
         <div className="mx-auto grid h-full w-full max-w-[2000px] grid-cols-[1fr_auto_1fr] items-center gap-4">

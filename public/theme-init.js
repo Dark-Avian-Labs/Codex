@@ -34,7 +34,11 @@
     if (theme === 'dark') root.classList.add('dark');
 
     var ui = readCookie('dal.ui.style').trim();
-    if (ui !== 'prism' && ui !== 'shadow' && ui !== 'clear') {
+    var uiStyles = ['prism', 'shadow', 'clear', 'acrylic'];
+    function isUiStyle(value) {
+      return uiStyles.indexOf(value) !== -1;
+    }
+    if (!isUiStyle(ui)) {
       try {
         ui = (localStorage.getItem('dal.ui.style') || '').trim();
       } catch (e) {
@@ -44,8 +48,10 @@
         ui = '';
       }
     }
-    if (ui !== 'prism' && ui !== 'shadow' && ui !== 'clear') ui = 'prism';
-    root.classList.remove('ui-prism', 'ui-shadow', 'ui-clear');
+    if (!isUiStyle(ui)) ui = 'prism';
+    for (var i = 0; i < uiStyles.length; i++) {
+      root.classList.remove('ui-' + uiStyles[i]);
+    }
     root.classList.add('ui-' + ui);
   } catch {}
 })();

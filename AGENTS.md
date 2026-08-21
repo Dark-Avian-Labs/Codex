@@ -54,19 +54,19 @@ The server listens on port 3001 by default.
 
 Armory and Codex mirror the same design tokens and component patterns manually (no shared UI package). When changing layout, glass surfaces, buttons, modals, or dropdowns in one app, apply the same change in the other.
 
-| Area                | Spec                                                                                                                                        |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| Layout max width    | `max-w-[2000px]` on header, main content wrapper, and footer                                                                                |
-| Glass surfaces      | `glass-surface` (panels/cards), `glass-modal-surface` (dialogs), `glass-shell` (auth shells)                                                |
-| Header nav          | `header-link` with `.active` modifier — 40px height, 1rem radius, accent tokens when active                                                 |
-| Buttons             | `btn btn-accent`, `btn btn-danger`, `btn btn-cancel` (modal dismiss), `btn btn-secondary` (neutral actions)                                 |
-| Modals              | Use `Modal` component; `className` includes `glass-modal-surface`; footers use `modal-actions`                                              |
-| Dropdowns           | `SelectDropdown` with `triggerClassName` / `placement` props; user-menu triggers use `user-menu-select-trigger`                             |
-| Stale client banner | Gold `stale-update-cta` button with `stale-update-cta__label` text "Refresh now!"                                                           |
-| Suspense fallback   | `LazySuspenseFallback` component                                                                                                            |
-| Toasts              | `.toast-pill` with optional `data-tone="success\|error\|warning"`                                                                           |
-| Form focus          | `.form-input:focus` and `.form-group input:focus` — accent border + soft glow (`box-shadow` ring)                                           |
-| Theme keys          | `--color-accent`, `--color-glass-border`, `--color-glass`, `--radius-ui`, `--shadow-panel`; UI style via `html.ui-clear` / `html.ui-shadow` |
+| Area                | Spec                                                                                                                                                               |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Layout max width    | `max-w-[2000px]` on header, main content wrapper, and footer                                                                                                       |
+| Glass surfaces      | `glass-surface` (panels/cards), `glass-modal-surface` (dialogs), `glass-shell` (auth shells)                                                                       |
+| Header nav          | `header-link` with `.active` modifier — 40px height, 1rem radius, accent tokens when active                                                                        |
+| Buttons             | `btn btn-accent`, `btn btn-danger`, `btn btn-cancel` (modal dismiss), `btn btn-secondary` (neutral actions)                                                        |
+| Modals              | Use `Modal` component; `className` includes `glass-modal-surface`; footers use `modal-actions`                                                                     |
+| Dropdowns           | `SelectDropdown` with `triggerClassName` / `placement` props; user-menu triggers use `user-menu-select-trigger`                                                    |
+| Stale client banner | Gold `stale-update-cta` button with `stale-update-cta__label` text "Refresh now!"                                                                                  |
+| Suspense fallback   | `LazySuspenseFallback` component                                                                                                                                   |
+| Toasts              | `.toast-pill` with optional `data-tone="success\|error\|warning"`                                                                                                  |
+| Form focus          | `.form-input:focus` and `.form-group input:focus` — accent border + soft glow (`box-shadow` ring)                                                                  |
+| Theme keys          | `--color-accent`, `--color-glass-border`, `--color-glass`, `--radius-ui`, `--shadow-panel`; UI style via `html.ui-prism` / `ui-shadow` / `ui-clear` / `ui-acrylic` |
 
 ## OpenWiki
 
