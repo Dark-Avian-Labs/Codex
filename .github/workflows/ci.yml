@@ -24,7 +24,8 @@ on:
       - 'vitest.config.ts'
       - 'run-quality-checks.mjs'
       - 'tests/**'
-      - 'favicon.ico'
+      - 'favicon.png'
+      - 'public/**'
       - 'background.txt'
       - '.env.production'
       - '.github/workflows/ci.yml'
@@ -282,7 +283,7 @@ jobs:
           cp package.json pnpm-lock.yaml pnpm-workspace.yaml /tmp/deploy/
           rsync -a --exclude='node_modules' --exclude='src' packages/ /tmp/deploy/packages/
           if [ -f .env.production ]; then cp .env.production /tmp/deploy/; fi
-          if [ -f favicon.ico ]; then cp favicon.ico /tmp/deploy/; fi
+          if [ -f favicon.png ]; then cp favicon.png /tmp/deploy/; fi
           if [ -f feathers.png ]; then cp feathers.png /tmp/deploy/; fi
           if [ -f background.txt ]; then cp background.txt /tmp/deploy/; fi
           mkdir -p /tmp/deploy/scripts/data

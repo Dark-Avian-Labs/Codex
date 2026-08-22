@@ -164,16 +164,20 @@ export function Layout() {
 
   useEffect(() => {
     const path = location.pathname;
-    let faviconHref = '/favicon.ico';
+    let faviconHref = '/favicon.png';
+    let faviconType = 'image/png';
     if (path.startsWith(APP_PATHS.warframe)) {
       document.title = 'Codex - Warframe';
       faviconHref = warframeFavicon;
+      faviconType = 'image/x-icon';
     } else if (path.startsWith(APP_PATHS.epic7)) {
       document.title = 'Codex - Epic7';
       faviconHref = epic7Favicon;
+      faviconType = 'image/x-icon';
     } else if (path.startsWith(APP_PATHS.wor)) {
       document.title = 'Codex - Watcher of Realms';
       faviconHref = worFavicon;
+      faviconType = 'image/x-icon';
     } else {
       document.title = 'Codex';
     }
@@ -183,6 +187,7 @@ export function Layout() {
       favicon.rel = 'icon';
       document.head.append(favicon);
     }
+    favicon.type = faviconType;
     favicon.href = faviconHref;
   }, [location.pathname]);
 
