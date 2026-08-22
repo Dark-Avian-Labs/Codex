@@ -137,6 +137,7 @@ const RATE_LIMIT_SKIP_PATHS = new Set([
   '/readyz',
   '/api/version',
   '/favicon.ico',
+  '/favicon.png',
   '/login',
   '/legal',
   '/logout',
@@ -382,8 +383,12 @@ app.use(
 );
 app.use(publicPageLimiter, express.static(clientDir, { maxAge: '1h' }));
 
+const faviconPng = path.join(PROJECT_ROOT, 'favicon.png');
+app.get('/favicon.png', publicPageLimiter, (_req, res) => {
+  res.sendFile(faviconPng);
+});
 app.get('/favicon.ico', publicPageLimiter, (_req, res) => {
-  res.sendFile(path.join(PROJECT_ROOT, 'favicon.ico'));
+  res.sendFile(faviconPng);
 });
 app.get('/healthz', healthzHandler);
 app.get('/readyz', readyzHandler);
