@@ -8,22 +8,13 @@ const DEFAULT_TTL_MS = 24 * 60 * 60 * 1000;
 
 export interface SqliteSessionStoreOptions {
   db: Database.Database;
-  /** Interval for purging expired rows. Set to 0 to disable. Default: 15 min. */
   cleanupIntervalMs?: number;
-  /** Lifetime used when the session cookie has no expiry. Default: 1 day. */
   defaultTtlMs?: number;
 }
 
 type GetCallback = (err?: unknown, session?: SessionData | null) => void;
 type DoneCallback = (err?: unknown) => void;
 
-/**
- * In-repo express-session store on better-sqlite3, replacing the unmaintained
- * `better-sqlite3-session-store` package. Uses the `sessions` table from
- * @codex/core's createSessionSchema (same shape as before, so existing
- * session DBs keep working). Expiry values are ISO-8601 UTC strings, which
- * compare correctly as text.
- */
 export class SqliteSessionStore extends Store {
   private readonly db: Database.Database;
   private readonly defaultTtlMs: number;
@@ -40,9 +31,7 @@ export class SqliteSessionStore extends Store {
       this.cleanupTimer = setInterval(() => {
         try {
           this.clearExpired();
-        } catch {
-          // Keep the timer alive; a failed sweep retries on the next tick.
-        }
+        } catch {}
       }, interval);
       this.cleanupTimer.unref();
     }
@@ -146,7 +135,6 @@ export class SqliteSessionStore extends Store {
     }
   }
 
-  /** Deletes expired rows. Returns the number of rows removed. */
   clearExpired(): number {
     const result = this.db
       .prepare('DELETE FROM sessions WHERE expire <= ?')
@@ -154,7 +142,6 @@ export class SqliteSessionStore extends Store {
     return result.changes;
   }
 
-  /** Stops the cleanup timer. Call during graceful shutdown. */
   dispose(): void {
     if (this.cleanupTimer) {
       clearInterval(this.cleanupTimer);

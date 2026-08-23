@@ -503,7 +503,6 @@ warframeApiRouter.post('/admin/sync-source', requireCodexAdmin, (req, res) => {
             initiatorMasked = undefined;
           }
         }
-        // Persist the masked result so session.db never stores raw Clerk IDs.
         const maskedResult = maskWarframeSyncResult(result);
         updateWarframeSyncRun(run.id, {
           status: 'succeeded',

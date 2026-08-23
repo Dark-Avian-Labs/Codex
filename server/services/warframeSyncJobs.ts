@@ -84,8 +84,6 @@ export function maskWarframeSyncResult(result: WarframeSyncResult): WarframeSync
         }
       : result.marketLinkSync;
 
-  // Cleanup rows carry the Armory username for display, so the raw Clerk ID
-  // can be masked like everywhere else in the sync telemetry.
   const maskCleanupRow = <T extends { clerkUserId: string }>(row: T): T => ({
     ...row,
     clerkUserId: maskClerkUserId(row.clerkUserId),

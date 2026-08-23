@@ -28,7 +28,6 @@ export function isWorDbAvailable(): boolean {
   return worDbAvailable;
 }
 
-/** Re-check the file when the cached flag is false so a late `db:init` is picked up. */
 export function ensureWorDbAvailable(): boolean {
   if (worDbAvailable) return true;
   try {

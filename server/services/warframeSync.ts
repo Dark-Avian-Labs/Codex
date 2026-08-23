@@ -143,7 +143,6 @@ export type WarframeMarketLinkSyncSummary =
 
 type CleanupCandidate = {
   clerkUserId: string;
-  /** Armory username for the affected user, so admin views don't need the raw Clerk ID. */
   username: string | null;
   worksheet: WorksheetName;
   rowId: number;
@@ -751,10 +750,6 @@ type RunSyncOptions = {
   lockToken?: string;
 };
 
-/**
- * Maps Clerk user IDs to Armory usernames (armory_users is maintained by
- * Armory; the table may not exist in a fresh catalog, hence the guard).
- */
 function loadArmoryUsernameMap(armoryDb: Database.Database): Map<string, string> {
   const map = new Map<string, string>();
   try {
@@ -764,9 +759,7 @@ function loadArmoryUsernameMap(armoryDb: Database.Database): Map<string, string>
     for (const row of rows) {
       map.set(row.clerk_user_id, row.username);
     }
-  } catch {
-    // Table missing or unreadable; usernames stay null in cleanup rows.
-  }
+  } catch {}
   return map;
 }
 
@@ -1093,10 +1086,6 @@ export async function runWarframeSync(
     readonly: true,
     fileMustExist: true,
   });
-  // Armory writes to this DB concurrently (imports, WAL checkpoints); without
-  // a busy timeout better-sqlite3 fails reads immediately with SQLITE_BUSY,
-  // which can abort a sync mid-run. Armory must keep journal_mode=WAL for
-  // concurrent reads to work (it does).
   armoryDb.pragma('busy_timeout = 5000');
   try {
     const { sourceByWorksheet, arcaneMaxLevelByCanonicalKey } = loadWorksheetSource(armoryDb);

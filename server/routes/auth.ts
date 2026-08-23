@@ -54,8 +54,6 @@ authRouter.post('/logout', (req, res) => {
       res.status(500).json({ error: 'Failed to logout' });
       return;
     }
-    // Browsers only delete a cookie when the clearing Set-Cookie matches the
-    // original domain/path attributes, so mirror the session cookie options.
     res.clearCookie(SESSION_COOKIE_NAME, {
       domain: COOKIE_DOMAIN,
       path: '/',

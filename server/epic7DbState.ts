@@ -28,7 +28,6 @@ export function isEpic7DbAvailable(): boolean {
   return epic7DbAvailable;
 }
 
-/** Re-check the file when the cached flag is false so a late `db:init` is picked up. */
 export function ensureEpic7DbAvailable(): boolean {
   if (epic7DbAvailable) return true;
   try {

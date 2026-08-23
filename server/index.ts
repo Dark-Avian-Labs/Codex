@@ -348,8 +348,6 @@ const staticAssetLimiter = createRateLimiter(STATIC_ASSET_RATE_LIMIT_MAX);
 const clientDir = path.join(PROJECT_ROOT, 'dist', 'client');
 const clientIndexPath = path.join(clientDir, 'index.html');
 
-// Probe routes must be registered before the rate-limited static mounts so
-// uptime monitoring can never be throttled into false "down" alerts.
 app.get('/healthz', healthzHandler);
 app.get('/readyz', readyzHandler);
 
@@ -374,9 +372,6 @@ app.use(
         res.setHeader('Content-Type', 'application/octet-stream');
         res.setHeader('Content-Disposition', 'attachment');
       }
-      // Imported wiki images can be SVGs, which may embed scripts. Sandboxing
-      // the document neuters script execution when the file is opened
-      // directly, without affecting <img> rendering in the app.
       if (filePath.toLowerCase().endsWith('.svg')) {
         res.setHeader('Content-Security-Policy', "sandbox; script-src 'none'");
       }
@@ -392,8 +387,6 @@ app.use(
     immutable: true,
   }),
 );
-// Fleet cache policy: HTML is always revalidated (no-cache) so deploys are
-// picked up immediately, while hashed /assets stay immutable for a year.
 app.use(
   publicPageLimiter,
   express.static(clientDir, {
@@ -568,8 +561,6 @@ function shutdown(baseExitCode = 0): void {
 process.on('SIGINT', () => shutdown(0));
 process.on('SIGTERM', () => shutdown(0));
 
-// Org-wide crash policy: log, shut down gracefully, and exit non-zero so the
-// process manager (PM2) restarts a clean instance.
 process.on('unhandledRejection', (reason) => {
   log('error', 'Unhandled promise rejection; shutting down', {
     err: reason instanceof Error ? (reason.stack ?? reason.message) : String(reason),

@@ -228,8 +228,6 @@ export const SESSION_COOKIE_NAME =
 export function ensureDataDirs(): void {
   fs.mkdirSync(DATA_DIR, { recursive: true });
   fs.mkdirSync(path.dirname(SESSION_DB_PATH), { recursive: true });
-  // ARMORY_DB_PATH is a sibling app's catalog. Do not create its parent —
-  // a missing file should fail readiness / sync, not hide a bad path.
   fs.mkdirSync(path.dirname(WARFRAME_DB_PATH), { recursive: true });
   fs.mkdirSync(path.dirname(EPIC7_DB_PATH), { recursive: true });
   fs.mkdirSync(path.dirname(WOR_DB_PATH), { recursive: true });
