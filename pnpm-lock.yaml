@@ -63,9 +63,6 @@ catalogs:
     better-sqlite3:
       specifier: ^13.0.3
       version: 13.0.3
-    better-sqlite3-session-store:
-      specifier: ^0.1.0
-      version: 0.1.0
     clsx:
       specifier: ^2.1.1
       version: 2.1.1
@@ -178,9 +175,6 @@ importers:
       better-sqlite3:
         specifier: 'catalog:'
         version: 13.0.3
-      better-sqlite3-session-store:
-        specifier: 'catalog:'
-        version: 0.1.0
       clsx:
         specifier: 'catalog:'
         version: 2.1.1
@@ -1420,9 +1414,6 @@ packages:
   before-after-hook@4.0.0:
     resolution: {integrity: sha512-q6tR3RPqIB1pMiTRMFcZwuG5T8vwp+vUvEG0vuI6B+Rikh5BfPp2fQ82c925FOs+b0lcFQ8CFrL+KbilfZFhOQ==}
 
-  better-sqlite3-session-store@0.1.0:
-    resolution: {integrity: sha512-O4EO5jOGTEa/c1DbZpP3C7VTDLSWe5lrOu1S/j86ipdGZxrSb8bSUVuRgWCgl/SCgEGmyeEqvlMY9HtyOSMOWA==}
-
   better-sqlite3@13.0.3:
     resolution: {integrity: sha512-RbOBxmLBG8uvFUc15X9+9SFemKcQ0WBuISBVkpuiaUB2qblC8UWlHEjdWVoZ8AdhSwmoEgsiXKfopX0CQxaACQ==}
     engines: {node: '>=22'}
@@ -1622,10 +1613,6 @@ packages:
 
   csstype@3.2.3:
     resolution: {integrity: sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==}
-
-  date-fns@2.16.1:
-    resolution: {integrity: sha512-sAJVKx/FqrLYHAQeN7VpJrPhagZc9R4ImZIWYRFZaaohR3KzmuK88touwsSwSVT8Qcbd4zoDsnGfX4GFB4imyQ==}
-    engines: {node: '>=0.11'}
 
   debug@2.6.9:
     resolution: {integrity: sha512-bC7ElrdJaJnPbAP+1EotYvqZsb3ecl5wi6Bfi6BJTUcNowp6cvspg0jXznRTKDjm/E7AdgFBVeAPVMNcKGsHMA==}
@@ -4088,10 +4075,6 @@ snapshots:
 
   before-after-hook@4.0.0: {}
 
-  better-sqlite3-session-store@0.1.0:
-    dependencies:
-      date-fns: 2.16.1
-
   better-sqlite3@13.0.3:
     dependencies:
       node-addon-api: 8.9.2
@@ -4298,8 +4281,6 @@ snapshots:
       http-errors: 2.0.1
 
   csstype@3.2.3: {}
-
-  date-fns@2.16.1: {}
 
   debug@2.6.9(supports-color@7.2.0):
     dependencies:

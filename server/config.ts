@@ -110,6 +110,10 @@ export const ARMORY_DB_PATH = requireAbsoluteSqlitePath(
 
 const _port = parseInt(process.env.PORT || '3001', 10);
 export const PORT = Number.isFinite(_port) && _port > 0 ? _port : 3001;
+
+const _shutdownTimeoutMs = parseInt(process.env.SHUTDOWN_TIMEOUT_MS || '10000', 10);
+export const SHUTDOWN_TIMEOUT_MS =
+  Number.isFinite(_shutdownTimeoutMs) && _shutdownTimeoutMs > 0 ? _shutdownTimeoutMs : 10_000;
 export const HOST = process.env.HOST || '127.0.0.1';
 export const APP_NAME = process.env.APP_NAME?.trim() || 'Codex';
 export const APP_ID = process.env.APP_ID?.trim() || 'codex';
@@ -224,7 +228,8 @@ export const SESSION_COOKIE_NAME =
 export function ensureDataDirs(): void {
   fs.mkdirSync(DATA_DIR, { recursive: true });
   fs.mkdirSync(path.dirname(SESSION_DB_PATH), { recursive: true });
-  fs.mkdirSync(path.dirname(ARMORY_DB_PATH), { recursive: true });
+  // ARMORY_DB_PATH is a sibling app's catalog. Do not create its parent —
+  // a missing file should fail readiness / sync, not hide a bad path.
   fs.mkdirSync(path.dirname(WARFRAME_DB_PATH), { recursive: true });
   fs.mkdirSync(path.dirname(EPIC7_DB_PATH), { recursive: true });
   fs.mkdirSync(path.dirname(WOR_DB_PATH), { recursive: true });

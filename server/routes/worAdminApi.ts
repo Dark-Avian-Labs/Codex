@@ -9,8 +9,8 @@ import {
   startWorAdminImport,
   subscribeWorAdminImport,
 } from '../import/wor/adminImportJob.js';
-import { catalogNeedsImport, runWorStartupPipeline } from '../import/wor/startupPipeline.js';
-import { isWorDbAvailable } from '../worDbState.js';
+import { catalogNeedsImport } from '../import/wor/startupPipeline.js';
+import { ensureWorDbAvailable } from '../worDbState.js';
 
 export const worAdminApiRouter = Router();
 
@@ -23,7 +23,7 @@ function err(res: Response, message: string, status = 400): void {
 }
 
 worAdminApiRouter.get('/import/status', requireCodexAdmin, (_req, res) => {
-  if (!isWorDbAvailable()) {
+  if (!ensureWorDbAvailable()) {
     err(res, 'WoR database unavailable', 503);
     return;
   }
@@ -31,7 +31,7 @@ worAdminApiRouter.get('/import/status', requireCodexAdmin, (_req, res) => {
 });
 
 worAdminApiRouter.get('/import/stream', requireCodexAdmin, (req, res) => {
-  if (!isWorDbAvailable()) {
+  if (!ensureWorDbAvailable()) {
     err(res, 'WoR database unavailable', 503);
     return;
   }
@@ -93,7 +93,7 @@ worAdminApiRouter.get('/import/stream', requireCodexAdmin, (req, res) => {
 });
 
 worAdminApiRouter.post('/import/start', requireCodexAdmin, (req, res) => {
-  if (!isWorDbAvailable()) {
+  if (!ensureWorDbAvailable()) {
     err(res, 'WoR database unavailable', 503);
     return;
   }
@@ -116,7 +116,7 @@ worAdminApiRouter.post('/import/start', requireCodexAdmin, (req, res) => {
 });
 
 worAdminApiRouter.get('/catalog/status', requireCodexAdmin, (_req, res) => {
-  if (!isWorDbAvailable()) {
+  if (!ensureWorDbAvailable()) {
     err(res, 'WoR database unavailable', 503);
     return;
   }
@@ -127,8 +127,8 @@ worAdminApiRouter.get('/catalog/status', requireCodexAdmin, (_req, res) => {
   });
 });
 
-worAdminApiRouter.post('/catalog/bootstrap', requireCodexAdmin, async (_req, res) => {
-  if (!isWorDbAvailable()) {
+worAdminApiRouter.post('/catalog/bootstrap', requireCodexAdmin, (_req, res) => {
+  if (!ensureWorDbAvailable()) {
     err(res, 'WoR database unavailable', 503);
     return;
   }
@@ -136,10 +136,10 @@ worAdminApiRouter.post('/catalog/bootstrap', requireCodexAdmin, async (_req, res
     err(res, 'Import already running', 409);
     return;
   }
-  try {
-    const summary = await runWorStartupPipeline();
-    json(res, { ok: true, summary });
-  } catch (error) {
-    err(res, error instanceof Error ? error.message : 'Bootstrap failed', 500);
+  const result = startWorAdminImport();
+  if (!result.started) {
+    err(res, result.reason ?? 'Import could not start', 409);
+    return;
   }
+  json(res, { started: true, snapshot: result.snapshot }, 202);
 });

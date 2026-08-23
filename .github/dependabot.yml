@@ -22,17 +22,11 @@ updates:
     schedule:
       interval: 'daily'
       time: '00:00'
-    # Floating @vN tags already track minor/patch; cooldown + full semver PRs
-    # can "downgrade" relative to the retargeted major tag.
+    # Actions are pinned to commit SHAs in the workflows; Dependabot updates
+    # the pinned SHA (and the version comment) for every release, so minor and
+    # patch updates must not be ignored here.
     cooldown:
       default-days: 1
-      exclude:
-        - '*'
-    ignore:
-      - dependency-name: '*'
-        update-types:
-          - 'version-update:semver-minor'
-          - 'version-update:semver-patch'
     groups:
       github-actions:
         patterns:

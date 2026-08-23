@@ -25,7 +25,7 @@ import {
 import { Router, type Request, type Response } from 'express';
 
 import { requireClerkUserId } from '../auth/clerkUser.js';
-import { isEpic7DbAvailable } from '../epic7DbState.js';
+import { ensureEpic7DbAvailable } from '../epic7DbState.js';
 import {
   clearEpic7SessionFields,
   ensureSessionBoundToClerkUser,
@@ -44,7 +44,7 @@ function err(res: Response, message: string, status = 400): void {
 }
 
 function getDbOrFail(res: Response): ReturnType<typeof getEpic7Db> | null {
-  if (!isEpic7DbAvailable()) {
+  if (!ensureEpic7DbAvailable()) {
     err(res, 'Database not found. Please initialize the database.', 500);
     return null;
   }

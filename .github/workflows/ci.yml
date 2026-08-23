@@ -45,8 +45,10 @@ jobs:
       deploy: ${{ steps.decide.outputs.deploy }}
 
     steps:
+      # Actions are pinned to commit SHAs (tag in comment); Dependabot keeps
+      # the pins current.
       - name: Checkout full history
-        uses: useblacksmith/checkout@v1
+        uses: useblacksmith/checkout@2d63ce5ba61677748c4e92f6eb578a8694226225 # v1.2.0
         with:
           fetch-depth: 0
 
@@ -131,22 +133,22 @@ jobs:
 
     steps:
       - name: Checkout full history
-        uses: useblacksmith/checkout@v1
+        uses: useblacksmith/checkout@2d63ce5ba61677748c4e92f6eb578a8694226225 # v1.2.0
         with:
           fetch-depth: 0
           token: ${{ secrets.CI_PAT }}
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v6
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
 
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
-      - name: Install dependencies (fresh lockfile)
-        uses: ./.github/actions/pnpm-install-fresh
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Bump version
         run: pnpm exec semantic-release
@@ -174,21 +176,24 @@ jobs:
 
     steps:
       - name: Checkout release target
-        uses: useblacksmith/checkout@v1
+        uses: useblacksmith/checkout@2d63ce5ba61677748c4e92f6eb578a8694226225 # v1.2.0
         with:
           ref: ${{ needs.version.outputs.target_sha }}
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v6
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
 
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
 
-      - name: Install dependencies (fresh lockfile)
-        uses: ./.github/actions/pnpm-install-fresh
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Audit dependencies
+        run: pnpm audit --audit-level high
 
       - name: Run quality checks
         run: pnpm run validate
@@ -202,21 +207,21 @@ jobs:
 
     steps:
       - name: Checkout release target
-        uses: useblacksmith/checkout@v1
+        uses: useblacksmith/checkout@2d63ce5ba61677748c4e92f6eb578a8694226225 # v1.2.0
         with:
           ref: ${{ needs.version.outputs.target_sha }}
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v6
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
 
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
 
-      - name: Install dependencies (fresh lockfile)
-        uses: ./.github/actions/pnpm-install-fresh
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Build project
         env:
@@ -357,7 +362,7 @@ jobs:
 
     steps:
       - name: Send Discord status
-        uses: iShark5060/actions-discord-status@v1
+        uses: iShark5060/actions-discord-status@b3aec5f177e333967e29bd2edba4c7c369ab689c # v1.1.1
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
           job_results: ${{ join(needs.*.result, ',') }}

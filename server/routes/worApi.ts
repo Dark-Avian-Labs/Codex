@@ -23,7 +23,7 @@ import {
   getWorSession,
   patchWorSession,
 } from '../session/worSessionBinding.js';
-import { isWorDbAvailable } from '../worDbState.js';
+import { ensureWorDbAvailable } from '../worDbState.js';
 
 export const worApiRouter = Router();
 
@@ -36,7 +36,7 @@ function err(res: Response, message: string, status = 400): void {
 }
 
 function getDbOrFail(res: Response): ReturnType<typeof getWorDb> | null {
-  if (!isWorDbAvailable()) {
+  if (!ensureWorDbAvailable()) {
     err(res, 'Database not found. Please initialize the database.', 500);
     return null;
   }
