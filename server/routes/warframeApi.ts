@@ -23,6 +23,7 @@ import { runWarframeSync } from '../services/warframeSync.js';
 import {
   createWarframeSyncRun,
   getWarframeSyncRunRow,
+  maskWarframeSyncResult,
   toWarframeSyncRunResponse,
   updateWarframeSyncRun,
 } from '../services/warframeSyncJobs.js';
@@ -381,7 +382,7 @@ warframeApiRouter.post('/admin/sync-preview', requireCodexAdmin, (req, res) => {
           clerkUserIds: [clerkUserId],
         }),
       );
-      res.status(200).json(result);
+      res.status(200).json(maskWarframeSyncResult(result));
     } catch (error) {
       if (error instanceof SyncAlreadyRunningError) {
         res.status(409).json({ error: error.message });
@@ -502,11 +503,12 @@ warframeApiRouter.post('/admin/sync-source', requireCodexAdmin, (req, res) => {
             initiatorMasked = undefined;
           }
         }
+        const maskedResult = maskWarframeSyncResult(result);
         updateWarframeSyncRun(run.id, {
           status: 'succeeded',
           finished_at: finishedAt(),
           summary_json: JSON.stringify(
-            initiatorMasked ? { ...result, _initiatorMasked: initiatorMasked } : result,
+            initiatorMasked ? { ...maskedResult, _initiatorMasked: initiatorMasked } : maskedResult,
           ),
         });
       } catch (error) {

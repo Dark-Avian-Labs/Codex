@@ -1,6 +1,5 @@
 import './config.js';
 
-import { createRequire } from 'module';
 import path from 'path';
 
 import {
@@ -35,10 +34,12 @@ import {
   SECURE_COOKIES,
   SESSION_COOKIE_NAME,
   SESSION_SECRET,
+  SHUTDOWN_TIMEOUT_MS,
   TRUST_PROXY,
   WOR_IMAGES_DIR,
 } from './config.js';
 import { ensureSessionSchema } from './db/sessionSchema.js';
+import { SqliteSessionStore } from './db/sqliteSessionStore.js';
 import { refreshEpic7DbAvailability } from './epic7DbState.js';
 import { getRequestId, requestIdMiddleware } from './http/requestId.js';
 import { timingSafeEqualString } from './http/timingSafeEqual.js';
@@ -50,8 +51,6 @@ import { authRouter } from './routes/auth.js';
 import { waitForWarframeSyncIdle } from './services/warframeSyncState.js';
 import { refreshWorDbAvailability } from './worDbState.js';
 
-const require = createRequire(import.meta.url);
-const SQLiteStore = require('better-sqlite3-session-store')(session);
 const STATUS_TEXT: Record<number, string> = {
   400: 'Bad Request',
   401: 'Unauthorized',
@@ -179,9 +178,9 @@ const baselineLimiter = createRateLimiter(BASELINE_RATE_LIMIT_MAX, {
 });
 app.use(baselineLimiter);
 
-const sessionStore = new SQLiteStore({
-  client: sessionDb,
-  expired: { clear: true, intervalMs: 15 * 60 * 1000 },
+const sessionStore = new SqliteSessionStore({
+  db: sessionDb,
+  cleanupIntervalMs: 15 * 60 * 1000,
 });
 
 const cookieOptions: express.CookieOptions = {
@@ -348,6 +347,10 @@ const staticAssetLimiter = createRateLimiter(STATIC_ASSET_RATE_LIMIT_MAX);
 
 const clientDir = path.join(PROJECT_ROOT, 'dist', 'client');
 const clientIndexPath = path.join(clientDir, 'index.html');
+
+app.get('/healthz', healthzHandler);
+app.get('/readyz', readyzHandler);
+
 app.use(
   '/wor-images',
   staticAssetLimiter,
@@ -369,6 +372,9 @@ app.use(
         res.setHeader('Content-Type', 'application/octet-stream');
         res.setHeader('Content-Disposition', 'attachment');
       }
+      if (filePath.toLowerCase().endsWith('.svg')) {
+        res.setHeader('Content-Security-Policy', "sandbox; script-src 'none'");
+      }
       res.setHeader('X-Content-Type-Options', 'nosniff');
     },
   }),
@@ -381,7 +387,23 @@ app.use(
     immutable: true,
   }),
 );
-app.use(publicPageLimiter, express.static(clientDir, { maxAge: '1h' }));
+app.use(
+  publicPageLimiter,
+  express.static(clientDir, {
+    index: false,
+    maxAge: '1h',
+    setHeaders(res, filePath) {
+      if (filePath.endsWith('.html')) {
+        res.setHeader('Cache-Control', 'no-cache');
+      }
+    },
+  }),
+);
+
+function sendSpaIndex(res: Response): void {
+  res.setHeader('Cache-Control', 'no-cache');
+  res.sendFile(clientIndexPath);
+}
 
 const faviconPng = path.join(PROJECT_ROOT, 'favicon.png');
 app.get('/favicon.png', publicPageLimiter, (_req, res) => {
@@ -390,8 +412,6 @@ app.get('/favicon.png', publicPageLimiter, (_req, res) => {
 app.get('/favicon.ico', publicPageLimiter, (_req, res) => {
   res.sendFile(faviconPng);
 });
-app.get('/healthz', healthzHandler);
-app.get('/readyz', readyzHandler);
 
 app.get('/login', publicPageLimiter, (_req, res) => {
   res.redirect('/sign-in');
@@ -401,40 +421,40 @@ app.get('/legal', publicPageLimiter, (_req, res) => {
 });
 
 app.get('/admin', publicPageLimiter, (_req, res) => {
-  res.sendFile(clientIndexPath);
+  sendSpaIndex(res);
 });
 app.get('/warframe/admin', publicPageLimiter, (_req, res) => {
-  res.sendFile(clientIndexPath);
+  sendSpaIndex(res);
 });
 app.get('/epic7/admin', publicPageLimiter, (_req, res) => {
-  res.sendFile(clientIndexPath);
+  sendSpaIndex(res);
 });
 app.get('/wor/admin', publicPageLimiter, (_req, res) => {
-  res.sendFile(clientIndexPath);
+  sendSpaIndex(res);
 });
 app.get('/sign-in', publicPageLimiter, (_req, res) => {
-  res.sendFile(clientIndexPath);
+  sendSpaIndex(res);
 });
 app.get(/^\/sign-in\/.*$/, publicPageLimiter, (_req, res) => {
-  res.sendFile(clientIndexPath);
+  sendSpaIndex(res);
 });
 app.get('/sign-up', publicPageLimiter, (_req, res) => {
-  res.sendFile(clientIndexPath);
+  sendSpaIndex(res);
 });
 app.get(/^\/sign-up\/.*$/, publicPageLimiter, (_req, res) => {
-  res.sendFile(clientIndexPath);
+  sendSpaIndex(res);
 });
 app.get('/warframe', publicPageLimiter, (_req, res) => {
-  res.sendFile(clientIndexPath);
+  sendSpaIndex(res);
 });
 app.get('/epic7', publicPageLimiter, (_req, res) => {
-  res.sendFile(clientIndexPath);
+  sendSpaIndex(res);
 });
 app.get('/wor', publicPageLimiter, (_req, res) => {
-  res.sendFile(clientIndexPath);
+  sendSpaIndex(res);
 });
 app.get('/', publicPageLimiter, (_req, res) => {
-  res.sendFile(clientIndexPath);
+  sendSpaIndex(res);
 });
 
 app.get('/auth/login', publicPageLimiter, (_req, res) => {
@@ -482,13 +502,13 @@ const server = app.listen(PORT, HOST, () => {
   log('info', `${APP_NAME} server listening`, { host: HOST, port: PORT, nodeEnv: NODE_ENV });
 });
 
-const SHUTDOWN_TIMEOUT_MS = 10_000;
 let shutdownStarted = false;
-function shutdown(): void {
+function shutdown(baseExitCode = 0): void {
   if (shutdownStarted) return;
   shutdownStarted = true;
 
   function closeAndExit(exitCode: number): void {
+    sessionStore.dispose();
     try {
       closeSessionDb();
       closeWarframeDb();
@@ -527,7 +547,7 @@ function shutdown(): void {
           closeAndExit(1);
           return;
         }
-        closeAndExit(0);
+        closeAndExit(baseExitCode);
       });
     } catch (err) {
       log('error', 'Unexpected shutdown error', {
@@ -538,21 +558,21 @@ function shutdown(): void {
     }
   })();
 }
-process.on('SIGINT', shutdown);
-process.on('SIGTERM', shutdown);
+process.on('SIGINT', () => shutdown(0));
+process.on('SIGTERM', () => shutdown(0));
 
 process.on('unhandledRejection', (reason) => {
   log('error', 'Unhandled promise rejection; shutting down', {
     err: reason instanceof Error ? (reason.stack ?? reason.message) : String(reason),
   });
-  shutdown();
+  shutdown(1);
 });
 
 process.on('uncaughtException', (err) => {
   log('error', 'Uncaught exception; shutting down', {
     err: err.stack ?? err.message,
   });
-  shutdown();
+  shutdown(1);
 });
 
 export default app;

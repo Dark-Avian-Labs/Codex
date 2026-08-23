@@ -1,7 +1,7 @@
 import { getClerkAuthState, getCodexAppId, requireAuthApi } from '@codex/core';
 import { Router } from 'express';
 
-import { SESSION_COOKIE_NAME } from '../config.js';
+import { COOKIE_DOMAIN, SECURE_COOKIES, SESSION_COOKIE_NAME } from '../config.js';
 import {
   CODEX_GAMES as REGISTRY_CODEX_GAMES,
   getGameMetadata,
@@ -54,7 +54,13 @@ authRouter.post('/logout', (req, res) => {
       res.status(500).json({ error: 'Failed to logout' });
       return;
     }
-    res.clearCookie(SESSION_COOKIE_NAME);
+    res.clearCookie(SESSION_COOKIE_NAME, {
+      domain: COOKIE_DOMAIN,
+      path: '/',
+      httpOnly: true,
+      secure: SECURE_COOKIES,
+      sameSite: 'lax',
+    });
     res.json({ ok: true, next: '/' });
   });
 });

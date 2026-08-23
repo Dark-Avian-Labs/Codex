@@ -24,6 +24,7 @@ Codex configuration is env-driven. Use `.env.example` and `.github/ci.env.develo
 | `ARMORY_DB_PATH`                                        | **Absolute** Armory catalog DB (read-only)                             |
 | `WARFRAME_DB_PATH`, `EPIC7_DB_PATH`, `WOR_DB_PATH`      | Per-game DBs (defaults under `./data/`)                                |
 | `PORT` / `HOST`                                         | Default port **3001**; `HOST` defaults to **`127.0.0.1`**              |
+| `SHUTDOWN_TIMEOUT_MS`                                   | Default **10000**; graceful shutdown then forced exit                  |
 | `ALLOWED_APP_ORIGINS`                                   | Credentialed CORS / CSRF peers (full trust — keep minimal)             |
 | `VITE_*`                                                | Client build-time settings (see `.env.example`)                        |
 
@@ -41,6 +42,10 @@ Encrypted `.env.development` / `.env.production` decrypt at runtime when `DOTENV
 - Relative Armory/session paths are rejected or unsafe in shared deploys — use absolute mounts.
 - Placeholder Clerk keys break authenticated routes with 500s.
 - Set `HOST=0.0.0.0` explicitly when the process must bind all interfaces behind a reverse proxy; the code default is loopback.
+- `ensureDataDirs` creates game/session dirs but **not** the parent of `ARMORY_DB_PATH`.
+- `/healthz` is liveness; `/readyz` checks session + game DBs + readable `ARMORY_DB_PATH`. Both are registered **before** rate-limited static mounts (`server/probes.ts`).
+- `unhandledRejection` / `uncaughtException` run graceful shutdown and exit **1**.
+- Production `index.html` is `Cache-Control: no-cache`; hashed `/assets` are immutable for a year.
 
 ## Related
 

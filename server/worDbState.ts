@@ -1,3 +1,4 @@
+import { accessSync } from 'fs';
 import fs from 'fs/promises';
 
 import { WOR_DB_PATH } from '@codex/game-wor';
@@ -25,4 +26,15 @@ export async function refreshWorDbAvailability(): Promise<void> {
 
 export function isWorDbAvailable(): boolean {
   return worDbAvailable;
+}
+
+export function ensureWorDbAvailable(): boolean {
+  if (worDbAvailable) return true;
+  try {
+    accessSync(WOR_DB_PATH);
+    worDbAvailable = true;
+    return true;
+  } catch {
+    return false;
+  }
 }

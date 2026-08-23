@@ -23,6 +23,7 @@ vi.mock('@clerk/express', () => ({
 
 vi.mock('../server/epic7DbState.js', () => ({
   isEpic7DbAvailable: () => true,
+  ensureEpic7DbAvailable: () => true,
 }));
 
 vi.mock('@codex/game-epic7', async (importOriginal) => {

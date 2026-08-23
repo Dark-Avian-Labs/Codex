@@ -84,12 +84,22 @@ export function maskWarframeSyncResult(result: WarframeSyncResult): WarframeSync
         }
       : result.marketLinkSync;
 
+  const maskCleanupRow = <T extends { clerkUserId: string }>(row: T): T => ({
+    ...row,
+    clerkUserId: maskClerkUserId(row.clerkUserId),
+  });
+
   return {
     ...result,
     users: result.users.map((user) => ({
       ...user,
       clerkUserId: maskClerkUserId(user.clerkUserId),
     })),
+    cleanup: {
+      ...result.cleanup,
+      deletedRows: result.cleanup.deletedRows.map(maskCleanupRow),
+      requiresConfirmationRows: result.cleanup.requiresConfirmationRows.map(maskCleanupRow),
+    },
     marketLinkSync,
   };
 }

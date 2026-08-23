@@ -1,3 +1,4 @@
+import { accessSync } from 'fs';
 import fs from 'fs/promises';
 
 import { EPIC7_DB_PATH } from '@codex/game-epic7';
@@ -25,4 +26,15 @@ export async function refreshEpic7DbAvailability(): Promise<void> {
 
 export function isEpic7DbAvailable(): boolean {
   return epic7DbAvailable;
+}
+
+export function ensureEpic7DbAvailable(): boolean {
+  if (epic7DbAvailable) return true;
+  try {
+    accessSync(EPIC7_DB_PATH);
+    epic7DbAvailable = true;
+    return true;
+  } catch {
+    return false;
+  }
 }

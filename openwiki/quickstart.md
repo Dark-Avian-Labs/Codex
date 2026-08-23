@@ -30,8 +30,8 @@ Sign-in and admin roles use Clerk. Default server port is **3001**.
 
 ```
 client/                 React SPA (per-game features, admin, auth)
-server/                 Express app, routes, Warframe sync, WoR import
-packages/core/          Shared auth, session DB, middleware, validation
+server/                 Express app, routes, Warframe sync, WoR import, sqliteSessionStore
+packages/core/          Shared auth, session DB schema/open, middleware, validation
 packages/games/*/       Per-game schemas, rules, validation
 scripts/                db:init, runtime-preflight, wor-import
 tests/                  Vitest + SQLite harness

@@ -43,7 +43,6 @@
     "@fontsource-variable/inter": "catalog:",
     "@fontsource-variable/material-symbols-rounded": "catalog:",
     "better-sqlite3": "catalog:",
-    "better-sqlite3-session-store": "catalog:",
     "clsx": "catalog:",
     "compression": "catalog:",
     "cookie-parser": "catalog:",

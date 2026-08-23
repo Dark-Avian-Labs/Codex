@@ -12,13 +12,13 @@ Codex authenticates users with Clerk and uses Express sessions (SQLite) for CSRF
 
 ## Where to start
 
-| Concern       | Path                                                                              |
-| ------------- | --------------------------------------------------------------------------------- |
-| Middleware    | `packages/core/src/middleware/auth.ts`                                            |
-| Clerk helpers | `packages/core/src/auth/clerk.ts`                                                 |
-| Auth routes   | `server/routes/auth.ts`                                                           |
-| Session DB    | `packages/core/src/db/sessionSchema.ts`, extended in `server/db/sessionSchema.ts` |
-| CSRF compare  | `server/http/timingSafeEqual.ts` (timing-safe token check around csrf-sync)       |
+| Concern       | Path                                                                        |
+| ------------- | --------------------------------------------------------------------------- |
+| Middleware    | `packages/core/src/middleware/auth.ts`                                      |
+| Clerk helpers | `packages/core/src/auth/clerk.ts`                                           |
+| Auth routes   | `server/routes/auth.ts`                                                     |
+| Session DB    | `@codex/core` schema + vendored `server/db/sqliteSessionStore.ts`           |
+| CSRF compare  | `server/http/timingSafeEqual.ts` (timing-safe token check around csrf-sync) |
 
 ## Behavior
 
@@ -29,6 +29,7 @@ Codex authenticates users with Clerk and uses Express sessions (SQLite) for CSRF
 5. Client uses `@clerk/react` for sign-in/up and profile flows.
 6. Domain-wide session cookie + `ALLOWED_APP_ORIGINS` enable sibling-app trust on the same apex (see environment config).
 7. Authenticated `/api` responses set `Cache-Control: no-store`.
+8. `POST /logout` clears the session cookie with matching `domain: COOKIE_DOMAIN` (plus path / httpOnly / secure / sameSite).
 
 ## What to watch out for
 

@@ -80,11 +80,13 @@ vi.mock('@codex/game-wor', () => ({
 vi.mock('../server/epic7DbState.js', () => ({
   refreshEpic7DbAvailability: async () => {},
   isEpic7DbAvailable: () => dbMocks.epic7Ok,
+  ensureEpic7DbAvailable: () => dbMocks.epic7Ok,
 }));
 
 vi.mock('../server/worDbState.js', () => ({
   refreshWorDbAvailability: async () => {},
   isWorDbAvailable: () => dbMocks.worOk,
+  ensureWorDbAvailable: () => dbMocks.worOk,
 }));
 
 const armoryAccessMock = vi.hoisted(() => vi.fn(async () => {}));

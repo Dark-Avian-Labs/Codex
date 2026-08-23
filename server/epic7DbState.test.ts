@@ -33,6 +33,15 @@ describe('epic7DbState', () => {
     expect(isEpic7DbAvailable()).toBe(false);
   });
 
+  it('ensureEpic7DbAvailable picks up a file created after a false cache', async () => {
+    const { ensureEpic7DbAvailable, isEpic7DbAvailable } = await import('./epic7DbState.js');
+    expect(ensureEpic7DbAvailable()).toBe(false);
+    expect(isEpic7DbAvailable()).toBe(false);
+    await fs.writeFile(dbPath, '');
+    expect(ensureEpic7DbAvailable()).toBe(true);
+    expect(isEpic7DbAvailable()).toBe(true);
+  });
+
   it('deduplicates concurrent refresh calls', async () => {
     const accessSpy = vi.spyOn(fs, 'access').mockResolvedValue(undefined);
     await fs.writeFile(dbPath, '');

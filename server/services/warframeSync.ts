@@ -143,6 +143,7 @@ export type WarframeMarketLinkSyncSummary =
 
 type CleanupCandidate = {
   clerkUserId: string;
+  username: string | null;
   worksheet: WorksheetName;
   rowId: number;
   itemName: string;
@@ -718,6 +719,7 @@ function cleanupDuplicateVariantRows(params: {
       if (row.id === keep?.id) continue;
       const candidate: CleanupCandidate = {
         clerkUserId,
+        username: null,
         worksheet,
         rowId: row.id,
         itemName: row.name,
@@ -747,6 +749,19 @@ type RunSyncOptions = {
   initiatedByClerkUserId?: string;
   lockToken?: string;
 };
+
+function loadArmoryUsernameMap(armoryDb: Database.Database): Map<string, string> {
+  const map = new Map<string, string>();
+  try {
+    const rows = armoryDb
+      .prepare('SELECT clerk_user_id, username FROM armory_users WHERE deleted_at IS NULL')
+      .all() as Array<{ clerk_user_id: string; username: string }>;
+    for (const row of rows) {
+      map.set(row.clerk_user_id, row.username);
+    }
+  } catch {}
+  return map;
+}
 
 function catalogRowsHasActiveColumn(codexDb: Database.Database): boolean {
   const cols = codexDb.prepare(`PRAGMA table_info(catalog_rows)`).all() as {
@@ -1071,6 +1086,7 @@ export async function runWarframeSync(
     readonly: true,
     fileMustExist: true,
   });
+  armoryDb.pragma('busy_timeout = 5000');
   try {
     const { sourceByWorksheet, arcaneMaxLevelByCanonicalKey } = loadWorksheetSource(armoryDb);
     syncCatalogMasterFromSource(
@@ -1308,6 +1324,11 @@ export async function runWarframeSync(
       markedUnavailable: summary.markedUnavailable,
       mismatched: summary.mismatched,
     });
+
+    const usernameByClerkId = loadArmoryUsernameMap(armoryDb);
+    for (const row of [...cleanupDeletedRows, ...cleanupRequiresConfirmationRows]) {
+      row.username = usernameByClerkId.get(row.clerkUserId) ?? null;
+    }
 
     return {
       mode,

@@ -30,6 +30,7 @@ Codex’s quality gate is `pnpm run validate` (`run-quality-checks.mjs`). It sta
 - Windows agent Node 22 vs system Node 26 — wrong Node breaks `better-sqlite3`.
 - Do not treat skipped-native as green for SQLite regressions when bindings are actually required.
 - Auth/admin tests typically mock Clerk claims rather than calling live Clerk.
+- CI installs with `pnpm install --frozen-lockfile` before validate.
 
 ## Related
 
