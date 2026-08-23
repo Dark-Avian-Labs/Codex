@@ -206,8 +206,6 @@ html.ui-clear:not(.dark) {
   --radius-ui-sm: 3px;
 }
 
-/* Acrylic is Win11 variant D: blur + saturate, tint, exclusion, grain.
-   Do not add brightness(). That was the discarded first pass and kills chroma. */
 html.ui-acrylic {
   --radius-ui: 8px;
   --radius-ui-lg: 8px;
