@@ -35,6 +35,7 @@ Codex development depends on workspace package builds before server compile, DB 
 - Armory must exist before Warframe sync testing.
 - After switching Node versions, `pnpm rebuild better-sqlite3`.
 - Prefer exact `packageManager` version strings (no Corepack dist-tags).
+- CI/PR run `pnpm install --frozen-lockfile`; GitHub Actions are pinned to commit SHAs. The old `pnpm-install-fresh` action is gone.
 
 ## Related
 

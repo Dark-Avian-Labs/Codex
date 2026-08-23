@@ -3,7 +3,7 @@ type: Workflow
 title: WoR Catalog Import
 description: Fastidious catalog fetch, Fandom/Fastidious images, validation, and account sync for Watcher of Realms.
 tags: [wor, import, fastidious, fandom]
-timestamp: 2026-08-09T11:10:00Z
+timestamp: 2026-08-23T04:20:00Z
 ---
 
 # WoR Catalog Import
@@ -20,7 +20,7 @@ Watcher of Realms has no live game API. Codex builds catalog tables via a pipeli
 | Images             | `server/import/wor/fandomImages.ts`, `images.ts`                      |
 | Import lease       | `server/import/wor/importLease.ts` (DB `import_lease`)                |
 | Validate / upsert  | `validateCatalog.ts`, `catalogQueries.ts`                             |
-| Admin job / API    | `server/import/wor/adminImportJob.ts`, `server/routes/worAdminApi.ts` |
+| Admin job / API    | `server/import/wor/adminImportJob.ts`, `server/routes/worAdminApi.ts` (`/catalog/status`, `/catalog/bootstrap`, `/import/start`, `/import/status`, `/import/stream`) |
 | CLI                | `scripts/wor-import.mjs` (`pnpm run wor:import`)                      |
 | Live/offline paths | `server/import/wor/paths.ts`                                          |
 | Shared keys only   | `shared/worPipelineSteps.ts` (keep in sync with server labels)        |
@@ -45,14 +45,14 @@ Options: `forceImport`, `forceImages`, `forceSteps[]` (zod enum of step keys), f
 | Trigger      | Behavior                                                                                                                       |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------ |
 | Server boot  | If `catalogNeedsImport` (empty catalog), run `runWorStartupPipeline()` — failures log, do not crash process                    |
-| Admin UI/API | Status + SSE stream; acquires DB `import_lease` (plus in-process single-flight) so multi-instance deploys do not double-import |
+| Admin UI/API | `GET /api/wor/admin/catalog/status`; `POST /catalog/bootstrap` and `POST /import/start` return **202** `{ started, snapshot }` and call `startWorAdminImport()` (Armory-style bootstrap; `/import/start` accepts `forceImport` / `forceImages` / `forceSteps`); `GET /import/status` + `GET /import/stream` (SSE). Acquires DB `import_lease` (plus in-process single-flight) so multi-instance deploys do not double-import |
 | CLI          | Built `dist` required; `--force` / `--force-images`; live mode via `WOR_IMPORT_LIVE` unless offline/test                       |
 
 Offline/fixture: when live import is disabled, use cache under `scripts/data/wor-import-cache` or `scripts/data/wor-catalog-fixture.json`.
 
 ## Images / `/wor-images`
 
-Downloads allow only HTTPS hosts (Fastidious / known Fandom/wikia CDNs), reject redirects (`redirect: 'error'`), cap response size, and restrict saved extensions to image types (png/webp/jpeg/gif/svg) with magic-byte / SVG-root checks. Static `/wor-images` serves with safe image Content-Types and `nosniff`. Path containment under `WOR_IMAGES_DIR` (inside `DATA_DIR`) is enforced. Class/faction emblems from Fastidious are typically SVG and are stored/served as such (safe in `<img>` context).
+Downloads allow only HTTPS hosts (Fastidious / known Fandom/wikia CDNs), reject redirects (`redirect: 'error'`), cap response size, and restrict saved extensions to image types (png/webp/jpeg/gif/svg) with magic-byte / SVG-root checks. Static `/wor-images` serves with safe image Content-Types and `nosniff`. SVG responses also set `Content-Security-Policy: sandbox; script-src 'none'` (direct-open safety; `<img>` is unaffected). Path containment under `WOR_IMAGES_DIR` (inside `DATA_DIR`) is enforced. Class/faction emblems from Fastidious are typically SVG and are stored/served as such (safe in `<img>` context).
 
 ## Manual overrides (`scripts/data/wor-overrides.json`)
 
