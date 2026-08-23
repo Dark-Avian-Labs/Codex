@@ -12,13 +12,13 @@ Codex authenticates users with Clerk and uses Express sessions (SQLite) for CSRF
 
 ## Where to start
 
-| Concern       | Path                                                                              |
-| ------------- | --------------------------------------------------------------------------------- |
-| Middleware    | `packages/core/src/middleware/auth.ts`                                            |
-| Clerk helpers | `packages/core/src/auth/clerk.ts`                                                 |
-| Auth routes   | `server/routes/auth.ts`                                                           |
-| Session DB    | `@codex/core` schema + vendored `server/db/sqliteSessionStore.ts` |
-| CSRF compare  | `server/http/timingSafeEqual.ts` (timing-safe token check around csrf-sync)       |
+| Concern       | Path                                                                        |
+| ------------- | --------------------------------------------------------------------------- |
+| Middleware    | `packages/core/src/middleware/auth.ts`                                      |
+| Clerk helpers | `packages/core/src/auth/clerk.ts`                                           |
+| Auth routes   | `server/routes/auth.ts`                                                     |
+| Session DB    | `@codex/core` schema + vendored `server/db/sqliteSessionStore.ts`           |
+| CSRF compare  | `server/http/timingSafeEqual.ts` (timing-safe token check around csrf-sync) |
 
 ## Behavior
 

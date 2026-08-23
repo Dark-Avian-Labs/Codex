@@ -24,12 +24,12 @@ Codex is a pnpm workspace. Shared auth/session code lives in `@codex/core`; each
 
 ## Packages
 
-| Package                | Role                                                                |
-| ---------------------- | ------------------------------------------------------------------- |
+| Package                | Role                                                                        |
+| ---------------------- | --------------------------------------------------------------------------- |
 | `@codex/core`          | Clerk helpers, session DB open/schema, middleware, shared validation/logger |
-| `@codex/game-warframe` | Warframe worksheet schema, catalog master, domain rules             |
-| `@codex/game-epic7`    | Epic7 base + account schemas and validation                         |
-| `@codex/game-wor`      | WoR catalog + account schemas and validation                        |
+| `@codex/game-warframe` | Warframe worksheet schema, catalog master, domain rules                     |
+| `@codex/game-epic7`    | Epic7 base + account schemas and validation                                 |
+| `@codex/game-wor`      | WoR catalog + account schemas and validation                                |
 
 The root app owns HTTP routing (`server/routes/*`), the vendored Express session store (`server/db/sqliteSessionStore.ts`), Warframe sync services (`server/services/warframeSync*.ts`), WoR import (`server/import/wor/`), and the SPA under `client/features/`.
 

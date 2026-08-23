@@ -12,18 +12,18 @@ Watcher of Realms has no live game API. Codex builds catalog tables via a pipeli
 
 ## Where to start
 
-| Concern            | Path                                                                  |
-| ------------------ | --------------------------------------------------------------------- |
-| Step keys + labels | `server/import/wor/worPipelineSteps.ts`                               |
-| Orchestrator       | `server/import/wor/startupPipeline.ts`                                |
-| Fastidious         | `server/import/wor/fastidiousCatalog.ts`, `fastidiousClient.ts`       |
-| Images             | `server/import/wor/fandomImages.ts`, `images.ts`                      |
-| Import lease       | `server/import/wor/importLease.ts` (DB `import_lease`)                |
-| Validate / upsert  | `validateCatalog.ts`, `catalogQueries.ts`                             |
+| Concern            | Path                                                                                                                                                                 |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Step keys + labels | `server/import/wor/worPipelineSteps.ts`                                                                                                                              |
+| Orchestrator       | `server/import/wor/startupPipeline.ts`                                                                                                                               |
+| Fastidious         | `server/import/wor/fastidiousCatalog.ts`, `fastidiousClient.ts`                                                                                                      |
+| Images             | `server/import/wor/fandomImages.ts`, `images.ts`                                                                                                                     |
+| Import lease       | `server/import/wor/importLease.ts` (DB `import_lease`)                                                                                                               |
+| Validate / upsert  | `validateCatalog.ts`, `catalogQueries.ts`                                                                                                                            |
 | Admin job / API    | `server/import/wor/adminImportJob.ts`, `server/routes/worAdminApi.ts` (`/catalog/status`, `/catalog/bootstrap`, `/import/start`, `/import/status`, `/import/stream`) |
-| CLI                | `scripts/wor-import.mjs` (`pnpm run wor:import`)                      |
-| Live/offline paths | `server/import/wor/paths.ts`                                          |
-| Shared keys only   | `shared/worPipelineSteps.ts` (keep in sync with server labels)        |
+| CLI                | `scripts/wor-import.mjs` (`pnpm run wor:import`)                                                                                                                     |
+| Live/offline paths | `server/import/wor/paths.ts`                                                                                                                                         |
+| Shared keys only   | `shared/worPipelineSteps.ts` (keep in sync with server labels)                                                                                                       |
 
 ## Steps
 
@@ -42,11 +42,11 @@ Options: `forceImport`, `forceImages`, `forceSteps[]` (zod enum of step keys), f
 
 ## Entry points
 
-| Trigger      | Behavior                                                                                                                       |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------ |
-| Server boot  | If `catalogNeedsImport` (empty catalog), run `runWorStartupPipeline()` — failures log, do not crash process                    |
+| Trigger      | Behavior                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Server boot  | If `catalogNeedsImport` (empty catalog), run `runWorStartupPipeline()` — failures log, do not crash process                                                                                                                                                                                                                                                                                                                  |
 | Admin UI/API | `GET /api/wor/admin/catalog/status`; `POST /catalog/bootstrap` and `POST /import/start` return **202** `{ started, snapshot }` and call `startWorAdminImport()` (Armory-style bootstrap; `/import/start` accepts `forceImport` / `forceImages` / `forceSteps`); `GET /import/status` + `GET /import/stream` (SSE). Acquires DB `import_lease` (plus in-process single-flight) so multi-instance deploys do not double-import |
-| CLI          | Built `dist` required; `--force` / `--force-images`; live mode via `WOR_IMPORT_LIVE` unless offline/test                       |
+| CLI          | Built `dist` required; `--force` / `--force-images`; live mode via `WOR_IMPORT_LIVE` unless offline/test                                                                                                                                                                                                                                                                                                                     |
 
 Offline/fixture: when live import is disabled, use cache under `scripts/data/wor-import-cache` or `scripts/data/wor-catalog-fixture.json`.
 

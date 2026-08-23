@@ -12,13 +12,13 @@ Codex isolates state across several SQLite files. Game schemas ship inside works
 
 ## Database map
 
-| Env                | Absolute?             | Owns                                      | Schema / open                                |
-| ------------------ | --------------------- | ----------------------------------------- | -------------------------------------------- |
+| Env                | Absolute?             | Owns                                      | Schema / open                                            |
+| ------------------ | --------------------- | ----------------------------------------- | -------------------------------------------------------- |
 | `SESSION_DB_PATH`  | **Required absolute** | Sessions, CSRF, Warframe sync runs/leases | `@codex/core` schema + `server/db/sqliteSessionStore.ts` |
-| `ARMORY_DB_PATH`   | **Required absolute** | Read-only Armory catalog                  | Owned by Armory                              |
-| `WARFRAME_DB_PATH` | Relative OK           | Warframe worksheets/catalog               | `packages/games/warframe/src/db/schema.ts`   |
-| `EPIC7_DB_PATH`    | Relative OK           | Epic7 base + accounts                     | `packages/games/epic7/src/db/schema.ts`      |
-| `WOR_DB_PATH`      | Relative OK           | WoR catalog + accounts + `import_lease`   | `packages/games/wor/src/db/schema.ts`        |
+| `ARMORY_DB_PATH`   | **Required absolute** | Read-only Armory catalog                  | Owned by Armory                                          |
+| `WARFRAME_DB_PATH` | Relative OK           | Warframe worksheets/catalog               | `packages/games/warframe/src/db/schema.ts`               |
+| `EPIC7_DB_PATH`    | Relative OK           | Epic7 base + accounts                     | `packages/games/epic7/src/db/schema.ts`                  |
+| `WOR_DB_PATH`      | Relative OK           | WoR catalog + accounts + `import_lease`   | `packages/games/wor/src/db/schema.ts`                    |
 
 Optional: `WOR_IMAGES_DIR` for WoR portraits (default under `./data/`; must resolve inside `DATA_DIR`).
 
@@ -47,7 +47,7 @@ Warframe admin sync opens `ARMORY_DB_PATH` with `better-sqlite3` **readonly** an
 | Lease / heartbeat   | `warframeSyncJobs.ts` / `warframeSyncState.ts` — renew while running; assert owner before batches |
 | Preview             | `POST /api/warframe/admin/sync-preview` (CSRF-protected; not GET)                                 |
 | Force-release lease | `POST /api/warframe/admin/sync/release-lease` — refused while an in-process sync is still running |
-| Telemetry           | Sync results mask Clerk IDs (`****` + last 4) and include Armory `username` from `armory_users` |
+| Telemetry           | Sync results mask Clerk IDs (`****` + last 4) and include Armory `username` from `armory_users`   |
 
 ## What to watch out for
 
