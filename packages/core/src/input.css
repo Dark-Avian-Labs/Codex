@@ -2488,70 +2488,40 @@ html:not(.dark) {
 
 .stale-update-cta {
   position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 3rem;
-  padding: 0.75rem 1.25rem;
-  border: 1px solid color-mix(in oklab, var(--color-warning) 30%, transparent);
+  min-height: 2.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid color-mix(in oklab, var(--color-warning) 72%, black);
   border-radius: var(--radius-ui);
   cursor: pointer;
   font: inherit;
-  color: var(--color-warning);
-  background: color-mix(in oklab, var(--color-warning) 15%, transparent);
-  box-shadow: 0 0 18px color-mix(in oklab, var(--color-warning) 38%, transparent);
-  transform: translateY(0) scale(1);
-  animation: stale-update-cta-pulse 1.15s ease-in-out infinite;
+  color: oklch(18% 0.02 75);
+  background: var(--color-warning);
+  box-shadow: 0 1px 0 color-mix(in oklab, black 16%, transparent);
   transition:
-    transform 0.12s ease,
-    box-shadow 0.12s ease,
     filter 0.12s ease,
-    background-color 0.2s;
-}
-
-.stale-update-cta::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background: linear-gradient(
-    135deg,
-    transparent 0%,
-    transparent 42%,
-    color-mix(in oklab, white 55%, var(--color-warning)) 49%,
-    color-mix(in oklab, white 82%, var(--color-warning)) 50%,
-    color-mix(in oklab, white 55%, var(--color-warning)) 51%,
-    transparent 58%,
-    transparent 100%
-  );
-  transform: translate(-120%, -120%);
-  animation: stale-update-cta-shine 2.2s linear infinite;
-  pointer-events: none;
+    transform 0.12s ease;
 }
 
 .stale-update-cta__label {
-  position: relative;
-  z-index: 1;
   color: inherit;
-  font-size: 0.9375rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
   line-height: 1.1;
   text-transform: uppercase;
-  text-shadow: 0 0 10px color-mix(in oklab, var(--color-warning) 32%, transparent);
+  white-space: nowrap;
 }
 
 .stale-update-cta:hover {
-  animation-play-state: paused;
-  background: color-mix(in oklab, var(--color-warning) 25%, transparent);
-  box-shadow: 0 0 24px color-mix(in oklab, var(--color-warning) 52%, transparent);
+  filter: brightness(1.06);
 }
 
 .stale-update-cta:active {
-  background: color-mix(in oklab, var(--color-warning) 30%, transparent);
-  box-shadow: 0 0 14px color-mix(in oklab, var(--color-warning) 35%, transparent);
+  filter: brightness(0.94);
+  transform: translateY(1px);
 }
 
 .stale-update-cta:focus-visible {
@@ -2595,31 +2565,6 @@ html.ui-clear .select-dropdown-menu {
   }
   100% {
     transform: translate(-50%, -50%) translate(40%, 40%);
-  }
-}
-
-@keyframes stale-update-cta-pulse {
-  0%,
-  100% {
-    transform: translateY(0) scale(1);
-    filter: brightness(1);
-  }
-  50% {
-    transform: translateY(-1px) scale(1.035);
-    filter: brightness(1.08);
-  }
-}
-
-@keyframes stale-update-cta-shine {
-  0%,
-  18% {
-    transform: translate(-120%, -120%);
-  }
-  36% {
-    transform: translate(120%, 120%);
-  }
-  100% {
-    transform: translate(120%, 120%);
   }
 }
 

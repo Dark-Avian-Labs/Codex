@@ -17,22 +17,19 @@ export function StaleClientUpdateBanner({ appVersion }: StaleClientUpdateBannerP
       role="status"
       aria-live="polite"
     >
-      <div className="stale-update-banner pointer-events-auto ml-auto max-w-sm rounded-2xl border border-[var(--color-glass-border)] bg-[var(--color-glass)] p-4 backdrop-blur-xl backdrop-saturate-150">
-        <h2 className="text-foreground text-base font-semibold tracking-tight">
-          Client out of date
-        </h2>
-        <p className="text-muted mt-1.5 text-sm leading-snug">
-          Please refresh to get the latest version.
-        </p>
+      <div className="stale-update-banner pointer-events-auto ml-auto flex w-fit max-w-full items-center gap-3 rounded-2xl border border-[var(--color-glass-border)] bg-[var(--color-glass)] p-2 pr-4 backdrop-blur-xl backdrop-saturate-150">
         <button
           type="button"
-          className="stale-update-cta mt-4 w-full"
+          className="stale-update-cta shrink-0"
           onClick={() => {
             window.location.reload();
           }}
         >
-          <span className="stale-update-cta__label">Refresh now!</span>
+          <span className="stale-update-cta__label">Refresh</span>
         </button>
+        <p className="text-foreground pr-1 text-sm font-medium tracking-tight">
+          Client out of date
+        </p>
       </div>
     </div>
   );

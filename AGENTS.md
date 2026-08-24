@@ -62,7 +62,7 @@ Armory and Codex mirror the same design tokens and component patterns manually (
 | Buttons             | `btn btn-accent`, `btn btn-danger`, `btn btn-cancel` (modal dismiss), `btn btn-secondary` (neutral actions)                                                        |
 | Modals              | Use `Modal` component; `className` includes `glass-modal-surface`; footers use `modal-actions`                                                                     |
 | Dropdowns           | `SelectDropdown` with `triggerClassName` / `placement` props; user-menu triggers use `user-menu-select-trigger`                                                    |
-| Stale client banner | Gold `stale-update-cta` button with `stale-update-cta__label` text "Refresh now!"                                                                                  |
+| Stale client banner | Gold `stale-update-cta` button with `stale-update-cta__label` text "Refresh", plus "Client out of date"                                                            |
 | Suspense fallback   | `LazySuspenseFallback` component                                                                                                                                   |
 | Toasts              | `.toast-pill` with optional `data-tone="success\|error\|warning"`                                                                                                  |
 | Form focus          | `.form-input:focus` and `.form-group input:focus` — accent border + soft glow (`box-shadow` ring)                                                                  |
