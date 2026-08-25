@@ -2,80 +2,54 @@
 
 ## Org standards
 
-Shared Dark Avian Labs engineering conventions (README shape, CI/PR runners, validate, release tracks, OpenWiki) live in AppBase [`docs/org-standards/`](../AppBase/docs/org-standards/). Prefer those docs when aligning workflows or quality gates.
+Shared Dark Avian Labs engineering conventions (README shape, CI/PR runners, validate, release tracks) live in AppBase [`docs/org-standards/`](../AppBase/docs/org-standards/). The design system (theme axes, glass contracts, UI primitives, Clerk appearance) lives in AppBase [`AGENTS.md`](../AppBase/AGENTS.md). There is no shared UI package: when you change layout, glass, buttons, modals, or dropdowns here, apply the same change in Armory.
 
-## Cursor Cloud specific instructions
+## Overview
 
-### Overview
+Codex is a table-based collection tracker for **Warframe**, **Epic Seven**, and **Watcher of Realms** (`wor`). Each game is its own workspace package under `packages/`. Do not force one UI pattern across games: Warframe is worksheets/cells; Epic Seven and WoR are account + catalog lists. There is no shared collection-table abstraction.
 
-Codex is a table-based game collection tracker (Warframe and Epic Seven). It is a pnpm workspace monorepo with packages under `packages/`. It uses Clerk for authentication and reads Armory's SQLite database for Warframe data sync.
+Warframe catalog rows sync from Armory's SQLite. Epic Seven and WoR have no live game API: Epic Seven uses curated `base_*` tables; WoR imports from Fastidious and Fandom.
 
-### Running the service
+Default listen port is **3001**. See `README.md` for scripts and env.
 
-See `README.md` for standard scripts (`pnpm run build`, `pnpm start`, `pnpm run validate`, etc.).
+## Build and databases
 
-To start in development mode after building (preferred when `DOTENV_PRIVATE_KEY_DEVELOPMENT` is available):
-
-```bash
-NODE_ENV=development pnpm dotenvx run -f .env.development -- node dist/server/index.js
-```
-
-Without the private key, use a plain `.env` instead:
+Workspace packages must be built before tests, `db:init`, or a server compile. `pnpm run build` does this; `pnpm run validate` does not. Include `@codex/game-wor` with core/warframe/epic7:
 
 ```bash
-NODE_ENV=development node --env-file=.env dist/server/index.js
+pnpm --filter @codex/core --filter @codex/game-warframe --filter @codex/game-epic7 --filter @codex/game-wor run --if-present build
 ```
 
-The server listens on port 3001 by default.
+`pnpm run db:init` applies Warframe, Epic Seven, and WoR schemas from built package `dist`. Server `onOpen` assumes tables already exist (WoR `onOpen` is validate + additive migrations only). Encrypted `.env.production` garbles `VITE_BASE_PATH` during `vite build`; rebuild the client with `npx vite build --mode devbuild`.
 
-### Key gotchas
+| File           | Env                                                | Notes                                                                                                                                                    |
+| -------------- | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Session        | `SESSION_DB_PATH`                                  | **Absolute.** Codex-owned. CSRF, Epic7/WoR active account, **and** Warframe sync runs/leases. Not Armory's session file.                                 |
+| Armory catalog | `ARMORY_DB_PATH`                                   | **Absolute, read-only.** Opened with `busy_timeout = 5000` because Armory may write the same WAL. `ensureDataDirs()` does not create this file's parent. |
+| Game DBs       | `WARFRAME_DB_PATH`, `EPIC7_DB_PATH`, `WOR_DB_PATH` | May be relative. Codex copies Armory catalog into the Warframe DB; it does not live-join Armory forever.                                                 |
 
-- **Node >= 26 and pnpm >= 11 required.** Use `nvm install 26` and `npm install -g pnpm@latest-11`. The `packageManager` field in `package.json` must stay an exact version (e.g. `pnpm@11.3.0`) — Corepack does not accept dist-tags like `latest-11`.
-- **Encrypted `.env.development` / `.env.production` files.** When `DOTENV_PRIVATE_KEY_DEVELOPMENT` is set as an env var, use dotenvx to decrypt at runtime: `NODE_ENV=development pnpm dotenvx run -f .env.development -- node dist/server/index.js`. Without the private key, create a plain `.env` from `.env.example` and run with `node --env-file=.env`.
-- **Workspace packages must be built before tests or main build.** Run `pnpm --filter @codex/core --filter @codex/game-warframe --filter @codex/game-epic7 run --if-present build` before `pnpm run validate`. The full `pnpm run build` command does this automatically, but `pnpm run validate` alone does not.
-- **`SESSION_DB_PATH` and `ARMORY_DB_PATH` must be absolute paths.** `SESSION_DB_PATH` is Codex-owned (`session.db` for CSRF / Epic7 session state). `ARMORY_DB_PATH` is the read-only Armory catalog. Example: `/var/www/applications/codex/data/session.db`.
-- **Game databases must be pre-created.** Run `pnpm run db:init` after building workspace packages (or apply schema SQL from `packages/games/warframe/src/db/schema.ts` and `packages/games/epic7/src/db/schema.ts` manually). The `onOpen` callbacks assume tables already exist.
-- **`pnpm run validate` runs runtime preflight first** (`scripts/runtime-preflight.mjs`): Node 26+, pnpm major from `packageManager`, and `better-sqlite3` native bindings.
-- **Vite build picks up encrypted `.env.production`** for `VITE_BASE_PATH`, producing garbled asset paths. Fix by rebuilding the client with: `npx vite build --mode devbuild`.
-- **Clerk keys are required in production.** Set `CLERK_SECRET_KEY` and `CLERK_PUBLISHABLE_KEY` (or `VITE_CLERK_PUBLISHABLE_KEY`). See `.env.example` for session-token metadata and admin role setup.
-- **Clerk middleware returns 500 on all routes with placeholder keys.** With `pk_test_placeholder` / `sk_test_placeholder`, the Clerk middleware throws on every request. The server still starts and listens correctly — auth-dependent endpoints just fail. This is expected in local dev without real Clerk keys.
-- **CI env template** at `.github/ci.env.development` provides a good reference for all required env vars.
-- **Tests:** `pnpm run validate` (build workspace packages first if needed; or `pnpm run test:coverage` for coverage). SQLite tests use `tests/helpers/sqliteTestHarness.ts`; CI fails if native bindings are missing. On Windows, Cursor agent shells prepend bundled Node 22 — `.cursor/hooks/prepend-system-node.ps1` rewrites Shell commands to prefer `C:\Program Files\nodejs`. After changing Node versions, run `pnpm rebuild better-sqlite3`.
+Do not point session and Armory paths at the same file, and do not reuse BudgetPlanner SQLite files. Sync yields between users; force-release of the sync lease is refused while an in-process sync is still running. Sync preview is `POST /api/warframe/admin/sync-preview` (CSRF), not GET.
 
-### Cloud VM-specific notes
+`/healthz` is liveness. `/readyz` checks session + game DBs + a readable `ARMORY_DB_PATH`.
 
-- **PATH override:** The Cloud VM has `/exec-daemon/node` (Node 22) ahead of nvm in PATH. Prepend nvm's Node 26 path: `export PATH="/home/ubuntu/.nvm/versions/node/v26.4.0/bin:$PATH"`.
-- **`/data` directory for tests:** Vitest resolves `PROJECT_ROOT` as `/` (because `server/config.ts` computes it relative to the TS source file). The `ensureDataDirs()` call tries to create `/data`. Run `sudo mkdir -p /data && sudo chmod 777 /data` before tests.
-- **Decrypt `.env.development`:** If `DOTENV_PRIVATE_KEY_DEVELOPMENT` is available as a secret, run `pnpm dotenvx decrypt -f .env.development`. Without the key, copy the CI plaintext template: `cp .github/ci.env.development .env.development` and append absolute DB paths.
-- **Clerk publishable key format (fallback only):** If using placeholder keys, must be `pk_test_<base64_of_fapi_host$>`. With decrypted `.env.development`, real keys are used automatically.
-- **Build order for dev server:** (1) `pnpm run build` (or build workspace packages + tsc), then (2) `npx vite build --mode devbuild` to avoid garbled asset paths from encrypted `.env.production`.
+## Warframe progress
 
-### UI consistency
+Advanced progress lives in `row_advanced_progress`, not `cell_values` (`PATCH …/advanced-progress`). Auto Orokin / auto Arcane force `true` when resolving display/persist state, overwriting a stored `false` for exalted and warframe auto-arcane cases. Non-subsumable Excalibur Umbra Helminth may only be `Unavailable`.
 
-Armory and Codex mirror the same design tokens and component patterns manually (no shared UI package). When changing layout, glass surfaces, buttons, modals, or dropdowns in one app, apply the same change in the other.
+Modular Weapons prefer Armory's `codex_modular_weapons` table. DE `codex_secret` / `exclude_from_codex` flags are stored in Armory; Codex does not filter on them.
 
-| Area                | Spec                                                                                                                                                               |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Layout max width    | `max-w-[2000px]` on header, main content wrapper, and footer                                                                                                       |
-| Glass surfaces      | `glass-surface` (panels/cards), `glass-modal-surface` (dialogs), `glass-shell` (auth shells)                                                                       |
-| Header nav          | `header-link` with `.active` modifier — 40px height, 1rem radius, accent tokens when active                                                                        |
-| Buttons             | `btn btn-accent`, `btn btn-danger`, `btn btn-cancel` (modal dismiss), `btn btn-secondary` (neutral actions)                                                        |
-| Modals              | Use `Modal` component; `className` includes `glass-modal-surface`; footers use `modal-actions`                                                                     |
-| Dropdowns           | `SelectDropdown` with `triggerClassName` / `placement` props; user-menu triggers use `user-menu-select-trigger`                                                    |
-| Stale client banner | Gold `stale-update-cta` button with `stale-update-cta__label` text "Refresh", plus "Client out of date"                                                            |
-| Suspense fallback   | `LazySuspenseFallback` component                                                                                                                                   |
-| Toasts              | `.toast-pill` with optional `data-tone="success\|error\|warning"`                                                                                                  |
-| Form focus          | `.form-input:focus` and `.form-group input:focus` — accent border + soft glow (`box-shadow` ring)                                                                  |
-| Theme keys          | `--color-accent`, `--color-glass-border`, `--color-glass`, `--radius-ui`, `--shadow-panel`; UI style via `html.ui-prism` / `ui-shadow` / `ui-clear` / `ui-acrylic` |
+## Watcher of Realms
 
-## OpenWiki
+Heroes have a primary `faction` plus optional `faction_secondary` (Fastidious dual-faction). Filters match either. Override patches run **before** portrait download so wiki-only (override-add) heroes still get images. Catalog upsert, deactivation, version bump, and account sync run in one transaction after downloads. Keep `shared/worPipelineSteps.ts` in sync with `server/import/wor/worPipelineSteps.ts`.
 
-This repository has documentation located in the /openwiki directory.
+If the WoR catalog is empty at boot, the startup pipeline runs; failures log and do **not** crash the process. Admin import returns **202** and uses a lease plus in-process single-flight.
 
-Start here:
+## Auth
 
-- [OpenWiki quickstart](openwiki/quickstart.md)
+Clerk keys are required in production (`apps.codex === 'admin'` for admin). Placeholder keys make the middleware throw 500 on every request; the server still listens. Leave keys empty in local dev if you do not have real ones. CI env template: `.github/ci.env.development`.
 
-OpenWiki includes repository overview, architecture notes, workflows, domain concepts, operations, integrations, testing guidance, and source maps.
+## Toolchain
 
-When working in this repository, read the OpenWiki quickstart first, then follow its links to the relevant architecture, workflow, domain, operation, and testing notes.
+Node **26+**, pnpm **11.x**, exact `packageManager`. Encrypted env files need `DOTENV_PRIVATE_KEY_*` or `.env.keys`. `pnpm run validate` runs runtime preflight first (`scripts/runtime-preflight.mjs`). SQLite tests use `tests/helpers/sqliteTestHarness.ts`.
+
+On Windows, Cursor agent shells may prepend bundled Node 22. After changing Node versions, run `pnpm rebuild better-sqlite3`.
