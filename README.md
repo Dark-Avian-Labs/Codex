@@ -96,23 +96,23 @@ Client `VITE_*` variables are listed in `.env.example`.
 
 ## Scripts
 
-| Script                  | Description                                                                        |
-| ----------------------- | ---------------------------------------------------------------------------------- |
-| `pnpm run validate`     | Runtime preflight (Node 26+, pnpm, SQLite native), format, lint, typecheck, tests. |
-| `pnpm run db:init`      | Initialize Warframe and Epic7 SQLite schemas (requires built game packages).       |
-| `pnpm run build`        | Build workspace packages, typecheck, compile server, and Vite client build.        |
-| `pnpm start`            | Run production server from `dist/`.                                                |
-| `pnpm run typecheck`    | Typecheck server and client.                                                       |
-| `pnpm run lint`         | Run Oxlint.                                                                        |
-| `pnpm run lint:fix`     | Run Oxlint with `--fix`.                                                           |
-| `pnpm run format`       | Run Oxfmt.                                                                         |
-| `pnpm run check-format` | Verify Oxfmt formatting.                                                           |
-| `pnpm run test`         | Run Vitest once.                                                                   |
-| `pnpm run test:watch`   | Run Vitest in watch mode.                                                          |
+| Script                  | Description                                                                                           |
+| ----------------------- | ----------------------------------------------------------------------------------------------------- |
+| `pnpm run validate`     | Runtime preflight (Node 26+, pnpm, SQLite native), format, lint, typecheck, tests.                    |
+| `pnpm run db:init`      | Initialize Warframe, Epic Seven, and Watcher of Realms SQLite schemas (requires built game packages). |
+| `pnpm run build`        | Build workspace packages, typecheck, compile server, and Vite client build.                           |
+| `pnpm start`            | Run production server from `dist/`.                                                                   |
+| `pnpm run typecheck`    | Typecheck server and client.                                                                          |
+| `pnpm run lint`         | Run Oxlint.                                                                                           |
+| `pnpm run lint:fix`     | Run Oxlint with `--fix`.                                                                              |
+| `pnpm run format`       | Run Oxfmt.                                                                                            |
+| `pnpm run check-format` | Verify Oxfmt formatting.                                                                              |
+| `pnpm run test`         | Run Vitest once.                                                                                      |
+| `pnpm run test:watch`   | Run Vitest in watch mode.                                                                             |
 
 ## Development
 
-Agent-oriented docs: [openwiki/quickstart.md](openwiki/quickstart.md). Org standards: AppBase `docs/org-standards/`.
+Design system: AppBase `AGENTS.md`. Org standards: AppBase `docs/org-standards/`.
 
 ## License
 
