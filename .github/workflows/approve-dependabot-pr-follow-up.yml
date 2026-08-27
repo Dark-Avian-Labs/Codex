@@ -22,6 +22,7 @@ jobs:
       - name: Approve waiting Codex PR Checks
         env:
           GH_TOKEN: ${{ secrets.CI_PAT }}
+          GH_REPO: ${{ github.repository }}
           BRANCH: ${{ github.event.workflow_run.head_branch }}
         shell: bash
         run: |
@@ -31,12 +32,18 @@ jobs:
             exit 1
           fi
 
+          waiting_ids() {
+            gh run list --workflow 'Codex PR Checks' --branch "$BRANCH" --event pull_request --limit 20 \
+              --json databaseId,status,conclusion \
+              --jq '.[] | select(.status == "waiting" or .conclusion == "action_required") | .databaseId'
+          }
+
           for _ in 1 2 3 4 5 6; do
-            ids="$(gh run list --workflow 'Codex PR Checks' --branch "$BRANCH" --event pull_request --status waiting --json databaseId --jq '.[].databaseId')"
+            ids="$(waiting_ids)"
             if [ -n "$ids" ]; then
               while IFS= read -r id; do
                 [ -z "$id" ] && continue
-                gh api --method POST "repos/${GITHUB_REPOSITORY}/actions/runs/${id}/approve"
+                gh api --method POST "repos/${GH_REPO}/actions/runs/${id}/approve"
               done <<< "$ids"
               exit 0
             fi
