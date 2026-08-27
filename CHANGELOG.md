@@ -275,3 +275,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.65.0** `chore` [#357](https://github.com/Dark-Avian-Labs/Codex/pull/357): feat/rarity hue ladder
 - **v1.66.0** `chore` [#358](https://github.com/Dark-Avian-Labs/Codex/pull/358): feat/png favicon
 - **v1.66.1** `chore` [#359](https://github.com/Dark-Avian-Labs/Codex/pull/359): fix/security audit
+- **v1.66.2** `ci(deps)` [#363](https://github.com/Dark-Avian-Labs/Codex/pull/363): bump iShark5060/actions-discord-status
