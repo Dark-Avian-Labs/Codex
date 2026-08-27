@@ -15,14 +15,67 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  repair-dependabot-lockfile:
+    if: >
+      github.event.pull_request.user.login == 'dependabot[bot]' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    outputs:
+      pushed: ${{ steps.commit.outputs.pushed }}
+
+    steps:
+      - name: Checkout PR branch
+        uses: useblacksmith/checkout@2d63ce5ba61677748c4e92f6eb578a8694226225 # v1.2.0
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Restore catalog specifiers in lockfile
+        id: commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm install --lockfile-only --no-frozen-lockfile
+
+          if git diff --quiet -- pnpm-lock.yaml; then
+            echo "pushed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- pnpm-lock.yaml
+          git commit -m "chore(deps): restore catalog specifiers in pnpm-lock.yaml"
+          git push origin "HEAD:${{ github.head_ref }}"
+          echo "pushed=true" >> "$GITHUB_OUTPUT"
+
   validate:
+    needs: [repair-dependabot-lockfile]
+    if: >
+      always() &&
+      !cancelled() &&
+      (
+        needs.repair-dependabot-lockfile.result == 'skipped' ||
+        (
+          needs.repair-dependabot-lockfile.result == 'success' &&
+          needs.repair-dependabot-lockfile.outputs.pushed != 'true'
+        )
+      )
     runs-on: blacksmith-8vcpu-ubuntu-2404
     timeout-minutes: 20
 
     steps:
-      # Actions are pinned to commit SHAs (tag in comment) so a retargeted or
-      # compromised tag cannot inject code into CI. Dependabot keeps the pins
-      # current.
       - name: Checkout code
         uses: useblacksmith/checkout@2d63ce5ba61677748c4e92f6eb578a8694226225 # v1.2.0
 
