@@ -7,8 +7,8 @@ allowBuilds:
   '@clerk/shared': true
   better-sqlite3: true
 catalog:
-  "@clerk/react": ^6.14.5
-  "@clerk/express": ^2.1.61
+  "@clerk/react": ^6.14.7
+  "@clerk/express": ^2.1.63
   "@dotenvx/dotenvx": ^2.21.0
   "@fontsource-variable/geist": ^5.3.0
   "@fontsource-variable/geist-mono": ^5.3.0
@@ -20,7 +20,7 @@ catalog:
   "@types/cookie-parser": ^1.4.10
   "@types/express": ^5.0.6
   "@types/express-session": ^1.19.0
-  "@types/node": ^26.2.0
+  "@types/node": ^26.3.0
   "@types/react": ^19.2.18
   "@types/react-dom": ^19.2.5
   "@vitejs/plugin-react": ^6.1.0
