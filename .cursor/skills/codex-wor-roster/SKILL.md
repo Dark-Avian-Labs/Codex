@@ -70,7 +70,7 @@ Do not hammer the API. There is a rate limit (~1200 requests / 15 minutes). Cach
 
 - **Hero `awakening`**: 0–5 (A0–A5). Max is `gauge_max.heroes`.
 - **Artifact `promotion`**: 0–5. Max is `gauge_max.artifacts`.
-- **Demon `level`**: 0–`max_level` (usually 5). `rarity: "captain"` is a red-star / captain demon.
+- **Demon `level`**: owned demons are 1–`max_level` (usually 5); 0 means unowned. `rarity: "captain"` is a red-star / captain demon.
 - **Hero `is_lord`**: red-star / lord hero.
 - **`faction_secondary`**: dual-faction; treat either faction as a match.
 - **`reference_tier`**: imported tier hint; may be null.

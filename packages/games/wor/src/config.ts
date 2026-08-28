@@ -19,6 +19,7 @@ export {
   HERO_AWAKENING_LABELS,
   HERO_AWAKENING_MAX,
   HERO_CLASSES,
+  DEMON_LEVEL_MIN,
   RARITY_STAR_COUNTS,
   rarityToStarRating,
 } from './constants.js';

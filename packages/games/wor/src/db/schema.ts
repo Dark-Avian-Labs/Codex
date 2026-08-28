@@ -2,6 +2,7 @@ import { createDbSingleton } from '@codex/core';
 import type Database from 'better-sqlite3';
 
 import { WOR_DB_PATH } from '../config.js';
+import { DEMON_LEVEL_MIN } from '../constants.js';
 
 export function ensureWorCatalogTables(db: Database.Database): void {
   db.exec(`
@@ -161,6 +162,18 @@ export function ensureWorAccountTables(db: Database.Database): void {
 
 function ensureWorAccountMigrations(db: Database.Database): void {
   ensureColumn(db, 'account_heroes', 'faction_secondary', 'faction_secondary TEXT');
+  repairOwnedDemonMinLevel(db);
+}
+
+function repairOwnedDemonMinLevel(db: Database.Database): void {
+  const table = db
+    .prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'account_demons'")
+    .get();
+  if (!table) return;
+  db.prepare('UPDATE account_demons SET gauge_level = ? WHERE owned = 1 AND gauge_level < ?').run(
+    DEMON_LEVEL_MIN,
+    DEMON_LEVEL_MIN,
+  );
 }
 
 function ensureWorImportLeaseMigrations(db: Database.Database): void {

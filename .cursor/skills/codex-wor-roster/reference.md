@@ -33,8 +33,8 @@ Hero UI filters also work on `/api/wor/heroes`: `?class=`, `?faction=`, `?rarity
 | PATCH  | `/api/wor/artifacts/:id/owned` | `{ "owned": 0 \| 1 }`            |
 | PATCH  | `/api/wor/artifacts/:id/gauge` | `{ "gauge_level": 0-5 }`         |
 | PATCH  | `/api/wor/demons/:id/owned`    | `{ "owned": 0 \| 1 }`            |
-| PATCH  | `/api/wor/demons/:id/gauge`    | `{ "gauge_level": 0-max_level }` |
+| PATCH  | `/api/wor/demons/:id/gauge`    | `{ "gauge_level": 1-max_level }` |
 
-Unowning a row also resets its gauge to 0. Do not create/rename/delete accounts unless the user asks.
+Unowning a row also resets its gauge to 0. Owning a demon sets `gauge_level` to 1 if it was still 0. Do not create/rename/delete accounts unless the user asks.
 
 Admin import (`/api/wor/admin/*`) is Codex-admin only. Do not call it.

@@ -12,6 +12,7 @@ import {
   HERO_AWAKENING_LABELS,
   HERO_AWAKENING_MAX,
   HERO_CLASSES,
+  DEMON_LEVEL_MIN,
 } from '@codex/game-wor/constants';
 import type { FactionKey, HeroClassKey } from '@codex/game-wor/constants';
 import {
@@ -112,6 +113,12 @@ function applyHideCompleted<T extends { owned: number }>(
 ): T[] {
   if (!hideCompleted || search.trim().length > 0) return rows;
   return rows.filter((row) => row.owned !== 1);
+}
+
+function gaugeAfterOwnedToggle(entity: WorTab, currentGauge: number, nextOwned: number): number {
+  if (nextOwned === 0) return 0;
+  if (entity === 'demons') return Math.max(currentGauge, DEMON_LEVEL_MIN);
+  return currentGauge;
 }
 
 function renderStars(count?: number, iconKey?: string): string | ReactNode {
@@ -748,7 +755,11 @@ export function WorPage() {
       const previousRow = sourceRef.current.find((row) => row.id === id);
       const nextRows = sourceRef.current.map((row) =>
         row.id === id
-          ? { ...row, owned: nextOwned, gauge_level: nextOwned === 0 ? 0 : row.gauge_level }
+          ? {
+              ...row,
+              owned: nextOwned,
+              gauge_level: gaugeAfterOwnedToggle(entity, row.gauge_level, nextOwned),
+            }
           : row,
       );
       sourceRef.current = nextRows;
@@ -1175,7 +1186,9 @@ export function WorPage() {
                       onCycleGauge={() => {
                         if (demon.owned !== 1) return;
                         const next =
-                          demon.gauge_level >= demon.max_level ? 0 : demon.gauge_level + 1;
+                          demon.gauge_level >= demon.max_level
+                            ? DEMON_LEVEL_MIN
+                            : demon.gauge_level + 1;
                         void patchGauge('demons', demon.id, next, 'demon_id').catch(
                           handleActionError,
                         );
