@@ -24,6 +24,14 @@ import {
   patchWorSession,
 } from '../session/worSessionBinding.js';
 import { ensureWorDbAvailable } from '../worDbState.js';
+import {
+  compactRosterArtifact,
+  compactRosterDemon,
+  compactRosterHero,
+  filterOwnedRows,
+  parseRosterInclude,
+  parseRosterOwnedFilter,
+} from './worRoster.js';
 
 export const worApiRouter = Router();
 
@@ -160,6 +168,68 @@ worApiRouter.get('/demons', (req, res) => {
     const demons = q.getDemons(db, accountId);
     const stats = q.getDemonStats(db, accountId);
     json(res, { demons, stats });
+  });
+});
+
+worApiRouter.get('/roster', (req, res) => {
+  runWithDb(res, (db) => {
+    const accountId = requireAccountId(db, req, res);
+    if (!accountId) return;
+    const ownedFilter = parseRosterOwnedFilter(req.query.owned);
+    const include = parseRosterInclude(req.query.include);
+    const classFilter = String(req.query.class ?? '').trim();
+    const factionFilter = String(req.query.faction ?? '').trim();
+    const rarityRaw = String(req.query.rarity ?? '').trim();
+    const rarityParsed = rarityRaw ? Number(rarityRaw) : null;
+    const rarityFilter =
+      rarityParsed != null && Number.isInteger(rarityParsed) ? rarityParsed : null;
+
+    const account = q
+      .getUserAccountsForApi(db, requireClerkUserId(req))
+      .find((row) => row.id === accountId);
+
+    const payload: {
+      account: { id: number; name: string };
+      stats: {
+        heroes: { total: number; owned: number; maxed: number };
+        artifacts: { total: number; owned: number; maxed: number };
+        demons: { total: number; owned: number; maxed: number };
+      };
+      heroes?: ReturnType<typeof compactRosterHero>[];
+      artifacts?: ReturnType<typeof compactRosterArtifact>[];
+      demons?: ReturnType<typeof compactRosterDemon>[];
+      gauge_max: { heroes: number; artifacts: number };
+    } = {
+      account: {
+        id: accountId,
+        name: account?.account_name ?? getWorSession(req).wor_account_name ?? '',
+      },
+      stats: {
+        heroes: q.getHeroStats(db, accountId),
+        artifacts: q.getArtifactStats(db, accountId),
+        demons: q.getDemonStats(db, accountId),
+      },
+      gauge_max: { heroes: HERO_AWAKENING_MAX, artifacts: ARTIFACT_PROMOTION_MAX },
+    };
+
+    if (include.has('heroes')) {
+      payload.heroes = filterOwnedRows(
+        q.getHeroes(db, accountId, classFilter, factionFilter, rarityFilter),
+        ownedFilter,
+      ).map(compactRosterHero);
+    }
+    if (include.has('artifacts')) {
+      payload.artifacts = filterOwnedRows(q.getArtifacts(db, accountId), ownedFilter).map(
+        compactRosterArtifact,
+      );
+    }
+    if (include.has('demons')) {
+      payload.demons = filterOwnedRows(q.getDemons(db, accountId), ownedFilter).map(
+        compactRosterDemon,
+      );
+    }
+
+    json(res, payload);
   });
 });
 
