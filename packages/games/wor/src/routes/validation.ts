@@ -1,6 +1,6 @@
 import { optionalPositiveInt, positiveInt, z } from '@codex/core/validation';
 
-import { ARTIFACT_PROMOTION_MAX, HERO_AWAKENING_MAX } from '../config.js';
+import { ARTIFACT_PROMOTION_MAX, DEMON_LEVEL_MIN, HERO_AWAKENING_MAX } from '../config.js';
 
 export const MAX_WOR_NAME_LENGTH = 255;
 export const MAX_WOR_ACCOUNT_NAME_LENGTH = 128;
@@ -35,7 +35,7 @@ export const updateArtifactGaugeSchema = z.object({
 
 export const updateDemonGaugeSchema = z.object({
   demon_id: positiveInt,
-  gauge_level: z.coerce.number().int().min(0).max(20),
+  gauge_level: z.coerce.number().int().min(DEMON_LEVEL_MIN).max(20),
 });
 
 export const switchAccountSchema = z.object({

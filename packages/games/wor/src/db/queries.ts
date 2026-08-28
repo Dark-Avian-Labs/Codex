@@ -2,10 +2,11 @@ import Database from 'better-sqlite3';
 
 import {
   ARTIFACT_PROMOTION_MAX,
+  DEMON_LEVEL_MIN,
+  FACTIONS,
   FILTER_STAR_RATINGS,
   HERO_AWAKENING_MAX,
   HERO_CLASSES,
-  FACTIONS,
 } from '../config.js';
 
 export interface GameAccount {
@@ -476,8 +477,14 @@ export function updateDemonOwned(
   const sql =
     owned === 0
       ? 'UPDATE account_demons SET owned = 0, gauge_level = 0 WHERE id = ? AND account_id = ?'
-      : 'UPDATE account_demons SET owned = 1 WHERE id = ? AND account_id = ?';
-  const r = db.prepare(sql).run(demonId, accountId);
+      : `UPDATE account_demons
+         SET owned = 1,
+             gauge_level = CASE WHEN gauge_level < ? THEN ? ELSE gauge_level END
+         WHERE id = ? AND account_id = ?`;
+  const r =
+    owned === 0
+      ? db.prepare(sql).run(demonId, accountId)
+      : db.prepare(sql).run(DEMON_LEVEL_MIN, DEMON_LEVEL_MIN, demonId, accountId);
   return r.changes > 0;
 }
 
@@ -521,7 +528,7 @@ export function updateDemonGauge(
   if (
     maxLevel === null ||
     !Number.isInteger(gaugeLevel) ||
-    gaugeLevel < 0 ||
+    gaugeLevel < DEMON_LEVEL_MIN ||
     gaugeLevel > maxLevel
   ) {
     return false;
