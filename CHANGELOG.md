@@ -280,3 +280,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.66.4** `ci(deps)` [#368](https://github.com/Dark-Avian-Labs/Codex/pull/368): bump useblacksmith/checkout in the github-actions group
 - **v1.67.0** `chore` [#369](https://github.com/Dark-Avian-Labs/Codex/pull/369): feat/wor agent roster
 - **v1.67.1** `chore` [#370](https://github.com/Dark-Avian-Labs/Codex/pull/370): fix/wor demon owned level 1
+- **v1.67.2** `chore` [#371](https://github.com/Dark-Avian-Labs/Codex/pull/371): fix/wor gauge btn size
