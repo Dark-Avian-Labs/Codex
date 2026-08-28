@@ -278,3 +278,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.66.2** `ci(deps)` [#363](https://github.com/Dark-Avian-Labs/Codex/pull/363): bump iShark5060/actions-discord-status
 - **v1.66.3** `chore` [#364](https://github.com/Dark-Avian-Labs/Codex/pull/364): dependabot/npm_and_yarn/production dependencies 0c02b9e1b5
 - **v1.66.4** `ci(deps)` [#368](https://github.com/Dark-Avian-Labs/Codex/pull/368): bump useblacksmith/checkout in the github-actions group
+- **v1.67.0** `chore` [#369](https://github.com/Dark-Avian-Labs/Codex/pull/369): feat/wor agent roster
