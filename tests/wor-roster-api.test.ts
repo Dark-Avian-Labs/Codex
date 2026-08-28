@@ -6,7 +6,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 
 import { createSchema as createWorSchema } from '../packages/games/wor/src/db/schema.js';
 import { describeWithSqlite } from './helpers/describeWithSqlite.js';
-import { createSessionAgent, testSessionOptions } from './helpers/testExpress.js';
+import { createSessionAgent } from './helpers/testExpress.js';
 
 const authState = vi.hoisted(() => ({
   userId: null as string | null,
@@ -42,7 +42,18 @@ import { worApiRouter } from '../server/routes/worApi.js';
 function createTestApp() {
   const app = express();
   app.use(express.json());
-  app.use(session(testSessionOptions()));
+  app.use(
+    session({
+      secret: 'test-secret',
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: true,
+      },
+    }),
+  );
   app.use('/api/wor', worApiRouter);
   return app;
 }
