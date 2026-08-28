@@ -44,6 +44,8 @@ Heroes have a primary `faction` plus optional `faction_secondary` (Fastidious du
 
 If the WoR catalog is empty at boot, the startup pipeline runs; failures log and do **not** crash the process. Admin import returns **202** and uses a lease plus in-process single-flight.
 
+Signed-in agents should read the collection from `GET /api/wor/roster` (Clerk session cookies, owned-only by default) instead of scraping the UI. Contract and fetch steps: `.cursor/skills/codex-wor-roster/SKILL.md`.
+
 ## Auth
 
 Clerk keys are required in production (`apps.codex === 'admin'` for admin). Placeholder keys make the middleware throw 500 on every request; the server still listens. Leave keys empty in local dev if you do not have real ones. CI env template: `.github/ci.env.development`.
