@@ -1913,9 +1913,14 @@ html:not(.dark) .invert-on-light {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    box-sizing: border-box;
+    min-width: 2.5rem;
+    min-height: 2.5rem;
     padding: 6px 12px;
     font-size: 16px;
+    line-height: 1;
     letter-spacing: 2px;
+    font-variant-numeric: tabular-nums;
     border-radius: 6px;
     border: 1px solid var(--color-glass-active);
     background: var(--color-glass);
