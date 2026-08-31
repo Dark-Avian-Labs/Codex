@@ -23,7 +23,7 @@ authRouter.get('/csrf', (req, res) => {
   });
 });
 
-authRouter.get('/me', requireAuthApi, (req, res) => {
+authRouter.get('/me', requireAuthApi, async (req, res) => {
   const state = getClerkAuthState(req);
   if (!state.authenticated || !state.userId) {
     res.status(401).json({
@@ -41,7 +41,7 @@ authRouter.get('/me', requireAuthApi, (req, res) => {
     };
     return { id, ...metadata };
   });
-  ensureSessionBoundToClerkUser(req, state.userId);
+  await ensureSessionBoundToClerkUser(req, state.userId);
   res.json({
     authenticated: true,
     userId: state.userId,

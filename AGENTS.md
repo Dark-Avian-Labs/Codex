@@ -48,7 +48,7 @@ Signed-in agents should read the collection from `GET /api/wor/roster` (Clerk se
 
 ## Auth
 
-Clerk keys are required in production (`apps.codex === 'admin'` for admin). Placeholder keys make the middleware throw 500 on every request; the server still listens. Leave keys empty in local dev if you do not have real ones. CI env template: `.github/ci.env.development`.
+Clerk keys are required in production (`apps.codex === 'admin'` for admin). Placeholder keys make the middleware throw 500 on every request; the server still listens. Leave keys empty in local dev if you do not have real ones. CI env template: `.github/ci.env.development`. CSRF tokens rotate when the Clerk user id on the express session changes (`server/session/bindClerkUserSession.ts`).
 
 ## Toolchain
 

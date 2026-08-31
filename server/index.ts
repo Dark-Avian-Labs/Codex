@@ -6,6 +6,7 @@ import {
   clerkMiddleware,
   closeSessionDb,
   createAppHelmet,
+  getClerkAuthState,
   getClerkAuthorizedParties,
   getSessionDb,
   log,
@@ -49,6 +50,7 @@ import { healthzHandler, readyzHandler } from './probes.js';
 import { apiRouter } from './routes/api.js';
 import { authRouter } from './routes/auth.js';
 import { waitForWarframeSyncIdle } from './services/warframeSyncState.js';
+import { bindClerkUserSessionMiddleware } from './session/bindClerkUserSession.js';
 import { refreshWorDbAvailability } from './worDbState.js';
 
 const STATUS_TEXT: Record<number, string> = {
@@ -330,6 +332,16 @@ app.use('/api', (_req, res, next) => {
   res.setHeader('Cache-Control', 'no-store');
   next();
 });
+
+app.use(
+  '/api',
+  bindClerkUserSessionMiddleware(
+    (req) => getClerkAuthState(req).userId,
+    (req) => {
+      (req as Request & { csrfToken?: (overwrite?: boolean) => string }).csrfToken?.(true);
+    },
+  ),
+);
 
 app.use('/api/auth', authRouter);
 

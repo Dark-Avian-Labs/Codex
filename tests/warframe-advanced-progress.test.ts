@@ -2,11 +2,24 @@ import {
   VALENCE_COMPLETE_THRESHOLD,
   VALENCE_PERCENT_MAX_STORED,
   VALENCE_PERCENT_MIN,
+  resolveCanonicalKey,
   warframeQueries,
 } from '@codex/game-warframe';
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-const { resolveAdvancedProgressState } = warframeQueries;
+import {
+  ensureWarframeCatalogMasterTable,
+  ensureWarframeCatalogMaxLevelColumn,
+} from '../packages/games/warframe/src/db/schema.js';
+import { describeWithSqlite } from './helpers/describeWithSqlite.js';
+import {
+  createTempDbDir,
+  createWarframeTestDb,
+  removeTempDbDir,
+  type WarframeTestDb,
+} from './helpers/sqliteTestHarness.js';
+
+const { resolveAdvancedProgressState, getRowAdvancedProgress, updateRowAdvancedProgress } = warframeQueries;
 
 function baseRow(overrides: Partial<Record<string, number | null>> = {}) {
   return {
@@ -138,5 +151,56 @@ describe('Warframe advanced progress', () => {
       });
       expect(state.normal.valence_percent).toBe(expected);
     });
+  });
+});
+
+describeWithSqlite('Warframe advanced-progress queries', () => {
+  let harness: WarframeTestDb;
+
+  beforeEach(() => {
+    const paths = createTempDbDir('wf-adv-progress-');
+    harness = createWarframeTestDb(paths.dbPath);
+    ensureWarframeCatalogMasterTable(harness.db);
+    ensureWarframeCatalogMaxLevelColumn(harness.db);
+  });
+
+  afterEach(() => {
+    harness.closeDb();
+    removeTempDbDir(harness.tmpDir);
+  });
+
+  it('loads cell values in one query and catalog max_level for a single item', () => {
+    const clerkUserId = 'user_test';
+    const worksheetId = Number(
+      harness.db
+        .prepare('INSERT INTO worksheets (clerk_user_id, name, display_order) VALUES (?, ?, ?)')
+        .run(clerkUserId, 'Arcanes', 0).lastInsertRowid,
+    );
+    const obtainedId = Number(
+      harness.db
+        .prepare('INSERT INTO columns (worksheet_id, name, display_order) VALUES (?, ?, ?)')
+        .run(worksheetId, 'Obtained', 0).lastInsertRowid,
+    );
+    const rowId = Number(
+      harness.db
+        .prepare('INSERT INTO rows (worksheet_id, item_name, display_order) VALUES (?, ?, ?)')
+        .run(worksheetId, 'Arcane Energize', 0).lastInsertRowid,
+    );
+    harness.db
+      .prepare('INSERT INTO cell_values (row_id, column_id, value) VALUES (?, ?, ?)')
+      .run(rowId, obtainedId, 'Obtained');
+    harness.db
+      .prepare(
+        `INSERT INTO catalog_rows (worksheet_name, canonical_key, item_name, max_level)
+         VALUES (?, ?, ?, ?)`,
+      )
+      .run('Arcanes', resolveCanonicalKey('Arcane Energize'), 'Arcane Energize', 5);
+
+    const loaded = getRowAdvancedProgress(harness.db, rowId, clerkUserId);
+    expect(loaded?.relevance.normal.max_level).toBe(5);
+
+    const updated = updateRowAdvancedProgress(harness.db, rowId, clerkUserId, { level: 3 });
+    expect(updated.normal.level).toBe(3);
+    expect(getRowAdvancedProgress(harness.db, rowId, clerkUserId)?.normal.level).toBe(3);
   });
 });

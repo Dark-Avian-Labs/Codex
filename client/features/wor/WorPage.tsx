@@ -1,469 +1,52 @@
 import {
   ARTIFACT_FILTER_STAR_RATINGS,
-  ARTIFACT_GAUGE_EMPTY,
-  ARTIFACT_GAUGE_FILLED,
   ARTIFACT_PROMOTION_MAX,
   CLASS_DISPLAY_NAMES,
+  DEMON_LEVEL_MIN,
   FACTION_DISPLAY_NAMES,
   FACTIONS,
   FILTER_STAR_RARITY_LABELS,
   FILTER_STAR_RATINGS,
-  GAUGE_COLORS,
-  HERO_AWAKENING_LABELS,
   HERO_AWAKENING_MAX,
   HERO_CLASSES,
-  DEMON_LEVEL_MIN,
 } from '@codex/game-wor/constants';
 import type { FactionKey, HeroClassKey } from '@codex/game-wor/constants';
-import {
-  memo,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type CSSProperties,
-  type ReactNode,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { HeaderSearch } from '../../components/Layout/HeaderSearch';
 import { useLayoutSlots } from '../../components/Layout/useLayoutSlots';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
+import { LoadErrorBanner } from '../../components/ui/LoadErrorBanner';
 import { MaterialSymbol } from '../../components/ui/MaterialSymbol';
 import { Modal } from '../../components/ui/Modal';
+import { Toast } from '../../components/ui/Toast';
+import { useAutoDismissMessage } from '../../hooks/useAutoDismissMessage';
+import { useTableScrollStyle } from '../../hooks/useTableScrollStyle';
 import { apiFetch } from '../../utils/api';
-
-type WorTab = 'heroes' | 'artifacts' | 'demons';
-
-type WorHero = {
-  id: number;
-  name: string;
-  class: string;
-  faction: string;
-  faction_secondary?: string | null;
-  star_rating?: number;
-  is_lord?: number;
-  is_regular?: number;
-  is_ancient?: number;
-  is_limited?: number;
-  owned: number;
-  gauge_level: number;
-  reference_tier?: string | null;
-  portrait_path?: string | null;
-};
-
-type WorArtifact = {
-  id: number;
-  name: string;
-  class?: string | null;
-  star_rating?: number;
-  owned: number;
-  gauge_level: number;
-  reference_tier?: string | null;
-  portrait_path?: string | null;
-  exclusive_hero_slug?: string | null;
-  exclusive_hero_name?: string | null;
-  exclusive_hero_portrait?: string | null;
-  is_universal?: number;
-};
-
-type WorDemon = {
-  id: number;
-  name: string;
-  rarity?: string;
-  star_rating?: number;
-  owned: number;
-  gauge_level: number;
-  max_level: number;
-  portrait_path?: string | null;
-};
-
-type WorAccount = {
-  id: number;
-  account_name: string;
-  is_active?: number;
-};
-
-type WorStats = { total: number; owned: number; maxed: number };
-
-const ICON_MODULES = import.meta.glob('../../../packages/games/wor/assets/*.png', {
-  eager: true,
-  import: 'default',
-}) as Record<string, string>;
-
-const ICONS: Record<string, string> = {};
-for (const [assetPath, src] of Object.entries(ICON_MODULES)) {
-  const file = assetPath.split('/').pop();
-  if (!file) continue;
-  ICONS[file.replace('.png', '')] = src;
-}
-
-const tableScrollStyle = { '--header-offset': '410px' } as CSSProperties;
-const HIDE_COMPLETED_STORAGE_KEY = 'codex-wor-hide-completed';
-
-function readHideCompletedPreference(): boolean {
-  try {
-    return localStorage.getItem(HIDE_COMPLETED_STORAGE_KEY) === '1';
-  } catch {
-    return false;
-  }
-}
-
-function applyHideCompleted<T extends { owned: number }>(
-  rows: T[],
-  search: string,
-  hideCompleted: boolean,
-): T[] {
-  if (!hideCompleted || search.trim().length > 0) return rows;
-  return rows.filter((row) => row.owned !== 1);
-}
-
-function gaugeAfterOwnedToggle(entity: WorTab, currentGauge: number, nextOwned: number): number {
-  if (nextOwned === 0) return 0;
-  if (entity === 'demons') return Math.max(currentGauge, DEMON_LEVEL_MIN);
-  return currentGauge;
-}
-
-function renderStars(count?: number, iconKey?: string): string | ReactNode {
-  if (!count || count <= 0) return '-';
-  const iconSrc = ICONS[iconKey ?? `star${count}`];
-  if (!iconSrc) return `${count}★`;
-  return (
-    <>
-      {Array.from({ length: count }).map((_, index) => (
-        <img
-          key={`${count}-${index}`}
-          src={iconSrc}
-          alt={`${count} stars`}
-          title={`${count} stars`}
-        />
-      ))}
-    </>
-  );
-}
-
-function renderGauge(level: number, max: number): string {
-  const filled = Math.max(0, Math.min(level, max));
-  return `${ARTIFACT_GAUGE_FILLED.repeat(filled)}${ARTIFACT_GAUGE_EMPTY.repeat(Math.max(0, max - filled))}`;
-}
-
-function ownedButtonClass(owned: number, interactive: boolean): string {
-  if (!interactive) {
-    return owned
-      ? 'status-btn helminth-btn yes cursor-default border-success/35 bg-success/10 text-success/80'
-      : 'status-btn helminth-btn unavailable';
-  }
-  return owned ? 'status-btn helminth-btn yes' : 'status-btn helminth-btn empty';
-}
-
-function ownedDisplay(owned: number): string {
-  return owned ? '\u2713' : '\u2014';
-}
-
-function isExclusiveArtifact(artifact: WorArtifact): boolean {
-  return artifact.is_universal === 0 || Boolean(artifact.exclusive_hero_slug);
-}
-
-function isRedStarHero(hero: WorHero): boolean {
-  return Boolean(hero.is_lord);
-}
-
-function isRedStarDemon(demon: WorDemon): boolean {
-  return demon.rarity === 'captain';
-}
-
-type SummonPoolBadge = 'regular' | 'ancient';
-
-function summonPoolBadge(hero: Pick<WorHero, 'is_regular' | 'is_ancient'>): SummonPoolBadge | null {
-  if (hero.is_regular) return 'regular';
-  if (hero.is_ancient) return 'ancient';
-  return null;
-}
-
-function portraitTitle(
-  name: string,
-  pool: SummonPoolBadge | null,
-  isLimited: boolean | undefined,
-): string {
-  const tags: string[] = [];
-  if (pool === 'regular') tags.push('Regular');
-  if (pool === 'ancient') tags.push('Ancient');
-  if (isLimited) tags.push('Limited');
-  return tags.length > 0 ? `${name} (${tags.join(', ')})` : name;
-}
-
-function WorPortrait({
-  portraitPath,
-  name,
-  summonPool,
-  isLimited,
-}: {
-  portraitPath?: string | null;
-  name: string;
-  summonPool?: SummonPoolBadge | null;
-  isLimited?: boolean;
-}) {
-  const poolLabel =
-    summonPool === 'regular' ? 'Regular pool' : summonPool === 'ancient' ? 'Ancient pool' : null;
-  return (
-    <span className="wor-portrait">
-      {portraitPath ? (
-        <img
-          src={portraitPath}
-          alt=""
-          width={32}
-          height={32}
-          loading="lazy"
-          title={portraitTitle(name, summonPool ?? null, isLimited)}
-        />
-      ) : (
-        <span className="wor-portrait-placeholder" aria-hidden="true" />
-      )}
-      {summonPool && poolLabel ? (
-        <span
-          className={`wor-pool-badge wor-pool-badge--${summonPool}`}
-          title={poolLabel}
-          role="img"
-          aria-label={poolLabel}
-        />
-      ) : null}
-      {isLimited ? (
-        <span className="wor-limited-badge" title="Limited" role="img" aria-label="Limited">
-          <MaterialSymbol name="timelapse" filled className="wor-limited-badge__icon" />
-        </span>
-      ) : null}
-    </span>
-  );
-}
-
-function worClassIconUrls(classKey: HeroClassKey): { primary: string; fallback: string } {
-  if (classKey === 'tactician') {
-    const path = '/wor-images/icons/classes/tactician.png';
-    return { primary: path, fallback: path };
-  }
-  return {
-    primary: `/wor-images/icons/classes/${classKey}.svg`,
-    fallback: `/wor-images/icons/classes/${classKey}.png`,
-  };
-}
-
-function worFactionIconUrls(factionKey: FactionKey): { primary: string; fallback: string } {
-  return {
-    primary: `/wor-images/icons/factions/${factionKey}.svg`,
-    fallback: `/wor-images/icons/factions/${factionKey}.png`,
-  };
-}
-
-function WorIconWithFallback({
-  primarySrc,
-  fallbackSrc,
-  alt,
-  className,
-  size = 28,
-}: {
-  primarySrc: string;
-  fallbackSrc: string;
-  alt: string;
-  className?: string;
-  size?: number;
-}) {
-  const [src, setSrc] = useState(primarySrc);
-  const [failed, setFailed] = useState(false);
-  useEffect(() => {
-    setSrc(primarySrc);
-    setFailed(false);
-  }, [primarySrc]);
-  if (failed) {
-    return (
-      <span
-        className={className}
-        title={alt}
-        aria-label={alt}
-        style={{ display: 'block', width: size, height: size }}
-      />
-    );
-  }
-  return (
-    <img
-      className={className}
-      src={src}
-      alt={alt}
-      title={alt}
-      width={size}
-      height={size}
-      onError={() => {
-        if (src !== fallbackSrc) {
-          setSrc(fallbackSrc);
-          return;
-        }
-        setFailed(true);
-      }}
-    />
-  );
-}
-
-function WorClassIcon({ classKey }: { classKey: string }) {
-  const key = classKey as HeroClassKey;
-  const label = CLASS_DISPLAY_NAMES[key] ?? classKey;
-  if (!(HERO_CLASSES as readonly string[]).includes(key)) {
-    return <span className="text-muted">—</span>;
-  }
-  const urls = worClassIconUrls(key);
-  return (
-    <WorIconWithFallback
-      className="invert-on-light"
-      primarySrc={urls.primary}
-      fallbackSrc={urls.fallback}
-      alt={label}
-    />
-  );
-}
-
-function WorFactionIcon({ factionKey }: { factionKey: string }) {
-  const key = factionKey as FactionKey;
-  const label = FACTION_DISPLAY_NAMES[key] ?? factionKey;
-  if (key === 'unaffiliated') {
-    return (
-      <MaterialSymbol
-        name="person_off"
-        title={label}
-        className="text-muted"
-        style={{ fontSize: 28 }}
-      />
-    );
-  }
-  if (!(FACTIONS as readonly string[]).includes(key)) {
-    return <span className="text-muted">—</span>;
-  }
-  const urls = worFactionIconUrls(key);
-  return <WorIconWithFallback primarySrc={urls.primary} fallbackSrc={urls.fallback} alt={label} />;
-}
-
-function WorFactionIcons({ primary, secondary }: { primary: string; secondary?: string | null }) {
-  if (!secondary || secondary === primary) {
-    return <WorFactionIcon factionKey={primary} />;
-  }
-  return (
-    <span className="wor-faction-icons">
-      <WorFactionIcon factionKey={primary} />
-      <WorFactionIcon factionKey={secondary} />
-    </span>
-  );
-}
-
-function WorArtifactUserCell({
-  classKey,
-  exclusiveHeroName,
-  exclusiveHeroPortrait,
-  isUniversal,
-}: {
-  classKey?: string | null;
-  exclusiveHeroName?: string | null;
-  exclusiveHeroPortrait?: string | null;
-  isUniversal?: number;
-}) {
-  const showHeroPortrait =
-    isUniversal === 0 && exclusiveHeroPortrait && exclusiveHeroPortrait.length > 0;
-  if (showHeroPortrait) {
-    const label = exclusiveHeroName ? `Exclusive to ${exclusiveHeroName}` : 'Hero exclusive';
-    return (
-      <img
-        src={exclusiveHeroPortrait}
-        alt={label}
-        title={label}
-        width={28}
-        height={28}
-        className="wor-artifact-hero-icon"
-        loading="lazy"
-      />
-    );
-  }
-  if (classKey) {
-    return <WorClassIcon classKey={classKey} />;
-  }
-  return <span className="text-muted">—</span>;
-}
-
-function gaugeLabel(tab: WorTab, level: number): string {
-  if (tab === 'heroes') return HERO_AWAKENING_LABELS[level] ?? `A${level}`;
-  if (tab === 'artifacts') return `${level}\u2605`;
-  return String(level);
-}
-
-interface WorRowProps {
-  tab: WorTab;
-  name: string;
-  portraitPath?: string | null;
-  summonPool?: SummonPoolBadge | null;
-  isLimited?: boolean;
-  owned: number;
-  gaugeLevel: number;
-  gaugeMax: number;
-  starRating?: number;
-  starIconKey?: string;
-  extraCells?: ReactNode;
-  onToggleOwned: () => void;
-  onCycleGauge: () => void;
-}
-
-const WorRow = memo(function WorRow({
-  tab,
-  name,
-  portraitPath,
-  summonPool,
-  isLimited,
-  owned,
-  gaugeLevel,
-  gaugeMax,
-  starRating,
-  starIconKey,
-  extraCells,
-  onToggleOwned,
-  onCycleGauge,
-}: WorRowProps) {
-  const gaugeDisabled = owned !== 1;
-  return (
-    <tr className={owned === 1 ? 'wor-completed-row' : undefined}>
-      <td className="wor-portrait-cell">
-        <WorPortrait
-          portraitPath={portraitPath}
-          name={name}
-          summonPool={summonPool}
-          isLimited={isLimited}
-        />
-      </td>
-      <td className="item-name">{name}</td>
-      {extraCells}
-      <td className="stars-cell">{renderStars(starRating, starIconKey)}</td>
-      <td className="status-cell">
-        <div className="wor-action-cell">
-          <button
-            type="button"
-            className={ownedButtonClass(owned, true)}
-            onClick={onToggleOwned}
-            aria-label={`Toggle owned for ${name}`}
-          >
-            {ownedDisplay(owned)}
-          </button>
-        </div>
-      </td>
-      <td className="level-cell">
-        <div className="wor-action-cell">
-          <button
-            type="button"
-            className="gauge-btn"
-            style={{ color: GAUGE_COLORS[gaugeLevel] ?? GAUGE_COLORS[0] }}
-            disabled={gaugeDisabled}
-            onClick={onCycleGauge}
-            aria-label={`Cycle progression for ${name}`}
-          >
-            {tab === 'artifacts' ? renderGauge(gaugeLevel, gaugeMax) : gaugeLabel(tab, gaugeLevel)}
-          </button>
-        </div>
-      </td>
-    </tr>
-  );
-});
+import {
+  HIDE_COMPLETED_STORAGE_KEY,
+  ICONS,
+  WorArtifactUserCell,
+  WorClassIcon,
+  WorFactionIcons,
+  WorIconWithFallback,
+  WorRow,
+  applyHideCompleted,
+  gaugeAfterOwnedToggle,
+  isExclusiveArtifact,
+  isRedStarDemon,
+  isRedStarHero,
+  readHideCompletedPreference,
+  summonPoolBadge,
+  worClassIconUrls,
+  worFactionIconUrls,
+  type WorAccount,
+  type WorArtifact,
+  type WorDemon,
+  type WorHero,
+  type WorStats,
+  type WorTab,
+} from './worPageSupport';
 
 export function WorPage() {
   const { setHeaderCenter, setHeaderActions } = useLayoutSlots();
@@ -482,7 +65,8 @@ export function WorPage() {
   const [currentAccountId, setCurrentAccountId] = useState<number | null>(null);
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [operationError, setOperationError] = useState<string | null>(null);
   const [accountModalOpen, setAccountModalOpen] = useState(false);
   const [accountNameDraft, setAccountNameDraft] = useState('');
   const [accountEditId, setAccountEditId] = useState<number | null>(null);
@@ -497,8 +81,13 @@ export function WorPage() {
   demonsRef.current = demons;
 
   const handleActionError = useCallback((err: unknown) => {
-    setError(err instanceof Error ? err.message : 'Request failed');
+    setOperationError(err instanceof Error ? err.message : 'Request failed');
   }, []);
+  const clearOperationError = useCallback(() => {
+    setOperationError(null);
+  }, []);
+  useAutoDismissMessage(operationError, clearOperationError);
+  const { tableScrollRef, tableScrollStyle } = useTableScrollStyle(410, tab);
 
   const currentAccount = useMemo(
     () => accounts.find((account) => account.id === currentAccountId) ?? null,
@@ -525,7 +114,7 @@ export function WorPage() {
 
   const loadTabData = useCallback(async () => {
     setLoading(true);
-    setError(null);
+    setLoadError(null);
     try {
       await loadAccounts();
       const params = new URLSearchParams();
@@ -549,7 +138,7 @@ export function WorPage() {
       if (tab === 'artifacts') setArtifacts(body.artifacts ?? []);
       if (tab === 'demons') setDemons(body.demons ?? []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load data');
+      setLoadError(err instanceof Error ? err.message : 'Failed to load data');
     } finally {
       setLoading(false);
     }
@@ -916,11 +505,10 @@ export function WorPage() {
 
   return (
     <section className="space-y-4">
-      {error ? (
-        <p className="text-danger text-sm" role="alert">
-          {error}
-        </p>
+      {loadError ? (
+        <LoadErrorBanner message={loadError} onRetry={() => void loadTabData()} />
       ) : null}
+      <Toast message={operationError} tone="error" onDismiss={clearOperationError} />
 
       <div className="tabs" role="tablist" aria-label="WoR collection tabs">
         {(['heroes', 'artifacts', 'demons'] as const).map((item) => (
@@ -1126,7 +714,11 @@ export function WorPage() {
         </div>
 
         <div className="table-container" aria-busy={loading}>
-          <div className={`table-scroll ${loading ? 'opacity-60' : ''}`} style={tableScrollStyle}>
+          <div
+            ref={tableScrollRef}
+            className={`table-scroll ${loading ? 'opacity-60' : ''}`}
+            style={tableScrollStyle}
+          >
             <table className="wor-table" style={{ tableLayout: 'fixed' }}>
               <thead>
                 <tr>

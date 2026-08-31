@@ -44,6 +44,7 @@ function createAuthApp() {
   app.get('/api/auth/__test/epic7-session', (req, res) => {
     const epic7 = getEpic7Session(req);
     res.json({
+      sessionID: req.sessionID ?? null,
       clerk_user_id: epic7.clerk_user_id ?? null,
       account_id: epic7.account_id ?? null,
       account_name: epic7.account_name ?? null,
@@ -65,18 +66,22 @@ describe('auth session routes', () => {
 
     await agent.get('/api/auth/me').expect(200);
     await agent.post('/api/auth/__test/epic7-session').send({ account_id: 42, account_name: 'Primary' }).expect(200);
-    await agent
-      .get('/api/auth/__test/epic7-session')
-      .expect(200)
-      .expect({ clerk_user_id: 'user_a', account_id: 42, account_name: 'Primary' });
+    const bound = await agent.get('/api/auth/__test/epic7-session').expect(200);
+    expect(bound.body).toMatchObject({
+      clerk_user_id: 'user_a',
+      account_id: 42,
+      account_name: 'Primary',
+    });
 
     const logoutRes = await agent.post('/api/auth/logout').expect(200).expect({ ok: true, next: '/' });
     expect(logoutRes.headers['set-cookie']).toBeDefined();
 
-    await agent
-      .get('/api/auth/__test/epic7-session')
-      .expect(200)
-      .expect({ clerk_user_id: null, account_id: null, account_name: null });
+    const loggedOut = await agent.get('/api/auth/__test/epic7-session').expect(200);
+    expect(loggedOut.body).toMatchObject({
+      clerk_user_id: null,
+      account_id: null,
+      account_name: null,
+    });
 
     await agent.get('/api/auth/me').expect(200);
   });
@@ -91,16 +96,22 @@ describe('auth session routes', () => {
       .post('/api/auth/__test/epic7-session')
       .send({ account_id: 99, account_name: 'Bound account' })
       .expect(200);
-    await agent
-      .get('/api/auth/__test/epic7-session')
-      .expect(200)
-      .expect({ clerk_user_id: 'user_a', account_id: 99, account_name: 'Bound account' });
+    const before = await agent.get('/api/auth/__test/epic7-session').expect(200);
+    expect(before.body).toMatchObject({
+      clerk_user_id: 'user_a',
+      account_id: 99,
+      account_name: 'Bound account',
+    });
+    expect(before.body.sessionID).toEqual(expect.any(String));
 
     authState.userId = 'user_b';
     await agent.get('/api/auth/me').expect(200);
-    await agent
-      .get('/api/auth/__test/epic7-session')
-      .expect(200)
-      .expect({ clerk_user_id: 'user_b', account_id: null, account_name: null });
+    const after = await agent.get('/api/auth/__test/epic7-session').expect(200);
+    expect(after.body.sessionID).not.toBe(before.body.sessionID);
+    expect(after.body).toMatchObject({
+      clerk_user_id: 'user_b',
+      account_id: null,
+      account_name: null,
+    });
   });
 });

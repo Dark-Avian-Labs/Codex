@@ -82,6 +82,21 @@ export function isWorImportRunning(): boolean {
   }
 }
 
+export function __resetWorAdminImportForTests(): void {
+  listeners.clear();
+  state = {
+    runId: 0,
+    running: false,
+    startedAt: null,
+    finishedAt: null,
+    lines: [],
+    summary: null,
+    error: null,
+  };
+  activeJobPromise = null;
+  activeLockToken = null;
+}
+
 function parseForceSteps(forceSteps: string[] | undefined): WorPipelineStepKey[] | undefined {
   if (!forceSteps?.length) return undefined;
   const allowed = new Set<string>(WOR_PIPELINE_STEPS);

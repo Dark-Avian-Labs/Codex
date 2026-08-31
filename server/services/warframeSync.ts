@@ -32,6 +32,12 @@ const WORKSHEET_NAMES = [
 
 type WorksheetName = (typeof WORKSHEET_NAMES)[number];
 
+function yieldToEventLoop(): Promise<void> {
+  return new Promise((resolve) => {
+    setImmediate(resolve);
+  });
+}
+
 const DISCARDED_ROWS = new Set([
   'Drifter',
   'Operator',
@@ -1132,7 +1138,7 @@ export async function runWarframeSync(
         renewOrThrowWarframeSyncLease(options.lockToken);
       }
 
-      const syncUser = (): void => {
+      const setupUser = () => {
         const sheetsByWorksheet = new Map<
           WorksheetName,
           { id: number; name: string; display_order: number }
@@ -1163,11 +1169,18 @@ export async function runWarframeSync(
           currentRowsByWorksheet,
           armoryDb,
         );
+        return { sheetsByWorksheet, sourceByWorksheetForUser };
+      };
 
-        const worksheetResults: WorksheetSyncResult[] = [];
-        for (const worksheet of WORKSHEET_NAMES) {
+      const { sheetsByWorksheet, sourceByWorksheetForUser } = options.execute
+        ? (codexDb.transaction(setupUser).immediate() as ReturnType<typeof setupUser>)
+        : setupUser();
+
+      const worksheetResults: WorksheetSyncResult[] = [];
+      for (const worksheet of WORKSHEET_NAMES) {
+        const syncWorksheet = (): void => {
           const sheet = sheetsByWorksheet.get(worksheet);
-          if (!sheet) continue;
+          if (!sheet) return;
           const catalogMarketLinks = options.execute
             ? catalogMarketLinksByWorksheet.get(worksheet)!
             : new Map<string, MarketHrefPair>();
@@ -1305,18 +1318,17 @@ export async function runWarframeSync(
           summary.deleted += deleted.length;
           summary.markedUnavailable += markedUnavailable.length;
           summary.mismatched += mismatched.length;
+        };
+
+        if (options.execute) {
+          codexDb.transaction(syncWorksheet).immediate();
+        } else {
+          syncWorksheet();
         }
-
-        users.push({ clerkUserId, worksheets: worksheetResults });
-      };
-
-      if (options.execute) {
-        codexDb.transaction(syncUser).immediate();
-      } else {
-        syncUser();
+        await yieldToEventLoop();
       }
 
-      await new Promise<void>((resolve) => setImmediate(resolve));
+      users.push({ clerkUserId, worksheets: worksheetResults });
     }
 
     log('info', 'Warframe sync finished', {

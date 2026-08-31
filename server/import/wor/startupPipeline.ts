@@ -109,6 +109,50 @@ function stepTag(step: WorPipelineStepKey): string {
   return WOR_PIPELINE_STEP_LABELS[step];
 }
 
+export function applyWorCatalogMutation(
+  db: Database.Database,
+  bundle: CatalogBundle | null,
+  onLog?: WorStartupPipelineOptions['onLog'],
+): void {
+  db.transaction(() => {
+    if (bundle) {
+      const heroCount = upsertCatalogHeroes(db, bundle.heroes);
+      emit(onLog, 'info', `Upserted ${heroCount} catalog heroes.`);
+      const artifactCount = upsertCatalogArtifacts(db, bundle.artifacts);
+      emit(onLog, 'info', `Upserted ${artifactCount} catalog artifacts.`);
+      const demonCount = upsertCatalogDemons(db, bundle.demons);
+      emit(onLog, 'info', `Upserted ${demonCount} catalog demons.`);
+
+      const deactivated = deactivateStaleCatalogEntries(db, bundle);
+      const deactivatedTotal = deactivated.heroes + deactivated.artifacts + deactivated.demons;
+      if (deactivatedTotal > 0) {
+        emit(
+          onLog,
+          'info',
+          `Deactivated stale catalog entries: ${deactivated.heroes} heroes, ${deactivated.artifacts} artifacts, ${deactivated.demons} demons.`,
+        );
+      }
+
+      bumpCatalogVersion(db);
+    } else {
+      emit(onLog, 'info', 'Skipping catalog upsert — no catalog bundle loaded.');
+    }
+
+    const pruned = worQueries.pruneInactiveCatalogAccountRows(db);
+    const prunedTotal = pruned.heroes + pruned.artifacts + pruned.demons;
+    if (prunedTotal > 0) {
+      emit(onLog, 'info', `Removed ${prunedTotal} account row(s) tied to unknown catalog entries.`);
+    }
+    worQueries.syncNewCatalogEntriesToAllAccounts(db);
+    const synced = worQueries.syncAccountCatalogMetadata(db);
+    emit(
+      onLog,
+      'info',
+      `[${stepTag('sync_accounts')}] Synced catalog metadata for ${synced.heroes} heroes, ${synced.artifacts} artifacts, ${synced.demons} demons across accounts.`,
+    );
+  }).immediate();
+}
+
 function readFixtureBundle(fixturePath: string): CatalogBundle {
   const raw = fs.readFileSync(fixturePath, 'utf8');
   return JSON.parse(raw) as CatalogBundle;
@@ -367,43 +411,7 @@ async function runWorStartupPipelineBody(
   }
 
   renewWorImportLease(db, lockToken);
-  db.transaction(() => {
-    if (bundle) {
-      const heroCount = upsertCatalogHeroes(db, bundle.heroes);
-      emit(onLog, 'info', `Upserted ${heroCount} catalog heroes.`);
-      const artifactCount = upsertCatalogArtifacts(db, bundle.artifacts);
-      emit(onLog, 'info', `Upserted ${artifactCount} catalog artifacts.`);
-      const demonCount = upsertCatalogDemons(db, bundle.demons);
-      emit(onLog, 'info', `Upserted ${demonCount} catalog demons.`);
-
-      const deactivated = deactivateStaleCatalogEntries(db, bundle);
-      const deactivatedTotal = deactivated.heroes + deactivated.artifacts + deactivated.demons;
-      if (deactivatedTotal > 0) {
-        emit(
-          onLog,
-          'info',
-          `Deactivated stale catalog entries: ${deactivated.heroes} heroes, ${deactivated.artifacts} artifacts, ${deactivated.demons} demons.`,
-        );
-      }
-
-      bumpCatalogVersion(db);
-    } else {
-      emit(onLog, 'info', 'Skipping catalog upsert — no catalog bundle loaded.');
-    }
-
-    const pruned = worQueries.pruneInactiveCatalogAccountRows(db);
-    const prunedTotal = pruned.heroes + pruned.artifacts + pruned.demons;
-    if (prunedTotal > 0) {
-      emit(onLog, 'info', `Removed ${prunedTotal} account row(s) tied to unknown catalog entries.`);
-    }
-    worQueries.syncNewCatalogEntriesToAllAccounts(db);
-    const synced = worQueries.syncAccountCatalogMetadata(db);
-    emit(
-      onLog,
-      'info',
-      `[${stepTag('sync_accounts')}] Synced catalog metadata for ${synced.heroes} heroes, ${synced.artifacts} artifacts, ${synced.demons} demons across accounts.`,
-    );
-  }).immediate();
+  applyWorCatalogMutation(db, bundle, onLog);
 
   if (pendingSourceHashes) {
     writeProcessedSourceHashes(pendingSourceHashes);
