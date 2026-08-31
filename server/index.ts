@@ -132,11 +132,6 @@ app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-app.get('/healthz', healthzHandler);
-app.get('/readyz', readyzHandler);
-
-app.use(clerkMiddleware({ authorizedParties: getClerkAuthorizedParties() }));
-
 const RATE_LIMIT_SKIP_PATHS = new Set([
   '/healthz',
   '/readyz',
@@ -176,6 +171,12 @@ function createRateLimiter(
     ...(options?.skip ? { skip: options.skip } : {}),
   });
 }
+
+const probeLimiter = createRateLimiter(BASELINE_RATE_LIMIT_MAX);
+app.get('/healthz', healthzHandler);
+app.get('/readyz', probeLimiter, readyzHandler);
+
+app.use(clerkMiddleware({ authorizedParties: getClerkAuthorizedParties() }));
 
 const baselineLimiter = createRateLimiter(BASELINE_RATE_LIMIT_MAX, {
   skip: (req) =>
