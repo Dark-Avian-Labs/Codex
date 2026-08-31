@@ -43,6 +43,9 @@ type WorHero = {
   faction_secondary?: string | null;
   star_rating?: number;
   is_lord?: number;
+  is_regular?: number;
+  is_ancient?: number;
+  is_limited?: number;
   owned: number;
   gauge_level: number;
   reference_tier?: string | null;
@@ -169,11 +172,68 @@ function isRedStarDemon(demon: WorDemon): boolean {
   return demon.rarity === 'captain';
 }
 
-function WorPortrait({ portraitPath, name }: { portraitPath?: string | null; name: string }) {
-  if (!portraitPath) {
-    return <span className="wor-portrait-placeholder" aria-hidden="true" />;
-  }
-  return <img src={portraitPath} alt="" width={32} height={32} loading="lazy" title={name} />;
+type SummonPoolBadge = 'regular' | 'ancient';
+
+function summonPoolBadge(hero: Pick<WorHero, 'is_regular' | 'is_ancient'>): SummonPoolBadge | null {
+  if (hero.is_regular) return 'regular';
+  if (hero.is_ancient) return 'ancient';
+  return null;
+}
+
+function portraitTitle(
+  name: string,
+  pool: SummonPoolBadge | null,
+  isLimited: boolean | undefined,
+): string {
+  const tags: string[] = [];
+  if (pool === 'regular') tags.push('Regular');
+  if (pool === 'ancient') tags.push('Ancient');
+  if (isLimited) tags.push('Limited');
+  return tags.length > 0 ? `${name} (${tags.join(', ')})` : name;
+}
+
+function WorPortrait({
+  portraitPath,
+  name,
+  summonPool,
+  isLimited,
+}: {
+  portraitPath?: string | null;
+  name: string;
+  summonPool?: SummonPoolBadge | null;
+  isLimited?: boolean;
+}) {
+  const poolLabel =
+    summonPool === 'regular' ? 'Regular pool' : summonPool === 'ancient' ? 'Ancient pool' : null;
+  return (
+    <span className="wor-portrait">
+      {portraitPath ? (
+        <img
+          src={portraitPath}
+          alt=""
+          width={32}
+          height={32}
+          loading="lazy"
+          title={portraitTitle(name, summonPool ?? null, isLimited)}
+        />
+      ) : (
+        <span className="wor-portrait-placeholder" aria-hidden="true" />
+      )}
+      {summonPool && poolLabel ? (
+        <span
+          className={`wor-pool-badge wor-pool-badge--${summonPool}`}
+          title={poolLabel}
+          role="img"
+          aria-label={poolLabel}
+        />
+      ) : null}
+      {isLimited ? (
+        <span className="wor-limited-badge" title="Limited" role="img" aria-label="Limited">
+          <MaterialSymbol name="timelapse" filled className="wor-limited-badge__icon" />
+        </span>
+      ) : null}
+    </span>
+  );
 }
 
 function worClassIconUrls(classKey: HeroClassKey): { primary: string; fallback: string } {
@@ -334,6 +394,8 @@ interface WorRowProps {
   tab: WorTab;
   name: string;
   portraitPath?: string | null;
+  summonPool?: SummonPoolBadge | null;
+  isLimited?: boolean;
   owned: number;
   gaugeLevel: number;
   gaugeMax: number;
@@ -348,6 +410,8 @@ const WorRow = memo(function WorRow({
   tab,
   name,
   portraitPath,
+  summonPool,
+  isLimited,
   owned,
   gaugeLevel,
   gaugeMax,
@@ -361,7 +425,12 @@ const WorRow = memo(function WorRow({
   return (
     <tr className={owned === 1 ? 'wor-completed-row' : undefined}>
       <td className="wor-portrait-cell">
-        <WorPortrait portraitPath={portraitPath} name={name} />
+        <WorPortrait
+          portraitPath={portraitPath}
+          name={name}
+          summonPool={summonPool}
+          isLimited={isLimited}
+        />
       </td>
       <td className="item-name">{name}</td>
       {extraCells}
@@ -1095,6 +1164,8 @@ export function WorPage() {
                       tab="heroes"
                       name={hero.name}
                       portraitPath={hero.portrait_path}
+                      summonPool={summonPoolBadge(hero)}
+                      isLimited={Boolean(hero.is_limited)}
                       owned={hero.owned}
                       gaugeLevel={hero.gauge_level}
                       gaugeMax={HERO_AWAKENING_MAX}

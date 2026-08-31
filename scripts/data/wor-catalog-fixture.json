@@ -7,7 +7,8 @@
       "faction": "watchguard",
       "rarity": "legendary",
       "display_order": 1,
-      "reference_tier": "S"
+      "reference_tier": "S",
+      "is_limited": 1
     },
     {
       "slug": "arwyn",

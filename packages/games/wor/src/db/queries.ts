@@ -29,6 +29,9 @@ export interface AccountHero {
   gauge_level: number;
   display_order: number;
   is_lord?: number;
+  is_regular?: number;
+  is_ancient?: number;
+  is_limited?: number;
   reference_tier?: string | null;
   portrait_path?: string | null;
 }
@@ -297,6 +300,9 @@ export function getHeroes(
            ah.rarity, ah.star_rating,
            ah.owned, ah.gauge_level, ah.display_order,
            COALESCE(ch.is_lord, 0) as is_lord,
+           COALESCE(ch.is_regular, 0) as is_regular,
+           COALESCE(ch.is_ancient, 0) as is_ancient,
+           COALESCE(ch.is_limited, 0) as is_limited,
            ch.reference_tier, ch.portrait_path
     FROM account_heroes ah
     LEFT JOIN catalog_heroes ch ON ch.slug = ah.catalog_hero_slug
