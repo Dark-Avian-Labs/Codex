@@ -285,3 +285,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.67.4** `ci(deps)` [#372](https://github.com/Dark-Avian-Labs/Codex/pull/372): bump useblacksmith/checkout in the github-actions group
 - **v1.67.5** `chore` [#374](https://github.com/Dark-Avian-Labs/Codex/pull/374): chore/deps material symbols rounded
 - **v1.68.0** `chore` [#375](https://github.com/Dark-Avian-Labs/Codex/pull/375): feat/wor summon pool badges
+- **v1.68.1** `chore` [#376](https://github.com/Dark-Avian-Labs/Codex/pull/376): audit/fable
