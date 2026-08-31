@@ -17,9 +17,13 @@ export function Toast({
       data-interactive={onDismiss ? '' : undefined}
       role="status"
       aria-live="polite"
-      onClick={onDismiss}
     >
-      {message}
+      <span>{message}</span>
+      {onDismiss ? (
+        <button type="button" className="toast-dismiss" aria-label="Dismiss" onClick={onDismiss}>
+          ×
+        </button>
+      ) : null}
     </div>
   );
 }

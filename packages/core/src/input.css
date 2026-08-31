@@ -506,7 +506,21 @@ html:not(.dark) .invert-on-light {
 
   .toast-pill[data-interactive] {
     pointer-events: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .toast-dismiss {
+    appearance: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
     cursor: pointer;
+    font: inherit;
+    line-height: 1;
   }
 
   .toast-pill[data-tone='success'] {

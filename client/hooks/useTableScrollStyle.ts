@@ -19,6 +19,7 @@ export function useTableScrollStyle(
     update();
     const observer = new ResizeObserver(update);
     observer.observe(document.documentElement);
+    observer.observe(el);
     window.addEventListener('resize', update);
     return () => {
       observer.disconnect();

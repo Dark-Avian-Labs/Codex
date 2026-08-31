@@ -67,3 +67,33 @@ export function renewWorImportLease(db: Database.Database, lockToken: string): b
     .run(LEASE_ROW_ID, lockToken);
   return updated.changes === 1;
 }
+
+export class WorImportLeaseLostError extends Error {
+  constructor(message = 'WoR import lease was lost; catalog writes aborted.') {
+    super(message);
+    this.name = 'WorImportLeaseLostError';
+  }
+}
+
+export type WorImportLeaseWatch = { lost: boolean };
+
+export function noteWorImportLeaseHeartbeat(
+  db: Database.Database,
+  lockToken: string,
+  watch: WorImportLeaseWatch,
+): void {
+  if (!renewWorImportLease(db, lockToken)) {
+    watch.lost = true;
+  }
+}
+
+export function requireWorImportLease(
+  db: Database.Database,
+  lockToken: string,
+  watch: WorImportLeaseWatch,
+): void {
+  if (watch.lost || !renewWorImportLease(db, lockToken)) {
+    watch.lost = true;
+    throw new WorImportLeaseLostError();
+  }
+}

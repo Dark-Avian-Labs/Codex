@@ -29,11 +29,11 @@ function readAsciiCanvasColors(): { fgA: string; fgB: string; fgMask: string } {
 }
 
 async function loadCascadiaMono(): Promise<void> {
-  await import('@fontsource-variable/cascadia-mono');
   try {
+    await import('@fontsource-variable/cascadia-mono');
     await document.fonts.load(`${DEFAULT_CASCADIA_TYPOGRAPHY.fontSizePx}px ${CASCADIA_FONT_STACK}`);
   } catch {
-    // Paint with the fallback stack if the webfont never resolves.
+    // ignore
   }
 }
 

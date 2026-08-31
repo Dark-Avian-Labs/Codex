@@ -22,9 +22,11 @@ import {
 } from './fandomImages.js';
 import { fetchFastidiousCatalog, type FastidiousImageRef } from './fastidiousCatalog.js';
 import {
+  noteWorImportLeaseHeartbeat,
   releaseWorImportLease,
-  renewWorImportLease,
+  requireWorImportLease,
   tryAcquireWorImportLease,
+  type WorImportLeaseWatch,
 } from './importLease.js';
 import { applyWorOverrides } from './overrides.js';
 import {
@@ -219,15 +221,16 @@ export async function runWorStartupPipeline(
     lockToken = acquired;
   }
 
+  const leaseWatch: WorImportLeaseWatch = { lost: false };
   const heartbeat = setInterval(
     () => {
-      renewWorImportLease(db, lockToken);
+      noteWorImportLeaseHeartbeat(db, lockToken, leaseWatch);
     },
     5 * 60 * 1000,
   );
   heartbeat.unref();
   try {
-    return await runWorStartupPipelineBody(db, options, onLog, lockToken);
+    return await runWorStartupPipelineBody(db, options, onLog, lockToken, leaseWatch);
   } finally {
     clearInterval(heartbeat);
     if (ownsLease) {
@@ -241,6 +244,7 @@ async function runWorStartupPipelineBody(
   options: WorStartupPipelineOptions,
   onLog: WorStartupPipelineOptions['onLog'],
   lockToken: string,
+  leaseWatch: WorImportLeaseWatch,
 ): Promise<WorImportSummary> {
   let bundle: CatalogBundle | null = null;
   let imageRefs: FastidiousImageRef | null = null;
@@ -254,7 +258,7 @@ async function runWorStartupPipelineBody(
   const currentHashes = computeCurrentSourceHashes(cacheDir);
   let pendingSourceHashes: ReturnType<typeof computeCurrentSourceHashes> | null = null;
 
-  renewWorImportLease(db, lockToken);
+  requireWorImportLease(db, lockToken, leaseWatch);
 
   if (shouldRunWorStep('schema', true, options)) {
     emit(onLog, 'info', `[${stepTag('schema')}] Ensuring WoR catalog tables…`);
@@ -410,10 +414,11 @@ async function runWorStartupPipelineBody(
     }
   }
 
-  renewWorImportLease(db, lockToken);
+  requireWorImportLease(db, lockToken, leaseWatch);
   applyWorCatalogMutation(db, bundle, onLog);
 
   if (pendingSourceHashes) {
+    requireWorImportLease(db, lockToken, leaseWatch);
     writeProcessedSourceHashes(pendingSourceHashes);
     updateSourceHashesInDb(db, pendingSourceHashes);
   }

@@ -9,6 +9,7 @@ import { useLayoutSlots } from '../../components/Layout/useLayoutSlots';
 import { LoadErrorBanner } from '../../components/ui/LoadErrorBanner';
 import { MaterialSymbol } from '../../components/ui/MaterialSymbol';
 import { Toast } from '../../components/ui/Toast';
+import { useAutoDismissMessage } from '../../hooks/useAutoDismissMessage';
 import { useTableScrollStyle } from '../../hooks/useTableScrollStyle';
 import { apiFetch } from '../../utils/api';
 import {
@@ -34,6 +35,10 @@ export function WarframePage() {
   const [showAllVariants, setShowAllVariants] = useState(false);
   const [exitingRows, setExitingRows] = useState<Record<number, ExitRowPhase>>({});
   const [operationError, setOperationError] = useState<string | null>(null);
+  const clearOperationError = useCallback(() => {
+    setOperationError(null);
+  }, []);
+  useAutoDismissMessage(operationError, clearOperationError);
 
   const applyInitialSettings = useCallback((settings: WarframeInitialSettings): void => {
     setHideCompleted(settings.hide_completed);
@@ -135,20 +140,6 @@ export function WarframePage() {
       stopHoldStep();
     };
   }, [clearAllExitTimers, stopHoldStep]);
-
-  useEffect(() => {
-    let timeoutId: number | null = null;
-    if (operationError) {
-      timeoutId = window.setTimeout(() => {
-        setOperationError(null);
-      }, 5000);
-    }
-    return () => {
-      if (timeoutId !== null) {
-        window.clearTimeout(timeoutId);
-      }
-    };
-  }, [operationError]);
 
   useEffect(() => {
     clearAllExitTimers();
@@ -677,7 +668,7 @@ export function WarframePage() {
 
   return (
     <section className="space-y-4">
-      <Toast message={operationError} tone="error" onDismiss={() => setOperationError(null)} />
+      <Toast message={operationError} tone="error" onDismiss={clearOperationError} />
       {loadError ? <LoadErrorBanner message={loadError} onRetry={handleRetry} /> : null}
       <div className="tabs" role="tablist" aria-label="Warframe categories">
         {worksheets.map((worksheet) => {

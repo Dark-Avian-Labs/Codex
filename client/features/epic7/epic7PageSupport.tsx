@@ -14,6 +14,7 @@ import type { ClassKey, ElementKey } from '@codex/game-epic7/constants';
 import { memo, useCallback, useEffect, useReducer, useRef, useState } from 'react';
 
 import { MaterialSymbol } from '../../components/ui/MaterialSymbol';
+import { useAutoDismissMessage } from '../../hooks/useAutoDismissMessage';
 import { apiFetch } from '../../utils/api';
 
 export type Epic7Hero = {
@@ -377,6 +378,10 @@ export function useEpic7Data() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [operationError, setOperationError] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const clearOperationError = useCallback(() => {
+    setOperationError(null);
+  }, []);
+  useAutoDismissMessage(operationError, clearOperationError);
 
   const beginUserActionRequest = useCallback((): AbortSignal => {
     abortControllerRef.current?.abort();
@@ -464,20 +469,6 @@ export function useEpic7Data() {
     },
     [],
   );
-
-  useEffect(() => {
-    let timeoutId: number | null = null;
-    if (operationError) {
-      timeoutId = window.setTimeout(() => {
-        setOperationError(null);
-      }, 5000);
-    }
-    return () => {
-      if (timeoutId !== null) {
-        window.clearTimeout(timeoutId);
-      }
-    };
-  }, [operationError]);
 
   useEffect(() => {
     const controller = new AbortController();
