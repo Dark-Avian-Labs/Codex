@@ -14,6 +14,9 @@ type HeroRow = OwnedRow & {
   star_rating: number;
   gauge_level: number;
   is_lord?: number;
+  is_regular?: number;
+  is_ancient?: number;
+  is_limited?: number;
   reference_tier?: string | null;
 };
 
@@ -89,6 +92,9 @@ export function compactRosterHero(hero: HeroRow) {
     rarity: hero.rarity,
     star_rating: hero.star_rating,
     is_lord: hero.is_lord === 1,
+    is_regular: hero.is_regular === 1,
+    is_ancient: hero.is_ancient === 1,
+    is_limited: hero.is_limited === 1,
     owned: hero.owned === 1,
     awakening: hero.gauge_level,
     reference_tier: hero.reference_tier ?? null,

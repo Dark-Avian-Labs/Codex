@@ -16,6 +16,9 @@ export function ensureWorCatalogTables(db: Database.Database): void {
       star_rating INTEGER NOT NULL,
       damage_type TEXT,
       is_lord INTEGER NOT NULL DEFAULT 0,
+      is_regular INTEGER NOT NULL DEFAULT 0,
+      is_ancient INTEGER NOT NULL DEFAULT 0,
+      is_limited INTEGER NOT NULL DEFAULT 0,
       source_flags TEXT,
       reference_tier TEXT,
       portrait_path TEXT,
@@ -77,6 +80,9 @@ function ensureColumn(db: Database.Database, table: string, column: string, ddl:
 function ensureWorCatalogMigrations(db: Database.Database): void {
   ensureColumn(db, 'catalog_artifacts', 'class', 'class TEXT');
   ensureColumn(db, 'catalog_heroes', 'faction_secondary', 'faction_secondary TEXT');
+  ensureColumn(db, 'catalog_heroes', 'is_regular', 'is_regular INTEGER NOT NULL DEFAULT 0');
+  ensureColumn(db, 'catalog_heroes', 'is_ancient', 'is_ancient INTEGER NOT NULL DEFAULT 0');
+  ensureColumn(db, 'catalog_heroes', 'is_limited', 'is_limited INTEGER NOT NULL DEFAULT 0');
 }
 
 export function ensureWorAccountTables(db: Database.Database): void {

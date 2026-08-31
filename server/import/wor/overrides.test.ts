@@ -33,6 +33,9 @@ function baseBundle(): CatalogBundle {
         rarity: 'legendary',
         damage_type: 'Magic',
         is_lord: 0,
+        is_regular: 1,
+        is_ancient: 0,
+        is_limited: 0,
         display_order: 0,
         active: 1,
       },
@@ -70,7 +73,7 @@ describe('applyWorOverrides', () => {
   it('patches existing heroes by slug', () => {
     const overridesPath = writeOverrides({
       heroes: {
-        idyl: { reference_tier: 'S', is_lord: 1 },
+        idyl: { reference_tier: 'S', is_lord: 1, is_limited: 1 },
       },
     });
     const result = applyWorOverrides(baseBundle(), overridesPath);
@@ -80,6 +83,7 @@ describe('applyWorOverrides', () => {
       name: 'Idyl',
       reference_tier: 'S',
       is_lord: 1,
+      is_limited: 1,
     });
   });
 
@@ -106,6 +110,9 @@ describe('applyWorOverrides', () => {
       rarity: 'epic',
       damage_type: 'Magic',
       is_lord: 0,
+      is_regular: 0,
+      is_ancient: 0,
+      is_limited: 0,
       reference_tier: null,
       portrait_path: null,
       display_order: 1,
@@ -122,5 +129,16 @@ describe('applyWorOverrides', () => {
     expect(() => applyWorOverrides(baseBundle(), overridesPath)).toThrow(
       /requires class \(hero is missing from Fastidious catalog\)/,
     );
+  });
+
+  it('skips patch-only hero overrides when the slug is not in the catalog', () => {
+    const overridesPath = writeOverrides({
+      heroes: {
+        'ezio-auditore': { is_ancient: 1 },
+      },
+    });
+    const result = applyWorOverrides(baseBundle(), overridesPath);
+    expect(result.heroes).toHaveLength(1);
+    expect(result.heroes[0]?.slug).toBe('idyl');
   });
 });

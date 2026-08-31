@@ -61,10 +61,10 @@ function createTestApp() {
 function seedCatalog(db: Database.Database): void {
   db.prepare(
     `INSERT INTO catalog_heroes (
-      slug, name, class, faction, faction_secondary, rarity, star_rating, is_lord, display_order, active
+      slug, name, class, faction, faction_secondary, rarity, star_rating, is_lord, is_regular, is_ancient, is_limited, display_order, active
     ) VALUES
-      ('lian', 'Lian', 'marksman', 'watchguard', null, 'legendary', 5, 0, 0, 1),
-      ('aja', 'Aja', 'mage', 'north_throne', null, 'legendary', 5, 0, 1, 1)`,
+      ('lian', 'Lian', 'marksman', 'watchguard', null, 'legendary', 5, 0, 1, 1, 0, 0, 1),
+      ('aja', 'Aja', 'mage', 'north_throne', null, 'legendary', 5, 0, 0, 1, 1, 1, 1)`,
   ).run();
   db.prepare(
     `INSERT INTO catalog_artifacts (
@@ -142,6 +142,9 @@ describeWithSqlite('WoR roster API', () => {
         owned: true,
         awakening: 3,
         is_lord: false,
+        is_regular: true,
+        is_ancient: true,
+        is_limited: false,
       }),
     ]);
     expect(res.body.artifacts).toEqual([
@@ -162,6 +165,11 @@ describeWithSqlite('WoR roster API', () => {
     const res = await createSessionAgent(createTestApp()).get('/api/wor/roster?owned=all');
     expect(res.status).toBe(200);
     expect(res.body.heroes.map((hero: { slug: string }) => hero.slug).sort()).toEqual(['aja', 'lian']);
+    expect(res.body.heroes.find((hero: { slug: string }) => hero.slug === 'aja')).toMatchObject({
+      is_regular: false,
+      is_ancient: true,
+      is_limited: true,
+    });
   });
 
   it('limits collections with include=', async () => {

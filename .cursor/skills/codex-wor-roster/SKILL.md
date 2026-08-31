@@ -72,6 +72,9 @@ Do not hammer the API. There is a rate limit (~1200 requests / 15 minutes). Cach
 - **Artifact `promotion`**: 0–5. Max is `gauge_max.artifacts`.
 - **Demon `level`**: owned demons are 1–`max_level` (usually 5); 0 means unowned. `rarity: "captain"` is a red-star / captain demon.
 - **Hero `is_lord`**: red-star / lord hero.
+- **Hero `is_regular`**: can drop from the standing regular summon pool.
+- **Hero `is_ancient`**: can drop from the standing ancient summon pool. Both pool flags can be true.
+- **Hero `is_limited`**: banner-only. Does only drop on their own banner.
 - **`faction_secondary`**: dual-faction; treat either faction as a match.
 - **`reference_tier`**: imported tier hint; may be null.
 - **`id`**: Codex row id (needed only if the user asks you to mutate).

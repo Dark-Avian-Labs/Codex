@@ -69,10 +69,15 @@ function requireDemonFields(
   }
 }
 
+function isHeroAddOverride(override: Partial<CatalogHeroRow>): boolean {
+  return typeof override.name === 'string' && override.name.trim().length > 0;
+}
+
 function applyEntityOverrides<T extends { slug: string; display_order?: number }>(
   rows: T[],
   overrides: Record<string, Partial<T>> | undefined,
   buildAdded: (slug: string, override: Partial<T>, displayOrder: number) => T,
+  shouldAdd?: (override: Partial<T>) => boolean,
 ): T[] {
   if (!overrides) return rows;
 
@@ -86,6 +91,7 @@ function applyEntityOverrides<T extends { slug: string; display_order?: number }
   const added: T[] = [];
   for (const [slug, override] of Object.entries(overrides)) {
     if (existingSlugs.has(slug)) continue;
+    if (shouldAdd && !shouldAdd(override)) continue;
     added.push(buildAdded(slug, override, displayOrder));
     displayOrder += 1;
   }
@@ -100,23 +106,31 @@ export function applyWorOverrides(
   if (!fs.existsSync(overridesPath)) return bundle;
   const overrides = readJsonFile<WorOverridesFile>(overridesPath);
 
-  const heroes = applyEntityOverrides(bundle.heroes, overrides.heroes, (slug, override, order) => {
-    requireHeroFields(slug, override);
-    return {
-      slug,
-      name: override.name,
-      class: override.class,
-      faction: override.faction,
-      faction_secondary: override.faction_secondary ?? null,
-      rarity: override.rarity,
-      damage_type: override.damage_type ?? null,
-      is_lord: override.is_lord ?? 0,
-      reference_tier: override.reference_tier ?? null,
-      portrait_path: override.portrait_path ?? null,
-      display_order: override.display_order ?? order,
-      active: override.active ?? 1,
-    };
-  });
+  const heroes = applyEntityOverrides(
+    bundle.heroes,
+    overrides.heroes,
+    (slug, override, order) => {
+      requireHeroFields(slug, override);
+      return {
+        slug,
+        name: override.name,
+        class: override.class,
+        faction: override.faction,
+        faction_secondary: override.faction_secondary ?? null,
+        rarity: override.rarity,
+        damage_type: override.damage_type ?? null,
+        is_lord: override.is_lord ?? 0,
+        is_regular: override.is_regular ?? 0,
+        is_ancient: override.is_ancient ?? 0,
+        is_limited: override.is_limited ?? 0,
+        reference_tier: override.reference_tier ?? null,
+        portrait_path: override.portrait_path ?? null,
+        display_order: override.display_order ?? order,
+        active: override.active ?? 1,
+      };
+    },
+    isHeroAddOverride,
+  );
 
   const artifacts = applyEntityOverrides(
     bundle.artifacts,

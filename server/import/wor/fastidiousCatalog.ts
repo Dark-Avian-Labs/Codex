@@ -46,6 +46,9 @@ type FastidiousHero = {
   role: FastidiousRole;
   factions: FastidiousFaction[];
   overall_rating?: string | null;
+  is_regular_pool?: boolean;
+  is_ancient_pool?: boolean;
+  is_limited_pool?: boolean;
 };
 type FastidiousArtifact = {
   name: string;
@@ -148,6 +151,9 @@ function mapHero(hero: FastidiousHero, displayOrder: number): CatalogHeroRow {
     rarity: normalizeHeroRarity(hero.rarity.name),
     damage_type: normalizeDamageType(hero.damage_type),
     is_lord: hero.factions.some((entry) => entry.pivot?.is_lord) ? 1 : 0,
+    is_regular: hero.is_regular_pool === true ? 1 : 0,
+    is_ancient: hero.is_ancient_pool === true ? 1 : 0,
+    is_limited: hero.is_limited_pool === true ? 1 : 0,
     reference_tier: hero.overall_rating ?? null,
     display_order: displayOrder,
     active: 1,

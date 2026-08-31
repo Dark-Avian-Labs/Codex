@@ -54,6 +54,9 @@ describe('roster compact helpers', () => {
       owned: 1,
       gauge_level: 3,
       is_lord: 0,
+      is_regular: 1,
+      is_ancient: 1,
+      is_limited: 0,
     });
     expect(compact).toEqual({
       id: 9,
@@ -65,9 +68,26 @@ describe('roster compact helpers', () => {
       rarity: 'legendary',
       star_rating: 5,
       is_lord: false,
+      is_regular: true,
+      is_ancient: true,
+      is_limited: false,
       owned: true,
       awakening: 3,
       reference_tier: null,
     });
+    expect(
+      compactRosterHero({
+        id: 9,
+        catalog_hero_slug: 'lian',
+        name: 'Lian',
+        class: 'marksman',
+        faction: 'watchguard',
+        rarity: 'legendary',
+        star_rating: 5,
+        owned: 1,
+        gauge_level: 3,
+        is_limited: 1,
+      }).is_limited,
+    ).toBe(true);
   });
 });

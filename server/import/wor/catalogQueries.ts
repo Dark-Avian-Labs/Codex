@@ -10,6 +10,9 @@ export type CatalogHeroRow = {
   rarity: string;
   damage_type?: string | null;
   is_lord?: number;
+  is_regular?: number;
+  is_ancient?: number;
+  is_limited?: number;
   reference_tier?: string | null;
   portrait_path?: string | null;
   display_order?: number;
@@ -50,10 +53,10 @@ export function upsertCatalogHeroes(db: Database.Database, heroes: CatalogHeroRo
   const stmt = db.prepare(`
     INSERT INTO catalog_heroes (
       slug, name, class, faction, faction_secondary, rarity, star_rating, damage_type, is_lord,
-      reference_tier, portrait_path, display_order, active
+      is_regular, is_ancient, is_limited, reference_tier, portrait_path, display_order, active
     ) VALUES (
       @slug, @name, @class, @faction, @faction_secondary, @rarity, @star_rating, @damage_type, @is_lord,
-      @reference_tier, @portrait_path, @display_order, @active
+      @is_regular, @is_ancient, @is_limited, @reference_tier, @portrait_path, @display_order, @active
     )
     ON CONFLICT(slug) DO UPDATE SET
       name = excluded.name,
@@ -64,6 +67,9 @@ export function upsertCatalogHeroes(db: Database.Database, heroes: CatalogHeroRo
       star_rating = excluded.star_rating,
       damage_type = excluded.damage_type,
       is_lord = excluded.is_lord,
+      is_regular = excluded.is_regular,
+      is_ancient = excluded.is_ancient,
+      is_limited = excluded.is_limited,
       reference_tier = excluded.reference_tier,
       portrait_path = COALESCE(excluded.portrait_path, catalog_heroes.portrait_path),
       display_order = excluded.display_order,
@@ -82,6 +88,9 @@ export function upsertCatalogHeroes(db: Database.Database, heroes: CatalogHeroRo
         star_rating: rarityToStarRating(hero.rarity),
         damage_type: hero.damage_type ?? null,
         is_lord: hero.is_lord ?? 0,
+        is_regular: hero.is_regular ?? 0,
+        is_ancient: hero.is_ancient ?? 0,
+        is_limited: hero.is_limited ?? 0,
         reference_tier: hero.reference_tier ?? null,
         portrait_path: hero.portrait_path ?? null,
         display_order: hero.display_order ?? 0,
