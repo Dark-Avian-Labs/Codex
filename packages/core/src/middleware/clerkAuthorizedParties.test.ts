@@ -39,4 +39,12 @@ describe('getClerkAuthorizedParties', () => {
     expect(parties).toContain('http://localhost:3001');
     expect(parties).toContain('http://localhost:5173');
   });
+
+  it('throws when the app origin is not https in production', () => {
+    process.env.NODE_ENV = 'production';
+    process.env.APP_PUBLIC_BASE_URL = 'http://codex.example.com';
+    delete process.env.ALLOWED_APP_ORIGINS;
+
+    expect(() => getClerkAuthorizedParties()).toThrow(/https:\/\//);
+  });
 });

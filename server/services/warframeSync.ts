@@ -818,35 +818,39 @@ function syncCatalogMasterFromSource(
                max_level = excluded.max_level`,
       )
     : null;
-  for (const worksheet of WORKSHEET_NAMES) {
-    let index = 0;
-    const canonicalKeys: string[] = [];
-    for (const name of sourceByWorksheet[worksheet] ?? []) {
-      const key = resolveCanonicalKey(name);
-      canonicalKeys.push(key);
-      if (worksheet === 'Arcanes' && upsertArcane) {
-        const maxLevel = arcaneMaxLevelByCanonicalKey.get(key) ?? arcaneMaxRankFromLevelStats(null);
-        upsertArcane.run(worksheet, key, name, index++, maxLevel);
-      } else {
-        upsert.run(worksheet, key, name, index++);
+  const apply = codexDb.transaction(() => {
+    for (const worksheet of WORKSHEET_NAMES) {
+      let index = 0;
+      const canonicalKeys: string[] = [];
+      for (const name of sourceByWorksheet[worksheet] ?? []) {
+        const key = resolveCanonicalKey(name);
+        canonicalKeys.push(key);
+        if (worksheet === 'Arcanes' && upsertArcane) {
+          const maxLevel =
+            arcaneMaxLevelByCanonicalKey.get(key) ?? arcaneMaxRankFromLevelStats(null);
+          upsertArcane.run(worksheet, key, name, index++, maxLevel);
+        } else {
+          upsert.run(worksheet, key, name, index++);
+        }
       }
-    }
-    if (hasActive) {
-      if (canonicalKeys.length === 0) {
-        codexDb
-          .prepare('UPDATE catalog_rows SET active = 0 WHERE worksheet_name = ?')
-          .run(worksheet);
-      } else {
-        const placeholders = canonicalKeys.map(() => '?').join(', ');
-        codexDb
-          .prepare(
-            `UPDATE catalog_rows SET active = 0
+      if (hasActive) {
+        if (canonicalKeys.length === 0) {
+          codexDb
+            .prepare('UPDATE catalog_rows SET active = 0 WHERE worksheet_name = ?')
+            .run(worksheet);
+        } else {
+          const placeholders = canonicalKeys.map(() => '?').join(', ');
+          codexDb
+            .prepare(
+              `UPDATE catalog_rows SET active = 0
              WHERE worksheet_name = ? AND canonical_key NOT IN (${placeholders})`,
-          )
-          .run(worksheet, ...canonicalKeys);
+            )
+            .run(worksheet, ...canonicalKeys);
+        }
       }
     }
-  }
+  });
+  apply();
 }
 
 type MarketHrefPair = {

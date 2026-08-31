@@ -267,22 +267,19 @@ export function pruneInactiveCatalogAccountRows(db: Database.Database): {
   const heroes = db
     .prepare(
       `DELETE FROM account_heroes
-       WHERE catalog_hero_slug IN (SELECT slug FROM catalog_heroes WHERE active = 0)
-          OR catalog_hero_slug NOT IN (SELECT slug FROM catalog_heroes)`,
+       WHERE catalog_hero_slug NOT IN (SELECT slug FROM catalog_heroes)`,
     )
     .run().changes;
   const artifacts = db
     .prepare(
       `DELETE FROM account_artifacts
-       WHERE catalog_artifact_slug IN (SELECT slug FROM catalog_artifacts WHERE active = 0)
-          OR catalog_artifact_slug NOT IN (SELECT slug FROM catalog_artifacts)`,
+       WHERE catalog_artifact_slug NOT IN (SELECT slug FROM catalog_artifacts)`,
     )
     .run().changes;
   const demons = db
     .prepare(
       `DELETE FROM account_demons
-       WHERE catalog_demon_slug IN (SELECT slug FROM catalog_demons WHERE active = 0)
-          OR catalog_demon_slug NOT IN (SELECT slug FROM catalog_demons)`,
+       WHERE catalog_demon_slug NOT IN (SELECT slug FROM catalog_demons)`,
     )
     .run().changes;
   return { heroes, artifacts, demons };
@@ -306,7 +303,7 @@ export function getHeroes(
            ch.reference_tier, ch.portrait_path
     FROM account_heroes ah
     LEFT JOIN catalog_heroes ch ON ch.slug = ah.catalog_hero_slug
-    WHERE ah.account_id = ?`;
+    WHERE ah.account_id = ? AND ch.active = 1`;
   const params: (number | string)[] = [accountId];
   if (classFilter && heroClasses.includes(classFilter)) {
     sql += ' AND ah.class = ?';
@@ -335,7 +332,9 @@ export function getHeroStats(
       COUNT(*) as total,
       SUM(CASE WHEN owned = 1 THEN 1 ELSE 0 END) as owned,
       SUM(CASE WHEN owned = 1 AND gauge_level = ? THEN 1 ELSE 0 END) as maxed
-    FROM account_heroes WHERE account_id = ?
+    FROM account_heroes ah
+    INNER JOIN catalog_heroes ch ON ch.slug = ah.catalog_hero_slug AND ch.active = 1
+    WHERE ah.account_id = ?
   `,
     )
     .get(HERO_AWAKENING_MAX, accountId) as { total: number; owned: number; maxed: number };
@@ -358,7 +357,7 @@ export function getArtifacts(db: Database.Database, accountId: number): AccountA
     FROM account_artifacts aa
     LEFT JOIN catalog_artifacts ca ON ca.slug = aa.catalog_artifact_slug
     LEFT JOIN catalog_heroes ch ON ch.slug = ca.exclusive_hero_slug
-    WHERE aa.account_id = ?
+    WHERE aa.account_id = ? AND ca.active = 1
     ORDER BY aa.display_order ASC, aa.name ASC
   `,
     )
@@ -376,7 +375,9 @@ export function getArtifactStats(
       COUNT(*) as total,
       SUM(CASE WHEN owned = 1 THEN 1 ELSE 0 END) as owned,
       SUM(CASE WHEN owned = 1 AND gauge_level = ? THEN 1 ELSE 0 END) as maxed
-    FROM account_artifacts WHERE account_id = ?
+    FROM account_artifacts aa
+    INNER JOIN catalog_artifacts ca ON ca.slug = aa.catalog_artifact_slug AND ca.active = 1
+    WHERE aa.account_id = ?
   `,
     )
     .get(ARTIFACT_PROMOTION_MAX, accountId) as { total: number; owned: number; maxed: number };
@@ -396,7 +397,7 @@ export function getDemons(db: Database.Database, accountId: number): AccountDemo
            COALESCE(cd.max_level, 5) as max_level, cd.portrait_path
     FROM account_demons ad
     LEFT JOIN catalog_demons cd ON cd.slug = ad.catalog_demon_slug
-    WHERE ad.account_id = ?
+    WHERE ad.account_id = ? AND cd.active = 1
     ORDER BY ad.display_order ASC, ad.name ASC
   `,
     )
@@ -416,7 +417,7 @@ export function getDemonStats(
       SUM(CASE WHEN ad.owned = 1 AND ad.gauge_level = COALESCE(cd.max_level, 5) THEN 1 ELSE 0 END) as maxed
     FROM account_demons ad
     LEFT JOIN catalog_demons cd ON cd.slug = ad.catalog_demon_slug
-    WHERE ad.account_id = ?
+    WHERE ad.account_id = ? AND cd.active = 1
   `,
     )
     .get(accountId) as { total: number; owned: number; maxed: number };

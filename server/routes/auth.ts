@@ -14,9 +14,12 @@ export const authRouter = Router();
 const FALLBACK_CODEX_GAMES = ['warframe', 'epic7', 'wor'] as const;
 const CODEX_GAMES = REGISTRY_CODEX_GAMES.length > 0 ? REGISTRY_CODEX_GAMES : FALLBACK_CODEX_GAMES;
 
-authRouter.get('/csrf', (_req, res) => {
+authRouter.get('/csrf', (req, res) => {
+  const generate = (req as typeof req & { csrfToken?: (overwrite?: boolean) => string }).csrfToken;
+  const token = generate ? generate() : (req.session.csrfToken ?? '');
+  res.setHeader('Cache-Control', 'no-store');
   res.json({
-    csrfToken: (res.locals as { csrfToken?: string }).csrfToken || '',
+    csrfToken: token,
   });
 });
 

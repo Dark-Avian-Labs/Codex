@@ -129,6 +129,10 @@ app.use(compression());
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+app.get('/healthz', healthzHandler);
+app.get('/readyz', readyzHandler);
+
 app.use(clerkMiddleware({ authorizedParties: getClerkAuthorizedParties() }));
 
 const RATE_LIMIT_SKIP_PATHS = new Set([
@@ -240,10 +244,6 @@ app.use((req, res, next) => {
   }
   next(invalidCsrfTokenError);
 });
-app.use((req, res, next) => {
-  (res.locals as { csrfToken?: string }).csrfToken = generateToken(req);
-  next();
-});
 
 const IS_DEV_ENV = NODE_ENV !== 'production';
 const defaultDevOrigins = IS_DEV_ENV
@@ -347,9 +347,6 @@ const staticAssetLimiter = createRateLimiter(STATIC_ASSET_RATE_LIMIT_MAX);
 
 const clientDir = path.join(PROJECT_ROOT, 'dist', 'client');
 const clientIndexPath = path.join(clientDir, 'index.html');
-
-app.get('/healthz', healthzHandler);
-app.get('/readyz', readyzHandler);
 
 app.use(
   '/wor-images',
@@ -549,6 +546,13 @@ function shutdown(baseExitCode = 0): void {
         }
         closeAndExit(baseExitCode);
       });
+      server.closeIdleConnections();
+      setTimeout(
+        () => {
+          server.closeAllConnections();
+        },
+        Math.max(0, SHUTDOWN_TIMEOUT_MS - 500),
+      );
     } catch (err) {
       log('error', 'Unexpected shutdown error', {
         err: err instanceof Error ? (err.stack ?? err.message) : String(err),

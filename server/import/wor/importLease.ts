@@ -48,9 +48,15 @@ export function releaseWorImportLease(db: Database.Database, lockToken: string):
 
 export function isWorImportLeaseHeld(db: Database.Database): boolean {
   ensureWorImportLeaseColumns(db);
-  const row = db.prepare('SELECT lock_token FROM import_lease WHERE id = ?').get(LEASE_ROW_ID) as
-    | { lock_token: string | null }
-    | undefined;
+  const row = db
+    .prepare(
+      `SELECT lock_token FROM import_lease
+       WHERE id = ?
+         AND lock_token IS NOT NULL
+         AND locked_at IS NOT NULL
+         AND locked_at > datetime('now', '-${IMPORT_LEASE_TTL_MINUTES} minutes')`,
+    )
+    .get(LEASE_ROW_ID) as { lock_token: string | null } | undefined;
   return Boolean(row?.lock_token);
 }
 

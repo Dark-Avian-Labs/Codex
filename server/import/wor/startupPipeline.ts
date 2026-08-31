@@ -175,9 +175,17 @@ export async function runWorStartupPipeline(
     lockToken = acquired;
   }
 
+  const heartbeat = setInterval(
+    () => {
+      renewWorImportLease(db, lockToken);
+    },
+    5 * 60 * 1000,
+  );
+  heartbeat.unref();
   try {
     return await runWorStartupPipelineBody(db, options, onLog, lockToken);
   } finally {
+    clearInterval(heartbeat);
     if (ownsLease) {
       releaseWorImportLease(db, lockToken);
     }
@@ -200,6 +208,7 @@ async function runWorStartupPipelineBody(
   const live = isWorImportLiveEnabled();
   const previousHashes = readProcessedSourceHashes();
   const currentHashes = computeCurrentSourceHashes(cacheDir);
+  let pendingSourceHashes: ReturnType<typeof computeCurrentSourceHashes> | null = null;
 
   renewWorImportLease(db, lockToken);
 
@@ -254,8 +263,7 @@ async function runWorStartupPipelineBody(
       classIcons = result.classIcons;
       factionIcons = result.factionIcons;
       const refreshedHashes = computeCurrentSourceHashes(cacheDir);
-      writeProcessedSourceHashes(refreshedHashes);
-      updateSourceHashesInDb(db, refreshedHashes);
+      pendingSourceHashes = refreshedHashes;
     } else {
       emit(onLog, 'info', `[${stepTag('fastidiousCatalog')}] Skipped — source cache unchanged.`);
       const result = await fetchFastidiousCatalog({
@@ -386,11 +394,7 @@ async function runWorStartupPipelineBody(
     const pruned = worQueries.pruneInactiveCatalogAccountRows(db);
     const prunedTotal = pruned.heroes + pruned.artifacts + pruned.demons;
     if (prunedTotal > 0) {
-      emit(
-        onLog,
-        'info',
-        `Removed ${prunedTotal} account row(s) tied to inactive catalog entries.`,
-      );
+      emit(onLog, 'info', `Removed ${prunedTotal} account row(s) tied to unknown catalog entries.`);
     }
     worQueries.syncNewCatalogEntriesToAllAccounts(db);
     const synced = worQueries.syncAccountCatalogMetadata(db);
@@ -400,6 +404,11 @@ async function runWorStartupPipelineBody(
       `[${stepTag('sync_accounts')}] Synced catalog metadata for ${synced.heroes} heroes, ${synced.artifacts} artifacts, ${synced.demons} demons across accounts.`,
     );
   }).immediate();
+
+  if (pendingSourceHashes) {
+    writeProcessedSourceHashes(pendingSourceHashes);
+    updateSourceHashesInDb(db, pendingSourceHashes);
+  }
 
   const counts = getCatalogCounts(db);
   emit(

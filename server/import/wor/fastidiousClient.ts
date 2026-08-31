@@ -41,7 +41,7 @@ export async function fetchFastidiousInertiaPage<TProps>(routePath: string): Pro
 
 export function sanitizeCacheSlug(slug: string): string | null {
   const trimmed = slug.trim();
-  if (!trimmed || trimmed.includes('/') || trimmed.includes('\\') || trimmed.includes('..')) {
+  if (!trimmed || !/^[a-z0-9][a-z0-9_-]*$/i.test(trimmed)) {
     return null;
   }
   return trimmed;
