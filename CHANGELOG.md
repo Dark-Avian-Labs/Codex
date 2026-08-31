@@ -283,3 +283,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.67.2** `chore` [#371](https://github.com/Dark-Avian-Labs/Codex/pull/371): fix/wor gauge btn size
 - **v1.67.3** `chore(deps)` [#373](https://github.com/Dark-Avian-Labs/Codex/pull/373): bump the production-dependencies group with 8 updates
 - **v1.67.4** `ci(deps)` [#372](https://github.com/Dark-Avian-Labs/Codex/pull/372): bump useblacksmith/checkout in the github-actions group
+- **v1.67.5** `chore` [#374](https://github.com/Dark-Avian-Labs/Codex/pull/374): chore/deps material symbols rounded
