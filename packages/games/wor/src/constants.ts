@@ -68,7 +68,6 @@ export function rarityToStarRating(rarity: string): number {
 
 export const HERO_AWAKENING_MAX = 5;
 export const ARTIFACT_PROMOTION_MAX = 5;
-/** Owned demons start at level 1 in-game; 0 is only the unowned stored value. */
 export const DEMON_LEVEL_MIN = 1;
 
 export const ARTIFACT_GAUGE_FILLED = '▰';
