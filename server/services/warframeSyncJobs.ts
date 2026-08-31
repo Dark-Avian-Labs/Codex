@@ -296,7 +296,13 @@ export function releaseWarframeSyncLease(lockToken: string): void {
 export function isWarframeSyncLeaseHeld(): boolean {
   ensureWarframeSyncJobsSchema();
   const row = getSessionDb()
-    .prepare('SELECT lock_token FROM warframe_sync_lease WHERE id = ?')
+    .prepare(
+      `SELECT lock_token FROM warframe_sync_lease
+       WHERE id = ?
+         AND lock_token IS NOT NULL
+         AND acquired_at IS NOT NULL
+         AND acquired_at > datetime('now', '-${WARFRAME_SYNC_LEASE_TTL_MINUTES} minutes')`,
+    )
     .get(LEASE_ROW_ID) as { lock_token: string | null } | undefined;
   return Boolean(row?.lock_token);
 }

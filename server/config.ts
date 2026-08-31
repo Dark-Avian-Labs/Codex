@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 
 import {
   getAppPublicBaseUrl,
+  isEncryptedEnvValue,
   normalizeClerkEnv,
   requireAbsoluteSqlitePath,
   resolveEnvFilePath,
@@ -132,6 +133,11 @@ const envSessionSecret = process.env.SESSION_SECRET?.trim() || '';
 const allowInsecureDev = parseBooleanEnv(process.env.ALLOW_INSECURE_DEV) === true;
 
 function resolveSessionSecret(): string {
+  if (isEncryptedEnvValue(envSessionSecret)) {
+    throw new Error(
+      'SESSION_SECRET is still encrypted. Ensure DOTENV_PRIVATE_KEY_* is available (see .env.keys) or run via dotenvx.',
+    );
+  }
   if (NODE_ENV === 'production') {
     if (envSessionSecret.length < 32) {
       throw new Error('SESSION_SECRET must be set and at least 32 characters in production.');

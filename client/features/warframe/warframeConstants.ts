@@ -1,5 +1,3 @@
-import type { CSSProperties } from 'react';
-
 export type ExitRowPhase = 'fill' | 'push';
 
 export const STATUS_CYCLE = ['', 'Obtained', 'Complete'];
@@ -32,7 +30,3 @@ export const WORKSHEET_LABELS: Record<string, string> = {
   Accessories: 'Accessories',
   Arcanes: 'Arcanes',
 };
-
-export const tableScrollStyle = {
-  '--header-offset': '320px',
-} as CSSProperties;

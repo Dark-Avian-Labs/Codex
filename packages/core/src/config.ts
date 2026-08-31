@@ -11,24 +11,26 @@ export function resolveEnvFilePath(rootPath: string): string | null {
     return fs.existsSync(testPath) ? testPath : null;
   }
 
-  const envFileByMode: Record<string, string> = {
-    production: '.env.production',
-    development: '.env.development',
-  };
-  const prioritizedFiles = [
-    envFileByMode[normalizedNodeEnv],
-    '.env.production',
-    '.env.development',
-  ].filter((value, index, values): value is string => {
-    return typeof value === 'string' && values.indexOf(value) === index;
-  });
+  if (
+    normalizedNodeEnv &&
+    normalizedNodeEnv !== 'production' &&
+    normalizedNodeEnv !== 'development'
+  ) {
+    throw new Error(
+      `[FATAL] Unsupported NODE_ENV "${process.env.NODE_ENV}". Use production, development, or test.`,
+    );
+  }
 
-  for (const fileName of prioritizedFiles) {
-    if (!fileName) continue;
-    const candidatePath = path.join(rootPath, fileName);
-    if (fs.existsSync(candidatePath)) {
-      return candidatePath;
-    }
+  const isProduction = normalizedNodeEnv !== 'development';
+  const fileName = isProduction ? '.env.production' : '.env.development';
+  const candidatePath = path.join(rootPath, fileName);
+  if (fs.existsSync(candidatePath)) {
+    return candidatePath;
+  }
+  if (isProduction) {
+    throw new Error(
+      `[FATAL] Missing ${fileName}. Refusing to start production without the matching env file.`,
+    );
   }
   return null;
 }

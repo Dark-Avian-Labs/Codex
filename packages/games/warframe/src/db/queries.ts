@@ -168,6 +168,84 @@ function catalogMaxLevelForItem(
   return catalogMaxByKey.get(key);
 }
 
+function loadRowCellValues(
+  db: Database.Database,
+  rowId: number,
+  clerkUserId: string,
+): Record<number, string> {
+  const cells = db
+    .prepare(
+      `SELECT cv.column_id, cv.value
+       FROM cell_values cv
+       JOIN rows r ON cv.row_id = r.id
+       JOIN worksheets w ON r.worksheet_id = w.id
+       WHERE cv.row_id = ? AND w.clerk_user_id = ?`,
+    )
+    .all(rowId, clerkUserId) as Array<{ column_id: number; value: string }>;
+  const values: Record<number, string> = {};
+  for (const cell of cells) {
+    values[cell.column_id] = cell.value;
+  }
+  return values;
+}
+
+function loadCatalogMaxLevelForItem(
+  db: Database.Database,
+  worksheetName: string,
+  itemName: string,
+): number | undefined {
+  if (worksheetName !== 'Arcanes') return undefined;
+  const key = resolveCanonicalKey(itemName);
+  if (!key) return undefined;
+  const row = db
+    .prepare(
+      `SELECT max_level FROM catalog_rows
+       WHERE worksheet_name = ? AND canonical_key = ? AND max_level IS NOT NULL`,
+    )
+    .get(worksheetName, key) as { max_level: number } | undefined;
+  return row?.max_level;
+}
+
+function loadRowAdvancedProgressInputs(
+  db: Database.Database,
+  rowId: number,
+  clerkUserId: string,
+): {
+  itemName: string;
+  worksheetName: string;
+  current: AdvancedProgressRow | undefined;
+  hasPrimeVariant: boolean;
+  catalogMaxLevel: number | undefined;
+} | null {
+  const row = db
+    .prepare(
+      `SELECT r.item_name, r.worksheet_id, w.name as worksheet_name
+       FROM rows r
+       JOIN worksheets w ON r.worksheet_id = w.id
+       WHERE r.id = ? AND w.clerk_user_id = ?`,
+    )
+    .get(rowId, clerkUserId) as
+    | { item_name: string; worksheet_id: number; worksheet_name: string }
+    | undefined;
+  if (!row) return null;
+  const current = db
+    .prepare(
+      `SELECT row_id, level, level_prime, valence_percent, valence_percent_prime, has_element, has_element_prime, has_orokin, has_orokin_prime, has_arcane, has_arcane_prime, has_exilus, has_exilus_prime
+       FROM row_advanced_progress
+       WHERE row_id = ?`,
+    )
+    .get(rowId) as AdvancedProgressRow | undefined;
+  const columns = getWorksheetColumns(db, row.worksheet_id, clerkUserId);
+  const rowValues = loadRowCellValues(db, rowId, clerkUserId);
+  return {
+    itemName: row.item_name,
+    worksheetName: row.worksheet_name,
+    current,
+    hasPrimeVariant: rowHasVariant(rowValues, columns, true),
+    catalogMaxLevel: loadCatalogMaxLevelForItem(db, row.worksheet_name, row.item_name),
+  };
+}
+
 export function resolveAdvancedProgressState(
   worksheetName: string,
   itemName: string,
@@ -592,42 +670,15 @@ export function getRowAdvancedProgress(
   rowId: number,
   clerkUserId: string,
 ): AdvancedProgressState | null {
-  const row = db
-    .prepare(
-      `SELECT r.id, r.item_name, w.name as worksheet_name
-       FROM rows r
-       JOIN worksheets w ON r.worksheet_id = w.id
-       WHERE r.id = ? AND w.clerk_user_id = ?`,
-    )
-    .get(rowId, clerkUserId) as
-    | { id: number; item_name: string; worksheet_name: string }
-    | undefined;
-  if (!row) return null;
-  const current = db
-    .prepare(
-      `SELECT row_id, level, level_prime, valence_percent, valence_percent_prime, has_element, has_element_prime, has_orokin, has_orokin_prime, has_arcane, has_arcane_prime, has_exilus, has_exilus_prime
-       FROM row_advanced_progress
-       WHERE row_id = ?`,
-    )
-    .get(rowId) as AdvancedProgressRow | undefined;
-  const columns = getWorksheetColumns(
-    db,
-    getRowWorksheetId(db, rowId, clerkUserId) ?? 0,
-    clerkUserId,
-  );
-  const rowValues = columns.reduce<Record<number, string>>((acc, column) => {
-    acc[column.id] = getCellValue(db, rowId, column.id, clerkUserId) ?? '';
-    return acc;
-  }, {});
-  const hasPrimeVariant = rowHasVariant(rowValues, columns, true);
-  const catalogMaxByKey = loadCatalogMaxLevelMap(db, row.worksheet_name);
+  const inputs = loadRowAdvancedProgressInputs(db, rowId, clerkUserId);
+  if (!inputs) return null;
   return resolveAdvancedProgressState(
-    row.worksheet_name,
-    row.item_name,
-    hasPrimeVariant,
-    current,
+    inputs.worksheetName,
+    inputs.itemName,
+    inputs.hasPrimeVariant,
+    inputs.current,
     undefined,
-    catalogMaxLevelForItem(catalogMaxByKey, row.item_name),
+    inputs.catalogMaxLevel,
   );
 }
 
@@ -637,41 +688,17 @@ export function updateRowAdvancedProgress(
   clerkUserId: string,
   patch: AdvancedProgressPatch,
 ): AdvancedProgressState {
-  const row = db
-    .prepare(
-      `SELECT r.id, r.item_name, w.name as worksheet_name
-       FROM rows r
-       JOIN worksheets w ON r.worksheet_id = w.id
-       WHERE r.id = ? AND w.clerk_user_id = ?`,
-    )
-    .get(rowId, clerkUserId) as
-    | { id: number; item_name: string; worksheet_name: string }
-    | undefined;
-  if (!row) {
+  const inputs = loadRowAdvancedProgressInputs(db, rowId, clerkUserId);
+  if (!inputs) {
     throw new Error('Row not found');
   }
-  const current = db
-    .prepare(
-      `SELECT row_id, level, level_prime, valence_percent, valence_percent_prime, has_element, has_element_prime, has_orokin, has_orokin_prime, has_arcane, has_arcane_prime, has_exilus, has_exilus_prime
-       FROM row_advanced_progress
-       WHERE row_id = ?`,
-    )
-    .get(rowId) as AdvancedProgressRow | undefined;
-  const worksheetId = getRowWorksheetId(db, rowId, clerkUserId);
-  const columns = worksheetId === null ? [] : getWorksheetColumns(db, worksheetId, clerkUserId);
-  const rowValues = columns.reduce<Record<number, string>>((acc, column) => {
-    acc[column.id] = getCellValue(db, rowId, column.id, clerkUserId) ?? '';
-    return acc;
-  }, {});
-  const hasPrimeVariant = rowHasVariant(rowValues, columns, true);
-  const catalogMaxByKey = loadCatalogMaxLevelMap(db, row.worksheet_name);
   const next = resolveAdvancedProgressState(
-    row.worksheet_name,
-    row.item_name,
-    hasPrimeVariant,
-    current,
+    inputs.worksheetName,
+    inputs.itemName,
+    inputs.hasPrimeVariant,
+    inputs.current,
     patch,
-    catalogMaxLevelForItem(catalogMaxByKey, row.item_name),
+    inputs.catalogMaxLevel,
   );
   db.prepare(
     `INSERT INTO row_advanced_progress (

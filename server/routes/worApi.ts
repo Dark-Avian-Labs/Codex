@@ -58,12 +58,12 @@ function getDbOrFail(res: Response): ReturnType<typeof getWorDb> | null {
 
 type WorDatabase = ReturnType<typeof getWorDb>;
 
-function reconcileWorSessionAccount(
+async function reconcileWorSessionAccount(
   db: WorDatabase,
   req: Request,
   clerkUserId: string,
-): number | null {
-  ensureWorSessionBoundToClerkUser(req, clerkUserId);
+): Promise<number | null> {
+  await ensureWorSessionBoundToClerkUser(req, clerkUserId);
   const accounts = q.getUserAccountsForApi(db, clerkUserId);
   let currentAccountId = getWorSession(req).wor_account_id ?? null;
   if (typeof currentAccountId === 'number' && currentAccountId > 0) {
@@ -86,9 +86,13 @@ function reconcileWorSessionAccount(
   return currentAccountId;
 }
 
-function requireAccountId(db: WorDatabase, req: Request, res: Response): number | null {
+async function requireAccountId(
+  db: WorDatabase,
+  req: Request,
+  res: Response,
+): Promise<number | null> {
   const clerkUserId = requireClerkUserId(req);
-  const accountId = reconcileWorSessionAccount(db, req, clerkUserId);
+  const accountId = await reconcileWorSessionAccount(db, req, clerkUserId);
   if (!accountId) {
     err(res, 'No game account selected. Please create one first.');
     return null;
@@ -136,8 +140,8 @@ worApiRouter.get('/worksheets', (_req, res) => {
 });
 
 worApiRouter.get('/heroes', (req, res) => {
-  runWithDb(res, (db) => {
-    const accountId = requireAccountId(db, req, res);
+  runWithDb(res, async (db) => {
+    const accountId = await requireAccountId(db, req, res);
     if (!accountId) return;
     const classFilter = String(req.query.class ?? '').trim();
     const factionFilter = String(req.query.faction ?? '').trim();
@@ -152,8 +156,8 @@ worApiRouter.get('/heroes', (req, res) => {
 });
 
 worApiRouter.get('/artifacts', (req, res) => {
-  runWithDb(res, (db) => {
-    const accountId = requireAccountId(db, req, res);
+  runWithDb(res, async (db) => {
+    const accountId = await requireAccountId(db, req, res);
     if (!accountId) return;
     const artifacts = q.getArtifacts(db, accountId);
     const stats = q.getArtifactStats(db, accountId);
@@ -162,8 +166,8 @@ worApiRouter.get('/artifacts', (req, res) => {
 });
 
 worApiRouter.get('/demons', (req, res) => {
-  runWithDb(res, (db) => {
-    const accountId = requireAccountId(db, req, res);
+  runWithDb(res, async (db) => {
+    const accountId = await requireAccountId(db, req, res);
     if (!accountId) return;
     const demons = q.getDemons(db, accountId);
     const stats = q.getDemonStats(db, accountId);
@@ -172,8 +176,8 @@ worApiRouter.get('/demons', (req, res) => {
 });
 
 worApiRouter.get('/roster', (req, res) => {
-  runWithDb(res, (db) => {
-    const accountId = requireAccountId(db, req, res);
+  runWithDb(res, async (db) => {
+    const accountId = await requireAccountId(db, req, res);
     if (!accountId) return;
     const ownedFilter = parseRosterOwnedFilter(req.query.owned);
     const include = parseRosterInclude(req.query.include);
@@ -234,8 +238,8 @@ worApiRouter.get('/roster', (req, res) => {
 });
 
 worApiRouter.patch('/heroes/:heroId/owned', (req, res) => {
-  runWithDb(res, (db) => {
-    const accountId = requireAccountId(db, req, res);
+  runWithDb(res, async (db) => {
+    const accountId = await requireAccountId(db, req, res);
     if (!accountId) return;
     const heroId = validateBody(positiveInt, req.params.heroId, res);
     if (heroId == null) return;
@@ -251,8 +255,8 @@ worApiRouter.patch('/heroes/:heroId/owned', (req, res) => {
 });
 
 worApiRouter.patch('/artifacts/:artifactId/owned', (req, res) => {
-  runWithDb(res, (db) => {
-    const accountId = requireAccountId(db, req, res);
+  runWithDb(res, async (db) => {
+    const accountId = await requireAccountId(db, req, res);
     if (!accountId) return;
     const artifactId = validateBody(positiveInt, req.params.artifactId, res);
     if (artifactId == null) return;
@@ -268,8 +272,8 @@ worApiRouter.patch('/artifacts/:artifactId/owned', (req, res) => {
 });
 
 worApiRouter.patch('/demons/:demonId/owned', (req, res) => {
-  runWithDb(res, (db) => {
-    const accountId = requireAccountId(db, req, res);
+  runWithDb(res, async (db) => {
+    const accountId = await requireAccountId(db, req, res);
     if (!accountId) return;
     const demonId = validateBody(positiveInt, req.params.demonId, res);
     if (demonId == null) return;
@@ -285,8 +289,8 @@ worApiRouter.patch('/demons/:demonId/owned', (req, res) => {
 });
 
 worApiRouter.patch('/heroes/:heroId/gauge', (req, res) => {
-  runWithDb(res, (db) => {
-    const accountId = requireAccountId(db, req, res);
+  runWithDb(res, async (db) => {
+    const accountId = await requireAccountId(db, req, res);
     if (!accountId) return;
     const data = validateBody(
       worUpdateHeroGaugeSchema,
@@ -304,8 +308,8 @@ worApiRouter.patch('/heroes/:heroId/gauge', (req, res) => {
 });
 
 worApiRouter.patch('/artifacts/:artifactId/gauge', (req, res) => {
-  runWithDb(res, (db) => {
-    const accountId = requireAccountId(db, req, res);
+  runWithDb(res, async (db) => {
+    const accountId = await requireAccountId(db, req, res);
     if (!accountId) return;
     const data = validateBody(
       worUpdateArtifactGaugeSchema,
@@ -323,8 +327,8 @@ worApiRouter.patch('/artifacts/:artifactId/gauge', (req, res) => {
 });
 
 worApiRouter.patch('/demons/:demonId/gauge', (req, res) => {
-  runWithDb(res, (db) => {
-    const accountId = requireAccountId(db, req, res);
+  runWithDb(res, async (db) => {
+    const accountId = await requireAccountId(db, req, res);
     if (!accountId) return;
     const data = validateBody(
       worUpdateDemonGaugeSchema,
@@ -342,16 +346,16 @@ worApiRouter.patch('/demons/:demonId/gauge', (req, res) => {
 });
 
 worApiRouter.get('/accounts', (req, res) => {
-  runWithDb(res, (db) => {
+  runWithDb(res, async (db) => {
     const clerkUserId = requireClerkUserId(req);
     const accounts = q.getUserAccountsForApi(db, clerkUserId);
-    const currentAccountId = reconcileWorSessionAccount(db, req, clerkUserId);
+    const currentAccountId = await reconcileWorSessionAccount(db, req, clerkUserId);
     json(res, { accounts, current_account_id: currentAccountId });
   });
 });
 
 worApiRouter.post('/accounts/switch', (req, res) => {
-  runWithDb(res, (db) => {
+  runWithDb(res, async (db) => {
     const clerkUserId = requireClerkUserId(req);
     const data = validateBody(worSwitchAccountSchema, req.body, res);
     if (!data) return;
@@ -370,7 +374,7 @@ worApiRouter.post('/accounts/switch', (req, res) => {
 });
 
 worApiRouter.post('/accounts', (req, res) => {
-  runWithDb(res, (db) => {
+  runWithDb(res, async (db) => {
     const clerkUserId = requireClerkUserId(req);
     const data = validateBody(worAddAccountSchema, req.body, res);
     if (!data) return;
@@ -393,7 +397,7 @@ worApiRouter.post('/accounts', (req, res) => {
 });
 
 worApiRouter.patch('/accounts/:accountId', (req, res) => {
-  runWithDb(res, (db) => {
+  runWithDb(res, async (db) => {
     const clerkUserId = requireClerkUserId(req);
     const data = validateBody(
       worUpdateAccountSchema,
@@ -425,7 +429,7 @@ worApiRouter.patch('/accounts/:accountId', (req, res) => {
 });
 
 worApiRouter.delete('/accounts/:accountId', (req, res) => {
-  runWithDb(res, (db) => {
+  runWithDb(res, async (db) => {
     const clerkUserId = requireClerkUserId(req);
     const data = validateBody(
       worDeleteAccountSchema,
@@ -460,10 +464,10 @@ worApiRouter.delete('/accounts/:accountId', (req, res) => {
 });
 
 worApiRouter.get('/user', (req, res) => {
-  runWithDb(res, (db) => {
+  runWithDb(res, async (db) => {
     const clerkUserId = requireClerkUserId(req);
     const accounts = q.getUserAccountsForApi(db, clerkUserId);
-    const currentAccountId = reconcileWorSessionAccount(db, req, clerkUserId);
+    const currentAccountId = await reconcileWorSessionAccount(db, req, clerkUserId);
     json(res, {
       clerk_user_id: clerkUserId,
       accounts,

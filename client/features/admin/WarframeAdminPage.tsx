@@ -1,5 +1,5 @@
 import { isHelminthNonSubsumableItemName } from '@codex/game-warframe/helminth-exceptions';
-import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type {
   WarframeColumn as Column,
@@ -12,6 +12,7 @@ import type {
 import { useLayoutSlots } from '../../components/Layout/useLayoutSlots';
 import { MaterialSymbol } from '../../components/ui/MaterialSymbol';
 import { Modal } from '../../components/ui/Modal';
+import { useTableScrollStyle } from '../../hooks/useTableScrollStyle';
 import { apiFetch } from '../../utils/api';
 import { useAuth } from '../auth/AuthContext';
 import { TAB_ORDER as WORKSHEET_ORDER, WORKSHEET_LABELS } from '../warframe/warframeConstants.js';
@@ -38,9 +39,6 @@ function worksheetHasActivity(sheet: WorksheetSyncResult): boolean {
 const worksheetOrderIndex = new Map<string, number>(
   WORKSHEET_ORDER.map((name, index) => [name, index]),
 );
-const tableScrollStyle = {
-  '--header-offset': '430px',
-} as CSSProperties;
 
 function SyncFromArmoryReportModal({
   open,
@@ -312,6 +310,7 @@ export function WarframeAdminPage() {
   const mountedRef = useRef(true);
   const worksheetIdRef = useRef<number | null>(null);
   const dataLoadGenerationRef = useRef(0);
+  const { tableScrollRef, tableScrollStyle } = useTableScrollStyle(430, worksheetId ?? 0);
 
   useEffect(() => {
     worksheetIdRef.current = worksheetId;
@@ -559,7 +558,11 @@ export function WarframeAdminPage() {
             <span className="loading p-0">Loading worksheet data...</span>
           </div>
         ) : null}
-        <div className={`table-scroll ${loadingData ? 'opacity-60' : ''}`} style={tableScrollStyle}>
+        <div
+          ref={tableScrollRef}
+          className={`table-scroll ${loadingData ? 'opacity-60' : ''}`}
+          style={tableScrollStyle}
+        >
           <table style={{ tableLayout: 'fixed' }}>
             <colgroup>
               <col style={{ width: 'auto' }} />

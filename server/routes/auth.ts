@@ -14,13 +14,16 @@ export const authRouter = Router();
 const FALLBACK_CODEX_GAMES = ['warframe', 'epic7', 'wor'] as const;
 const CODEX_GAMES = REGISTRY_CODEX_GAMES.length > 0 ? REGISTRY_CODEX_GAMES : FALLBACK_CODEX_GAMES;
 
-authRouter.get('/csrf', (_req, res) => {
+authRouter.get('/csrf', (req, res) => {
+  const generate = (req as typeof req & { csrfToken?: (overwrite?: boolean) => string }).csrfToken;
+  const token = generate ? generate() : (req.session.csrfToken ?? '');
+  res.setHeader('Cache-Control', 'no-store');
   res.json({
-    csrfToken: (res.locals as { csrfToken?: string }).csrfToken || '',
+    csrfToken: token,
   });
 });
 
-authRouter.get('/me', requireAuthApi, (req, res) => {
+authRouter.get('/me', requireAuthApi, async (req, res) => {
   const state = getClerkAuthState(req);
   if (!state.authenticated || !state.userId) {
     res.status(401).json({
@@ -38,7 +41,7 @@ authRouter.get('/me', requireAuthApi, (req, res) => {
     };
     return { id, ...metadata };
   });
-  ensureSessionBoundToClerkUser(req, state.userId);
+  await ensureSessionBoundToClerkUser(req, state.userId);
   res.json({
     authenticated: true,
     userId: state.userId,

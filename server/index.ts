@@ -6,6 +6,7 @@ import {
   clerkMiddleware,
   closeSessionDb,
   createAppHelmet,
+  getClerkAuthState,
   getClerkAuthorizedParties,
   getSessionDb,
   log,
@@ -49,6 +50,7 @@ import { healthzHandler, readyzHandler } from './probes.js';
 import { apiRouter } from './routes/api.js';
 import { authRouter } from './routes/auth.js';
 import { waitForWarframeSyncIdle } from './services/warframeSyncState.js';
+import { bindClerkUserSessionMiddleware } from './session/bindClerkUserSession.js';
 import { refreshWorDbAvailability } from './worDbState.js';
 
 const STATUS_TEXT: Record<number, string> = {
@@ -129,7 +131,6 @@ app.use(compression());
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(clerkMiddleware({ authorizedParties: getClerkAuthorizedParties() }));
 
 const RATE_LIMIT_SKIP_PATHS = new Set([
   '/healthz',
@@ -170,6 +171,12 @@ function createRateLimiter(
     ...(options?.skip ? { skip: options.skip } : {}),
   });
 }
+
+const probeLimiter = createRateLimiter(BASELINE_RATE_LIMIT_MAX);
+app.get('/healthz', healthzHandler);
+app.get('/readyz', probeLimiter, readyzHandler);
+
+app.use(clerkMiddleware({ authorizedParties: getClerkAuthorizedParties() }));
 
 const baselineLimiter = createRateLimiter(BASELINE_RATE_LIMIT_MAX, {
   skip: (req) =>
@@ -239,10 +246,6 @@ app.use((req, res, next) => {
     return;
   }
   next(invalidCsrfTokenError);
-});
-app.use((req, res, next) => {
-  (res.locals as { csrfToken?: string }).csrfToken = generateToken(req);
-  next();
 });
 
 const IS_DEV_ENV = NODE_ENV !== 'production';
@@ -331,6 +334,16 @@ app.use('/api', (_req, res, next) => {
   next();
 });
 
+app.use(
+  '/api',
+  bindClerkUserSessionMiddleware(
+    (req) => getClerkAuthState(req).userId,
+    (req) => {
+      (req as Request & { csrfToken?: (overwrite?: boolean) => string }).csrfToken?.(true);
+    },
+  ),
+);
+
 app.use('/api/auth', authRouter);
 
 app.get('/api/version', (_req, res) => {
@@ -347,9 +360,6 @@ const staticAssetLimiter = createRateLimiter(STATIC_ASSET_RATE_LIMIT_MAX);
 
 const clientDir = path.join(PROJECT_ROOT, 'dist', 'client');
 const clientIndexPath = path.join(clientDir, 'index.html');
-
-app.get('/healthz', healthzHandler);
-app.get('/readyz', readyzHandler);
 
 app.use(
   '/wor-images',
@@ -549,6 +559,13 @@ function shutdown(baseExitCode = 0): void {
         }
         closeAndExit(baseExitCode);
       });
+      server.closeIdleConnections();
+      setTimeout(
+        () => {
+          server.closeAllConnections();
+        },
+        Math.max(0, SHUTDOWN_TIMEOUT_MS - 500),
+      );
     } catch (err) {
       log('error', 'Unexpected shutdown error', {
         err: err instanceof Error ? (err.stack ?? err.message) : String(err),

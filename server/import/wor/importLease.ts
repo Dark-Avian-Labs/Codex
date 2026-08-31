@@ -48,9 +48,15 @@ export function releaseWorImportLease(db: Database.Database, lockToken: string):
 
 export function isWorImportLeaseHeld(db: Database.Database): boolean {
   ensureWorImportLeaseColumns(db);
-  const row = db.prepare('SELECT lock_token FROM import_lease WHERE id = ?').get(LEASE_ROW_ID) as
-    | { lock_token: string | null }
-    | undefined;
+  const row = db
+    .prepare(
+      `SELECT lock_token FROM import_lease
+       WHERE id = ?
+         AND lock_token IS NOT NULL
+         AND locked_at IS NOT NULL
+         AND locked_at > datetime('now', '-${IMPORT_LEASE_TTL_MINUTES} minutes')`,
+    )
+    .get(LEASE_ROW_ID) as { lock_token: string | null } | undefined;
   return Boolean(row?.lock_token);
 }
 
@@ -60,4 +66,34 @@ export function renewWorImportLease(db: Database.Database, lockToken: string): b
     .prepare(`UPDATE import_lease SET locked_at = datetime('now') WHERE id = ? AND lock_token = ?`)
     .run(LEASE_ROW_ID, lockToken);
   return updated.changes === 1;
+}
+
+export class WorImportLeaseLostError extends Error {
+  constructor(message = 'WoR import lease was lost; catalog writes aborted.') {
+    super(message);
+    this.name = 'WorImportLeaseLostError';
+  }
+}
+
+export type WorImportLeaseWatch = { lost: boolean };
+
+export function noteWorImportLeaseHeartbeat(
+  db: Database.Database,
+  lockToken: string,
+  watch: WorImportLeaseWatch,
+): void {
+  if (!renewWorImportLease(db, lockToken)) {
+    watch.lost = true;
+  }
+}
+
+export function requireWorImportLease(
+  db: Database.Database,
+  lockToken: string,
+  watch: WorImportLeaseWatch,
+): void {
+  if (watch.lost || !renewWorImportLease(db, lockToken)) {
+    watch.lost = true;
+    throw new WorImportLeaseLostError();
+  }
 }

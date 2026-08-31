@@ -9,6 +9,7 @@ import {
 import { Navigate, Route, Routes } from 'react-router';
 
 import { Layout } from '../components/Layout/Layout';
+import { ErrorBoundary } from '../components/ui/ErrorBoundary';
 import { LazySuspenseFallback } from '../components/ui/LazySuspenseFallback';
 import { RequireAuth } from '../features/auth/RequireAuth';
 import { APP_PATHS } from './paths';
@@ -92,7 +93,7 @@ class ChunkErrorBoundary extends Component<{ children: ReactNode }, ChunkErrorBo
       return;
     }
 
-    console.error('Unhandled route error in AppRoutes', error, info);
+    throw error;
   }
 
   private handleRetry = () => {
@@ -110,78 +111,80 @@ class ChunkErrorBoundary extends Component<{ children: ReactNode }, ChunkErrorBo
 
 export function AppRoutes() {
   return (
-    <ChunkErrorBoundary>
-      <Suspense fallback={<LazySuspenseFallback />}>
-        <Routes>
-          <Route element={<Layout />}>
-            <Route path={APP_PATHS.legal} element={<LegalPage />} />
-            <Route path={`${APP_PATHS.signIn}/*`} element={<SignInPage />} />
-            <Route path={`${APP_PATHS.signUp}/*`} element={<SignUpPage />} />
-            <Route path={APP_PATHS.home} element={<CodexLandingPage />} />
-            <Route
-              path="/home"
-              element={
-                <RequireAuth>
-                  <HomePage />
-                </RequireAuth>
-              }
-            />
-            <Route
-              path={APP_PATHS.warframe}
-              element={
-                <RequireAuth>
-                  <WarframePage />
-                </RequireAuth>
-              }
-            />
-            <Route
-              path={APP_PATHS.epic7}
-              element={
-                <RequireAuth>
-                  <Epic7Page />
-                </RequireAuth>
-              }
-            />
-            <Route
-              path={APP_PATHS.wor}
-              element={
-                <RequireAuth>
-                  <WorPage />
-                </RequireAuth>
-              }
-            />
-            <Route
-              path={APP_PATHS.epic7Admin}
-              element={
-                <RequireAuth>
-                  <AdminPage />
-                </RequireAuth>
-              }
-            />
-            <Route
-              path={APP_PATHS.warframeAdmin}
-              element={
-                <RequireAuth>
-                  <WarframeAdminPage />
-                </RequireAuth>
-              }
-            />
-            <Route
-              path={APP_PATHS.worAdmin}
-              element={
-                <RequireAuth>
-                  <WorAdminPage />
-                </RequireAuth>
-              }
-            />
-            <Route
-              path={APP_PATHS.admin}
-              element={<Navigate to={APP_PATHS.epic7Admin} replace />}
-            />
-            <Route path="*" element={<NotFoundPage />} />
-          </Route>
-        </Routes>
-      </Suspense>
-    </ChunkErrorBoundary>
+    <ErrorBoundary>
+      <ChunkErrorBoundary>
+        <Suspense fallback={<LazySuspenseFallback />}>
+          <Routes>
+            <Route element={<Layout />}>
+              <Route path={APP_PATHS.legal} element={<LegalPage />} />
+              <Route path={`${APP_PATHS.signIn}/*`} element={<SignInPage />} />
+              <Route path={`${APP_PATHS.signUp}/*`} element={<SignUpPage />} />
+              <Route path={APP_PATHS.home} element={<CodexLandingPage />} />
+              <Route
+                path="/home"
+                element={
+                  <RequireAuth>
+                    <HomePage />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path={APP_PATHS.warframe}
+                element={
+                  <RequireAuth>
+                    <WarframePage />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path={APP_PATHS.epic7}
+                element={
+                  <RequireAuth>
+                    <Epic7Page />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path={APP_PATHS.wor}
+                element={
+                  <RequireAuth>
+                    <WorPage />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path={APP_PATHS.epic7Admin}
+                element={
+                  <RequireAuth>
+                    <AdminPage />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path={APP_PATHS.warframeAdmin}
+                element={
+                  <RequireAuth>
+                    <WarframeAdminPage />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path={APP_PATHS.worAdmin}
+                element={
+                  <RequireAuth>
+                    <WorAdminPage />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path={APP_PATHS.admin}
+                element={<Navigate to={APP_PATHS.epic7Admin} replace />}
+              />
+              <Route path="*" element={<NotFoundPage />} />
+            </Route>
+          </Routes>
+        </Suspense>
+      </ChunkErrorBoundary>
+    </ErrorBoundary>
   );
 }

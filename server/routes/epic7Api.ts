@@ -58,23 +58,28 @@ function getDbOrFail(res: Response): ReturnType<typeof getEpic7Db> | null {
 
 type Epic7Database = ReturnType<typeof getEpic7Db>;
 
-function resolveAccountId(db: Epic7Database, req: Request, clerkUserId: string): number | null {
-  ensureSessionBoundToClerkUser(req, clerkUserId);
-  const fromSession = getEpic7Session(req).account_id;
-  if (typeof fromSession === 'number' && fromSession > 0) {
-    const owned = q.getGameAccountByIdAndUser(db, fromSession, clerkUserId);
-    if (owned) {
-      return owned.id;
+function resolveAccountId(
+  db: Epic7Database,
+  req: Request,
+  clerkUserId: string,
+): Promise<number | null> {
+  return ensureSessionBoundToClerkUser(req, clerkUserId).then(() => {
+    const fromSession = getEpic7Session(req).account_id;
+    if (typeof fromSession === 'number' && fromSession > 0) {
+      const owned = q.getGameAccountByIdAndUser(db, fromSession, clerkUserId);
+      if (owned) {
+        return owned.id;
+      }
+      clearEpic7SessionFields(req);
     }
-    clearEpic7SessionFields(req);
-  }
-  const accounts = q.getUserAccountsForApi(db, clerkUserId);
-  const active = accounts.find((account) => account.is_active === 1);
-  if (active) {
-    patchEpic7Session(req, { account_id: active.id, account_name: active.account_name });
-    return active.id;
-  }
-  return null;
+    const accounts = q.getUserAccountsForApi(db, clerkUserId);
+    const active = accounts.find((account) => account.is_active === 1);
+    if (active) {
+      patchEpic7Session(req, { account_id: active.id, account_name: active.account_name });
+      return active.id;
+    }
+    return null;
+  });
 }
 
 function runWithDb(res: Response, fn: (db: Epic7Database) => void | Promise<void>): void {
@@ -116,9 +121,9 @@ epic7ApiRouter.get('/worksheets', (_req, res) => {
 });
 
 epic7ApiRouter.get('/heroes', (req, res) => {
-  runWithDb(res, (db) => {
+  runWithDb(res, async (db) => {
     const clerkUserId = requireClerkUserId(req);
-    const accountId = resolveAccountId(db, req, clerkUserId);
+    const accountId = await resolveAccountId(db, req, clerkUserId);
     if (!accountId) {
       err(res, 'No game account selected. Please create one first.');
       return;
@@ -131,9 +136,9 @@ epic7ApiRouter.get('/heroes', (req, res) => {
 });
 
 epic7ApiRouter.get('/artifacts', (req, res) => {
-  runWithDb(res, (db) => {
+  runWithDb(res, async (db) => {
     const clerkUserId = requireClerkUserId(req);
-    const accountId = resolveAccountId(db, req, clerkUserId);
+    const accountId = await resolveAccountId(db, req, clerkUserId);
     if (!accountId) {
       err(res, 'No game account selected. Please create one first.');
       return;
@@ -147,9 +152,13 @@ epic7ApiRouter.get('/artifacts', (req, res) => {
   });
 });
 
-function requireAccountId(db: Epic7Database, req: Request, res: Response): number | null {
+async function requireAccountId(
+  db: Epic7Database,
+  req: Request,
+  res: Response,
+): Promise<number | null> {
   const clerkUserId = requireClerkUserId(req);
-  const accountId = resolveAccountId(db, req, clerkUserId);
+  const accountId = await resolveAccountId(db, req, clerkUserId);
   if (!accountId) {
     err(res, 'No game account selected. Please create one first.');
     return null;
@@ -158,8 +167,8 @@ function requireAccountId(db: Epic7Database, req: Request, res: Response): numbe
 }
 
 epic7ApiRouter.patch('/heroes/:heroId/rating', (req, res) => {
-  runWithDb(res, (db) => {
-    const accountId = requireAccountId(db, req, res);
+  runWithDb(res, async (db) => {
+    const accountId = await requireAccountId(db, req, res);
     if (!accountId) return;
     const data = validateBody(
       epic7UpdateHeroSchema,
@@ -176,8 +185,8 @@ epic7ApiRouter.patch('/heroes/:heroId/rating', (req, res) => {
 });
 
 epic7ApiRouter.patch('/artifacts/:artifactId/gauge', (req, res) => {
-  runWithDb(res, (db) => {
-    const accountId = requireAccountId(db, req, res);
+  runWithDb(res, async (db) => {
+    const accountId = await requireAccountId(db, req, res);
     if (!accountId) return;
     const data = validateBody(
       epic7UpdateArtifactSchema,
@@ -194,8 +203,8 @@ epic7ApiRouter.patch('/artifacts/:artifactId/gauge', (req, res) => {
 });
 
 epic7ApiRouter.post('/heroes', (req, res) => {
-  runWithDb(res, (db) => {
-    const accountId = requireAccountId(db, req, res);
+  runWithDb(res, async (db) => {
+    const accountId = await requireAccountId(db, req, res);
     if (!accountId) return;
     const data = validateBody(epic7AddHeroSchema, req.body, res);
     if (!data) return;
@@ -213,8 +222,8 @@ epic7ApiRouter.post('/heroes', (req, res) => {
 });
 
 epic7ApiRouter.post('/artifacts', (req, res) => {
-  runWithDb(res, (db) => {
-    const accountId = requireAccountId(db, req, res);
+  runWithDb(res, async (db) => {
+    const accountId = await requireAccountId(db, req, res);
     if (!accountId) return;
     const data = validateBody(epic7AddArtifactSchema, req.body, res);
     if (!data) return;
@@ -231,8 +240,8 @@ epic7ApiRouter.post('/artifacts', (req, res) => {
 });
 
 epic7ApiRouter.patch('/heroes/:heroId/details', (req, res) => {
-  runWithDb(res, (db) => {
-    const accountId = requireAccountId(db, req, res);
+  runWithDb(res, async (db) => {
+    const accountId = await requireAccountId(db, req, res);
     if (!accountId) return;
     const data = validateBody(
       epic7UpdateHeroDetailsSchema,
@@ -259,8 +268,8 @@ epic7ApiRouter.patch('/heroes/:heroId/details', (req, res) => {
 });
 
 epic7ApiRouter.patch('/artifacts/:artifactId/details', (req, res) => {
-  runWithDb(res, (db) => {
-    const accountId = requireAccountId(db, req, res);
+  runWithDb(res, async (db) => {
+    const accountId = await requireAccountId(db, req, res);
     if (!accountId) return;
     const data = validateBody(
       epic7UpdateArtifactDetailsSchema,
@@ -286,8 +295,8 @@ epic7ApiRouter.patch('/artifacts/:artifactId/details', (req, res) => {
 });
 
 epic7ApiRouter.delete('/heroes/:heroId', (req, res) => {
-  runWithDb(res, (db) => {
-    const accountId = requireAccountId(db, req, res);
+  runWithDb(res, async (db) => {
+    const accountId = await requireAccountId(db, req, res);
     if (!accountId) return;
     const data = validateBody(epic7DeleteHeroSchema, { hero_id: Number(req.params.heroId) }, res);
     if (!data) return;
@@ -300,8 +309,8 @@ epic7ApiRouter.delete('/heroes/:heroId', (req, res) => {
 });
 
 epic7ApiRouter.delete('/artifacts/:artifactId', (req, res) => {
-  runWithDb(res, (db) => {
-    const accountId = requireAccountId(db, req, res);
+  runWithDb(res, async (db) => {
+    const accountId = await requireAccountId(db, req, res);
     if (!accountId) return;
     const data = validateBody(
       epic7DeleteArtifactSchema,
@@ -318,9 +327,9 @@ epic7ApiRouter.delete('/artifacts/:artifactId', (req, res) => {
 });
 
 epic7ApiRouter.get('/accounts', (req, res) => {
-  runWithDb(res, (db) => {
+  runWithDb(res, async (db) => {
     const clerkUserId = requireClerkUserId(req);
-    ensureSessionBoundToClerkUser(req, clerkUserId);
+    await ensureSessionBoundToClerkUser(req, clerkUserId);
     const accounts = q.getUserAccountsForApi(db, clerkUserId);
     const active = accounts.find((account) => account.is_active === 1);
     const currentId = getEpic7Session(req).account_id ?? active?.id ?? null;
@@ -337,7 +346,7 @@ epic7ApiRouter.get('/accounts', (req, res) => {
 });
 
 epic7ApiRouter.post('/accounts/switch', (req, res) => {
-  runWithDb(res, (db) => {
+  runWithDb(res, async (db) => {
     const clerkUserId = requireClerkUserId(req);
     const data = validateBody(epic7SwitchAccountSchema, req.body, res);
     if (!data) return;
@@ -356,7 +365,7 @@ epic7ApiRouter.post('/accounts/switch', (req, res) => {
 });
 
 epic7ApiRouter.post('/accounts', (req, res) => {
-  runWithDb(res, (db) => {
+  runWithDb(res, async (db) => {
     const clerkUserId = requireClerkUserId(req);
     const data = validateBody(epic7AddAccountSchema, req.body, res);
     if (!data) return;
@@ -381,7 +390,7 @@ epic7ApiRouter.post('/accounts', (req, res) => {
 });
 
 epic7ApiRouter.patch('/accounts/:accountId', (req, res) => {
-  runWithDb(res, (db) => {
+  runWithDb(res, async (db) => {
     const clerkUserId = requireClerkUserId(req);
     const data = validateBody(
       epic7UpdateAccountSchema,
@@ -417,7 +426,7 @@ epic7ApiRouter.patch('/accounts/:accountId', (req, res) => {
 });
 
 epic7ApiRouter.delete('/accounts/:accountId', (req, res) => {
-  runWithDb(res, (db) => {
+  runWithDb(res, async (db) => {
     const clerkUserId = requireClerkUserId(req);
     const data = validateBody(
       epic7DeleteAccountSchema,
@@ -446,9 +455,9 @@ epic7ApiRouter.delete('/accounts/:accountId', (req, res) => {
   });
 });
 
-epic7ApiRouter.get('/user', (req, res) => {
+epic7ApiRouter.get('/user', async (req, res) => {
   const clerkUserId = requireClerkUserId(req);
-  ensureSessionBoundToClerkUser(req, clerkUserId);
+  await ensureSessionBoundToClerkUser(req, clerkUserId);
   const s = getEpic7Session(req);
   json(res, {
     userId: requireClerkUserId(req),
@@ -458,7 +467,7 @@ epic7ApiRouter.get('/user', (req, res) => {
 });
 
 epic7ApiRouter.get('/admin/base/heroes', requireCodexAdmin, (_req, res) => {
-  runWithDb(res, (db) => {
+  runWithDb(res, async (db) => {
     const heroes = db
       .prepare(
         'SELECT id, name, class, element, star_rating, display_order FROM base_heroes ORDER BY display_order ASC',
@@ -469,7 +478,7 @@ epic7ApiRouter.get('/admin/base/heroes', requireCodexAdmin, (_req, res) => {
 });
 
 epic7ApiRouter.get('/admin/base/artifacts', requireCodexAdmin, (_req, res) => {
-  runWithDb(res, (db) => {
+  runWithDb(res, async (db) => {
     const artifacts = db
       .prepare(
         'SELECT id, name, class, star_rating, display_order FROM base_artifacts ORDER BY display_order ASC',
@@ -480,7 +489,7 @@ epic7ApiRouter.get('/admin/base/artifacts', requireCodexAdmin, (_req, res) => {
 });
 
 epic7ApiRouter.post('/admin/base/heroes', requireCodexAdmin, (req, res) => {
-  runWithDb(res, (db) => {
+  runWithDb(res, async (db) => {
     const data = validateBody(epic7AdminAddBaseHeroSchema, req.body, res);
     if (!data) return;
     const createBaseHero = db.transaction(() => {
@@ -518,7 +527,7 @@ epic7ApiRouter.post('/admin/base/heroes', requireCodexAdmin, (req, res) => {
 });
 
 epic7ApiRouter.post('/admin/base/artifacts', requireCodexAdmin, (req, res) => {
-  runWithDb(res, (db) => {
+  runWithDb(res, async (db) => {
     const data = validateBody(epic7AdminAddBaseArtifactSchema, req.body, res);
     if (!data) return;
     const createBaseArtifact = db.transaction(() => {
@@ -555,7 +564,7 @@ epic7ApiRouter.post('/admin/base/artifacts', requireCodexAdmin, (req, res) => {
 });
 
 epic7ApiRouter.delete('/admin/base/heroes/:heroId', requireCodexAdmin, (req, res) => {
-  runWithDb(res, (db) => {
+  runWithDb(res, async (db) => {
     const data = validateBody(
       epic7AdminDeleteBaseHeroSchema,
       { hero_id: Number(req.params.heroId) },
@@ -572,7 +581,7 @@ epic7ApiRouter.delete('/admin/base/heroes/:heroId', requireCodexAdmin, (req, res
 });
 
 epic7ApiRouter.delete('/admin/base/artifacts/:artifactId', requireCodexAdmin, (req, res) => {
-  runWithDb(res, (db) => {
+  runWithDb(res, async (db) => {
     const data = validateBody(
       epic7AdminDeleteBaseArtifactSchema,
       { artifact_id: Number(req.params.artifactId) },

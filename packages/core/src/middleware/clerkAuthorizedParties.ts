@@ -25,6 +25,13 @@ export function getClerkAuthorizedParties(): string[] {
   const nodeEnv = (process.env.NODE_ENV ?? '').trim().toLowerCase();
   const isDevEnv = nodeEnv === 'development' || nodeEnv === 'test';
 
+  const appOrigin = getAppPublicBaseUrl();
+  if (!isAllowedOrigin(appOrigin, isDevEnv)) {
+    throw new Error(
+      `APP_PUBLIC_BASE_URL (${appOrigin}) is not an allowed origin for NODE_ENV=${nodeEnv || '(unset)'}. Use https:// in production.`,
+    );
+  }
+
   const configuredOrigins = (process.env.ALLOWED_APP_ORIGINS ?? '')
     .split(',')
     .map((value) => value.trim())
@@ -32,7 +39,7 @@ export function getClerkAuthorizedParties(): string[] {
 
   const devOrigins = isDevEnv ? DEV_AUTHORIZED_PARTIES : [];
 
-  return [...new Set([getAppPublicBaseUrl(), ...configuredOrigins, ...devOrigins])].filter(
-    (origin) => isAllowedOrigin(origin, isDevEnv),
+  return [...new Set([appOrigin, ...configuredOrigins, ...devOrigins])].filter((origin) =>
+    isAllowedOrigin(origin, isDevEnv),
   );
 }

@@ -1,5 +1,7 @@
 import type { Request } from 'express';
 
+import { bindClerkUserToExpressSession } from './bindClerkUserSession.js';
+
 export type WorSessionFields = {
   clerk_user_id?: string | null;
   wor_account_id?: number | null;
@@ -16,13 +18,11 @@ export function clearWorSessionFields(req: Request): void {
   sessionData.wor_account_name = null;
 }
 
-export function ensureWorSessionBoundToClerkUser(req: Request, clerkUserId: string): void {
-  const sessionData = getWorSession(req);
-  const boundUserId = sessionData.clerk_user_id;
-  if (boundUserId && boundUserId !== clerkUserId) {
-    clearWorSessionFields(req);
-  }
-  sessionData.clerk_user_id = clerkUserId;
+export async function ensureWorSessionBoundToClerkUser(
+  req: Request,
+  clerkUserId: string,
+): Promise<void> {
+  await bindClerkUserToExpressSession(req, clerkUserId);
 }
 
 export function patchWorSession(req: Request, values: Partial<WorSessionFields>): void {

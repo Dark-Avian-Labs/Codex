@@ -6,13 +6,17 @@ import type {
 } from '../../../shared/warframeTypes.js';
 import { HeaderSearch } from '../../components/Layout/HeaderSearch';
 import { useLayoutSlots } from '../../components/Layout/useLayoutSlots';
+import { LoadErrorBanner } from '../../components/ui/LoadErrorBanner';
 import { MaterialSymbol } from '../../components/ui/MaterialSymbol';
+import { Toast } from '../../components/ui/Toast';
+import { useAutoDismissMessage } from '../../hooks/useAutoDismissMessage';
+import { useTableScrollStyle } from '../../hooks/useTableScrollStyle';
 import { apiFetch } from '../../utils/api';
 import {
   useWarframeWorksheetData,
   type WarframeInitialSettings,
 } from './hooks/useWarframeWorksheetData.js';
-import { tableScrollStyle, WORKSHEET_LABELS, type ExitRowPhase } from './warframeConstants.js';
+import { WORKSHEET_LABELS, type ExitRowPhase } from './warframeConstants.js';
 import { WarframeTableRow, type AdvancedPatch } from './WarframeTableRow';
 import {
   clamp,
@@ -31,6 +35,10 @@ export function WarframePage() {
   const [showAllVariants, setShowAllVariants] = useState(false);
   const [exitingRows, setExitingRows] = useState<Record<number, ExitRowPhase>>({});
   const [operationError, setOperationError] = useState<string | null>(null);
+  const clearOperationError = useCallback(() => {
+    setOperationError(null);
+  }, []);
+  useAutoDismissMessage(operationError, clearOperationError);
 
   const applyInitialSettings = useCallback((settings: WarframeInitialSettings): void => {
     setHideCompleted(settings.hide_completed);
@@ -50,6 +58,7 @@ export function WarframePage() {
     loadWorksheetData,
     retryLoad,
   } = useWarframeWorksheetData(applyInitialSettings);
+  const { tableScrollRef, tableScrollStyle } = useTableScrollStyle(320, worksheetId ?? 0);
 
   const exitTimersRef = useRef<Map<number, number[]>>(new Map());
   const holdIntervalRef = useRef<number | null>(null);
@@ -131,20 +140,6 @@ export function WarframePage() {
       stopHoldStep();
     };
   }, [clearAllExitTimers, stopHoldStep]);
-
-  useEffect(() => {
-    let timeoutId: number | null = null;
-    if (operationError) {
-      timeoutId = window.setTimeout(() => {
-        setOperationError(null);
-      }, 5000);
-    }
-    return () => {
-      if (timeoutId !== null) {
-        window.clearTimeout(timeoutId);
-      }
-    };
-  }, [operationError]);
 
   useEffect(() => {
     clearAllExitTimers();
@@ -661,14 +656,7 @@ export function WarframePage() {
   if (loadError && worksheets.length === 0) {
     return (
       <div className="space-y-3">
-        <p className="error" role="alert">
-          {loadError}
-        </p>
-        <div className="flex gap-2">
-          <button type="button" className="btn btn-secondary" onClick={handleRetry}>
-            Retry
-          </button>
-        </div>
+        <LoadErrorBanner message={loadError} onRetry={handleRetry} />
       </div>
     );
   }
@@ -680,27 +668,8 @@ export function WarframePage() {
 
   return (
     <section className="space-y-4">
-      {operationError ? (
-        <div className="error flex items-center justify-between gap-3" role="alert">
-          <span>{operationError}</span>
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={() => setOperationError(null)}
-            aria-label="Dismiss error message"
-          >
-            Dismiss
-          </button>
-        </div>
-      ) : null}
-      {loadError ? (
-        <div className="error flex items-center justify-between gap-3" role="alert">
-          <span>{loadError}</span>
-          <button type="button" className="btn btn-secondary" onClick={handleRetry}>
-            Retry
-          </button>
-        </div>
-      ) : null}
+      <Toast message={operationError} tone="error" onDismiss={clearOperationError} />
+      {loadError ? <LoadErrorBanner message={loadError} onRetry={handleRetry} /> : null}
       <div className="tabs" role="tablist" aria-label="Warframe categories">
         {worksheets.map((worksheet) => {
           const tabId = `warframe-tab-${worksheet.id}`;
@@ -877,7 +846,7 @@ export function WarframePage() {
           </div>
         </div>
         <div className="table-container">
-          <div className="table-scroll" style={tableScrollStyle}>
+          <div ref={tableScrollRef} className="table-scroll" style={tableScrollStyle}>
             <table style={{ tableLayout: 'fixed' }}>
               <colgroup>
                 <col style={{ width: 'auto' }} />

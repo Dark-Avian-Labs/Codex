@@ -32,19 +32,19 @@ export function validateWorCatalogBundle(bundle: CatalogBundle): WorValidationRe
 
   if (bundle.heroes.length < MIN_HEROES) {
     issues.push({
-      level: 'warning',
+      level: 'error',
       message: `Expected at least ${MIN_HEROES} heroes, found ${bundle.heroes.length}.`,
     });
   }
   if (bundle.artifacts.length < MIN_ARTIFACTS) {
     issues.push({
-      level: 'warning',
+      level: 'error',
       message: `Expected at least ${MIN_ARTIFACTS} artifacts, found ${bundle.artifacts.length}.`,
     });
   }
   if (bundle.demons.length < MIN_DEMONS) {
     issues.push({
-      level: 'warning',
+      level: 'error',
       message: `Expected at least ${MIN_DEMONS} demons, found ${bundle.demons.length}.`,
     });
   }

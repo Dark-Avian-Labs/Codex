@@ -12,6 +12,7 @@ import {
   type WorImportSummary,
 } from './startupPipeline.js';
 import type { WorPipelineStepKey } from './worPipelineSteps.js';
+import { WOR_PIPELINE_STEPS } from './worPipelineSteps.js';
 
 export type WorAdminImportSnapshot = {
   runId: number;
@@ -81,9 +82,26 @@ export function isWorImportRunning(): boolean {
   }
 }
 
+export function __resetWorAdminImportForTests(): void {
+  listeners.clear();
+  state = {
+    runId: 0,
+    running: false,
+    startedAt: null,
+    finishedAt: null,
+    lines: [],
+    summary: null,
+    error: null,
+  };
+  activeJobPromise = null;
+  activeLockToken = null;
+}
+
 function parseForceSteps(forceSteps: string[] | undefined): WorPipelineStepKey[] | undefined {
   if (!forceSteps?.length) return undefined;
-  return forceSteps as WorPipelineStepKey[];
+  const allowed = new Set<string>(WOR_PIPELINE_STEPS);
+  const parsed = forceSteps.filter((step): step is WorPipelineStepKey => allowed.has(step));
+  return parsed.length > 0 ? parsed : undefined;
 }
 
 export function startWorAdminImport(options?: {

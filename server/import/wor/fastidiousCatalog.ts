@@ -261,9 +261,17 @@ export async function fetchFastidiousCatalog(options?: {
 
   onLog?.(`Loading Fastidious catalog (${live ? 'live' : 'cache'}) from ${cacheDir}…`);
 
+  onLog?.(`Fetching Fastidious heroes (${live ? 'live' : 'cache'})…`);
   const heroesProps = await fetchHeroesCache(cacheDir, live);
+  onLog?.(`Loaded ${heroesProps.heroes.length} Fastidious heroes.`);
+
+  onLog?.(`Fetching Fastidious artifacts (${live ? 'live' : 'cache'})…`);
   const artifactsProps = await fetchArtifactsCache(cacheDir, live);
+  onLog?.(`Loaded ${artifactsProps.artifacts.length} Fastidious artifacts.`);
+
+  onLog?.(`Fetching Fastidious demons (${live ? 'live' : 'cache'})…`);
   const demonsProps = await fetchDemonsCache(cacheDir, live);
+  onLog?.(`Loaded ${demonsProps.demons.length} Fastidious demons.`);
 
   const storageUrl = heroesProps.storageUrl ?? `${FASTIDIOUS_BASE_URL}/storage/`;
   const storageVersion = heroesProps.storageVersion ?? '1';
@@ -274,7 +282,15 @@ export async function fetchFastidiousCatalog(options?: {
   );
 
   const demons: CatalogDemonRow[] = [];
+  const demonTotal = demonsProps.demons.length;
+  onLog?.(
+    `Fetching ${demonTotal} demon details (${live ? 'live' : 'cache'}, one request each when live)…`,
+  );
   for (const [index, demon] of demonsProps.demons.entries()) {
+    const completed = index + 1;
+    if (completed === 1 || completed === demonTotal || completed % 10 === 0) {
+      onLog?.(`Demon details ${completed}/${demonTotal}…`);
+    }
     const detail = await loadDemonDetail(cacheDir, demon.slug, live);
     demons.push(mapDemon(demon, computeDemonMaxLevel(detail), index + 1));
   }
