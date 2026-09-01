@@ -10,18 +10,29 @@ import {
   HERO_AWAKENING_MAX,
   HERO_CLASSES,
 } from '@codex/game-wor/constants';
-import type { FactionKey, HeroClassKey } from '@codex/game-wor/constants';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { CollectionSubheader } from '../../components/Layout/CollectionSubheader';
 import { HeaderSearch } from '../../components/Layout/HeaderSearch';
 import { useLayoutSlots } from '../../components/Layout/useLayoutSlots';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
+import { FilterIconButton } from '../../components/ui/FilterIconButton';
 import { LoadErrorBanner } from '../../components/ui/LoadErrorBanner';
 import { MaterialSymbol } from '../../components/ui/MaterialSymbol';
 import { Modal } from '../../components/ui/Modal';
 import { Toast } from '../../components/ui/Toast';
 import { useAutoDismissMessage } from '../../hooks/useAutoDismissMessage';
-import { useTableScrollStyle } from '../../hooks/useTableScrollStyle';
+import {
+  cycleTriFilter,
+  cycleTriState,
+  matchesAnyTriFilter,
+  matchesBoolTri,
+  matchesTriFilter,
+  pruneTriFilter,
+  triFilterState,
+  type FilterTriState,
+  type TriFilterMap,
+} from '../../lib/triFilter';
 import { apiFetch } from '../../utils/api';
 import {
   HIDE_COMPLETED_STORAGE_KEY,
@@ -52,11 +63,11 @@ export function WorPage() {
   const { setHeaderCenter, setHeaderActions } = useLayoutSlots();
   const [tab, setTab] = useState<WorTab>('heroes');
   const [search, setSearch] = useState('');
-  const [classFilter, setClassFilter] = useState<HeroClassKey | null>(null);
-  const [factionFilter, setFactionFilter] = useState<FactionKey | null>(null);
-  const [rarityFilter, setRarityFilter] = useState<3 | 4 | 5 | 6 | null>(null);
-  const [redStarFilter, setRedStarFilter] = useState(false);
-  const [exclusiveFilter, setExclusiveFilter] = useState(false);
+  const [classFilter, setClassFilter] = useState<TriFilterMap>({});
+  const [factionFilter, setFactionFilter] = useState<TriFilterMap>({});
+  const [rarityFilter, setRarityFilter] = useState<TriFilterMap>({});
+  const [redStarFilter, setRedStarFilter] = useState<FilterTriState>('off');
+  const [exclusiveFilter, setExclusiveFilter] = useState<FilterTriState>('off');
   const [hideCompleted, setHideCompleted] = useState(readHideCompletedPreference);
   const [heroes, setHeroes] = useState<WorHero[]>([]);
   const [artifacts, setArtifacts] = useState<WorArtifact[]>([]);
@@ -87,7 +98,6 @@ export function WorPage() {
     setOperationError(null);
   }, []);
   useAutoDismissMessage(operationError, clearOperationError);
-  const { tableScrollRef, tableScrollStyle } = useTableScrollStyle(410, tab);
 
   const currentAccount = useMemo(
     () => accounts.find((account) => account.id === currentAccountId) ?? null,
@@ -117,14 +127,7 @@ export function WorPage() {
     setLoadError(null);
     try {
       await loadAccounts();
-      const params = new URLSearchParams();
-      if (tab === 'heroes') {
-        if (classFilter) params.set('class', classFilter);
-        if (factionFilter) params.set('faction', factionFilter);
-        if (rarityFilter) params.set('rarity', String(rarityFilter));
-      }
-      const suffix = params.toString() ? `?${params.toString()}` : '';
-      const response = await apiFetch(`/api/wor/${tab}${suffix}`);
+      const response = await apiFetch(`/api/wor/${tab}`);
       if (!response.ok) {
         const body = (await response.json().catch(() => null)) as { error?: string } | null;
         throw new Error(body?.error ?? 'Failed to load collection');
@@ -142,21 +145,21 @@ export function WorPage() {
     } finally {
       setLoading(false);
     }
-  }, [classFilter, factionFilter, loadAccounts, rarityFilter, tab]);
+  }, [loadAccounts, tab]);
 
   useEffect(() => {
     void loadTabData();
   }, [loadTabData]);
 
   useEffect(() => {
-    const allowed = tab === 'artifacts' ? ARTIFACT_FILTER_STAR_RATINGS : FILTER_STAR_RATINGS;
-    if (rarityFilter != null && !(allowed as readonly number[]).includes(rarityFilter)) {
-      setRarityFilter(null);
+    const allowed = (tab === 'artifacts' ? ARTIFACT_FILTER_STAR_RATINGS : FILTER_STAR_RATINGS).map(
+      (stars) => String(stars),
+    );
+    setRarityFilter((previous) => pruneTriFilter(previous, allowed));
+    if (tab === 'artifacts' && redStarFilter !== 'off') {
+      setRedStarFilter('off');
     }
-    if (tab === 'artifacts' && redStarFilter) {
-      setRedStarFilter(false);
-    }
-  }, [rarityFilter, redStarFilter, tab]);
+  }, [redStarFilter, tab]);
 
   useEffect(() => {
     setHeaderCenter(
@@ -175,18 +178,21 @@ export function WorPage() {
     () =>
       heroes.filter((row) => {
         if (!row.name.toLowerCase().includes(search.toLowerCase())) return false;
-        if (redStarFilter && !isRedStarHero(row)) return false;
+        if (!matchesTriFilter(row.class, classFilter)) return false;
+        if (!matchesAnyTriFilter([row.faction, row.faction_secondary], factionFilter)) return false;
+        if (!matchesTriFilter(row.star_rating, rarityFilter)) return false;
+        if (!matchesBoolTri(isRedStarHero(row), redStarFilter)) return false;
         return true;
       }),
-    [heroes, redStarFilter, search],
+    [heroes, classFilter, factionFilter, rarityFilter, redStarFilter, search],
   );
   const filteredArtifacts = useMemo(
     () =>
       artifacts.filter((row) => {
         if (!row.name.toLowerCase().includes(search.toLowerCase())) return false;
-        if (classFilter && row.class !== classFilter) return false;
-        if (rarityFilter && row.star_rating !== rarityFilter) return false;
-        if (exclusiveFilter && !isExclusiveArtifact(row)) return false;
+        if (!matchesTriFilter(row.class, classFilter)) return false;
+        if (!matchesTriFilter(row.star_rating, rarityFilter)) return false;
+        if (!matchesBoolTri(isExclusiveArtifact(row), exclusiveFilter)) return false;
         return true;
       }),
     [artifacts, search, classFilter, exclusiveFilter, rarityFilter],
@@ -195,8 +201,8 @@ export function WorPage() {
     () =>
       demons.filter((row) => {
         if (!row.name.toLowerCase().includes(search.toLowerCase())) return false;
-        if (rarityFilter && row.star_rating !== rarityFilter) return false;
-        if (redStarFilter && !isRedStarDemon(row)) return false;
+        if (!matchesTriFilter(row.star_rating, rarityFilter)) return false;
+        if (!matchesBoolTri(isRedStarDemon(row), redStarFilter)) return false;
         return true;
       }),
     [demons, search, rarityFilter, redStarFilter],
@@ -225,7 +231,8 @@ export function WorPage() {
   }, []);
 
   const stats = useMemo((): WorStats => {
-    const rows = tab === 'heroes' ? heroes : tab === 'artifacts' ? artifacts : demons;
+    const rows =
+      tab === 'heroes' ? filteredHeroes : tab === 'artifacts' ? filteredArtifacts : filteredDemons;
     const owned = rows.filter((row) => row.owned === 1).length;
     const maxed = rows.filter((row) => {
       if (row.owned !== 1) return false;
@@ -234,7 +241,7 @@ export function WorPage() {
       return row.gauge_level === (row as WorDemon).max_level;
     }).length;
     return { total: rows.length, owned, maxed };
-  }, [artifacts, demons, heroes, tab]);
+  }, [filteredArtifacts, filteredDemons, filteredHeroes, tab]);
 
   const switchAccount = useCallback(
     async (accountId: number) => {
@@ -504,172 +511,143 @@ export function WorPage() {
   );
 
   return (
-    <section className="space-y-4">
+    <section className="collection-view">
       {loadError ? (
         <LoadErrorBanner message={loadError} onRetry={() => void loadTabData()} />
       ) : null}
       <Toast message={operationError} tone="error" onDismiss={clearOperationError} />
 
-      <div className="tabs" role="tablist" aria-label="WoR collection tabs">
-        {(['heroes', 'artifacts', 'demons'] as const).map((item) => (
-          <button
-            key={item}
-            id={`wor-tab-${item}`}
-            type="button"
-            role="tab"
-            className={`tab ${tab === item ? 'active' : ''}`}
-            aria-selected={tab === item}
-            aria-controls="wor-panel"
-            onClick={() => setTab(item)}
-          >
-            {item.charAt(0).toUpperCase() + item.slice(1)}
-          </button>
-        ))}
-      </div>
-
-      <div id="wor-panel" role="tabpanel" aria-labelledby={`wor-tab-${tab}`}>
-        {tab === 'heroes' || tab === 'artifacts' || tab === 'demons' ? (
-          <div
-            className="filter-bar"
-            id={
-              tab === 'heroes'
-                ? 'wor-filter-bar'
-                : tab === 'artifacts'
-                  ? 'wor-artifact-filter-bar'
-                  : 'wor-demon-filter-bar'
-            }
-          >
-            {[
-              tab === 'heroes' || tab === 'artifacts' ? (
-                <div key="class" className="filter-group">
-                  <span className="filter-label">Class:</span>
-                  {HERO_CLASSES.map((heroClass) => (
-                    <button
-                      key={heroClass}
-                      type="button"
-                      className={`filter-icon ${classFilter === heroClass ? 'active' : ''}`}
-                      title={CLASS_DISPLAY_NAMES[heroClass]}
-                      aria-pressed={classFilter === heroClass}
-                      aria-label={`Filter by ${CLASS_DISPLAY_NAMES[heroClass]} class`}
-                      onClick={() =>
-                        setClassFilter((previous) => (previous === heroClass ? null : heroClass))
-                      }
-                    >
+      <CollectionSubheader>
+        <div className="tabs" role="tablist" aria-label="WoR collection tabs">
+          {(['heroes', 'artifacts', 'demons'] as const).map((item) => (
+            <button
+              key={item}
+              id={`wor-tab-${item}`}
+              type="button"
+              role="tab"
+              className={`tab ${tab === item ? 'active' : ''}`}
+              aria-selected={tab === item}
+              aria-controls="wor-panel"
+              onClick={() => setTab(item)}
+            >
+              {item.charAt(0).toUpperCase() + item.slice(1)}
+            </button>
+          ))}
+        </div>
+        <div
+          className="filter-bar"
+          id={
+            tab === 'heroes'
+              ? 'wor-filter-bar'
+              : tab === 'artifacts'
+                ? 'wor-artifact-filter-bar'
+                : 'wor-demon-filter-bar'
+          }
+        >
+          {tab === 'heroes' || tab === 'artifacts' ? (
+            <div className="filter-group">
+              <span className="filter-label">Class:</span>
+              {HERO_CLASSES.map((heroClass) => (
+                <FilterIconButton
+                  key={heroClass}
+                  state={triFilterState(classFilter, heroClass)}
+                  label={`${CLASS_DISPLAY_NAMES[heroClass]} class`}
+                  onClick={() => setClassFilter((previous) => cycleTriFilter(previous, heroClass))}
+                >
+                  <WorIconWithFallback
+                    className="invert-on-light"
+                    primarySrc={worClassIconUrls(heroClass).primary}
+                    fallbackSrc={worClassIconUrls(heroClass).fallback}
+                    alt={CLASS_DISPLAY_NAMES[heroClass]}
+                    size={24}
+                  />
+                </FilterIconButton>
+              ))}
+            </div>
+          ) : null}
+          <div className="filter-group">
+            <span className="filter-label">Rarity:</span>
+            {(tab === 'artifacts' ? ARTIFACT_FILTER_STAR_RATINGS : FILTER_STAR_RATINGS).map(
+              (stars) => {
+                const label = FILTER_STAR_RARITY_LABELS[stars];
+                const iconSrc = ICONS[`star${stars}`];
+                return (
+                  <FilterIconButton
+                    key={stars}
+                    state={triFilterState(rarityFilter, String(stars))}
+                    label={`${label} rarity`}
+                    onClick={() =>
+                      setRarityFilter((previous) => cycleTriFilter(previous, String(stars)))
+                    }
+                  >
+                    {iconSrc ? (
+                      <img src={iconSrc} alt={`${stars} star`} width={24} height={24} />
+                    ) : (
+                      <span aria-hidden="true">{stars}★</span>
+                    )}
+                  </FilterIconButton>
+                );
+              },
+            )}
+            {tab === 'heroes' || tab === 'demons' ? (
+              <FilterIconButton
+                state={redStarFilter}
+                label={tab === 'heroes' ? 'Lord heroes' : 'Captain demons'}
+                onClick={() => setRedStarFilter((previous) => cycleTriState(previous))}
+              >
+                {ICONS.star6 ? (
+                  <img src={ICONS.star6} alt="Red star" width={24} height={24} />
+                ) : (
+                  <span aria-hidden="true">★</span>
+                )}
+              </FilterIconButton>
+            ) : null}
+          </div>
+          {tab === 'heroes' ? (
+            <div className="filter-group">
+              <span className="filter-label">Faction:</span>
+              {FACTIONS.map((faction) => {
+                const urls = faction === 'unaffiliated' ? null : worFactionIconUrls(faction);
+                return (
+                  <FilterIconButton
+                    key={faction}
+                    state={triFilterState(factionFilter, faction)}
+                    label={`${FACTION_DISPLAY_NAMES[faction]} faction`}
+                    onClick={() =>
+                      setFactionFilter((previous) => cycleTriFilter(previous, faction))
+                    }
+                  >
+                    {faction === 'unaffiliated' || !urls ? (
+                      <MaterialSymbol
+                        name="person_off"
+                        className="text-muted"
+                        style={{ fontSize: 24 }}
+                      />
+                    ) : (
                       <WorIconWithFallback
-                        className="invert-on-light"
-                        primarySrc={worClassIconUrls(heroClass).primary}
-                        fallbackSrc={worClassIconUrls(heroClass).fallback}
-                        alt={CLASS_DISPLAY_NAMES[heroClass]}
+                        primarySrc={urls.primary}
+                        fallbackSrc={urls.fallback}
+                        alt={FACTION_DISPLAY_NAMES[faction]}
                         size={24}
                       />
-                    </button>
-                  ))}
-                </div>
-              ) : null,
-              <div key="rarity" className="filter-group">
-                <span className="filter-label">Rarity:</span>
-                {(tab === 'artifacts' ? ARTIFACT_FILTER_STAR_RATINGS : FILTER_STAR_RATINGS).map(
-                  (stars) => {
-                    const label = FILTER_STAR_RARITY_LABELS[stars];
-                    const iconSrc = ICONS[`star${stars}`];
-                    return (
-                      <button
-                        key={stars}
-                        type="button"
-                        className={`filter-icon ${rarityFilter === stars ? 'active' : ''}`}
-                        title={label}
-                        aria-pressed={rarityFilter === stars}
-                        aria-label={`Filter by ${label} rarity`}
-                        onClick={() => {
-                          setRedStarFilter(false);
-                          setRarityFilter((previous) => (previous === stars ? null : stars));
-                        }}
-                      >
-                        {iconSrc ? (
-                          <img src={iconSrc} alt={`${stars} star`} width={24} height={24} />
-                        ) : (
-                          <span aria-hidden="true">{stars}★</span>
-                        )}
-                      </button>
-                    );
-                  },
-                )}
-                {tab === 'heroes' || tab === 'demons' ? (
-                  <button
-                    type="button"
-                    className={`filter-icon ${redStarFilter ? 'active' : ''}`}
-                    title={tab === 'heroes' ? 'Lord' : 'Captain'}
-                    aria-pressed={redStarFilter}
-                    aria-label={
-                      tab === 'heroes' ? 'Filter by Lord heroes' : 'Filter by Captain demons'
-                    }
-                    onClick={() => {
-                      setRarityFilter(null);
-                      setRedStarFilter((previous) => !previous);
-                    }}
-                  >
-                    {ICONS.star6 ? (
-                      <img src={ICONS.star6} alt="Red star" width={24} height={24} />
-                    ) : (
-                      <span aria-hidden="true">★</span>
                     )}
-                  </button>
-                ) : null}
-              </div>,
-              tab === 'heroes' ? (
-                <div key="faction" className="filter-group">
-                  <span className="filter-label">Faction:</span>
-                  {FACTIONS.map((faction) => {
-                    const urls = faction === 'unaffiliated' ? null : worFactionIconUrls(faction);
-                    return (
-                      <button
-                        key={faction}
-                        type="button"
-                        className={`filter-icon ${factionFilter === faction ? 'active' : ''}`}
-                        title={FACTION_DISPLAY_NAMES[faction]}
-                        aria-pressed={factionFilter === faction}
-                        aria-label={`Filter by ${FACTION_DISPLAY_NAMES[faction]} faction`}
-                        onClick={() =>
-                          setFactionFilter((previous) => (previous === faction ? null : faction))
-                        }
-                      >
-                        {faction === 'unaffiliated' || !urls ? (
-                          <MaterialSymbol
-                            name="person_off"
-                            className="text-muted"
-                            style={{ fontSize: 24 }}
-                          />
-                        ) : (
-                          <WorIconWithFallback
-                            primarySrc={urls.primary}
-                            fallbackSrc={urls.fallback}
-                            alt={FACTION_DISPLAY_NAMES[faction]}
-                            size={24}
-                          />
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : tab === 'artifacts' ? (
-                <div key="exclusive" className="filter-group">
-                  <span className="filter-label">Exclusive:</span>
-                  <button
-                    type="button"
-                    className={`filter-icon ${exclusiveFilter ? 'active' : ''}`}
-                    title="Hero exclusive artifacts"
-                    aria-pressed={exclusiveFilter}
-                    aria-label="Filter hero exclusive artifacts"
-                    onClick={() => setExclusiveFilter((previous) => !previous)}
-                  >
-                    <MaterialSymbol name="crown" style={{ fontSize: 24 }} />
-                  </button>
-                </div>
-              ) : null,
-            ]}
-          </div>
-        ) : null}
-
+                  </FilterIconButton>
+                );
+              })}
+            </div>
+          ) : tab === 'artifacts' ? (
+            <div className="filter-group">
+              <span className="filter-label">Exclusive:</span>
+              <FilterIconButton
+                state={exclusiveFilter}
+                label="hero exclusive artifacts"
+                onClick={() => setExclusiveFilter((previous) => cycleTriState(previous))}
+              >
+                <MaterialSymbol name="crown" style={{ fontSize: 24 }} />
+              </FilterIconButton>
+            </div>
+          ) : null}
+        </div>
         <div className="stats-bar">
           <div className="stats-bar-stats">
             <div className="stat">
@@ -712,13 +690,11 @@ export function WorPage() {
             </button>
           </div>
         </div>
+      </CollectionSubheader>
 
+      <div id="wor-panel" role="tabpanel" aria-labelledby={`wor-tab-${tab}`}>
         <div className="table-container" aria-busy={loading}>
-          <div
-            ref={tableScrollRef}
-            className={`table-scroll ${loading ? 'opacity-60' : ''}`}
-            style={tableScrollStyle}
-          >
+          <div className={`table-scroll ${loading ? 'opacity-60' : ''}`}>
             <table className="wor-table" style={{ tableLayout: 'fixed' }}>
               <thead>
                 <tr>

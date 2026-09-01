@@ -4,13 +4,13 @@ import type {
   WarframeColumn as Column,
   WarframeRow as Row,
 } from '../../../shared/warframeTypes.js';
+import { CollectionSubheader } from '../../components/Layout/CollectionSubheader';
 import { HeaderSearch } from '../../components/Layout/HeaderSearch';
 import { useLayoutSlots } from '../../components/Layout/useLayoutSlots';
 import { LoadErrorBanner } from '../../components/ui/LoadErrorBanner';
 import { MaterialSymbol } from '../../components/ui/MaterialSymbol';
 import { Toast } from '../../components/ui/Toast';
 import { useAutoDismissMessage } from '../../hooks/useAutoDismissMessage';
-import { useTableScrollStyle } from '../../hooks/useTableScrollStyle';
 import { apiFetch } from '../../utils/api';
 import {
   useWarframeWorksheetData,
@@ -58,7 +58,6 @@ export function WarframePage() {
     loadWorksheetData,
     retryLoad,
   } = useWarframeWorksheetData(applyInitialSettings);
-  const { tableScrollRef, tableScrollStyle } = useTableScrollStyle(320, worksheetId ?? 0);
 
   const exitTimersRef = useRef<Map<number, number[]>>(new Map());
   const holdIntervalRef = useRef<number | null>(null);
@@ -667,35 +666,30 @@ export function WarframePage() {
     worksheetId === null ? 'warframe-panel-empty' : `warframe-panel-${worksheetId}`;
 
   return (
-    <section className="space-y-4">
+    <section className="collection-view">
       <Toast message={operationError} tone="error" onDismiss={clearOperationError} />
       {loadError ? <LoadErrorBanner message={loadError} onRetry={handleRetry} /> : null}
-      <div className="tabs" role="tablist" aria-label="Warframe categories">
-        {worksheets.map((worksheet) => {
-          const tabId = `warframe-tab-${worksheet.id}`;
-          const panelId = `warframe-panel-${worksheet.id}`;
-          return (
-            <button
-              key={worksheet.id}
-              id={tabId}
-              type="button"
-              className={`tab ${worksheetId === worksheet.id ? 'active' : ''}`}
-              role="tab"
-              aria-selected={worksheetId === worksheet.id}
-              aria-controls={panelId}
-              onClick={() => setWorksheetId(worksheet.id)}
-            >
-              {WORKSHEET_LABELS[worksheet.name] ?? worksheet.name}
-            </button>
-          );
-        })}
-      </div>
-      <div
-        id={activePanelId}
-        role="tabpanel"
-        aria-labelledby={worksheetId === null ? undefined : `warframe-tab-${worksheetId}`}
-        className="space-y-4"
-      >
+      <CollectionSubheader>
+        <div className="tabs" role="tablist" aria-label="Warframe categories">
+          {worksheets.map((worksheet) => {
+            const tabId = `warframe-tab-${worksheet.id}`;
+            const panelId = `warframe-panel-${worksheet.id}`;
+            return (
+              <button
+                key={worksheet.id}
+                id={tabId}
+                type="button"
+                className={`tab ${worksheetId === worksheet.id ? 'active' : ''}`}
+                role="tab"
+                aria-selected={worksheetId === worksheet.id}
+                aria-controls={panelId}
+                onClick={() => setWorksheetId(worksheet.id)}
+              >
+                {WORKSHEET_LABELS[worksheet.name] ?? worksheet.name}
+              </button>
+            );
+          })}
+        </div>
         <div className="stats-bar">
           <div className="stats-bar-stats">
             {stats.map((entry) => (
@@ -845,8 +839,14 @@ export function WarframePage() {
             </button>
           </div>
         </div>
+      </CollectionSubheader>
+      <div
+        id={activePanelId}
+        role="tabpanel"
+        aria-labelledby={worksheetId === null ? undefined : `warframe-tab-${worksheetId}`}
+      >
         <div className="table-container">
-          <div ref={tableScrollRef} className="table-scroll" style={tableScrollStyle}>
+          <div className="table-scroll">
             <table style={{ tableLayout: 'fixed' }}>
               <colgroup>
                 <col style={{ width: 'auto' }} />

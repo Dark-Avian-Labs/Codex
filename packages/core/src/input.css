@@ -352,6 +352,59 @@ html:not(.dark) .invert-on-light {
     min-height: calc(100vh - var(--app-chrome-height, 220px));
   }
 
+  .app-subheader:has(.app-subheader-inner:empty) {
+    display: none;
+  }
+
+  .app-subheader {
+    flex-shrink: 0;
+    padding: 0 1.5rem 0.75rem;
+  }
+
+  .app-subheader .tabs {
+    margin-bottom: 10px;
+  }
+
+  .app-subheader .filter-bar {
+    margin-bottom: 10px;
+  }
+
+  .app-subheader .stats-bar {
+    margin-bottom: 0;
+  }
+
+  #main-content.collection-fill .collection-view {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+    gap: 0.75rem;
+  }
+
+  #main-content.collection-fill .collection-view [role='tabpanel'] {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  #main-content.collection-fill .table-container {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  #main-content.collection-fill .table-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: auto;
+    max-height: none;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
   .hex-side-panel {
     position: fixed;
     top: 0;
@@ -1928,6 +1981,12 @@ html:not(.dark) .invert-on-light {
     opacity: 1;
     background: var(--color-accent-weak-2);
     box-shadow: 0 0 0 2px var(--color-accent);
+  }
+
+  .filter-icon.exclude {
+    opacity: 1;
+    background: color-mix(in oklab, var(--color-danger) 20%, transparent);
+    box-shadow: 0 0 0 2px var(--color-danger);
   }
 
   .filter-icon img {

@@ -1,6 +1,25 @@
+export type ClerkTokenGetter = (options?: { skipCache?: boolean }) => Promise<string | null>;
+
 let cachedToken: string | null = null;
 let inFlightPromise: Promise<string | null> | null = null;
 let csrfTokenGeneration = 0;
+let getClerkToken: ClerkTokenGetter | null = null;
+
+export function setClerkTokenGetter(getter: ClerkTokenGetter | null): void {
+  getClerkToken = getter;
+}
+
+async function resolveClerkToken(skipCache = false): Promise<string | null> {
+  if (!getClerkToken) {
+    return null;
+  }
+  try {
+    const token = await getClerkToken({ skipCache });
+    return token ?? null;
+  } catch {
+    return null;
+  }
+}
 
 async function getCsrfToken(): Promise<string | null> {
   if (cachedToken !== null) {
@@ -13,7 +32,7 @@ async function getCsrfToken(): Promise<string | null> {
   const generationAtStart = csrfTokenGeneration;
   inFlightPromise = (async () => {
     try {
-      const res = await fetch('/api/auth/csrf');
+      const res = await fetch('/api/auth/csrf', { credentials: 'include', cache: 'no-store' });
       if (!res.ok) {
         return null;
       }
@@ -65,6 +84,24 @@ async function isCsrfFailureResponse(response: Response): Promise<boolean> {
   }
 }
 
+function send(url: string, init: RequestInit | undefined, headers: Headers): Promise<Response> {
+  return fetch(url, {
+    ...init,
+    headers,
+    credentials: init?.credentials ?? 'include',
+    cache: init?.cache ?? 'no-store',
+  });
+}
+
+function withClerkAuthorization(headers: Headers, token: string | null): Headers {
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  } else {
+    headers.delete('Authorization');
+  }
+  return headers;
+}
+
 export async function apiFetch(url: string, init?: RequestInit): Promise<Response> {
   const method = (init?.method ?? 'GET').toUpperCase();
   const needsCsrf = method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS';
@@ -78,7 +115,19 @@ export async function apiFetch(url: string, init?: RequestInit): Promise<Respons
     headers.set('X-CSRF-Token', csrfToken);
   }
 
-  const response = await fetch(url, { ...init, headers });
+  let clerkToken = await resolveClerkToken(false);
+  withClerkAuthorization(headers, clerkToken);
+
+  let response = await send(url, init, headers);
+
+  if (response.status === 401 && getClerkToken) {
+    const refreshed = await resolveClerkToken(true);
+    if (refreshed && refreshed !== clerkToken) {
+      clerkToken = refreshed;
+      response = await send(url, init, withClerkAuthorization(new Headers(headers), clerkToken));
+    }
+  }
+
   if (!needsCsrf || !(await isCsrfFailureResponse(response))) {
     return response;
   }
@@ -95,7 +144,7 @@ export async function apiFetch(url: string, init?: RequestInit): Promise<Respons
     throw new DOMException('Request aborted before CSRF retry', 'AbortError');
   }
 
-  const retryHeaders = new Headers(init?.headers);
+  const retryHeaders = withClerkAuthorization(new Headers(init?.headers), clerkToken);
   retryHeaders.set('X-CSRF-Token', freshCsrfToken);
-  return fetch(url, { ...init, headers: retryHeaders });
+  return send(url, init, retryHeaders);
 }
