@@ -9,14 +9,16 @@ import {
 } from '@codex/game-epic7/constants';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 
+import { CollectionSubheader } from '../../components/Layout/CollectionSubheader';
 import { HeaderSearch } from '../../components/Layout/HeaderSearch';
 import { useLayoutSlots } from '../../components/Layout/useLayoutSlots';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
+import { FilterIconButton } from '../../components/ui/FilterIconButton';
 import { LoadErrorBanner } from '../../components/ui/LoadErrorBanner';
 import { MaterialSymbol } from '../../components/ui/MaterialSymbol';
 import { Modal } from '../../components/ui/Modal';
 import { Toast } from '../../components/ui/Toast';
-import { useTableScrollStyle } from '../../hooks/useTableScrollStyle';
+import { cycleTriFilter, matchesTriFilter, triFilterState } from '../../lib/triFilter';
 import { apiFetch } from '../../utils/api';
 import {
   Epic7TableRow,
@@ -53,7 +55,6 @@ export function Epic7Page() {
     useEpic7Filters();
   const [modalState, dispatchModal] = useEpic7Modal();
   const accountMenuRef = useRef<HTMLDivElement | null>(null);
-  const { tableScrollRef, tableScrollStyle } = useTableScrollStyle(340, tab);
 
   const activeRows = useMemo(() => {
     if (tab === 'heroes') {
@@ -61,10 +62,10 @@ export function Epic7Page() {
         if (!row.name.toLowerCase().includes(search.trim().toLowerCase())) {
           return false;
         }
-        if (activeFilters.class && row.class !== activeFilters.class) {
+        if (!matchesTriFilter(row.class, activeFilters.class)) {
           return false;
         }
-        if (activeFilters.element && row.element !== activeFilters.element) {
+        if (!matchesTriFilter(row.element, activeFilters.element)) {
           return false;
         }
         return true;
@@ -74,7 +75,7 @@ export function Epic7Page() {
       if (!row.name.toLowerCase().includes(search.trim().toLowerCase())) {
         return false;
       }
-      if (activeFilters.class && row.class !== activeFilters.class) {
+      if (!matchesTriFilter(row.class, activeFilters.class)) {
         return false;
       }
       return true;
@@ -548,54 +549,47 @@ export function Epic7Page() {
   }
 
   return (
-    <section className="space-y-4">
+    <section className="collection-view">
       <Toast message={operationError} tone="error" onDismiss={() => setOperationError(null)} />
-      <div className="tabs" role="tablist" aria-label="Epic Seven data tabs">
-        <button
-          id="epic7-tab-heroes"
-          type="button"
-          className={`tab ${tab === 'heroes' ? 'active' : ''}`}
-          role="tab"
-          aria-selected={tab === 'heroes'}
-          aria-controls="epic7-panel"
-          onClick={() => setTab('heroes')}
-        >
-          Heroes
-        </button>
-        <button
-          id="epic7-tab-artifacts"
-          type="button"
-          className={`tab ${tab === 'artifacts' ? 'active' : ''}`}
-          role="tab"
-          aria-selected={tab === 'artifacts'}
-          aria-controls="epic7-panel"
-          onClick={() => setTab('artifacts')}
-        >
-          Artifacts
-        </button>
-      </div>
-      <div
-        id="epic7-panel"
-        role="tabpanel"
-        aria-labelledby={tab === 'heroes' ? 'epic7-tab-heroes' : 'epic7-tab-artifacts'}
-      >
+      <CollectionSubheader>
+        <div className="tabs" role="tablist" aria-label="Epic Seven data tabs">
+          <button
+            id="epic7-tab-heroes"
+            type="button"
+            className={`tab ${tab === 'heroes' ? 'active' : ''}`}
+            role="tab"
+            aria-selected={tab === 'heroes'}
+            aria-controls="epic7-panel"
+            onClick={() => setTab('heroes')}
+          >
+            Heroes
+          </button>
+          <button
+            id="epic7-tab-artifacts"
+            type="button"
+            className={`tab ${tab === 'artifacts' ? 'active' : ''}`}
+            role="tab"
+            aria-selected={tab === 'artifacts'}
+            aria-controls="epic7-panel"
+            onClick={() => setTab('artifacts')}
+          >
+            Artifacts
+          </button>
+        </div>
         <div className="filter-bar" id="filter-bar">
           {tab === 'heroes' ? (
             <>
               <div className="filter-group">
                 <span className="filter-label">Class:</span>
                 {HERO_CLASSES.map((classKey) => (
-                  <button
+                  <FilterIconButton
                     key={classKey}
-                    type="button"
-                    className={`filter-icon ${activeFilters.class === classKey ? 'active' : ''}`}
-                    title={CLASS_NAMES[classKey]}
-                    aria-pressed={activeFilters.class === classKey}
-                    aria-label={`Filter by ${CLASS_NAMES[classKey]} class`}
+                    state={triFilterState(activeFilters.class, classKey)}
+                    label={`${CLASS_NAMES[classKey]} class`}
                     onClick={() =>
                       setActiveFilters((previous) => ({
                         ...previous,
-                        class: previous.class === classKey ? null : classKey,
+                        class: cycleTriFilter(previous.class, classKey),
                       }))
                     }
                   >
@@ -604,28 +598,25 @@ export function Epic7Page() {
                       src={ICONS[classKey]}
                       alt={CLASS_NAMES[classKey]}
                     />
-                  </button>
+                  </FilterIconButton>
                 ))}
               </div>
               <div className="filter-group">
                 <span className="filter-label">Element:</span>
                 {ELEMENTS.map((elementKey) => (
-                  <button
+                  <FilterIconButton
                     key={elementKey}
-                    type="button"
-                    className={`filter-icon ${activeFilters.element === elementKey ? 'active' : ''}`}
-                    title={ELEMENT_NAMES[elementKey]}
-                    aria-pressed={activeFilters.element === elementKey}
-                    aria-label={`Filter by ${ELEMENT_NAMES[elementKey]} element`}
+                    state={triFilterState(activeFilters.element, elementKey)}
+                    label={`${ELEMENT_NAMES[elementKey]} element`}
                     onClick={() =>
                       setActiveFilters((previous) => ({
                         ...previous,
-                        element: previous.element === elementKey ? null : elementKey,
+                        element: cycleTriFilter(previous.element, elementKey),
                       }))
                     }
                   >
                     <img src={ICONS[elementKey]} alt={ELEMENT_NAMES[elementKey]} />
-                  </button>
+                  </FilterIconButton>
                 ))}
               </div>
             </>
@@ -633,17 +624,14 @@ export function Epic7Page() {
             <div className="filter-group">
               <span className="filter-label">Class:</span>
               {ARTIFACT_CLASSES.map((classKey) => (
-                <button
+                <FilterIconButton
                   key={classKey}
-                  type="button"
-                  className={`filter-icon ${activeFilters.class === classKey ? 'active' : ''}`}
-                  title={CLASS_NAMES[classKey]}
-                  aria-pressed={activeFilters.class === classKey}
-                  aria-label={`Filter by ${CLASS_NAMES[classKey]} class`}
+                  state={triFilterState(activeFilters.class, classKey)}
+                  label={`${CLASS_NAMES[classKey]} class`}
                   onClick={() =>
                     setActiveFilters((previous) => ({
                       ...previous,
-                      class: previous.class === classKey ? null : classKey,
+                      class: cycleTriFilter(previous.class, classKey),
                     }))
                   }
                 >
@@ -652,7 +640,7 @@ export function Epic7Page() {
                     src={ICONS[classKey]}
                     alt={CLASS_NAMES[classKey]}
                   />
-                </button>
+                </FilterIconButton>
               ))}
             </div>
           )}
@@ -671,8 +659,14 @@ export function Epic7Page() {
             <span className="stat-value stat-maxed">{stats.maxed}</span>
           </div>
         </div>
+      </CollectionSubheader>
+      <div
+        id="epic7-panel"
+        role="tabpanel"
+        aria-labelledby={tab === 'heroes' ? 'epic7-tab-heroes' : 'epic7-tab-artifacts'}
+      >
         <div className="table-container">
-          <div ref={tableScrollRef} className="table-scroll" style={tableScrollStyle}>
+          <div className="table-scroll">
             <table className="epic7-table" style={{ tableLayout: 'fixed' }}>
               {tab === 'heroes' ? (
                 <colgroup>

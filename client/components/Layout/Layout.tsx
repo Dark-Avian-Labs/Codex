@@ -29,6 +29,8 @@ import { StaleClientUpdateBanner } from './StaleClientUpdateBanner';
 export type LayoutOutletContext = {
   setHeaderCenter: (node: ReactNode | null) => void;
   setHeaderActions: (node: ReactNode | null) => void;
+  subheaderTarget: HTMLDivElement | null;
+  setCollectionFill: (fill: boolean) => void;
 };
 
 export function Layout() {
@@ -49,6 +51,8 @@ export function Layout() {
   const currentYear = new Date().getFullYear();
   const [headerCenter, setHeaderCenter] = useState<ReactNode | null>(null);
   const [headerActions, setHeaderActions] = useState<ReactNode | null>(null);
+  const [subheaderTarget, setSubheaderTarget] = useState<HTMLDivElement | null>(null);
+  const [collectionFill, setCollectionFill] = useState(false);
   const menuItemIds = useMemo(() => {
     if (!isLoggedIn) {
       return ['login'];
@@ -217,13 +221,13 @@ export function Layout() {
   }, [menuOpen]);
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex h-dvh max-h-dvh flex-col overflow-hidden">
       <a href="#main-content" className="skip-link">
         Skip to main content
       </a>
       <HexSideBackground />
       <AsciiWaveBackground />
-      <header className="relative z-30 h-[100px] px-6">
+      <header className="relative z-30 h-[100px] shrink-0 px-6">
         <div className="mx-auto grid h-full w-full max-w-[2000px] grid-cols-[1fr_auto_1fr] items-center gap-4">
           <div className="flex w-fit max-w-full min-w-0 flex-col gap-0.5 justify-self-start">
             <Link to={APP_PATHS.home} className="brand-lockup w-fit">
@@ -355,13 +359,35 @@ export function Layout() {
         </div>
       </header>
 
-      <main id="main-content" className="relative z-10 flex-1 px-6 pb-6">
-        <div className="mx-auto w-full max-w-[2000px]">
-          <Outlet context={{ setHeaderCenter, setHeaderActions }} />
+      <div className="app-subheader relative z-20">
+        <div
+          ref={setSubheaderTarget}
+          className="app-subheader-inner mx-auto w-full max-w-[2000px]"
+        />
+      </div>
+
+      <main
+        id="main-content"
+        className={
+          collectionFill
+            ? 'collection-fill relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden px-6 pb-2'
+            : 'relative z-10 min-h-0 flex-1 overflow-y-auto px-6 pb-6'
+        }
+      >
+        <div
+          className={
+            collectionFill
+              ? 'mx-auto flex h-full min-h-0 w-full max-w-[2000px] flex-col'
+              : 'mx-auto w-full max-w-[2000px]'
+          }
+        >
+          <Outlet
+            context={{ setHeaderCenter, setHeaderActions, subheaderTarget, setCollectionFill }}
+          />
         </div>
       </main>
 
-      <footer className="relative z-10 flex h-[50px] items-center justify-center px-6">
+      <footer className="relative z-10 flex h-[50px] shrink-0 items-center justify-center px-6">
         <div className="mx-auto w-full max-w-[2000px] text-center">
           <a
             href={LEGAL_PAGE_URL}

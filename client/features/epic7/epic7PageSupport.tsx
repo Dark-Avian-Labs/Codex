@@ -15,6 +15,7 @@ import { memo, useCallback, useEffect, useReducer, useRef, useState } from 'reac
 
 import { MaterialSymbol } from '../../components/ui/MaterialSymbol';
 import { useAutoDismissMessage } from '../../hooks/useAutoDismissMessage';
+import type { TriFilterMap } from '../../lib/triFilter';
 import { apiFetch } from '../../utils/api';
 
 export type Epic7Hero = {
@@ -91,7 +92,7 @@ export type Epic7ModalAction =
   | { type: 'CANCEL_ACCOUNT_DELETE' }
   | { type: 'CONFIRM_ACCOUNT_DELETE' };
 
-export type ActiveFilters = { class: ClassKey | null; element: ElementKey | null };
+export type ActiveFilters = { class: TriFilterMap; element: TriFilterMap };
 
 const ICON_MODULES = import.meta.glob('../../../packages/games/epic7/assets/*.png', {
   eager: true,
@@ -347,13 +348,13 @@ export function useEpic7Filters() {
   const [tab, setTab] = useState<'heroes' | 'artifacts'>('heroes');
   const [search, setSearch] = useState('');
   const [activeFilters, setActiveFilters] = useState<ActiveFilters>({
-    class: null,
-    element: null,
+    class: {},
+    element: {},
   });
   const [editMode, setEditMode] = useState(false);
 
   useEffect(() => {
-    setActiveFilters({ class: null, element: null });
+    setActiveFilters({ class: {}, element: {} });
   }, [tab]);
 
   return {

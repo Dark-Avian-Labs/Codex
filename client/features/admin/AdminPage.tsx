@@ -7,7 +7,15 @@ import {
 } from '@codex/game-epic7/constants';
 import { type ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 
+import { FilterIconButton } from '../../components/ui/FilterIconButton';
 import { MaterialSymbol } from '../../components/ui/MaterialSymbol';
+import {
+  cycleTriFilter,
+  matchesTriFilter,
+  pruneTriFilter,
+  triFilterState,
+  type TriFilterMap,
+} from '../../lib/triFilter';
 import { apiFetch } from '../../utils/api';
 import { useAuth } from '../auth/AuthContext';
 
@@ -62,8 +70,8 @@ export function AdminPage() {
   const [baseArtifacts, setBaseArtifacts] = useState<BaseArtifact[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
-  const [classFilter, setClassFilter] = useState('');
-  const [elementFilter, setElementFilter] = useState('');
+  const [classFilter, setClassFilter] = useState<TriFilterMap>({});
+  const [elementFilter, setElementFilter] = useState<TriFilterMap>({});
 
   const [heroName, setHeroName] = useState('');
   const [heroClass, setHeroClass] = useState<string>(HERO_CLASSES[0]);
@@ -105,8 +113,8 @@ export function AdminPage() {
       baseHeroes.filter((hero) => {
         const q = search.trim().toLowerCase();
         const matchesSearch = q.length === 0 || hero.name.toLowerCase().includes(q);
-        const matchesClass = classFilter === '' || hero.class === classFilter;
-        const matchesElement = elementFilter === '' || hero.element === elementFilter;
+        const matchesClass = matchesTriFilter(hero.class, classFilter);
+        const matchesElement = matchesTriFilter(hero.element, elementFilter);
         return matchesSearch && matchesClass && matchesElement;
       }),
     [baseHeroes, classFilter, elementFilter, search],
@@ -117,7 +125,7 @@ export function AdminPage() {
       baseArtifacts.filter((artifact) => {
         const q = search.trim().toLowerCase();
         const matchesSearch = q.length === 0 || artifact.name.toLowerCase().includes(q);
-        const matchesClass = classFilter === '' || artifact.class === classFilter;
+        const matchesClass = matchesTriFilter(artifact.class, classFilter);
         return matchesSearch && matchesClass;
       }),
     [baseArtifacts, classFilter, search],
@@ -126,19 +134,12 @@ export function AdminPage() {
   const setActiveTab = useCallback((nextTab: 'heroes' | 'artifacts') => {
     setTab(nextTab);
     if (nextTab === 'heroes') {
-      setClassFilter((current) =>
-        HERO_CLASSES.includes(current as (typeof HERO_CLASSES)[number]) ? current : '',
-      );
-      setElementFilter((current) =>
-        ELEMENTS.includes(current as (typeof ELEMENTS)[number]) ? current : '',
-      );
+      setClassFilter((current) => pruneTriFilter(current, HERO_CLASSES));
       return;
     }
 
-    setClassFilter((current) =>
-      ARTIFACT_CLASSES.includes(current as (typeof ARTIFACT_CLASSES)[number]) ? current : '',
-    );
-    setElementFilter('');
+    setClassFilter((current) => pruneTriFilter(current, ARTIFACT_CLASSES));
+    setElementFilter({});
   }, []);
 
   async function addHero(): Promise<void> {
@@ -300,44 +301,34 @@ export function AdminPage() {
         </div>
         <div className="filter-group" role="group" aria-label="Filter by class">
           <span className="filter-label">Class:</span>
-          {(tab === 'heroes' ? HERO_CLASSES : ARTIFACT_CLASSES).map((value) => {
-            const isActive = classFilter === value;
-            return (
-              <button
-                key={value}
-                type="button"
-                className={`filter-icon ${isActive ? 'active' : ''}`}
-                aria-pressed={isActive}
-                title={CLASS_DISPLAY_NAMES[value]}
-                onClick={() => setClassFilter((previous) => (previous === value ? '' : value))}
-              >
-                <img
-                  className="invert-on-light"
-                  src={ICONS[value]}
-                  alt={CLASS_DISPLAY_NAMES[value]}
-                />
-              </button>
-            );
-          })}
+          {(tab === 'heroes' ? HERO_CLASSES : ARTIFACT_CLASSES).map((value) => (
+            <FilterIconButton
+              key={value}
+              state={triFilterState(classFilter, value)}
+              label={`${CLASS_DISPLAY_NAMES[value]} class`}
+              onClick={() => setClassFilter((previous) => cycleTriFilter(previous, value))}
+            >
+              <img
+                className="invert-on-light"
+                src={ICONS[value]}
+                alt={CLASS_DISPLAY_NAMES[value]}
+              />
+            </FilterIconButton>
+          ))}
         </div>
         {tab === 'heroes' ? (
           <div className="filter-group" role="group" aria-label="Filter by element">
             <span className="filter-label">Element:</span>
-            {ELEMENTS.map((value) => {
-              const isActive = elementFilter === value;
-              return (
-                <button
-                  key={value}
-                  type="button"
-                  className={`filter-icon ${isActive ? 'active' : ''}`}
-                  aria-pressed={isActive}
-                  title={ELEMENT_DISPLAY_NAMES[value]}
-                  onClick={() => setElementFilter((previous) => (previous === value ? '' : value))}
-                >
-                  <img src={ICONS[value]} alt={ELEMENT_DISPLAY_NAMES[value]} />
-                </button>
-              );
-            })}
+            {ELEMENTS.map((value) => (
+              <FilterIconButton
+                key={value}
+                state={triFilterState(elementFilter, value)}
+                label={`${ELEMENT_DISPLAY_NAMES[value]} element`}
+                onClick={() => setElementFilter((previous) => cycleTriFilter(previous, value))}
+              >
+                <img src={ICONS[value]} alt={ELEMENT_DISPLAY_NAMES[value]} />
+              </FilterIconButton>
+            ))}
           </div>
         ) : null}
       </div>
