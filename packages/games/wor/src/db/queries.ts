@@ -317,7 +317,7 @@ export function getHeroes(
     sql += ' AND ah.star_rating = ?';
     params.push(rarityFilter);
   }
-  sql += ' ORDER BY ah.display_order ASC, ah.name ASC';
+  sql += ' ORDER BY ah.name ASC';
   return db.prepare(sql).all(...params) as AccountHero[];
 }
 
@@ -358,7 +358,7 @@ export function getArtifacts(db: Database.Database, accountId: number): AccountA
     LEFT JOIN catalog_artifacts ca ON ca.slug = aa.catalog_artifact_slug
     LEFT JOIN catalog_heroes ch ON ch.slug = ca.exclusive_hero_slug
     WHERE aa.account_id = ? AND ca.active = 1
-    ORDER BY aa.display_order ASC, aa.name ASC
+    ORDER BY aa.name ASC
   `,
     )
     .all(accountId) as AccountArtifact[];
@@ -398,7 +398,7 @@ export function getDemons(db: Database.Database, accountId: number): AccountDemo
     FROM account_demons ad
     LEFT JOIN catalog_demons cd ON cd.slug = ad.catalog_demon_slug
     WHERE ad.account_id = ? AND cd.active = 1
-    ORDER BY ad.display_order ASC, ad.name ASC
+    ORDER BY ad.name ASC
   `,
     )
     .all(accountId) as AccountDemon[];

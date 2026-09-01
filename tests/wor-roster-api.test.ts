@@ -164,7 +164,9 @@ describeWithSqlite('WoR roster API', () => {
     authState.userId = 'user_a';
     const res = await createSessionAgent(createTestApp()).get('/api/wor/roster?owned=all');
     expect(res.status).toBe(200);
-    expect(res.body.heroes.map((hero: { slug: string }) => hero.slug).sort()).toEqual(['aja', 'lian']);
+    expect(res.body.heroes.map((hero: { slug: string }) => hero.slug)).toEqual(['aja', 'lian']);
+    expect(res.body.artifacts.map((artifact: { slug: string }) => artifact.slug)).toEqual(['generic-bow', 'lian-sig']);
+    expect(res.body.demons.map((demon: { slug: string }) => demon.slug)).toEqual(['captain-x', 'wrath']);
     expect(res.body.heroes.find((hero: { slug: string }) => hero.slug === 'aja')).toMatchObject({
       is_regular: false,
       is_ancient: true,
