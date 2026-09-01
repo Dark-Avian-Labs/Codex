@@ -286,3 +286,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.67.5** `chore` [#374](https://github.com/Dark-Avian-Labs/Codex/pull/374): chore/deps material symbols rounded
 - **v1.68.0** `chore` [#375](https://github.com/Dark-Avian-Labs/Codex/pull/375): feat/wor summon pool badges
 - **v1.68.1** `chore` [#376](https://github.com/Dark-Avian-Labs/Codex/pull/376): audit/fable
+- **v1.68.2** `chore` [#377](https://github.com/Dark-Avian-Labs/Codex/pull/377): fix/wor name sort
