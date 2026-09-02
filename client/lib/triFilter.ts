@@ -9,10 +9,10 @@ export function cycleTriState(state: FilterTriState): FilterTriState {
 }
 
 export function cycleTriFilter(map: TriFilterMap, key: string): TriFilterMap {
-  const current = map[key];
-  if (current === undefined) {
+  if (!(key in map)) {
     return { ...map, [key]: 'include' };
   }
+  const current = map[key];
   if (current === 'include') {
     return { ...map, [key]: 'exclude' };
   }
@@ -22,7 +22,8 @@ export function cycleTriFilter(map: TriFilterMap, key: string): TriFilterMap {
 }
 
 export function triFilterState(map: TriFilterMap, key: string): FilterTriState {
-  return map[key] ?? 'off';
+  if (!(key in map)) return 'off';
+  return map[key];
 }
 
 export function pruneTriFilter(map: TriFilterMap, allowedKeys: readonly string[]): TriFilterMap {

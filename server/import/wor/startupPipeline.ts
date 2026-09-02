@@ -15,6 +15,7 @@ import {
   upsertCatalogHeroes,
   type CatalogBundle,
 } from './catalogQueries.js';
+import { importFandomHeroStats } from './fandomHeroStats.js';
 import {
   downloadCatalogPortraits,
   downloadClassAndFactionIcons,
@@ -81,6 +82,7 @@ const CATALOG_MUTATION_STEPS: WorPipelineStepKey[] = [
   'fastidiousCatalog',
   'manualOverrides',
   'fandomImages',
+  'fandomHeroStats',
   'seedValidation',
 ];
 
@@ -416,6 +418,28 @@ async function runWorStartupPipelineBody(
 
   requireWorImportLease(db, lockToken, leaseWatch);
   applyWorCatalogMutation(db, bundle, onLog);
+
+  const heroStatsCacheDir = path.join(resolveWorImportCacheDir(), 'hero-stats');
+  const heroStatsWouldRun =
+    Boolean(process.env.WIKI_USER_AGENT?.trim()) ||
+    fs.existsSync(heroStatsCacheDir) ||
+    Boolean(options.forceSteps?.includes('fandomHeroStats'));
+  if (shouldRunWorStep('fandomHeroStats', heroStatsWouldRun, options)) {
+    emit(onLog, 'info', `[${stepTag('fandomHeroStats')}] Importing Lv.60 A0 attributes from wiki…`);
+    const statsSummary = await importFandomHeroStats({
+      db,
+      force: Boolean(options.forceSteps?.includes('fandomHeroStats')),
+      live: Boolean(process.env.WIKI_USER_AGENT?.trim()),
+      onLog: (message) => emit(onLog, 'info', `[${stepTag('fandomHeroStats')}] ${message}`),
+    });
+    emit(
+      onLog,
+      'info',
+      `[${stepTag('fandomHeroStats')}] Updated ${statsSummary.updated}, missing ${statsSummary.missing}, failed ${statsSummary.failed}.`,
+    );
+  } else {
+    emit(onLog, 'info', `[${stepTag('fandomHeroStats')}] Skipped.`);
+  }
 
   if (pendingSourceHashes) {
     requireWorImportLease(db, lockToken, leaseWatch);
