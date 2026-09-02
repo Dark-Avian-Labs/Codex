@@ -290,3 +290,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.69.0** `chore` [#378](https://github.com/Dark-Avian-Labs/Codex/pull/378): feat/collection layout filters
 - **v1.69.1** `chore(deps)` [#379](https://github.com/Dark-Avian-Labs/Codex/pull/379): bump @dotenvx/dotenvx from 2.22.0 to 2.23.0 in the production-dependencies group
 - **v1.70.0** `chore` [#380](https://github.com/Dark-Avian-Labs/Codex/pull/380): feat/wor fandom hero stats
+- **v1.71.0** `chore` [#381](https://github.com/Dark-Avian-Labs/Codex/pull/381): feat/wor admin import log
