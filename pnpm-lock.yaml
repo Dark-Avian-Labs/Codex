@@ -155,7 +155,7 @@ importers:
         specifier: workspace:*
         version: link:packages/games/wor
       '@dotenvx/dotenvx':
-        specifier: 2.23.0
+        specifier: 'catalog:'
         version: 2.23.0
       '@fontsource-variable/cascadia-mono':
         specifier: 'catalog:'
