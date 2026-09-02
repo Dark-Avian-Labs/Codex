@@ -17,8 +17,7 @@ function readAsciiCanvasColors(): { fgA: string; fgB: string; fgMask: string } {
   let fgA = root.getPropertyValue('--ascii-canvas-fg').trim();
   let fgB = root.getPropertyValue('--ascii-canvas-fg-bright').trim();
   const fgMask =
-    root.getPropertyValue('--ascii-canvas-fg-accent').trim() ||
-    'color-mix(in oklab, #ff0000 12%, transparent)';
+    root.getPropertyValue('--ascii-canvas-fg-accent').trim() || 'rgba(255, 0, 0, 0.12)';
   if (!fgA) {
     fgA = 'rgba(200,200,200,0.35)';
   }

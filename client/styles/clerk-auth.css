@@ -1,3 +1,7 @@
+.clerk-auth-page {
+  min-height: calc(100vh - var(--app-chrome-height, 220px));
+}
+
 .clerk-auth-shell {
   --clerk-otp-size: 44px;
   --clerk-otp-gap: 8px;
@@ -363,6 +367,7 @@ html.dark.ui-shadow .clerk-auth-shell .clerk-secured-strip {
   --clerk-profile-shell-blur: blur(12px) saturate(1.2);
   --clerk-profile-content-bg: transparent;
   --clerk-profile-content-blur: none;
+
   position: relative;
   overflow: hidden !important;
   isolation: isolate;
@@ -410,6 +415,7 @@ html:not(.dark) .clerk-profile-backdrop .cl-cardBox {
 html.dark.ui-shadow .clerk-profile-glass,
 html.dark.ui-shadow .clerk-profile-backdrop .cl-cardBox {
   --clerk-profile-shell-blur: blur(10px) saturate(1.1);
+
   border-color: oklch(100% 0 0 / 0.16) !important;
   box-shadow:
     var(--shadow-panel),
@@ -425,6 +431,7 @@ html.dark.ui-shadow .clerk-profile-backdrop .cl-cardBox::before {
 html.ui-shadow:not(.dark) .clerk-profile-glass,
 html.ui-shadow:not(.dark) .clerk-profile-backdrop .cl-cardBox {
   --clerk-profile-shell-blur: blur(14px) saturate(1.15);
+
   box-shadow:
     var(--shadow-panel),
     inset 0 1px 0 oklch(100% 0 0 / 0.14),
@@ -510,6 +517,7 @@ html.ui-acrylic .clerk-profile-backdrop {
 html.ui-acrylic .clerk-profile-glass,
 html.ui-acrylic .clerk-profile-backdrop .cl-cardBox {
   --clerk-profile-shell-blur: var(--acrylic-backdrop);
+
   overflow: visible !important;
   border-radius: var(--radius-ui-lg) !important;
   border-color: var(--color-glass-border) !important;

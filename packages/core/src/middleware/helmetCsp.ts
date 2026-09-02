@@ -16,8 +16,13 @@ export function createAppHelmet() {
     contentSecurityPolicy: {
       directives: {
         ...defaults,
-        'script-src': ["'self'", clerkFapi, 'https://challenges.cloudflare.com'],
-        'connect-src': ["'self'", clerkFapi],
+        'script-src': [
+          "'self'",
+          clerkFapi,
+          'https://challenges.cloudflare.com',
+          'https://*.protect.clerk.com',
+        ],
+        'connect-src': ["'self'", clerkFapi, 'https://*.protect.clerk.com:*'],
         'img-src': [...(defaults['img-src'] ?? ["'self'"]), 'https://img.clerk.com'],
         'frame-src': ["'self'", 'https://challenges.cloudflare.com'],
         'worker-src': ["'self'", 'blob:'],

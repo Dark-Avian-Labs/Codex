@@ -22,6 +22,16 @@ export function ensureWorCatalogTables(db: Database.Database): void {
       source_flags TEXT,
       reference_tier TEXT,
       portrait_path TEXT,
+      base_hp INTEGER,
+      base_atk INTEGER,
+      base_def INTEGER,
+      base_mdef INTEGER,
+      base_block INTEGER,
+      base_cost INTEGER,
+      base_atk_interval REAL,
+      base_rr_auto REAL,
+      base_rr_attack REAL,
+      base_rr_attacked REAL,
       display_order INTEGER NOT NULL DEFAULT 0,
       active INTEGER NOT NULL DEFAULT 1
     );
@@ -83,6 +93,16 @@ function ensureWorCatalogMigrations(db: Database.Database): void {
   ensureColumn(db, 'catalog_heroes', 'is_regular', 'is_regular INTEGER NOT NULL DEFAULT 0');
   ensureColumn(db, 'catalog_heroes', 'is_ancient', 'is_ancient INTEGER NOT NULL DEFAULT 0');
   ensureColumn(db, 'catalog_heroes', 'is_limited', 'is_limited INTEGER NOT NULL DEFAULT 0');
+  ensureColumn(db, 'catalog_heroes', 'base_hp', 'base_hp INTEGER');
+  ensureColumn(db, 'catalog_heroes', 'base_atk', 'base_atk INTEGER');
+  ensureColumn(db, 'catalog_heroes', 'base_def', 'base_def INTEGER');
+  ensureColumn(db, 'catalog_heroes', 'base_mdef', 'base_mdef INTEGER');
+  ensureColumn(db, 'catalog_heroes', 'base_block', 'base_block INTEGER');
+  ensureColumn(db, 'catalog_heroes', 'base_cost', 'base_cost INTEGER');
+  ensureColumn(db, 'catalog_heroes', 'base_atk_interval', 'base_atk_interval REAL');
+  ensureColumn(db, 'catalog_heroes', 'base_rr_auto', 'base_rr_auto REAL');
+  ensureColumn(db, 'catalog_heroes', 'base_rr_attack', 'base_rr_attack REAL');
+  ensureColumn(db, 'catalog_heroes', 'base_rr_attacked', 'base_rr_attacked REAL');
 }
 
 export function ensureWorAccountTables(db: Database.Database): void {

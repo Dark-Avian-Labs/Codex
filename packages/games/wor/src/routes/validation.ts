@@ -64,6 +64,7 @@ export const adminImportRunSchema = z.object({
         'schema',
         'fastidiousCatalog',
         'fandomImages',
+        'fandomHeroStats',
         'manualOverrides',
         'seedValidation',
         'sync_accounts',
