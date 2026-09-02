@@ -1,10 +1,15 @@
+import fs from 'node:fs';
+import path from 'node:path';
+
 import { describe, expect, it } from 'vitest';
 
+import { WOR_IMAGES_DIR } from '../../config.js';
 import {
   assertTrustedImageUrl,
   detectImageType,
   isAllowedImageHost,
   relativeImagePathWithExtension,
+  writeTacticianClassIconSvg,
 } from './images.js';
 
 describe('isAllowedImageHost', () => {
@@ -56,5 +61,15 @@ describe('relativeImagePathWithExtension', () => {
     expect(relativeImagePathWithExtension('heroes/cainan', 'https://fastidious.gg/a.webp', 'image/webp')).toBe(
       'heroes/cainan.webp',
     );
+  });
+});
+
+describe('writeTacticianClassIconSvg', () => {
+  it('writes a white rook svg next to the other class icons', () => {
+    writeTacticianClassIconSvg();
+    const dest = path.join(WOR_IMAGES_DIR, 'icons', 'classes', 'tactician.svg');
+    const svg = fs.readFileSync(dest, 'utf8');
+    expect(svg).toContain('<svg');
+    expect(svg).toContain('fill="white"');
   });
 });

@@ -787,11 +787,22 @@ html:not(.dark) .invert-on-light {
     background: var(--color-surface-modal);
     backdrop-filter: blur(12px);
     z-index: 60;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .user-menu [role='menu'] {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .user-menu-item {
     width: 100%;
     display: block;
+    box-sizing: border-box;
+    text-align: left;
     border: none;
     background: transparent;
     border-radius: 10px;
@@ -2736,6 +2747,14 @@ html.ui-clear .select-dropdown-menu {
   }
 }
 
+html.ui-clear .form-input,
+html.ui-clear .form-group input,
+html.ui-clear .form-group select,
+html.ui-clear .form-group textarea,
+html.ui-clear .select-dropdown-trigger,
+html.ui-clear .select-dropdown-menu,
+html.ui-clear .select-dropdown-menu--attached,
+html.ui-clear .select-dropdown-menu--floating,
 html.ui-clear .user-menu-select-trigger {
   border-radius: var(--radius-ui);
 }
@@ -2926,6 +2945,10 @@ html.ui-acrylic .search-box,
 html.ui-acrylic .tabs,
 html.ui-acrylic .btn,
 html.ui-acrylic .header-link,
+html.ui-acrylic .form-input,
+html.ui-acrylic .form-group input,
+html.ui-acrylic .form-group select,
+html.ui-acrylic .form-group textarea,
 html.ui-acrylic .user-menu-select-trigger,
 html.ui-acrylic .select-dropdown-trigger {
   border-radius: var(--radius-ui);
@@ -2955,7 +2978,7 @@ html.ui-acrylic .select-dropdown-menu {
 }
 
 html.ui-acrylic .select-dropdown-menu--attached {
-  border-radius: 0 0 var(--radius-ui) var(--radius-ui);
+  border-radius: var(--radius-ui);
 }
 
 html.ui-acrylic .select-dropdown-menu--floating {
@@ -2981,6 +3004,7 @@ html.ui-acrylic .user-menu {
 }
 
 html.ui-acrylic .user-menu-item {
+  align-self: stretch;
   width: auto;
   height: 32px;
   margin: 2px 4px;
