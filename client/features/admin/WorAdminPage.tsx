@@ -15,8 +15,8 @@ export function WorAdminPage() {
   }
 
   return (
-    <section className="glass-shell space-y-5 rounded-2xl p-6">
-      <div>
+    <section className="glass-shell flex h-full min-h-0 flex-col gap-5 overflow-hidden rounded-2xl p-6">
+      <div className="shrink-0">
         <h1 className="text-2xl font-semibold">Watcher of Realms Admin</h1>
         <p className="text-muted mt-1 text-sm">Import catalog data and manage WoR overrides.</p>
       </div>

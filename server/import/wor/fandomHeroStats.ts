@@ -79,6 +79,21 @@ function writeCachedStats(slug: string, stats: WikiHeroBaseStats): void {
   fs.writeFileSync(filePath, `${JSON.stringify(stats, null, 2)}\n`, 'utf8');
 }
 
+function logHeroStatsProgress(
+  onLog: ((message: string) => void) | undefined,
+  processed: number,
+  total: number,
+  currentName: string,
+  summary: FandomHeroStatsSummary,
+): void {
+  if (!onLog) return;
+  if (processed === 1 || processed === total || processed % 10 === 0) {
+    onLog(
+      `Hero stats ${processed}/${total} — ${currentName}: ${summary.updated} updated, ${summary.missing} missing, ${summary.failed} failed.`,
+    );
+  }
+}
+
 function applyStats(db: Database.Database, slug: string, stats: WikiHeroBaseStats): void {
   db.prepare(
     `UPDATE catalog_heroes SET
@@ -126,7 +141,11 @@ export async function importFandomHeroStats(options: {
     options.onLog?.('WIKI_USER_AGENT not set — applying cached hero stats only.');
   }
 
-  for (const hero of heroes) {
+  const total = heroes.length;
+  options.onLog?.(`Fetching ${total} hero infoboxes (${live ? 'live wiki' : 'cache'})…`);
+
+  for (const [index, hero] of heroes.entries()) {
+    const processed = index + 1;
     let stats = options.force ? null : readCachedStats(hero.slug);
     if (!stats && live) {
       try {
@@ -139,6 +158,7 @@ export async function importFandomHeroStats(options: {
         options.onLog?.(
           `${hero.name}: wiki fetch failed (${error instanceof Error ? error.message : String(error)})`,
         );
+        logHeroStatsProgress(options.onLog, processed, total, hero.name, summary);
         continue;
       }
     } else if (!stats) {
@@ -147,10 +167,11 @@ export async function importFandomHeroStats(options: {
 
     if (!stats) {
       summary.missing += 1;
-      continue;
+    } else {
+      applyStats(options.db, hero.slug, stats);
+      summary.updated += 1;
     }
-    applyStats(options.db, hero.slug, stats);
-    summary.updated += 1;
+    logHeroStatsProgress(options.onLog, processed, total, hero.name, summary);
   }
 
   return summary;
