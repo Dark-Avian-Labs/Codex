@@ -223,10 +223,6 @@ export function WorPortrait({
 }
 
 export function worClassIconUrls(classKey: HeroClassKey): { primary: string; fallback: string } {
-  if (classKey === 'tactician') {
-    const path = '/wor-images/icons/classes/tactician.png';
-    return { primary: path, fallback: path };
-  }
   return {
     primary: `/wor-images/icons/classes/${classKey}.svg`,
     fallback: `/wor-images/icons/classes/${classKey}.png`,

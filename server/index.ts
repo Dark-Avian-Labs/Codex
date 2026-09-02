@@ -44,7 +44,11 @@ import { SqliteSessionStore } from './db/sqliteSessionStore.js';
 import { refreshEpic7DbAvailability } from './epic7DbState.js';
 import { getRequestId, requestIdMiddleware } from './http/requestId.js';
 import { timingSafeEqualString } from './http/timingSafeEqual.js';
-import { contentTypeForImagePath, isAllowedImageExtension } from './import/wor/images.js';
+import {
+  contentTypeForImagePath,
+  isAllowedImageExtension,
+  writeTacticianClassIconSvg,
+} from './import/wor/images.js';
 import { catalogNeedsImport, runWorStartupPipeline } from './import/wor/startupPipeline.js';
 import { healthzHandler, readyzHandler } from './probes.js';
 import { apiRouter } from './routes/api.js';
@@ -65,6 +69,7 @@ const STATUS_TEXT: Record<number, string> = {
 };
 
 ensureDataDirs();
+writeTacticianClassIconSvg();
 ensureSessionSchema();
 const sessionDb = getSessionDb();
 function assertTableExists(db: { prepare: (sql: string) => unknown }, tableName: string): void {

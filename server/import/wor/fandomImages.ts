@@ -10,7 +10,12 @@ import { getWikiUserAgent } from '../../scraping/wikiUserAgent.js';
 import type { CatalogBundle } from './catalogQueries.js';
 import type { FastidiousImageRef } from './fastidiousCatalog.js';
 import { sleep } from './fastidiousClient.js';
-import { buildFastidiousStorageUrl, downloadImageToWorDir, worImageWebPath } from './images.js';
+import {
+  buildFastidiousStorageUrl,
+  downloadImageToWorDir,
+  worImageWebPath,
+  writeTacticianClassIconSvg,
+} from './images.js';
 import { wikiPageTitleFromName } from './normalize.js';
 import { WOR_FANDOM_API_URL } from './paths.js';
 
@@ -342,6 +347,8 @@ export async function downloadClassAndFactionIcons(options: {
     }
     await sleep(150);
   }
+
+  writeTacticianClassIconSvg();
 
   for (const factionKey of FACTIONS.filter((faction) => faction !== 'unaffiliated')) {
     const wikiFile = WIKI_FACTION_FILES[factionKey];
