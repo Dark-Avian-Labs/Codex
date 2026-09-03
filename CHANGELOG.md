@@ -294,3 +294,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.71.1** `chore` [#382](https://github.com/Dark-Avian-Labs/Codex/pull/382): fix/tactician svg and control radius
 - **v1.71.2** `chore` [#383](https://github.com/Dark-Avian-Labs/Codex/pull/383): fix/account selector radius
 - **v1.71.3** `chore` [#384](https://github.com/Dark-Avian-Labs/Codex/pull/384): fix/rarity purple hue
+- **v1.71.4** `chore(deps)` [#385](https://github.com/Dark-Avian-Labs/Codex/pull/385): bump the production-dependencies group with 4 updates
