@@ -165,7 +165,7 @@ jobs:
           echo "sha=$(git rev-parse origin/main)" >> "$GITHUB_OUTPUT"
 
   validate:
-    runs-on: blacksmith-8vcpu-ubuntu-2404
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 10
 
     needs: [deployment-check, version]
