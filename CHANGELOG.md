@@ -297,3 +297,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.71.4** `chore(deps)` [#385](https://github.com/Dark-Avian-Labs/Codex/pull/385): bump the production-dependencies group with 4 updates
 - **v1.71.5** `chore` [#387](https://github.com/Dark-Avian-Labs/Codex/pull/387): ci/rightsize selected runners
 - **v1.71.6** `ci` [#389](https://github.com/Dark-Avian-Labs/Codex/pull/389): run Node jobs on 2 vCPU
+- **v1.71.7** `chore` [#390](https://github.com/Dark-Avian-Labs/Codex/pull/390): fix/warning token appbase
