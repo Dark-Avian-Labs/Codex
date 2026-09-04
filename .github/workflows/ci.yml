@@ -120,7 +120,7 @@ jobs:
           echo "Reason: Only devDependencies, lockfile, or non-runtime package.json edits"
 
   version:
-    runs-on: blacksmith-8vcpu-ubuntu-2404
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 10
 
     needs: [deployment-check]
@@ -199,7 +199,7 @@ jobs:
         run: pnpm run validate
 
   build-and-deploy:
-    runs-on: blacksmith-8vcpu-ubuntu-2404
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 10
 
     needs: [deployment-check, version, validate]
