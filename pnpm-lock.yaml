@@ -9,6 +9,9 @@ catalogs:
     '@clerk/express':
       specifier: ^2.1.66
       version: 2.1.66
+    '@clerk/react':
+      specifier: ^6.15.0
+      version: 6.15.0
     '@dotenvx/dotenvx':
       specifier: ^2.23.0
       version: 2.23.0
@@ -137,7 +140,7 @@ importers:
         specifier: 'catalog:'
         version: 2.1.66(express@5.2.1(supports-color@7.2.0))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@clerk/react':
-        specifier: 6.15.0
+        specifier: 'catalog:'
         version: 6.15.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@codex/core':
         specifier: workspace:*
