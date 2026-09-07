@@ -143,7 +143,6 @@ jobs:
           cache: true
           require-lockfile: true
 
-
       - name: Bump version
         run: pnpm exec semantic-release
         env:
@@ -181,7 +180,6 @@ jobs:
           cache: true
           require-lockfile: true
 
-
       - name: Audit dependencies
         run: pnpm audit --audit-level high
 
@@ -207,7 +205,6 @@ jobs:
           runtime: node@${{ env.NODE_VERSION }}
           cache: true
           require-lockfile: true
-
 
       - name: Build project
         env:
