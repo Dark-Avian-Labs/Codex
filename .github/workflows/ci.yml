@@ -45,8 +45,6 @@ jobs:
       deploy: ${{ steps.decide.outputs.deploy }}
 
     steps:
-      # Actions are pinned to commit SHAs (tag in comment); Dependabot keeps
-      # the pins current.
       - name: Checkout full history
         uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
         with:

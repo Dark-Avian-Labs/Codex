@@ -19,6 +19,7 @@
     "wor:import": "node scripts/wor-import.mjs",
     "wor:import:cache": "node scripts/generate-wor-import-cache.mjs",
     "start": "node dist/server/index.js",
+    "dev:client": "dotenvx run --strict -f .env.development -- vite",
     "db:init": "node scripts/db-init.mjs",
     "validate": "node run-quality-checks.mjs",
     "test": "vitest run",

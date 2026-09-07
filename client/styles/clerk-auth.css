@@ -123,7 +123,7 @@
   color: var(--color-accent) !important;
   background: color-mix(in oklab, var(--color-accent) 10%, transparent) !important;
   border: 1px solid var(--color-accent) !important;
-  border-radius: 1rem !important;
+  border-radius: var(--radius-ui) !important;
   box-shadow: none !important;
   transition:
     background-color 0.2s ease,
@@ -280,7 +280,7 @@
   font-size: 11px;
   line-height: 1.35;
   color: var(--color-muted) !important;
-  border-radius: 999px;
+  border-radius: 999px !important;
   border: 1px solid var(--color-glass-border) !important;
   background: var(--color-glass) !important;
   background-image: none !important;
@@ -328,7 +328,7 @@ html.dark.ui-shadow .clerk-auth-shell .clerk-secured-strip {
   margin-top: 8px;
   padding: 7px 16px;
   font-size: 11px;
-  border-radius: 999px;
+  border-radius: 999px !important;
   border: 1px solid var(--color-glass-border) !important;
   background: var(--color-glass) !important;
   background-image: none !important;
@@ -371,7 +371,7 @@ html.dark.ui-shadow .clerk-auth-shell .clerk-secured-strip {
   position: relative;
   overflow: hidden !important;
   isolation: isolate;
-  border-radius: 20px !important;
+  border-radius: var(--radius-ui-lg) !important;
   border: 1px solid var(--color-glass-border) !important;
   box-shadow:
     var(--shadow-panel),
@@ -507,7 +507,12 @@ html.ui-clear .clerk-auth-shell .clerk-secured-strip,
 html.ui-clear .cl-social-btn {
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
-  border-radius: var(--radius-ui);
+}
+
+html.ui-clear .clerk-auth-shell :is(.cl-field-input, .cl-formFieldInput),
+html.ui-clear .clerk-auth-shell .cl-otp-cell,
+html.ui-clear .clerk-auth-shell .cl-identity-preview {
+  border-radius: var(--radius-ui) !important;
 }
 
 html.ui-acrylic .clerk-profile-backdrop {
@@ -555,7 +560,8 @@ html.ui-acrylic .clerk-auth-shell .clerk-secured-strip {
   box-shadow: var(--acrylic-inset);
 }
 
-html.ui-acrylic .clerk-auth-shell .clerk-secured-strip,
-html.ui-acrylic .cl-social-btn {
-  border-radius: var(--radius-ui);
+html.ui-acrylic .clerk-auth-shell :is(.cl-field-input, .cl-formFieldInput),
+html.ui-acrylic .clerk-auth-shell .cl-otp-cell,
+html.ui-acrylic .clerk-auth-shell .cl-identity-preview {
+  border-radius: var(--radius-ui) !important;
 }

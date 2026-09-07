@@ -17,7 +17,7 @@ export function StaleClientUpdateBanner({ appVersion }: StaleClientUpdateBannerP
       role="status"
       aria-live="polite"
     >
-      <div className="stale-update-banner pointer-events-auto ml-auto flex w-fit max-w-full items-center gap-3 rounded-2xl border border-[var(--color-glass-border)] bg-[var(--color-glass)] p-2 pr-4 backdrop-blur-xl backdrop-saturate-150">
+      <div className="stale-update-banner pointer-events-auto ml-auto flex w-fit max-w-full items-center gap-3 p-2 pr-4">
         <button
           type="button"
           className="stale-update-cta shrink-0"
