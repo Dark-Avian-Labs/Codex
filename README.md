@@ -15,7 +15,7 @@ Codex is a table-based collection tracker for Warframe, Epic Seven, and Watcher 
 ## Requirements
 
 - Node.js 26+
-- pnpm 11+
+- pnpm 12+
 
 ## Quick start
 
