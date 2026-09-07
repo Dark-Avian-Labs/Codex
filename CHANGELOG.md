@@ -299,3 +299,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.71.6** `ci` [#389](https://github.com/Dark-Avian-Labs/Codex/pull/389): run Node jobs on 2 vCPU
 - **v1.71.7** `chore` [#390](https://github.com/Dark-Avian-Labs/Codex/pull/390): fix/warning token appbase
 - **v1.71.8** `ci(deps)` [#391](https://github.com/Dark-Avian-Labs/Codex/pull/391): bump the github-actions group with 2 updates
+- **v1.71.9** `chore` [#394](https://github.com/Dark-Avian-Labs/Codex/pull/394): dependabot/npm_and_yarn/production dependencies e944f2d7e0
