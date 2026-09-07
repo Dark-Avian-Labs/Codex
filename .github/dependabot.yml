@@ -22,9 +22,6 @@ updates:
     schedule:
       interval: 'daily'
       time: '00:00'
-    # Actions are pinned to commit SHAs in the workflows; Dependabot updates
-    # the pinned SHA (and the version comment) for every release, so minor and
-    # patch updates must not be ignored here.
     cooldown:
       default-days: 1
     groups:

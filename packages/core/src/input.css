@@ -474,7 +474,7 @@ html:not(.dark) .invert-on-light {
   .glass-light {
     position: relative;
     overflow: hidden;
-    border-radius: 16px;
+    border-radius: var(--radius-ui);
     background: var(--color-glass);
     border: 1px solid var(--color-glass-border);
     box-shadow:
@@ -514,23 +514,19 @@ html:not(.dark) .invert-on-light {
   }
 
   .glass-shell {
-    border-radius: 20px;
+    border-radius: var(--radius-ui-lg);
   }
 
   .glass-modal-surface {
-    border-radius: 20px;
+    border-radius: var(--radius-ui-lg);
     background: color-mix(in oklab, var(--color-glass) 75%, transparent);
   }
 
   .glass-tooltip-surface {
-    border-radius: 14px;
+    border-radius: var(--radius-ui-sm);
     box-shadow:
       0 8px 24px oklch(0% 0 0 / 0.2),
       inset 0 1px 0 oklch(100% 0 0 / 0.12);
-  }
-
-  .glass-panel {
-    border-radius: 1rem;
   }
 
   .toast-pill {
@@ -608,7 +604,7 @@ html:not(.dark) .invert-on-light {
     height: 40px;
     box-sizing: border-box;
     border: 1px solid var(--color-glass-border);
-    border-radius: 1rem;
+    border-radius: var(--radius-ui);
     cursor: pointer;
     text-decoration: none;
     display: inline-flex;
@@ -1032,7 +1028,7 @@ html:not(.dark) .invert-on-light {
     color: var(--color-muted);
     text-decoration: none;
     border: 1px solid var(--color-glass-border);
-    border-radius: 1rem;
+    border-radius: var(--radius-ui);
     transition:
       color 0.2s,
       background-color 0.2s,
@@ -1253,7 +1249,7 @@ html:not(.dark) .invert-on-light {
     flex-wrap: wrap;
     background: var(--color-glass);
     border: 1px solid var(--color-glass-border);
-    border-radius: 1rem;
+    border-radius: var(--radius-ui);
     padding: 6px;
     backdrop-filter: blur(12px);
   }
@@ -1304,7 +1300,7 @@ html:not(.dark) .invert-on-light {
     color: var(--color-foreground);
     background: var(--color-glass);
     border: 1px solid var(--color-glass-border);
-    border-radius: 1rem;
+    border-radius: var(--radius-ui);
     outline: none;
     width: 200px;
     backdrop-filter: blur(12px);
@@ -1369,7 +1365,7 @@ html:not(.dark) .invert-on-light {
   .modal {
     background: var(--color-surface-modal);
     border: 1px solid var(--color-glass-active);
-    border-radius: 1rem;
+    border-radius: var(--radius-ui-lg);
     backdrop-filter: blur(16px) saturate(130%);
     -webkit-backdrop-filter: blur(16px) saturate(130%);
     padding: 24px;
@@ -2480,7 +2476,8 @@ html.dark.ui-shadow .table-container::before {
 }
 
 html.dark.ui-shadow .user-menu,
-html.dark.ui-shadow .select-dropdown-menu {
+html.dark.ui-shadow .select-dropdown-menu,
+html.dark.ui-shadow .search-results {
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
 }
@@ -2548,23 +2545,22 @@ html.ui-shadow:not(.dark) .glass-light {
   backdrop-filter: blur(14px) saturate(1.15);
 }
 
-html.ui-clear .glass-shell {
-  border-radius: var(--radius-ui-lg);
+html.ui-shadow:not(.dark) .icon-toggle-btn,
+html.ui-shadow:not(.dark) .search-box,
+html.ui-shadow:not(.dark) .modal,
+html.ui-shadow:not(.dark) .glass-button,
+html.ui-shadow:not(.dark) .glass-button-secondary,
+html.ui-shadow:not(.dark) .user-menu,
+html.ui-shadow:not(.dark) .select-dropdown-menu,
+html.ui-shadow:not(.dark) .search-results,
+html.ui-shadow:not(.dark) .account-dropdown {
+  -webkit-backdrop-filter: blur(14px) saturate(1.15);
+  backdrop-filter: blur(14px) saturate(1.15);
 }
 
-html.ui-clear .glass-surface,
-html.ui-clear .glass-panel,
-html.ui-clear .glass-light {
-  border-radius: var(--radius-ui);
-}
-
-html.ui-clear .glass-modal-surface {
-  border-radius: var(--radius-ui-lg);
-}
-
-html.ui-clear .glass-tooltip-surface,
-html.ui-clear .toast-pill {
-  border-radius: 9999px;
+html.ui-shadow:not(.dark) .modal-overlay {
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
 }
 
 html.ui-clear .glass-shell,
@@ -2611,6 +2607,11 @@ html:not(.dark) {
   position: relative;
   isolation: isolate;
   overflow: hidden;
+  border-radius: var(--radius-ui);
+  background: var(--color-glass);
+  border: 1px solid var(--color-glass-border);
+  -webkit-backdrop-filter: blur(12px) saturate(1.15);
+  backdrop-filter: blur(12px) saturate(1.15);
   border-color: var(--stale-banner-border) !important;
   animation: stale-update-banner-glow 2.4s ease-in-out infinite;
   box-shadow:
@@ -2708,7 +2709,8 @@ html:not(.dark) {
   outline-offset: 2px;
 }
 
-html.ui-clear .select-dropdown-menu {
+html.ui-clear .select-dropdown-menu,
+html.ui-clear .search-results {
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
   background: var(--color-glass);
@@ -2751,14 +2753,31 @@ html.ui-clear .form-input,
 html.ui-clear .form-group input,
 html.ui-clear .form-group select,
 html.ui-clear .form-group textarea,
-html.ui-clear .header-link,
-html.ui-clear .account-btn,
 html.ui-clear .select-dropdown-trigger,
 html.ui-clear .select-dropdown-menu,
 html.ui-clear .select-dropdown-menu--attached,
 html.ui-clear .select-dropdown-menu--floating,
-html.ui-clear .user-menu-select-trigger {
+html.ui-clear .search-results,
+html.ui-clear .user-menu-select-trigger,
+html.ui-clear .user-menu,
+html.ui-clear .glass-button,
+html.ui-clear .glass-button-secondary,
+html.ui-clear .modal-actions button,
+html.ui-clear .error-msg,
+html.ui-clear .success-msg,
+html.ui-clear .panel,
+html.ui-clear .auth-card,
+html.ui-clear .account-btn,
+html.ui-clear .account-dropdown,
+html.ui-clear .table-container,
+html.ui-clear .filter-group {
   border-radius: var(--radius-ui);
+}
+
+html.ui-clear .btn-sm,
+html.ui-clear .tab,
+html.ui-clear .user-menu-item {
+  border-radius: var(--radius-ui-sm);
 }
 
 html.dark.ui-clear .table-container,
@@ -2780,32 +2799,16 @@ html.ui-clear .table-container::before {
   display: none;
 }
 
-html.ui-clear .table-container,
-html.ui-clear .panel,
-html.ui-clear .auth-card,
-html.ui-clear .user-menu,
-html.ui-clear .modal,
-html.ui-clear .account-dropdown,
 html.ui-clear .icon-toggle-btn,
 html.ui-clear .search-box,
-html.ui-clear .btn,
-html.ui-clear .tabs,
-html.ui-clear .filter-group,
-html.ui-clear .stale-update-banner {
-  border-radius: var(--radius-ui);
-}
-
-html.ui-clear .modal {
-  border-radius: var(--radius-ui-lg);
-}
-
-html.ui-clear .icon-toggle-btn,
-html.ui-clear .search-box,
+html.ui-clear .glass-button,
+html.ui-clear .glass-button-secondary,
 html.ui-clear .btn,
 html.ui-clear .user-menu,
 html.ui-clear .select-dropdown-menu,
 html.ui-clear .modal,
 html.ui-clear .account-dropdown,
+html.ui-clear .tabs,
 html.ui-clear .stale-update-banner {
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
@@ -2835,13 +2838,13 @@ html.ui-acrylic .glass-light,
 html.ui-acrylic .modal,
 html.ui-acrylic .user-menu,
 html.ui-acrylic .select-dropdown-menu,
+html.ui-acrylic .search-results,
 html.ui-acrylic .toast-pill,
 html.ui-acrylic .table-container,
 html.ui-acrylic .panel,
 html.ui-acrylic .auth-card,
 html.ui-acrylic .account-dropdown {
   overflow: visible;
-  border-radius: var(--radius-ui);
   background: var(--color-glass);
   border-color: var(--color-glass-border);
   box-shadow: var(--acrylic-inset), var(--shadow-panel);
@@ -2854,17 +2857,6 @@ html.ui-acrylic .modal {
   overflow-y: auto;
 }
 
-html.ui-acrylic .glass-shell,
-html.ui-acrylic .glass-modal-surface,
-html.ui-acrylic .modal {
-  border-radius: var(--radius-ui-lg);
-}
-
-html.ui-acrylic .glass-tooltip-surface,
-html.ui-acrylic .toast-pill {
-  border-radius: 9999px;
-}
-
 html.ui-acrylic .glass-shell::before,
 html.ui-acrylic .glass-surface::before,
 html.ui-acrylic .glass-modal-surface::before,
@@ -2874,6 +2866,7 @@ html.ui-acrylic .glass-light::before,
 html.ui-acrylic .modal::before,
 html.ui-acrylic .user-menu::before,
 html.ui-acrylic .select-dropdown-menu::before,
+html.ui-acrylic .search-results::before,
 html.ui-acrylic .toast-pill::before,
 html.ui-acrylic .table-container::before,
 html.ui-acrylic .panel::before,
@@ -2899,6 +2892,7 @@ html.ui-acrylic .glass-light::after,
 html.ui-acrylic .modal::after,
 html.ui-acrylic .user-menu::after,
 html.ui-acrylic .select-dropdown-menu::after,
+html.ui-acrylic .search-results::after,
 html.ui-acrylic .toast-pill::after,
 html.ui-acrylic .table-container::after,
 html.ui-acrylic .panel::after,
@@ -2925,6 +2919,7 @@ html.ui-acrylic .glass-light > *,
 html.ui-acrylic .modal > *,
 html.ui-acrylic .user-menu > *,
 html.ui-acrylic .select-dropdown-menu > *,
+html.ui-acrylic .search-results > *,
 html.ui-acrylic .toast-pill > *,
 html.ui-acrylic .table-container > *,
 html.ui-acrylic .panel > *,
@@ -2943,21 +2938,34 @@ html.ui-acrylic .glass-button-secondary {
   backdrop-filter: var(--acrylic-backdrop);
 }
 
-html.ui-acrylic .search-box,
-html.ui-acrylic .tabs,
-html.ui-acrylic .btn,
-html.ui-acrylic .header-link,
-html.ui-acrylic .account-btn,
 html.ui-acrylic .form-input,
 html.ui-acrylic .form-group input,
 html.ui-acrylic .form-group select,
 html.ui-acrylic .form-group textarea,
+html.ui-acrylic .select-dropdown-trigger,
+html.ui-acrylic .select-dropdown-menu,
+html.ui-acrylic .select-dropdown-menu--attached,
+html.ui-acrylic .select-dropdown-menu--floating,
+html.ui-acrylic .search-results,
 html.ui-acrylic .user-menu-select-trigger,
-html.ui-acrylic .select-dropdown-trigger {
+html.ui-acrylic .user-menu,
+html.ui-acrylic .glass-button,
+html.ui-acrylic .glass-button-secondary,
+html.ui-acrylic .modal-actions button,
+html.ui-acrylic .error-msg,
+html.ui-acrylic .success-msg,
+html.ui-acrylic .panel,
+html.ui-acrylic .auth-card,
+html.ui-acrylic .account-btn,
+html.ui-acrylic .account-dropdown,
+html.ui-acrylic .table-container,
+html.ui-acrylic .filter-group {
   border-radius: var(--radius-ui);
 }
 
-html.ui-acrylic .btn-sm {
+html.ui-acrylic .btn-sm,
+html.ui-acrylic .tab,
+html.ui-acrylic .user-menu-item {
   border-radius: var(--radius-ui-sm);
 }
 
@@ -2975,61 +2983,6 @@ html.ui-acrylic:not(.dark) .modal-overlay {
   background: oklch(21% 0.04 266 / 0.18);
 }
 
-html.ui-acrylic .select-dropdown-menu {
-  isolation: auto;
-  padding: 2px 0 4px;
-}
-
-html.ui-acrylic .select-dropdown-menu--attached {
-  border-radius: var(--radius-ui);
-}
-
-html.ui-acrylic .select-dropdown-menu--floating {
-  border-radius: var(--radius-ui);
-}
-
-html.ui-acrylic .select-dropdown-item {
-  height: 32px;
-  margin: 2px 4px;
-  padding: 0 10px 0 12px;
-  border-radius: var(--radius-ui-sm);
-  display: flex;
-  align-items: center;
-}
-
-html.ui-acrylic .select-dropdown-item::before {
-  display: none;
-}
-
-html.ui-acrylic .user-menu {
-  min-width: 180px;
-  padding: 2px 0 4px;
-}
-
-html.ui-acrylic .user-menu-item {
-  align-self: stretch;
-  width: auto;
-  height: 32px;
-  margin: 2px 4px;
-  padding: 0 10px 0 12px;
-  border-radius: var(--radius-ui-sm);
-  display: flex;
-  align-items: center;
-  box-sizing: border-box;
-}
-
-html.ui-acrylic .user-menu-divider {
-  margin: 4px 12px;
-}
-
-html.ui-acrylic .panel,
-html.ui-acrylic .auth-card,
-html.ui-acrylic .account-dropdown,
-html.ui-acrylic .filter-group,
-html.ui-acrylic .stale-update-banner {
-  border-radius: var(--radius-ui);
-}
-
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   html.ui-acrylic .glass-shell,
   html.ui-acrylic .glass-surface,
@@ -3040,6 +2993,7 @@ html.ui-acrylic .stale-update-banner {
   html.ui-acrylic .modal,
   html.ui-acrylic .user-menu,
   html.ui-acrylic .select-dropdown-menu,
+  html.ui-acrylic .search-results,
   html.ui-acrylic .toast-pill,
   html.ui-acrylic .table-container,
   html.ui-acrylic .panel,

@@ -54,6 +54,6 @@ Clerk keys are required in production (`apps.codex === 'admin'` for admin). Plac
 
 ## Toolchain
 
-Node **26+**, pnpm **11.x**, exact `packageManager`. Encrypted env files need `DOTENV_PRIVATE_KEY_*` or `.env.keys`. `pnpm run validate` runs runtime preflight first (`scripts/runtime-preflight.mjs`). SQLite tests use `tests/helpers/sqliteTestHarness.ts`.
+Node **26+**, pnpm **11.x**, exact `packageManager`. Encrypted env files need `DOTENV_PRIVATE_KEY_*` or `.env.keys`. `pnpm run dev:client` decrypts `.env.development` with dotenvx (`--strict`) before Vite. `pnpm run validate` runs runtime preflight first (`scripts/runtime-preflight.mjs`). SQLite tests use `tests/helpers/sqliteTestHarness.ts`.
 
 On Windows, Cursor agent shells may prepend bundled Node 22. After changing Node versions, run `pnpm rebuild better-sqlite3`.
