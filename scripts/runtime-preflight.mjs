@@ -1,7 +1,7 @@
 import { createRequire } from 'node:module';
 
 const MIN_NODE_MAJOR = 26;
-const MIN_PNPM_MAJOR = 11;
+const MIN_PNPM_MAJOR = 12;
 
 const require = createRequire(import.meta.url);
 
