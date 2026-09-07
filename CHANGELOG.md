@@ -301,3 +301,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.71.8** `ci(deps)` [#391](https://github.com/Dark-Avian-Labs/Codex/pull/391): bump the github-actions group with 2 updates
 - **v1.71.9** `chore` [#394](https://github.com/Dark-Avian-Labs/Codex/pull/394): dependabot/npm_and_yarn/production dependencies e944f2d7e0
 - **v1.71.10** `chore` [#395](https://github.com/Dark-Avian-Labs/Codex/pull/395): fix/theme chrome consistency
+- **v1.71.11** `chore` [#396](https://github.com/Dark-Avian-Labs/Codex/pull/396): ci/pnpm 12 setup
