@@ -73,7 +73,7 @@
     "@types/react-dom": "catalog:",
     "@types/supertest": "^7.2.1",
     "@vitejs/plugin-react": "catalog:",
-    "@vitest/coverage-v8": "4.1.11",
+    "@vitest/coverage-v8": "5.0.0",
     "globals": "catalog:",
     "oxfmt": "catalog:",
     "oxlint": "catalog:",
