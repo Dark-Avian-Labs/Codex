@@ -345,7 +345,7 @@ jobs:
 
     steps:
       - name: Send Discord status
-        uses: iShark5060/actions-discord-status@d06b37c5757612dba6d877e5a682507c6c529b15 # v1.2.0
+        uses: iShark5060/actions-discord-status@66f6681ff19536b7787feecc4fdc20c506de365b # v1.2.1
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
           job_results: ${{ join(needs.*.result, ',') }}
