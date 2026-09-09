@@ -2,6 +2,7 @@ name: Dependency audit
 
 permissions:
   contents: read
+  pull-requests: read
 
 env:
   NODE_VERSION: 26
@@ -29,11 +30,10 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Checkout code
-        uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
-
       - name: Decide whether to audit
         id: filter
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
@@ -42,8 +42,11 @@ jobs:
             exit 0
           fi
 
-          git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
-          changed="$(git diff --name-only "origin/${{ github.base_ref }}...HEAD")"
+          changed="$(curl -fsSL \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/pulls/${{ github.event.pull_request.number }}/files?per_page=100" \
+            | python3 -c "import json,sys; print('\n'.join(f['filename'] for f in json.load(sys.stdin)))")"
           echo "Changed files:"
           echo "$changed"
 
@@ -53,6 +56,10 @@ jobs:
             echo "skip=true" >> "$GITHUB_OUTPUT"
             echo "No dependency files changed; skipping pnpm audit"
           fi
+
+      - name: Checkout code
+        if: steps.filter.outputs.skip != 'true'
+        uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
 
       - name: Setup pnpm and Node.js
         if: steps.filter.outputs.skip != 'true'
