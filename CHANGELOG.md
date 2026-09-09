@@ -303,3 +303,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.71.10** `chore` [#395](https://github.com/Dark-Avian-Labs/Codex/pull/395): fix/theme chrome consistency
 - **v1.71.11** `chore` [#396](https://github.com/Dark-Avian-Labs/Codex/pull/396): ci/pnpm 12 setup
 - **v1.71.12** `ci(deps)` [#397](https://github.com/Dark-Avian-Labs/Codex/pull/397): bump iShark5060/actions-discord-status
+- **v1.71.13** `chore` [#400](https://github.com/Dark-Avian-Labs/Codex/pull/400): ci/playwright cache and scheduled audit
