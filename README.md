@@ -1,119 +1,32 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Dark-Avian-Labs/.github/refs/heads/main/banner.png" alt="Dark Avian Labs">
+</p>
+
 # Codex
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![CI](https://github.com/Dark-Avian-Labs/Codex/actions/workflows/ci.yml/badge.svg)](https://github.com/Dark-Avian-Labs/Codex/actions/workflows/ci.yml)
-[![PR](https://github.com/Dark-Avian-Labs/Codex/actions/workflows/pr.yml/badge.svg)](https://github.com/Dark-Avian-Labs/Codex/actions/workflows/pr.yml)
-![Node](https://img.shields.io/badge/Node-%3E%3D26-339933?logo=node.js&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-6.x-3178C6?logo=typescript&logoColor=white)
-![React](https://img.shields.io/badge/React-19.x-61DAFB?logo=react&logoColor=black)
-![Vite](https://img.shields.io/badge/Vite-8.x-646CFF?logo=vite&logoColor=white)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.x-06B6D4?logo=tailwindcss&logoColor=white)
-[![Cursor](https://img.shields.io/badge/Cursor-IDE-141414?logo=cursor&logoColor=white)](https://cursor.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
+[![CI](https://img.shields.io/github/actions/workflow/status/Dark-Avian-Labs/Codex/ci.yml?style=flat-square&label=CI)](https://github.com/Dark-Avian-Labs/Codex/actions/workflows/ci.yml)
+[![PR](https://img.shields.io/github/actions/workflow/status/Dark-Avian-Labs/Codex/pr.yml?style=flat-square&label=PR)](https://github.com/Dark-Avian-Labs/Codex/actions/workflows/pr.yml)
+![Node](https://img.shields.io/badge/Node-%3E%3D26-339933?logo=node.js&logoColor=white&style=flat-square)
+![TypeScript](https://img.shields.io/badge/TypeScript-7.x-3178C6?logo=typescript&logoColor=white&style=flat-square)
+![React](https://img.shields.io/badge/React-19.x-61DAFB?logo=react&logoColor=black&style=flat-square)
+![Vite](https://img.shields.io/badge/Vite-8.x-646CFF?logo=vite&logoColor=white&style=flat-square)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.x-06B6D4?logo=tailwindcss&logoColor=white&style=flat-square)
+[![Cursor](https://img.shields.io/badge/Cursor-IDE-141414?logo=cursor&logoColor=white&style=flat-square)](https://cursor.com)
 
-Codex is a table-based collection tracker for Warframe, Epic Seven, and Watcher of Realms. Each game lives in its own workspace package. Warframe worksheets sync catalog data from Armory. Epic Seven uses a curated hero and artifact list. Watcher of Realms imports heroes, artifacts, and demons from Fastidious and Fandom. Sign-in uses [Clerk](https://clerk.com).
+Table-based collection tracker for Warframe, Epic Seven, and Watcher of Realms. Each game is its own workspace package. Warframe catalog data comes from Armory. Sign-in uses [Clerk](https://clerk.com).
 
-## Requirements
+Live: [codex.darkavianlabs.com](https://codex.darkavianlabs.com)
 
-- Node.js 26+
-- pnpm 12+
+Default API port is **3001**.
 
-## Quick start
+## Gotchas
 
-1. Install Node.js and pnpm using your preferred method for your OS.
-
-2. Install dependencies:
-
-   ```bash
-   pnpm install
-   ```
-
-3. Copy and edit the environment file:
-
-   ```bash
-   cp .env.example .env
-   ```
-
-4. Build and run:
-
-   ```bash
-   pnpm run build
-   pnpm start
-   ```
-
-## Examples
-
-```bash
-curl -sS http://127.0.0.1:3001/api/health
-```
-
-## dotenvx and encrypted env files
-
-This project supports `dotenvx` for local `.env` loading and can optionally use encrypted env artifacts.
-
-- Use `pnpm dlx dotenvx encrypt` to encrypt your local `.env` file when you want it safe to commit.
-- That flow also creates a `.env.keys` file with your private encryption key, which must **never** be committed.
-- To change variables, use `pnpm dlx dotenvx decrypt` with the key in `.env.keys` to restore a plain `.env`.
-- Re-encrypt afterward (keys are reused) and commit only the encrypted artifacts.
-- Store private keys in your secrets manager the same way you would an SSH deploy key.
-
-Suggested secret naming when vault is enabled:
-
-- `DOTENV_PRIVATE_KEY_DEVELOPMENT`
-- `DOTENV_PRIVATE_KEY_PRODUCTION`
-
-Use one key per environment to reduce blast radius.
-
-## Environment
-
-| Variable                            | Description                                                                                                          |
-| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `PORT`, `HOST`                      | Server bind address (defaults: `3001`, `127.0.0.1`). Set `HOST=0.0.0.0` to bind all interfaces.                      |
-| `NODE_ENV`                          | Typically `development`, `test`, or `production`.                                                                    |
-| `SESSION_SECRET`                    | Required; at least 32 characters. Or `ALLOW_INSECURE_DEV=1` for local hardcoded fallback.                            |
-| `TRUST_PROXY`                       | Optional; set to `1` behind a reverse proxy (default: off).                                                          |
-| `SECURE_COOKIES`                    | Optional; defaults to on in production. Session cookie uses SameSite=Lax (enough for sibling apps on the same apex). |
-| `BASE_DOMAIN`                       | Required. Apex domain (e.g. `example.com`).                                                                          |
-| `BASE_PROTOCOL`                     | `http` or `https` (invalid values fall back to `https` with a warning).                                              |
-| `APP_ID`                            | Codex app id (default: `codex`).                                                                                     |
-| `APP_PUBLIC_BASE_URL`               | Optional explicit public URL; otherwise derived from `BASE_DOMAIN` + subdomain.                                      |
-| `APP_SUBDOMAIN`                     | Public host subdomain (default: `APP_ID`). Used to build the public URL.                                             |
-| `CLERK_SECRET_KEY`                  | **Required in production.** Clerk secret key for server-side session verification.                                   |
-| `CLERK_PUBLISHABLE_KEY`             | Clerk publishable key for the server (falls back to `VITE_CLERK_PUBLISHABLE_KEY`).                                   |
-| `SESSION_DB_PATH`                   | **Required absolute path** to Codex session SQLite (`session.db`).                                                   |
-| `ARMORY_DB_PATH`                    | **Required absolute path** to the shared Armory SQLite database.                                                     |
-| `WARFRAME_DB_PATH`, `EPIC7_DB_PATH` | Per-game SQLite paths (defaults under `./data/` if unset in game packages).                                          |
-| `COOKIE_DOMAIN`                     | Optional; defaults to `.${BASE_DOMAIN}` so sibling apps share the session cookie.                                    |
-| `SESSION_COOKIE_NAME`               | Session cookie name for Codex.                                                                                       |
-| `ALLOWED_APP_ORIGINS`               | Comma-separated full-trust peer origins for CSRF/CORS (Codex + Armory, etc.).                                        |
-
-Client `VITE_*` variables are listed in `.env.example`.
-
-### Shared SQLite deployment notes
-
-- `SESSION_DB_PATH` and `ARMORY_DB_PATH` must be absolute paths on the host or inside the Codex runtime container.
-- Avoid relative `../other-service/...` paths; mount shared volumes explicitly for each service.
-- Codex opens its session DB in WAL mode; keep a single writer boundary for schema changes and avoid multi-host writes on network filesystems that do not honor SQLite locking.
-
-## Scripts
-
-| Script                  | Description                                                                                           |
-| ----------------------- | ----------------------------------------------------------------------------------------------------- |
-| `pnpm run validate`     | Runtime preflight (Node 26+, pnpm, SQLite native), format, lint, typecheck, tests.                    |
-| `pnpm run db:init`      | Initialize Warframe, Epic Seven, and Watcher of Realms SQLite schemas (requires built game packages). |
-| `pnpm run build`        | Build workspace packages, typecheck, compile server, and Vite client build.                           |
-| `pnpm run dev:client`   | Vite with decrypted `.env.development`.                                                               |
-| `pnpm start`            | Run production server from `dist/`.                                                                   |
-| `pnpm run typecheck`    | Typecheck server and client.                                                                          |
-| `pnpm run lint`         | Run Oxlint.                                                                                           |
-| `pnpm run lint:fix`     | Run Oxlint with `--fix`.                                                                              |
-| `pnpm run format`       | Run Oxfmt.                                                                                            |
-| `pnpm run check-format` | Verify Oxfmt formatting.                                                                              |
-| `pnpm run test`         | Run Vitest once.                                                                                      |
-| `pnpm run test:watch`   | Run Vitest in watch mode.                                                                             |
-
-## Development
-
-Design system: AppBase `AGENTS.md`. Org standards: AppBase `docs/org-standards/`.
+- `SESSION_DB_PATH` and `ARMORY_DB_PATH` must be **absolute**. Do not reuse Armory's session file, BudgetPlanner SQLite, or point both paths at the same database. Codex copies the Armory catalog into its Warframe DB; it does not live-join Armory forever.
+- Workspace packages must be built before `db:init`, tests, or a server compile. `pnpm run build` does that; `pnpm run validate` does not. An empty Armory catalog means Warframe sync has nothing to copy — import in Armory first.
+- Encrypted env files need `.env.keys` or `DOTENV_PRIVATE_KEY_*`. Never encrypt `VITE_*`.
+- Empty Clerk keys skip auth. Placeholder keys are fatal. Production needs real keys, `APP_PUBLIC_BASE_URL`, and `COOKIE_DOMAIN=.darkavianlabs.com` to share login with Armory / Outfitter.
+- After changing Node versions on Windows, `pnpm rebuild better-sqlite3`.
 
 ## License
 
