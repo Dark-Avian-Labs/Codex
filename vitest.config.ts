@@ -10,6 +10,9 @@ const testEnvDefaults = {
   ARMORY_DB_PATH: path.join(os.tmpdir(), 'codex-vitest-armory.db'),
   COOKIE_DOMAIN: 'localhost',
   BASE_DOMAIN: 'example.com',
+  CLERK_PUBLISHABLE_KEY: '',
+  CLERK_SECRET_KEY: '',
+  VITE_CLERK_PUBLISHABLE_KEY: '',
 } as const;
 
 export default defineConfig({
@@ -30,13 +33,16 @@ export default defineConfig({
     },
     coverage: {
       provider: 'v8',
+      all: true,
+      reporter: ['text-summary', 'html'],
+      reportsDirectory: 'coverage',
       include: [
         'server/**/*.ts',
         'packages/core/src/**/*.ts',
         'packages/games/**/src/**/*.ts',
         'client/**/*.ts',
       ],
-      exclude: ['**/*.test.ts', 'dist/**', 'node_modules/**'],
+      exclude: ['**/*.test.ts', 'dist/**', 'node_modules/**', 'e2e/**'],
     },
   },
 });

@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const authState = vi.hoisted(() => ({
   userId: null as string | null,
@@ -16,7 +16,46 @@ vi.mock('@clerk/express', () => ({
 
 import { isAppAdmin } from '../auth/clerk.js';
 import { mockResponse } from '../testing/mockResponse.js';
-import { getClerkAuthState, requireAuthApi, requireCodexAdmin } from './auth.js';
+import { getClerkAuthState, isClerkConfigured, requireAuthApi, requireCodexAdmin } from './auth.js';
+
+function restoreClerkKeys(previousPublishable: string | undefined, previousSecret: string | undefined): void {
+  if (previousPublishable === undefined) delete process.env.CLERK_PUBLISHABLE_KEY;
+  else process.env.CLERK_PUBLISHABLE_KEY = previousPublishable;
+  if (previousSecret === undefined) delete process.env.CLERK_SECRET_KEY;
+  else process.env.CLERK_SECRET_KEY = previousSecret;
+}
+
+function enableClerkForAuthTests(): void {
+  process.env.CLERK_PUBLISHABLE_KEY = 'pk_test_abc';
+  process.env.CLERK_SECRET_KEY = 'sk_test_abc';
+}
+
+describe('isClerkConfigured', () => {
+  const previousPublishable = process.env.CLERK_PUBLISHABLE_KEY;
+  const previousSecret = process.env.CLERK_SECRET_KEY;
+
+  afterEach(() => {
+    restoreClerkKeys(previousPublishable, previousSecret);
+  });
+
+  it('returns false when both keys are empty', () => {
+    delete process.env.CLERK_PUBLISHABLE_KEY;
+    delete process.env.CLERK_SECRET_KEY;
+    expect(isClerkConfigured()).toBe(false);
+  });
+
+  it('rejects bare pk_test_ and sk_test_ prefixes', () => {
+    process.env.CLERK_PUBLISHABLE_KEY = 'pk_test_';
+    process.env.CLERK_SECRET_KEY = 'sk_test_abc';
+    expect(() => isClerkConfigured()).toThrow(/FATAL/);
+  });
+
+  it('rejects a secret that is only sk_live_', () => {
+    process.env.CLERK_PUBLISHABLE_KEY = 'pk_live_abc';
+    process.env.CLERK_SECRET_KEY = 'sk_live_';
+    expect(() => isClerkConfigured()).toThrow(/FATAL/);
+  });
+});
 
 describe('isAppAdmin', () => {
   it('returns true when app role is admin', () => {
@@ -38,15 +77,31 @@ describe('isAppAdmin', () => {
 });
 
 describe('getClerkAuthState', () => {
+  const previousPublishable = process.env.CLERK_PUBLISHABLE_KEY;
+  const previousSecret = process.env.CLERK_SECRET_KEY;
+
   beforeEach(() => {
     authState.userId = null;
     authState.sessionClaims = undefined;
+    enableClerkForAuthTests();
+  });
+
+  afterEach(() => {
+    restoreClerkKeys(previousPublishable, previousSecret);
   });
 
   it('returns unauthenticated state when there is no user', () => {
     const state = getClerkAuthState({} as Request);
     expect(state.authenticated).toBe(false);
     expect(state.isCodexAdmin).toBe(false);
+  });
+
+  it('returns signed-out when Clerk is not configured even if getAuth would return a user', () => {
+    authState.userId = 'user_1';
+    delete process.env.CLERK_PUBLISHABLE_KEY;
+    delete process.env.CLERK_SECRET_KEY;
+    const state = getClerkAuthState({} as Request);
+    expect(state).toEqual({ authenticated: false, userId: null, isCodexAdmin: false });
   });
 
   it('returns authenticated non-admin for signed-in user without admin role', () => {
@@ -66,8 +121,16 @@ describe('getClerkAuthState', () => {
 });
 
 describe('requireAuthApi', () => {
+  const previousPublishable = process.env.CLERK_PUBLISHABLE_KEY;
+  const previousSecret = process.env.CLERK_SECRET_KEY;
+
   beforeEach(() => {
     authState.userId = null;
+    enableClerkForAuthTests();
+  });
+
+  afterEach(() => {
+    restoreClerkKeys(previousPublishable, previousSecret);
   });
 
   it('returns 401 JSON when unauthenticated', () => {
@@ -89,9 +152,17 @@ describe('requireAuthApi', () => {
 });
 
 describe('requireCodexAdmin', () => {
+  const previousPublishable = process.env.CLERK_PUBLISHABLE_KEY;
+  const previousSecret = process.env.CLERK_SECRET_KEY;
+
   beforeEach(() => {
     authState.userId = null;
     authState.sessionClaims = undefined;
+    enableClerkForAuthTests();
+  });
+
+  afterEach(() => {
+    restoreClerkKeys(previousPublishable, previousSecret);
   });
 
   it('returns 401 JSON when unauthenticated', () => {

@@ -66,6 +66,8 @@ describeWithSqlite('warframe API routes', () => {
   let accessSpy: MockInstance | undefined;
 
   beforeEach(() => {
+    process.env.CLERK_PUBLISHABLE_KEY = 'pk_test_abc';
+    process.env.CLERK_SECRET_KEY = 'sk_test_abc';
     authState.userId = null;
     authState.sessionClaims = undefined;
     cleanupTempDb();

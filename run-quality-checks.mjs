@@ -12,7 +12,7 @@ const steps = [
   { name: 'Formatting', command: 'pnpm run check-format' },
   { name: 'Lint', command: 'pnpm run lint' },
   { name: 'Typecheck', command: 'pnpm run typecheck' },
-  { name: 'Tests', command: 'pnpm run test' },
+  { name: 'Tests', command: process.env.CI ? 'pnpm run test:coverage' : 'pnpm run test' },
 ];
 
 const results = [];

@@ -50,10 +50,16 @@ Signed-in agents should read the collection from `GET /api/wor/roster` (Clerk se
 
 ## Auth
 
-Clerk keys are required in production (`apps.codex === 'admin'` for admin). Placeholder keys make the middleware throw 500 on every request; the server still listens. Leave keys empty in local dev if you do not have real ones. CI env template: `.github/ci.env.development`. CSRF tokens rotate when the Clerk user id on the express session changes (`server/session/bindClerkUserSession.ts`).
+Clerk keys are required in production (`apps.codex === 'admin'` for admin). Empty keys skip Clerk and treat every request as signed out (`isClerkConfigured()`; Vitest and Playwright rely on this). Placeholder keys (`pk_test_placeholder` / `sk_test_placeholder`) and bare `pk_test_` / `sk_test_` prefixes are fatal at boot — leave both keys empty instead of faking values. CI env template: `.github/ci.env.development`. CSRF tokens rotate when the Clerk user id on the express session changes (`server/session/bindClerkUserSession.ts`).
 
 ## Toolchain
 
 Node **26+**, pnpm **12.x**, exact `packageManager`. Encrypted env files need `DOTENV_PRIVATE_KEY_*` or `.env.keys`. `pnpm run dev:client` decrypts `.env.development` with dotenvx (`--strict`) before Vite. `pnpm run validate` runs runtime preflight first (`scripts/runtime-preflight.mjs`). SQLite tests use `tests/helpers/sqliteTestHarness.ts`.
 
 On Windows, Cursor agent shells may prepend bundled Node 22. After changing Node versions, run `pnpm rebuild better-sqlite3`.
+
+## Tests
+
+`pnpm run validate` is the quality gate: preflight, oxfmt, oxlint, typecheck, Vitest. In CI that Vitest step is instrumented (`pnpm run test:coverage`); locally `pnpm test` stays uninstrumented. Use `pnpm run test:watch` while iterating.
+
+Playwright (`pnpm run test:e2e`) is **not** inside validate. It boots the compiled server (`dist/server/index.js`) on port 3101 with throwaway sqlite files after `scripts/db-init.mjs` (via `scripts/e2e-server.mjs`). Smokes hit probes, CSRF, API 404, and GET / (SPA 200). Run `pnpm run build` first so workspace packages exist, and `pnpm run test:e2e:install` once per machine. The runner and browser downloads are Apache-2.0 / free; no cloud grid. Empty Clerk keys skip Clerk; do not invent local fake keys.
