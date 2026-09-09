@@ -31,8 +31,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
-        with:
-          fetch-depth: ${{ github.event_name == 'pull_request' && 0 || 1 }}
 
       - name: Decide whether to audit
         id: filter
@@ -44,7 +42,8 @@ jobs:
             exit 0
           fi
 
-          changed="$(git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.sha }}")"
+          git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
+          changed="$(git diff --name-only "origin/${{ github.base_ref }}...HEAD")"
           echo "Changed files:"
           echo "$changed"
 
