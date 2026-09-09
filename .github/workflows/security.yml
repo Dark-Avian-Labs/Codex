@@ -10,11 +10,6 @@ on:
   schedule:
     - cron: '13 6 * * 1'
   pull_request:
-    paths:
-      - 'package.json'
-      - 'pnpm-lock.yaml'
-      - 'pnpm-workspace.yaml'
-      - '.github/workflows/security.yml'
   push:
     branches: [main]
     paths:
@@ -36,8 +31,32 @@ jobs:
     steps:
       - name: Checkout code
         uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
+        with:
+          fetch-depth: ${{ github.event_name == 'pull_request' && 0 || 1 }}
+
+      - name: Decide whether to audit
+        id: filter
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          changed="$(git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.sha }}")"
+          echo "Changed files:"
+          echo "$changed"
+
+          if echo "$changed" | grep -Eq '(^|/)(package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml)$|^\.github/workflows/security\.yml$'; then
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "No dependency files changed; skipping pnpm audit"
+          fi
 
       - name: Setup pnpm and Node.js
+        if: steps.filter.outputs.skip != 'true'
         uses: pnpm/setup@703c52620218391530e48b9e8870d5c0082e1b9b # v2.1.0
         with:
           runtime: node@${{ env.NODE_VERSION }}
@@ -45,4 +64,23 @@ jobs:
           install: false
 
       - name: Audit dependencies
+        if: steps.filter.outputs.skip != 'true'
         run: pnpm audit --audit-level high
+
+  security:
+    name: security
+    needs: [audit]
+    if: always() && !cancelled()
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    timeout-minutes: 5
+
+    steps:
+      - name: Check audit result
+        shell: bash
+        run: |
+          result="${{ needs.audit.result }}"
+          if [ "$result" = "success" ]; then
+            exit 0
+          fi
+          echo "Audit job result: $result"
+          exit 1
