@@ -1,0 +1,48 @@
+name: Dependency audit
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: 26
+
+on:
+  schedule:
+    - cron: '13 6 * * 1'
+  pull_request:
+    paths:
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - '.github/workflows/security.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - '.github/workflows/security.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
+
+      - name: Setup pnpm and Node.js
+        uses: pnpm/setup@703c52620218391530e48b9e8870d5c0082e1b9b # v2.1.0
+        with:
+          runtime: node@${{ env.NODE_VERSION }}
+          cache: false
+          install: false
+
+      - name: Audit dependencies
+        run: pnpm audit --audit-level high
