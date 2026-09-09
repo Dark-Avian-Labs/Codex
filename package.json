@@ -23,8 +23,10 @@
     "db:init": "node scripts/db-init.mjs",
     "validate": "node run-quality-checks.mjs",
     "test": "vitest run",
-    "test:watch": "vitest",
     "test:coverage": "vitest run --coverage && node scripts/patchCoverageLayout.mjs",
+    "test:e2e": "playwright test",
+    "test:e2e:install": "playwright install chromium",
+    "test:watch": "vitest",
     "lint": "oxlint .",
     "lint:fix": "oxlint --fix .",
     "format": "oxfmt --write .",
@@ -58,6 +60,7 @@
     "tailwind-merge": "catalog:"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@semantic-release/commit-analyzer": "^13.0.1",
     "@semantic-release/exec": "^7.1.0",
     "@semantic-release/git": "^11.0.1",

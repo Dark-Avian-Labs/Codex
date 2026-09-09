@@ -10,6 +10,7 @@ export {
   clerkMiddleware,
   getAuth,
   getClerkAuthState,
+  isClerkConfigured,
   requireAdmin,
   requireCodexAdmin,
   requireAuthApi,

@@ -7,7 +7,6 @@ import {
   closeSessionDb,
   createAppHelmet,
   getClerkAuthState,
-  getClerkAuthorizedParties,
   getSessionDb,
   log,
 } from '@codex/core';
@@ -181,7 +180,7 @@ const probeLimiter = createRateLimiter(BASELINE_RATE_LIMIT_MAX);
 app.get('/healthz', healthzHandler);
 app.get('/readyz', probeLimiter, readyzHandler);
 
-app.use(clerkMiddleware({ authorizedParties: getClerkAuthorizedParties() }));
+app.use(clerkMiddleware());
 
 const baselineLimiter = createRateLimiter(BASELINE_RATE_LIMIT_MAX, {
   skip: (req) =>

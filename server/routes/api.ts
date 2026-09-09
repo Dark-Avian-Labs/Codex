@@ -8,13 +8,11 @@ import { worApiRouter } from './worApi.js';
 
 export const apiRouter = Router();
 
-apiRouter.use(requireAuthApi);
-
-apiRouter.get('/status', (_req, res) => {
+apiRouter.get('/status', requireAuthApi, (_req, res) => {
   res.json({ ok: true, app: 'codex' });
 });
 
-apiRouter.use('/warframe', warframeApiRouter);
-apiRouter.use('/epic7', epic7ApiRouter);
-apiRouter.use('/wor/admin', worAdminApiRouter);
-apiRouter.use('/wor', worApiRouter);
+apiRouter.use('/warframe', requireAuthApi, warframeApiRouter);
+apiRouter.use('/epic7', requireAuthApi, epic7ApiRouter);
+apiRouter.use('/wor/admin', requireAuthApi, worAdminApiRouter);
+apiRouter.use('/wor', requireAuthApi, worApiRouter);
