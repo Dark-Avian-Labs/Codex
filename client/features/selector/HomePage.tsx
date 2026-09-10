@@ -2,7 +2,6 @@ import type { CSSProperties } from 'react';
 import { Link } from 'react-router';
 
 import { APP_PATHS } from '../../app/paths';
-import { GlassCard } from '../../components/ui/GlassCard';
 
 const warframeStyle = { '--color-accent': '#ea580c' } as CSSProperties;
 const epic7Style = { '--color-accent': '#a855f7' } as CSSProperties;
@@ -10,27 +9,16 @@ const worStyle = { '--color-accent': '#0ea5e9' } as CSSProperties;
 
 export function HomePage() {
   return (
-    <div className="space-y-5">
-      <GlassCard className="p-6">
-        <h1 className="mb-2 text-2xl font-semibold">Codex</h1>
-        <p className="text-muted text-sm">
-          Select a game workspace to manage your collection and progress.
-        </p>
-      </GlassCard>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Link to={APP_PATHS.warframe} className="game-card" style={warframeStyle}>
-          <h2>Warframe</h2>
-          <p>Track worksheet status and completion.</p>
-        </Link>
-        <Link to={APP_PATHS.epic7} className="game-card" style={epic7Style}>
-          <h2>Epic Seven</h2>
-          <p>Manage heroes, artifacts, and accounts.</p>
-        </Link>
-        <Link to={APP_PATHS.wor} className="game-card" style={worStyle}>
-          <h2>Watcher of Realms</h2>
-          <p>Track heroes, artifacts, and demons.</p>
-        </Link>
-      </div>
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <Link to={APP_PATHS.warframe} className="game-card" style={warframeStyle}>
+        <h2>Warframe</h2>
+      </Link>
+      <Link to={APP_PATHS.epic7} className="game-card" style={epic7Style}>
+        <h2>Epic Seven</h2>
+      </Link>
+      <Link to={APP_PATHS.wor} className="game-card" style={worStyle}>
+        <h2>Watcher of Realms</h2>
+      </Link>
     </div>
   );
 }
