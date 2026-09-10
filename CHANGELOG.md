@@ -305,3 +305,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.71.12** `ci(deps)` [#397](https://github.com/Dark-Avian-Labs/Codex/pull/397): bump iShark5060/actions-discord-status
 - **v1.71.13** `chore` [#400](https://github.com/Dark-Avian-Labs/Codex/pull/400): ci/playwright cache and scheduled audit
 - **v1.71.14** `ci(deps)` [#402](https://github.com/Dark-Avian-Labs/Codex/pull/402): bump the github-actions group with 2 updates
+- **v1.72.0** `chore` [#403](https://github.com/Dark-Avian-Labs/Codex/pull/403): cursor/landing game cards e31c
