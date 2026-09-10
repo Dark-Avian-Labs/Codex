@@ -2078,9 +2078,12 @@ html:not(.dark) .invert-on-light {
   }
 
   .game-card {
-    display: block;
-    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3.5rem 2rem;
     min-width: 180px;
+    min-height: 10rem;
     text-align: center;
     color: var(--color-foreground);
     text-decoration: none;
@@ -2098,14 +2101,10 @@ html:not(.dark) .invert-on-light {
   }
 
   .game-card h2 {
-    margin: 0 0 0.5rem;
-    font-size: 1.25rem;
-  }
-
-  .game-card p {
     margin: 0;
-    color: var(--color-muted);
-    font-size: 0.9rem;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 600;
+    line-height: 1.15;
   }
 
   .game-toggle {
