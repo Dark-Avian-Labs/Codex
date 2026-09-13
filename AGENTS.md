@@ -50,7 +50,9 @@ Signed-in agents should read the collection from `GET /api/wor/roster` (Clerk se
 
 ## Auth
 
-Clerk keys are required in production (`apps.codex === 'admin'` for admin). Empty keys skip Clerk and treat every request as signed out (`isClerkConfigured()`; Vitest and Playwright rely on this). Placeholder keys (`pk_test_placeholder` / `sk_test_placeholder`) and bare `pk_test_` / `sk_test_` prefixes are fatal at boot — leave both keys empty instead of faking values. CI env template: `.github/ci.env.development`. CSRF tokens rotate when the Clerk user id on the express session changes (`server/session/bindClerkUserSession.ts`).
+Clerk keys are required in production (`apps.codex === 'admin'` for admin). Empty keys skip Clerk and treat every request as signed out (`isClerkConfigured()`; Vitest and Playwright rely on this). Placeholder keys (`pk_test_placeholder` / `sk_test_placeholder`) and bare `pk_test_` / `sk_test_` prefixes are fatal at boot. Leave both keys empty instead of faking values. CI env template: `.github/ci.env.development`. CSRF tokens rotate when the Clerk user id on the express session changes (`server/session/bindClerkUserSession.ts`).
+
+Cursor agents sign in with Clerk Agent Tasks. Do not type a password. Decrypt `.env.development` and read `E2E_CLERK_USER_EMAIL` or `E2E_CLERK_USER_ID`. POST `https://api.clerk.com/v1/agents/tasks` using `CLERK_SECRET_KEY`. Send `agent_name`, `task_description`, `permissions` `*`, `redirect_url` `http://localhost:5173/`, and `on_behalf_of` with `user_id` or `identifier`. Open the URL Clerk returns. The same development user works for AppBase, Codex, Armory, BudgetPlanner, and Outfitter. Local cookies are host-only, so each app origin needs its own task. Do not invent local fake keys.
 
 ## Toolchain
 
