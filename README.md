@@ -14,19 +14,16 @@
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.x-06B6D4?logo=tailwindcss&logoColor=white&style=flat-square)
 [![Cursor](https://img.shields.io/badge/Cursor-IDE-141414?logo=cursor&logoColor=white&style=flat-square)](https://cursor.com)
 
-Table-based collection tracker for Warframe, Epic Seven, and Watcher of Realms. Each game is its own workspace package. Warframe catalog data comes from Armory. Sign-in uses [Clerk](https://clerk.com).
+Codex is the collection notebook for the games we actually play. Warframe, Epic Seven, and Watcher of Realms each get their own tables instead of one generic form, so a Warframe worksheet does not have to pretend it is a hero list.
+
+Warframe items sync from Armory. Watcher of Realms heroes and portraits are what Outfitter copies when it needs a catalog. Own the roster here, then send the rest of the stack looking at the same names.
 
 Live: [codex.darkavianlabs.com](https://codex.darkavianlabs.com)
 
-Default API port is **3001**.
-
 ## Gotchas
 
-- `SESSION_DB_PATH` and `ARMORY_DB_PATH` must be **absolute**. Do not reuse Armory's session file, BudgetPlanner SQLite, or point both paths at the same database. Codex copies the Armory catalog into its Warframe DB; it does not live-join Armory forever.
-- Workspace packages must be built before `db:init`, tests, or a server compile. `pnpm run build` does that; `pnpm run validate` does not. An empty Armory catalog means Warframe sync has nothing to copy — import in Armory first.
-- Encrypted env files need `.env.keys` or `DOTENV_PRIVATE_KEY_*`. Never encrypt `VITE_*`.
-- Empty Clerk keys skip auth. Placeholder keys are fatal. Production needs real keys, `APP_PUBLIC_BASE_URL`, and `COOKIE_DOMAIN=.darkavianlabs.com` to share login with Armory / Outfitter.
-- After changing Node versions on Windows, `pnpm rebuild better-sqlite3`.
+- Session and Armory catalog paths must be absolute, and they must be different files.
+- Import Armory's catalog before Warframe sync has anything to copy.
 
 ## License
 
