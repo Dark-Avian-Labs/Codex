@@ -16,11 +16,7 @@ import {
   type CatalogBundle,
 } from './catalogQueries.js';
 import { importFandomHeroStats } from './fandomHeroStats.js';
-import {
-  downloadCatalogPortraits,
-  downloadClassAndFactionIcons,
-  type WorImageDownloadSummary,
-} from './fandomImages.js';
+import { downloadCatalogPortraits, type WorImageDownloadSummary } from './fandomImages.js';
 import { fetchFastidiousCatalog, type FastidiousImageRef } from './fastidiousCatalog.js';
 import {
   noteWorImportLeaseHeartbeat,
@@ -250,8 +246,6 @@ async function runWorStartupPipelineBody(
 ): Promise<WorImportSummary> {
   let bundle: CatalogBundle | null = null;
   let imageRefs: FastidiousImageRef | null = null;
-  let classIcons: Awaited<ReturnType<typeof fetchFastidiousCatalog>>['classIcons'] = {};
-  let factionIcons: Awaited<ReturnType<typeof fetchFastidiousCatalog>>['factionIcons'] = {};
   let imageSummary: WorImageDownloadSummary | undefined;
   const validationWarnings: string[] = [];
   const cacheDir = resolveWorImportCacheDir();
@@ -310,8 +304,6 @@ async function runWorStartupPipelineBody(
       });
       bundle = result.bundle;
       imageRefs = result.imageRefs;
-      classIcons = result.classIcons;
-      factionIcons = result.factionIcons;
       const refreshedHashes = computeCurrentSourceHashes(cacheDir);
       pendingSourceHashes = refreshedHashes;
     } else {
@@ -322,8 +314,6 @@ async function runWorStartupPipelineBody(
       });
       bundle = result.bundle;
       imageRefs = result.imageRefs;
-      classIcons = result.classIcons;
-      factionIcons = result.factionIcons;
     }
   } else {
     emit(onLog, 'info', `[${stepTag('fastidiousCatalog')}] Skipped.`);
@@ -341,8 +331,6 @@ async function runWorStartupPipelineBody(
     });
     bundle = result.bundle;
     imageRefs = result.imageRefs;
-    classIcons = result.classIcons;
-    factionIcons = result.factionIcons;
   }
 
   if (!bundle && catalogPipelineRequested(options)) {
@@ -360,17 +348,8 @@ async function runWorStartupPipelineBody(
     bundle = applyWorOverrides(bundle);
   }
 
-  const imagesWouldRun =
-    live || Boolean(process.env.WIKI_USER_AGENT?.trim()) || Object.keys(classIcons).length > 0;
+  const imagesWouldRun = live || Boolean(process.env.WIKI_USER_AGENT?.trim()) || Boolean(imageRefs);
   if (bundle && imageRefs && shouldRunWorStep('fandomImages', imagesWouldRun, options)) {
-    emit(onLog, 'info', `[${stepTag('fandomImages')}] Downloading class and faction icons…`);
-    const iconSummary = await downloadClassAndFactionIcons({
-      classIcons,
-      factionIcons,
-      forceDownload: options.forceImages,
-      onLog: (message) => emit(onLog, 'info', `[${stepTag('fandomImages')}] ${message}`),
-    });
-
     if (!process.env.WIKI_USER_AGENT?.trim()) {
       emit(
         onLog,
@@ -387,15 +366,7 @@ async function runWorStartupPipelineBody(
       onLog: (message) => emit(onLog, 'info', `[${stepTag('fandomImages')}] ${message}`),
     });
     bundle = portraitResult.bundle;
-    imageSummary = {
-      ...iconSummary,
-      portraitsDownloaded:
-        iconSummary.portraitsDownloaded + portraitResult.summary.portraitsDownloaded,
-      portraitsSkipped: iconSummary.portraitsSkipped + portraitResult.summary.portraitsSkipped,
-      portraitsFailed: iconSummary.portraitsFailed + portraitResult.summary.portraitsFailed,
-      missingPortraits: portraitResult.summary.missingPortraits,
-      failedPortraitDetails: portraitResult.summary.failedPortraitDetails,
-    };
+    imageSummary = portraitResult.summary;
   } else {
     emit(onLog, 'info', `[${stepTag('fandomImages')}] Skipped.`);
   }

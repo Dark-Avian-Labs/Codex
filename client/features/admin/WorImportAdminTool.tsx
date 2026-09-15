@@ -142,8 +142,8 @@ export function WorImportAdminTool() {
         <div>
           <h2 className="text-lg font-semibold">Catalog import</h2>
           <p className="text-muted mt-1 text-sm">
-            Scrape Fastidious.gg metadata, download Fandom portraits (with Fastidious card
-            fallback), and sync class/faction icons into the local image cache.
+            Scrape Fastidious.gg metadata and download Fandom portraits (with Fastidious card
+            fallback).
           </p>
         </div>
         <button

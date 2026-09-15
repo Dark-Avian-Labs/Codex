@@ -1,8 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import type { FactionKey, HeroClassKey } from '@codex/game-wor';
-
 import type {
   CatalogArtifactRow,
   CatalogBundle,
@@ -99,36 +97,7 @@ export type FastidiousImageRef = {
 export type FastidiousCatalogResult = {
   bundle: CatalogBundle;
   imageRefs: FastidiousImageRef;
-  classIcons: Partial<Record<HeroClassKey, string>>;
-  factionIcons: Partial<Record<FactionKey, string>>;
 };
-
-const CLASS_ICON_FILES: Record<HeroClassKey, string> = {
-  fighter: 'fighter.svg',
-  mage: 'mage.svg',
-  marksman: 'marksman.svg',
-  defender: 'defender.svg',
-  healer: 'healer.svg',
-  tactician: 'Profession_TacticMaster.png',
-};
-
-const FACTION_ICON_FILES: Record<Exclude<FactionKey, 'unaffiliated'>, string> = {
-  watchguard: 'faction-watchguard-emblem.svg',
-  north_throne: 'faction-north-throne-emblem.svg',
-  nightmare_council: 'faction-nightmare-council-emblem.svg',
-  cursed_cult: 'faction-cursed-cult-emblem.svg',
-  infernal_blast: 'faction-infernal-blast-emblem.svg',
-  star_piercers: 'faction-star-piercers-emblem.svg',
-  esoteria_order: 'faction-esoteria-order-emblem.svg',
-  chaos_dominion: 'faction-chaos-emblem.svg',
-  supreme_arbiters: 'faction-arbiters-emblem.svg',
-  unnamable: 'faction-unnamable-emblem.svg',
-};
-
-function buildStorageUrl(storageUrl: string, storageVersion: string, fileName: string): string {
-  const base = storageUrl.endsWith('/') ? storageUrl : `${storageUrl}/`;
-  return `${base}${fileName}?v=${storageVersion}`;
-}
 
 function computeDemonMaxLevel(detail: FastidiousDemonDetail | null): number {
   const levels = (detail?.skills ?? [])
@@ -312,20 +281,6 @@ export async function fetchFastidiousCatalog(options?: {
     storageVersion,
   };
 
-  const classIcons = Object.fromEntries(
-    (Object.entries(CLASS_ICON_FILES) as [HeroClassKey, string][]).map(([key, file]) => [
-      key,
-      buildStorageUrl(storageUrl, storageVersion, file),
-    ]),
-  ) as Partial<Record<HeroClassKey, string>>;
-
-  const factionIcons = Object.fromEntries(
-    (Object.entries(FACTION_ICON_FILES) as [FactionKey, string][]).map(([key, file]) => [
-      key,
-      buildStorageUrl(storageUrl, storageVersion, file),
-    ]),
-  ) as Partial<Record<FactionKey, string>>;
-
   onLog?.(
     `Fastidious catalog parsed: ${heroes.length} heroes, ${artifacts.length} artifacts, ${demons.length} demons.`,
   );
@@ -333,7 +288,5 @@ export async function fetchFastidiousCatalog(options?: {
   return {
     bundle: { heroes, artifacts, demons },
     imageRefs,
-    classIcons,
-    factionIcons,
   };
 }
