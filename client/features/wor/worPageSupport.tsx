@@ -10,7 +10,7 @@ import {
   DEMON_LEVEL_MIN,
 } from '@codex/game-wor/constants';
 import type { FactionKey, HeroClassKey } from '@codex/game-wor/constants';
-import { memo, useEffect, useState, type ReactNode } from 'react';
+import { memo, type ReactNode } from 'react';
 
 import { MaterialSymbol } from '../../components/ui/MaterialSymbol';
 
@@ -67,17 +67,36 @@ export type WorAccount = {
 
 export type WorStats = { total: number; owned: number; maxed: number };
 
-const ICON_MODULES = import.meta.glob('../../../packages/games/wor/assets/*.png', {
-  eager: true,
-  import: 'default',
-}) as Record<string, string>;
-
-export const ICONS: Record<string, string> = {};
-for (const [assetPath, src] of Object.entries(ICON_MODULES)) {
-  const file = assetPath.split('/').pop();
-  if (!file) continue;
-  ICONS[file.replace('.png', '')] = src;
+function assetStemMap(modules: Record<string, string>): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [assetPath, src] of Object.entries(modules)) {
+    const file = assetPath.split('/').pop();
+    if (!file) continue;
+    out[file.replace(/\.[^.]+$/, '')] = src;
+  }
+  return out;
 }
+
+export const ICONS = assetStemMap(
+  import.meta.glob('../../../packages/games/wor/assets/ranks/*.png', {
+    eager: true,
+    import: 'default',
+  }) as Record<string, string>,
+);
+
+const CLASS_ICONS = assetStemMap(
+  import.meta.glob('../../../packages/games/wor/assets/classes/*.svg', {
+    eager: true,
+    import: 'default',
+  }) as Record<string, string>,
+);
+
+const FACTION_ICONS = assetStemMap(
+  import.meta.glob('../../../packages/games/wor/assets/factions/*.svg', {
+    eager: true,
+    import: 'default',
+  }) as Record<string, string>,
+);
 
 export const HIDE_COMPLETED_STORAGE_KEY = 'codex-wor-hide-completed';
 
@@ -222,40 +241,26 @@ export function WorPortrait({
   );
 }
 
-export function worClassIconUrls(classKey: HeroClassKey): { primary: string; fallback: string } {
-  return {
-    primary: `/wor-images/icons/classes/${classKey}.svg`,
-    fallback: `/wor-images/icons/classes/${classKey}.png`,
-  };
+export function worClassIconSrc(classKey: string): string | undefined {
+  return CLASS_ICONS[classKey];
 }
 
-export function worFactionIconUrls(factionKey: FactionKey): { primary: string; fallback: string } {
-  return {
-    primary: `/wor-images/icons/factions/${factionKey}.svg`,
-    fallback: `/wor-images/icons/factions/${factionKey}.png`,
-  };
+export function worFactionIconSrc(factionKey: string): string | undefined {
+  return FACTION_ICONS[factionKey];
 }
 
-export function WorIconWithFallback({
-  primarySrc,
-  fallbackSrc,
+export function WorIcon({
+  src,
   alt,
   className,
   size = 28,
 }: {
-  primarySrc: string;
-  fallbackSrc: string;
+  src: string | undefined;
   alt: string;
   className?: string;
   size?: number;
 }) {
-  const [src, setSrc] = useState(primarySrc);
-  const [failed, setFailed] = useState(false);
-  useEffect(() => {
-    setSrc(primarySrc);
-    setFailed(false);
-  }, [primarySrc]);
-  if (failed) {
+  if (!src) {
     return (
       <span
         className={className}
@@ -265,23 +270,7 @@ export function WorIconWithFallback({
       />
     );
   }
-  return (
-    <img
-      className={className}
-      src={src}
-      alt={alt}
-      title={alt}
-      width={size}
-      height={size}
-      onError={() => {
-        if (src !== fallbackSrc) {
-          setSrc(fallbackSrc);
-          return;
-        }
-        setFailed(true);
-      }}
-    />
-  );
+  return <img className={className} src={src} alt={alt} title={alt} width={size} height={size} />;
 }
 
 export function WorClassIcon({ classKey }: { classKey: string }) {
@@ -290,15 +279,7 @@ export function WorClassIcon({ classKey }: { classKey: string }) {
   if (!(HERO_CLASSES as readonly string[]).includes(key)) {
     return <span className="text-muted">—</span>;
   }
-  const urls = worClassIconUrls(key);
-  return (
-    <WorIconWithFallback
-      className="invert-on-light"
-      primarySrc={urls.primary}
-      fallbackSrc={urls.fallback}
-      alt={label}
-    />
-  );
+  return <WorIcon className="invert-on-light" src={worClassIconSrc(key)} alt={label} />;
 }
 
 export function WorFactionIcon({ factionKey }: { factionKey: string }) {
@@ -317,8 +298,7 @@ export function WorFactionIcon({ factionKey }: { factionKey: string }) {
   if (!(FACTIONS as readonly string[]).includes(key)) {
     return <span className="text-muted">—</span>;
   }
-  const urls = worFactionIconUrls(key);
-  return <WorIconWithFallback primarySrc={urls.primary} fallbackSrc={urls.fallback} alt={label} />;
+  return <WorIcon src={worFactionIconSrc(key)} alt={label} />;
 }
 
 export function WorFactionIcons({

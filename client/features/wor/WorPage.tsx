@@ -40,7 +40,7 @@ import {
   WorArtifactUserCell,
   WorClassIcon,
   WorFactionIcons,
-  WorIconWithFallback,
+  WorIcon,
   WorRow,
   applyHideCompleted,
   gaugeAfterOwnedToggle,
@@ -49,8 +49,8 @@ import {
   isRedStarHero,
   readHideCompletedPreference,
   summonPoolBadge,
-  worClassIconUrls,
-  worFactionIconUrls,
+  worClassIconSrc,
+  worFactionIconSrc,
   type WorAccount,
   type WorArtifact,
   type WorDemon,
@@ -554,10 +554,9 @@ export function WorPage() {
                   label={`${CLASS_DISPLAY_NAMES[heroClass]} class`}
                   onClick={() => setClassFilter((previous) => cycleTriFilter(previous, heroClass))}
                 >
-                  <WorIconWithFallback
+                  <WorIcon
                     className="invert-on-light"
-                    primarySrc={worClassIconUrls(heroClass).primary}
-                    fallbackSrc={worClassIconUrls(heroClass).fallback}
+                    src={worClassIconSrc(heroClass)}
                     alt={CLASS_DISPLAY_NAMES[heroClass]}
                     size={24}
                   />
@@ -607,7 +606,7 @@ export function WorPage() {
             <div className="filter-group">
               <span className="filter-label">Faction:</span>
               {FACTIONS.map((faction) => {
-                const urls = faction === 'unaffiliated' ? null : worFactionIconUrls(faction);
+                const src = faction === 'unaffiliated' ? undefined : worFactionIconSrc(faction);
                 return (
                   <FilterIconButton
                     key={faction}
@@ -617,19 +616,14 @@ export function WorPage() {
                       setFactionFilter((previous) => cycleTriFilter(previous, faction))
                     }
                   >
-                    {faction === 'unaffiliated' || !urls ? (
+                    {faction === 'unaffiliated' || !src ? (
                       <MaterialSymbol
                         name="person_off"
                         className="text-muted"
                         style={{ fontSize: 24 }}
                       />
                     ) : (
-                      <WorIconWithFallback
-                        primarySrc={urls.primary}
-                        fallbackSrc={urls.fallback}
-                        alt={FACTION_DISPLAY_NAMES[faction]}
-                        size={24}
-                      />
+                      <WorIcon src={src} alt={FACTION_DISPLAY_NAMES[faction]} size={24} />
                     )}
                   </FilterIconButton>
                 );
