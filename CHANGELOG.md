@@ -307,3 +307,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.71.14** `ci(deps)` [#402](https://github.com/Dark-Avian-Labs/Codex/pull/402): bump the github-actions group with 2 updates
 - **v1.72.0** `chore` [#403](https://github.com/Dark-Avian-Labs/Codex/pull/403): cursor/landing game cards e31c
 - **v1.73.0** `chore` [#405](https://github.com/Dark-Avian-Labs/Codex/pull/405): feat/wor bundled icons
+- **v1.73.1** `chore(deps)` [#406](https://github.com/Dark-Avian-Labs/Codex/pull/406): bump the production-dependencies group with 2 updates
