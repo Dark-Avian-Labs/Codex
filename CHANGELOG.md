@@ -309,3 +309,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.73.0** `chore` [#405](https://github.com/Dark-Avian-Labs/Codex/pull/405): feat/wor bundled icons
 - **v1.73.1** `chore(deps)` [#406](https://github.com/Dark-Avian-Labs/Codex/pull/406): bump the production-dependencies group with 2 updates
 - **v1.73.2** `ci(deps)` [#409](https://github.com/Dark-Avian-Labs/Codex/pull/409): bump the github-actions group with 2 updates
+- **v1.73.3** `chore` [#410](https://github.com/Dark-Avian-Labs/Codex/pull/410): dependabot/npm_and_yarn/production dependencies 88b791c52b
