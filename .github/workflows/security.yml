@@ -59,11 +59,11 @@ jobs:
 
       - name: Checkout code
         if: steps.filter.outputs.skip != 'true'
-        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
+        uses: useblacksmith/checkout@a6f249f8370a56aa9dc4adfee19b3127d0f7f9ec # v1.8.0
 
       - name: Setup pnpm and Node.js
         if: steps.filter.outputs.skip != 'true'
-        uses: pnpm/setup@703c52620218391530e48b9e8870d5c0082e1b9b # v2.1.0
+        uses: pnpm/setup@fbda4c85fc2e1e08721cd8763afea8f48d60f024 # v3.0.0
         with:
           runtime: node@${{ env.NODE_VERSION }}
           cache: false
