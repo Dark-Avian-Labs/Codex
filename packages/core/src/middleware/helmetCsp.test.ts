@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { getClerkFapiOrigin } from './helmetCsp.js';
+import { DAL_HOMEPAGE_ORIGIN, getAppConnectSrc, getClerkFapiOrigin } from './helmetCsp.js';
 
 describe('getClerkFapiOrigin', () => {
   const previous = {
@@ -29,5 +29,16 @@ describe('getClerkFapiOrigin', () => {
     process.env.CLERK_FAPI_URL = 'https://clerk.example.test/';
 
     expect(getClerkFapiOrigin()).toBe('https://clerk.example.test');
+  });
+});
+
+describe('getAppConnectSrc', () => {
+  it('allows the DAL homepage origin for the shared app nav catalog', () => {
+    expect(getAppConnectSrc('https://clerk.example.test')).toEqual([
+      "'self'",
+      'https://clerk.example.test',
+      'https://*.protect.clerk.com:*',
+      DAL_HOMEPAGE_ORIGIN,
+    ]);
   });
 });

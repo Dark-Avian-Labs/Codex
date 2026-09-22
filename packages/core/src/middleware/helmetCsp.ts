@@ -1,11 +1,16 @@
 import helmet from 'helmet';
 
 const DEFAULT_CLERK_FAPI_ORIGIN = 'https://clerk.darkavianlabs.com';
+export const DAL_HOMEPAGE_ORIGIN = 'https://darkavianlabs.com';
 
 export function getClerkFapiOrigin(): string {
   const fromEnv = process.env.CLERK_FAPI_URL?.trim() || process.env.VITE_CLERK_FAPI_URL?.trim();
   if (!fromEnv) return DEFAULT_CLERK_FAPI_ORIGIN;
   return fromEnv.replace(/\/+$/, '');
+}
+
+export function getAppConnectSrc(clerkFapi = getClerkFapiOrigin()): string[] {
+  return ["'self'", clerkFapi, 'https://*.protect.clerk.com:*', DAL_HOMEPAGE_ORIGIN];
 }
 
 export function createAppHelmet() {
@@ -22,7 +27,7 @@ export function createAppHelmet() {
           'https://challenges.cloudflare.com',
           'https://*.protect.clerk.com',
         ],
-        'connect-src': ["'self'", clerkFapi, 'https://*.protect.clerk.com:*'],
+        'connect-src': getAppConnectSrc(clerkFapi),
         'img-src': [...(defaults['img-src'] ?? ["'self'"]), 'https://img.clerk.com'],
         'frame-src': ["'self'", 'https://challenges.cloudflare.com'],
         'worker-src': ["'self'", 'blob:'],
