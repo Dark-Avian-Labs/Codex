@@ -258,3 +258,42 @@ function deactivateMissingSlugs(
   }
   return changes;
 }
+
+/** Fold account ownership from a misspelled Prospector slug onto the canonical catalog slug. */
+export function rematerializeProspectorAliasOwnership(
+  db: Database.Database,
+  aliases: Readonly<Record<string, string>>,
+): number {
+  let changes = 0;
+  const listWrong = db.prepare(
+    `SELECT account_id, owned, gauge_level FROM account_heroes WHERE catalog_hero_slug = ?`,
+  );
+  const getRight = db.prepare(
+    `SELECT owned, gauge_level FROM account_heroes WHERE account_id = ? AND catalog_hero_slug = ?`,
+  );
+  const updateRight = db.prepare(
+    `UPDATE account_heroes SET owned = ?, gauge_level = ?
+     WHERE account_id = ? AND catalog_hero_slug = ?`,
+  );
+
+  for (const [wrongSlug, rightSlug] of Object.entries(aliases)) {
+    if (wrongSlug === rightSlug) continue;
+    const wrongRows = listWrong.all(wrongSlug) as {
+      account_id: number;
+      owned: number;
+      gauge_level: number;
+    }[];
+    for (const row of wrongRows) {
+      if (!row.owned && row.gauge_level === 0) continue;
+      const right = getRight.get(row.account_id, rightSlug) as
+        | { owned: number; gauge_level: number }
+        | undefined;
+      if (!right) continue;
+      const owned = row.owned || right.owned ? 1 : 0;
+      const gauge = Math.max(row.gauge_level, right.gauge_level);
+      if (owned === right.owned && gauge === right.gauge_level) continue;
+      changes += updateRight.run(owned, gauge, row.account_id, rightSlug).changes;
+    }
+  }
+  return changes;
+}

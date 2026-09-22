@@ -57,11 +57,14 @@ const SUMMON_FLAGS: Record<string, 'regular' | 'ancient' | 'limited'> = {
   'special-limited': 'limited',
 };
 
-// Fastidious still stores these under misspelled slugs. Same artifact, so don't add a second row.
-const FASTIDIOUS_SLUG_ALIASES: Record<string, string> = {
+// Prospector slug → existing catalog slug when spelling/slug differs.
+// Same entity, so don't append a second row (Fastidious misspellings or Prospector typos).
+export const PROSPECTOR_SLUG_ALIASES: Record<string, string> = {
   'blaze-of-talkiel': 'blade-of-talkiel',
   'heart-of-the-mountain': 'heart-of-the-mouintain',
   'aureate-pledge': 'aurate-pledge',
+  // Official / Fastidious: Jezebelle. Prospector page slug/title: Jezabelle.
+  jezabelle: 'jezebelle',
 };
 
 export type ProspectorTerm = {
@@ -429,7 +432,7 @@ function identityKeys(rows: { slug: string; name: string }[]): Set<string> {
 
 function alreadyPresent(keys: Set<string>, slug: string, name: string): boolean {
   if (keys.has(slug) || keys.has(slugifyName(name))) return true;
-  const alias = FASTIDIOUS_SLUG_ALIASES[slug];
+  const alias = PROSPECTOR_SLUG_ALIASES[slug];
   return alias !== undefined && keys.has(alias);
 }
 
