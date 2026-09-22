@@ -14,7 +14,13 @@ import feathers from '../../../packages/core/assets/feathers.svg';
 import epic7Favicon from '../../../packages/games/epic7/favicon.ico';
 import warframeFavicon from '../../../packages/games/warframe/favicon.ico';
 import worFavicon from '../../../packages/games/wor/favicon.ico';
-import { APP_DISPLAY_NAME, APP_VERSION, LEGAL_ENTITY_NAME, LEGAL_PAGE_URL } from '../../app/config';
+import {
+  APP_DISPLAY_NAME,
+  APP_ID,
+  APP_VERSION,
+  LEGAL_ENTITY_NAME,
+  LEGAL_PAGE_URL,
+} from '../../app/config';
 import { APP_PATHS } from '../../app/paths';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../features/auth/AuthContext';
@@ -24,6 +30,7 @@ import { MaterialSymbol } from '../ui/MaterialSymbol';
 import { Menu } from '../ui/Menu';
 import { UiStyleSelector } from '../ui/UiStyleSelector';
 import { AsciiWaveBackground } from './AsciiWaveBackground';
+import { DalAppNav } from './DalAppNav';
 import { HexSideBackground } from './HexSideBackground';
 import { StaleClientUpdateBanner } from './StaleClientUpdateBanner';
 export type LayoutOutletContext = {
@@ -227,6 +234,7 @@ export function Layout() {
       </a>
       <HexSideBackground />
       <AsciiWaveBackground />
+      <DalAppNav currentAppId={APP_ID} />
       <header className="relative z-30 h-[100px] shrink-0 px-6">
         <div className="mx-auto grid h-full w-full max-w-[2000px] grid-cols-[1fr_auto_1fr] items-center gap-4">
           <div className="flex w-fit max-w-full min-w-0 flex-col gap-0.5 justify-self-start">
