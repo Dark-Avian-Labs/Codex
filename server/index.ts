@@ -42,6 +42,7 @@ import {
 import { ensureSessionSchema } from './db/sessionSchema.js';
 import { SqliteSessionStore } from './db/sqliteSessionStore.js';
 import { refreshEpic7DbAvailability } from './epic7DbState.js';
+import { handleDalAppNavProxy } from './http/dalAppNavProxy.js';
 import { getRequestId, requestIdMiddleware } from './http/requestId.js';
 import { timingSafeEqualString } from './http/timingSafeEqual.js';
 import { contentTypeForImagePath, isAllowedImageExtension } from './import/wor/images.js';
@@ -358,6 +359,10 @@ app.use('/api/auth', authRouter);
 
 app.get('/api/version', (_req, res) => {
   res.json({ version: APP_VERSION });
+});
+
+app.get('/api/dal-app-nav', (req, res) => {
+  void handleDalAppNavProxy(req, res);
 });
 
 app.use('/api', apiRouter);

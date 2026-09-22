@@ -67,7 +67,7 @@ export function bindClerkUserSessionMiddleware(
   rotateCsrf: (req: Request) => void,
 ): (req: Request, res: Response, next: NextFunction) => void {
   return (req, res, next) => {
-    if (req.path === '/health' || req.path === '/version') {
+    if (req.path === '/health' || req.path === '/version' || req.path === '/dal-app-nav') {
       next();
       return;
     }

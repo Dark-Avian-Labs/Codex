@@ -11,7 +11,8 @@ export type DalAppNavDocument = {
   apps: DalAppNavEntry[];
 };
 
-export const DEFAULT_DAL_APP_NAV_URL = 'https://darkavianlabs.com/dal-app-nav.json';
+export const DEFAULT_DAL_APP_NAV_URL = '/api/dal-app-nav';
+export const DAL_APP_NAV_UPSTREAM_URL = 'https://darkavianlabs.com/dal-app-nav.json';
 
 const CACHE_KEY = 'dal.app-nav.cache.v1';
 const CACHE_TTL_MS = 5 * 60 * 1000;
