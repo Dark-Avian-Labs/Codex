@@ -390,6 +390,46 @@ describe('mergeProspectorCatalog', () => {
     expect(merged.addedHeroes).toEqual([]);
     expect(merged.skipped).toEqual(['Skipped hero mystery: unknown class.']);
   });
+
+  it('skips Prospector Jezabelle when Fastidious already has Jezebelle', () => {
+    const bundle: CatalogBundle = {
+      ...baseBundle(),
+      heroes: [
+        ...baseBundle().heroes,
+        {
+          slug: 'jezebelle',
+          name: 'Jezebelle',
+          class: 'marksman',
+          faction: 'chaos_dominion',
+          rarity: 'legendary',
+          display_order: 2,
+          active: 1,
+        },
+      ],
+    };
+    const merged = mergeProspectorCatalog(
+      bundle,
+      snapshot({
+        heroes: [
+          {
+            id: 99,
+            slug: 'jezabelle',
+            name: 'Jezabelle',
+            classId: 61,
+            factionIds: [38],
+            rarityId: 173,
+            damageId: 171,
+            summonId: 203,
+            isLord: false,
+            mediaId: null,
+            stats: null,
+          },
+        ],
+      }),
+    );
+    expect(merged.addedHeroes).toEqual([]);
+    expect(merged.bundle.heroes.map((hero) => hero.slug)).toEqual(['idyl', 'jezebelle']);
+  });
 });
 
 describe('statsFromProspectorAcf', () => {

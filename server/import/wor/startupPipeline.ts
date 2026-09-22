@@ -10,6 +10,7 @@ import {
   bumpCatalogVersion,
   deactivateStaleCatalogEntries,
   getCatalogCounts,
+  rematerializeProspectorAliasOwnership,
   upsertCatalogArtifacts,
   upsertCatalogDemons,
   upsertCatalogHeroes,
@@ -43,6 +44,7 @@ import {
   fillMissingHeroStatsFromProspector,
   loadProspectorCatalog,
   mergeProspectorCatalog,
+  PROSPECTOR_SLUG_ALIASES,
   type ProspectorPortraitRefs,
   type ProspectorSnapshot,
 } from './prospectorCatalog.js';
@@ -131,6 +133,15 @@ export function applyWorCatalogMutation(
       emit(onLog, 'info', `Upserted ${artifactCount} catalog artifacts.`);
       const demonCount = upsertCatalogDemons(db, bundle.demons);
       emit(onLog, 'info', `Upserted ${demonCount} catalog demons.`);
+
+      const rematerialized = rematerializeProspectorAliasOwnership(db, PROSPECTOR_SLUG_ALIASES);
+      if (rematerialized > 0) {
+        emit(
+          onLog,
+          'info',
+          `Rematerialized ownership for ${rematerialized} account hero row(s) from Prospector slug aliases.`,
+        );
+      }
 
       const deactivated = deactivateStaleCatalogEntries(db, bundle);
       const deactivatedTotal = deactivated.heroes + deactivated.artifacts + deactivated.demons;
