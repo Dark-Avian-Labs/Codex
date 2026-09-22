@@ -21,6 +21,7 @@ import { rateLimit } from 'express-rate-limit';
 import session from 'express-session';
 
 import {
+  APP_ID,
   APP_NAME,
   APP_PUBLIC_BASE_URL,
   APP_VERSION,
@@ -48,6 +49,7 @@ import { catalogNeedsImport, runWorStartupPipeline } from './import/wor/startupP
 import { healthzHandler, readyzHandler } from './probes.js';
 import { apiRouter } from './routes/api.js';
 import { authRouter } from './routes/auth.js';
+import { createAppSentinelAgent } from './sentinelAgent.js';
 import { waitForWarframeSyncIdle } from './services/warframeSyncState.js';
 import { bindClerkUserSessionMiddleware } from './session/bindClerkUserSession.js';
 import { refreshWorDbAvailability } from './worDbState.js';
@@ -122,6 +124,15 @@ if (NODE_ENV === 'production' && SECURE_COOKIES && !TRUST_PROXY) {
   throw new Error(
     'TRUST_PROXY must be enabled in production with secure cookies so Express trusts X-Forwarded-* headers behind your TLS terminator. Set TRUST_PROXY=1 (or enable trust proxy in config) when deploying behind a reverse proxy.',
   );
+}
+
+const sentinelAgent = createAppSentinelAgent({
+  appId: APP_ID,
+  displayName: APP_NAME,
+  nodeEnv: NODE_ENV,
+});
+if (sentinelAgent) {
+  app.use(sentinelAgent.middleware);
 }
 
 app.use(createAppHelmet());
@@ -507,14 +518,19 @@ app.use((err: unknown, _req: Request, res: Response, _next: express.NextFunction
     .json(isCsrfError ? { error: message, code: 'CSRF_INVALID' } : { error: message });
 });
 
+sentinelAgent?.start();
+
 const server = app.listen(PORT, HOST, () => {
   log('info', `${APP_NAME} server listening`, { host: HOST, port: PORT, nodeEnv: NODE_ENV });
 });
 
 let shutdownStarted = false;
-function shutdown(baseExitCode = 0): void {
+function shutdown(baseExitCode = 0, signal?: string): void {
   if (shutdownStarted) return;
   shutdownStarted = true;
+  if (baseExitCode === 0) sentinelAgent?.noteGracefulExit(signal);
+  else sentinelAgent?.noteCrash(new Error(`shutdown exit ${baseExitCode}`));
+  sentinelAgent?.stop();
 
   function closeAndExit(exitCode: number): void {
     sessionStore.dispose();
@@ -574,13 +590,14 @@ function shutdown(baseExitCode = 0): void {
     }
   })();
 }
-process.on('SIGINT', () => shutdown(0));
-process.on('SIGTERM', () => shutdown(0));
+process.on('SIGINT', () => shutdown(0, 'SIGINT'));
+process.on('SIGTERM', () => shutdown(0, 'SIGTERM'));
 
 process.on('unhandledRejection', (reason) => {
   log('error', 'Unhandled promise rejection; shutting down', {
     err: reason instanceof Error ? (reason.stack ?? reason.message) : String(reason),
   });
+  sentinelAgent?.noteCrash(reason);
   shutdown(1);
 });
 
@@ -588,6 +605,7 @@ process.on('uncaughtException', (err) => {
   log('error', 'Uncaught exception; shutting down', {
     err: err.stack ?? err.message,
   });
+  sentinelAgent?.noteCrash(err);
   shutdown(1);
 });
 

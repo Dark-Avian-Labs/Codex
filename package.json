@@ -39,6 +39,7 @@
     "@codex/game-epic7": "workspace:*",
     "@codex/game-warframe": "workspace:*",
     "@codex/game-wor": "workspace:*",
+    "@dark-avian-labs/sentinel-agent": "https://github.com/Dark-Avian-Labs/Sentinel/releases/download/agent-v0.1.0/dark-avian-labs-sentinel-agent-0.1.0.tgz",
     "@dotenvx/dotenvx": "catalog:",
     "@fontsource-variable/cascadia-mono": "catalog:",
     "@fontsource-variable/geist": "catalog:",
