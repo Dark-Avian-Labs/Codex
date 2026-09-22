@@ -63,6 +63,7 @@ export const adminImportRunSchema = z.object({
       z.enum([
         'schema',
         'fastidiousCatalog',
+        'prospectorCatalog',
         'fandomImages',
         'fandomHeroStats',
         'manualOverrides',

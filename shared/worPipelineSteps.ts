@@ -1,6 +1,7 @@
 export const WOR_PIPELINE_STEPS = [
   'schema',
   'fastidiousCatalog',
+  'prospectorCatalog',
   'fandomImages',
   'fandomHeroStats',
   'manualOverrides',

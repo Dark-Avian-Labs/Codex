@@ -94,7 +94,11 @@ function logHeroStatsProgress(
   }
 }
 
-function applyStats(db: Database.Database, slug: string, stats: WikiHeroBaseStats): void {
+export function applyHeroBaseStats(
+  db: Database.Database,
+  slug: string,
+  stats: WikiHeroBaseStats,
+): void {
   db.prepare(
     `UPDATE catalog_heroes SET
       base_hp = @hp,
@@ -168,7 +172,7 @@ export async function importFandomHeroStats(options: {
     if (!stats) {
       summary.missing += 1;
     } else {
-      applyStats(options.db, hero.slug, stats);
+      applyHeroBaseStats(options.db, hero.slug, stats);
       summary.updated += 1;
     }
     logHeroStatsProgress(options.onLog, processed, total, hero.name, summary);

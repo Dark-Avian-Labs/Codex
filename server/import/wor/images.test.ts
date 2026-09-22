@@ -8,9 +8,11 @@ import {
 } from './images.js';
 
 describe('isAllowedImageHost', () => {
-  it('allows Fastidious and Fandom CDN hosts', () => {
+  it('allows Fastidious, Prospector, and Fandom CDN hosts', () => {
     expect(isAllowedImageHost('fastidious.gg')).toBe(true);
     expect(isAllowedImageHost('www.fastidious.gg')).toBe(true);
+    expect(isAllowedImageHost('prospector.gg')).toBe(true);
+    expect(isAllowedImageHost('www.prospector.gg')).toBe(true);
     expect(isAllowedImageHost('static.wikia.nocookie.net')).toBe(true);
     expect(isAllowedImageHost('vignette.wikia.nocookie.net')).toBe(true);
     expect(isAllowedImageHost('images.wikia.com')).toBe(true);

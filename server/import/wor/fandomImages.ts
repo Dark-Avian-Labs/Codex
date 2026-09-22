@@ -125,6 +125,7 @@ async function downloadPortraitForEntity(options: {
   slug: string;
   name: string;
   fastidiousFile: string | null | undefined;
+  directUrl: string | null | undefined;
   imageRefs: FastidiousImageRef;
   forceDownload: boolean;
   summary: WorImageDownloadSummary;
@@ -147,28 +148,33 @@ async function downloadPortraitForEntity(options: {
     });
   }
 
+  const candidates: { url: string; reason: string }[] = [];
   if (options.fastidiousFile) {
-    const url = buildFastidiousStorageUrl(
-      options.imageRefs.storageUrl,
-      options.imageRefs.storageVersion,
-      options.fastidiousFile,
-    );
-    const relativePath = `${basePath}.webp`;
+    candidates.push({
+      url: buildFastidiousStorageUrl(
+        options.imageRefs.storageUrl,
+        options.imageRefs.storageVersion,
+        options.fastidiousFile,
+      ),
+      reason: 'fastidious download failed',
+    });
+  }
+  if (options.directUrl) {
+    candidates.push({ url: options.directUrl, reason: 'prospector download failed' });
+  }
+
+  let lastReason = 'no wiki, fastidious, or prospector image source';
+  for (const candidate of candidates) {
     const result = await downloadImageToWorDir({
-      url,
-      relativePath,
+      url: candidate.url,
+      relativePath: `${basePath}.webp`,
       forceDownload: options.forceDownload,
     });
     if (result.status === 'downloaded') options.summary.portraitsDownloaded += 1;
     else if (result.status === 'skipped') options.summary.portraitsSkipped += 1;
     else {
-      options.summary.portraitsFailed += 1;
-      options.summary.failedPortraitDetails.push({
-        slug: options.slug,
-        kind: options.kind,
-        reason: result.error ?? 'fastidious download failed',
-      });
-      return null;
+      lastReason = result.error ?? candidate.reason;
+      continue;
     }
     return worImageWebPath(result.relativePath);
   }
@@ -177,7 +183,7 @@ async function downloadPortraitForEntity(options: {
   options.summary.failedPortraitDetails.push({
     slug: options.slug,
     kind: options.kind,
-    reason: 'no wiki or fastidious image source',
+    reason: lastReason,
   });
   return null;
 }
@@ -254,6 +260,10 @@ export async function downloadCatalogPortraits(options: {
   };
   onlyMissing?: boolean;
   forceDownload?: boolean;
+  directPortraitUrls?: {
+    heroes?: Record<string, string | null | undefined>;
+    artifacts?: Record<string, string | null | undefined>;
+  };
   onLog?: (message: string) => void;
 }): Promise<{ bundle: CatalogBundle; summary: WorImageDownloadSummary }> {
   const summary: WorImageDownloadSummary = {
@@ -300,6 +310,7 @@ export async function downloadCatalogPortraits(options: {
         slug: hero.slug,
         name: hero.name,
         fastidiousFile: options.imageRefs.heroes[hero.slug],
+        directUrl: options.directPortraitUrls?.heroes?.[hero.slug],
         imageRefs: options.imageRefs,
         forceDownload,
         summary,
@@ -343,6 +354,7 @@ export async function downloadCatalogPortraits(options: {
         slug: artifact.slug,
         name: artifact.name,
         fastidiousFile: options.imageRefs.artifacts[artifact.slug],
+        directUrl: options.directPortraitUrls?.artifacts?.[artifact.slug],
         imageRefs: options.imageRefs,
         forceDownload,
         summary,
@@ -385,6 +397,7 @@ export async function downloadCatalogPortraits(options: {
         slug: demon.slug,
         name: demon.name,
         fastidiousFile: options.imageRefs.demons[demon.slug],
+        directUrl: null,
         imageRefs: options.imageRefs,
         forceDownload,
         summary,

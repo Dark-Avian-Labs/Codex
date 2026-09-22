@@ -34,10 +34,18 @@ import {
 } from './paths.js';
 import {
   shouldFetchFastidiousCatalog,
+  shouldFetchProspectorCatalog,
   shouldRunWorStep,
   worImagesOnlyMissing,
   type WorPipelineStepOptions,
 } from './pipelineStepControl.js';
+import {
+  fillMissingHeroStatsFromProspector,
+  loadProspectorCatalog,
+  mergeProspectorCatalog,
+  type ProspectorPortraitRefs,
+  type ProspectorSnapshot,
+} from './prospectorCatalog.js';
 import {
   computeCurrentSourceHashes,
   fastidiousSourcesChanged,
@@ -76,6 +84,7 @@ const DEFAULT_FIXTURE = path.join(PROJECT_ROOT, 'scripts', 'data', 'wor-catalog-
 
 const CATALOG_MUTATION_STEPS: WorPipelineStepKey[] = [
   'fastidiousCatalog',
+  'prospectorCatalog',
   'manualOverrides',
   'fandomImages',
   'fandomHeroStats',
@@ -246,6 +255,8 @@ async function runWorStartupPipelineBody(
 ): Promise<WorImportSummary> {
   let bundle: CatalogBundle | null = null;
   let imageRefs: FastidiousImageRef | null = null;
+  let prospectorPortraits: ProspectorPortraitRefs | null = null;
+  let prospectorSnapshot: ProspectorSnapshot | null = null;
   let imageSummary: WorImageDownloadSummary | undefined;
   const validationWarnings: string[] = [];
   const cacheDir = resolveWorImportCacheDir();
@@ -337,6 +348,43 @@ async function runWorStartupPipelineBody(
     throw new Error('Catalog bundle unavailable after fastidiousCatalog step.');
   }
 
+  const prospectorCachePath = path.join(cacheDir, 'prospector.json');
+  const prospectorWouldRun = live || fs.existsSync(prospectorCachePath);
+  if (bundle && shouldRunWorStep('prospectorCatalog', prospectorWouldRun, options)) {
+    emit(
+      onLog,
+      'info',
+      `[${stepTag('prospectorCatalog')}] Loading Prospector heroes and artifacts…`,
+    );
+    const snapshot = await loadProspectorCatalog({
+      live: shouldFetchProspectorCatalog({ live, forceImport: options.forceImport }),
+      cacheDir,
+      onLog: (message) => emit(onLog, 'info', `[${stepTag('prospectorCatalog')}] ${message}`),
+    });
+    if (snapshot) {
+      const merged = mergeProspectorCatalog(bundle, snapshot);
+      bundle = merged.bundle;
+      prospectorPortraits = merged.portraits;
+      prospectorSnapshot = snapshot;
+      emit(
+        onLog,
+        'info',
+        `[${stepTag('prospectorCatalog')}] Added ${merged.addedHeroes.length} heroes and ${merged.addedArtifacts.length} artifacts.`,
+      );
+      for (const message of merged.skipped) {
+        emit(onLog, 'info', `[${stepTag('prospectorCatalog')}] ${message}`);
+      }
+    } else {
+      emit(
+        onLog,
+        'info',
+        `[${stepTag('prospectorCatalog')}] No snapshot. Fastidious catalog left unchanged.`,
+      );
+    }
+  } else {
+    emit(onLog, 'info', `[${stepTag('prospectorCatalog')}] Skipped.`);
+  }
+
   if (
     shouldRunWorStep('manualOverrides', overridesChanged(currentHashes, previousHashes), options)
   ) {
@@ -354,12 +402,13 @@ async function runWorStartupPipelineBody(
       emit(
         onLog,
         'info',
-        `[${stepTag('fandomImages')}] WIKI_USER_AGENT not set — using Fastidious card images for portraits.`,
+        `[${stepTag('fandomImages')}] WIKI_USER_AGENT not set — using Fastidious card images, then Prospector portraits when Fastidious has no file.`,
       );
     }
     const portraitResult = await downloadCatalogPortraits({
       bundle,
       imageRefs,
+      directPortraitUrls: prospectorPortraits ?? undefined,
       existingPortraitPaths: loadExistingPortraitPaths(db),
       onlyMissing: worImagesOnlyMissing(options),
       forceDownload: options.forceImages,
@@ -410,6 +459,26 @@ async function runWorStartupPipelineBody(
     );
   } else {
     emit(onLog, 'info', `[${stepTag('fandomHeroStats')}] Skipped.`);
+  }
+
+  const snapshotForStats =
+    prospectorSnapshot ??
+    (fs.existsSync(prospectorCachePath)
+      ? await loadProspectorCatalog({
+          live: false,
+          cacheDir,
+          onLog: (message) => emit(onLog, 'info', `[${stepTag('prospectorCatalog')}] ${message}`),
+        })
+      : null);
+  if (snapshotForStats) {
+    const fill = fillMissingHeroStatsFromProspector(db, snapshotForStats, (message) =>
+      emit(onLog, 'info', `[${stepTag('prospectorCatalog')}] ${message}`),
+    );
+    emit(
+      onLog,
+      'info',
+      `[${stepTag('prospectorCatalog')}] Filled ${fill.updated} missing hero stats from Prospector (${fill.missing} still without stats).`,
+    );
   }
 
   if (pendingSourceHashes) {
