@@ -48,7 +48,7 @@ jobs:
 
     steps:
       - name: Checkout full history
-        uses: useblacksmith/checkout@a6f249f8370a56aa9dc4adfee19b3127d0f7f9ec # v1.8.0
+        uses: useblacksmith/checkout@25227e61ff9dafe400e22fa487b673eac4e4409a # v1.8.1
         with:
           fetch-depth: 0
 
@@ -133,7 +133,7 @@ jobs:
 
     steps:
       - name: Checkout full history
-        uses: useblacksmith/checkout@a6f249f8370a56aa9dc4adfee19b3127d0f7f9ec # v1.8.0
+        uses: useblacksmith/checkout@25227e61ff9dafe400e22fa487b673eac4e4409a # v1.8.1
         with:
           fetch-depth: 0
           token: ${{ secrets.CI_PAT }}
@@ -171,7 +171,7 @@ jobs:
 
     steps:
       - name: Checkout release target
-        uses: useblacksmith/checkout@a6f249f8370a56aa9dc4adfee19b3127d0f7f9ec # v1.8.0
+        uses: useblacksmith/checkout@25227e61ff9dafe400e22fa487b673eac4e4409a # v1.8.1
         with:
           ref: ${{ needs.version.outputs.target_sha }}
 
@@ -194,7 +194,7 @@ jobs:
 
     steps:
       - name: Checkout release target
-        uses: useblacksmith/checkout@a6f249f8370a56aa9dc4adfee19b3127d0f7f9ec # v1.8.0
+        uses: useblacksmith/checkout@25227e61ff9dafe400e22fa487b673eac4e4409a # v1.8.1
         with:
           ref: ${{ needs.version.outputs.target_sha }}
 
