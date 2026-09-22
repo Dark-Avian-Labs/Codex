@@ -151,13 +151,23 @@ function numberList(value: unknown): number[] {
   return ids;
 }
 
+function stripHtmlMarkup(value: string): string {
+  // Nested tags can survive a single /<[^>]*>/ pass (<<script>script>). Keep
+  // stripping until stable, then ban leftover angle brackets so markup cannot return.
+  let text = value;
+  let previous = '';
+  while (text !== previous) {
+    previous = text;
+    text = text.replace(/<[^>]*>/g, '');
+  }
+  return text.replace(/[<>]/g, '');
+}
+
 function decodeWpText(value: string): string {
   const numeric = value
     .replace(/&#(\d+);/g, (_match, digits: string) => codePoint(digits, 10))
     .replace(/&#x([0-9a-f]+);/gi, (_match, hex: string) => codePoint(hex, 16));
-  return decodeHtmlEntities(numeric)
-    .replace(/<[^>]+>/g, '')
-    .trim();
+  return stripHtmlMarkup(decodeHtmlEntities(numeric)).trim();
 }
 
 function codePoint(value: string, radix: number): string {

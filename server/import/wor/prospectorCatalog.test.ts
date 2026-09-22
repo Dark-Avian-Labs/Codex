@@ -204,6 +204,37 @@ describe('slim Prospector posts', () => {
       rarityId: 256,
     });
   });
+
+  it('strips HTML markup from titles and leaves no angle brackets', () => {
+    const italic = slimHeroFromWp({
+      id: 1,
+      slug: 'safe-name',
+      title: { rendered: '<em>Safe Name</em>' },
+      featured_media: 1,
+      class: [58],
+      faction: [362],
+      rarity: [173],
+      'dmg-type': [170],
+      'summoning-requirement': [204],
+      acf: null,
+    });
+    expect(italic?.name).toBe('Safe Name');
+
+    const nested = slimHeroFromWp({
+      id: 2,
+      slug: 'nested-name',
+      title: { rendered: '<<script>script>Nested</script>' },
+      featured_media: 1,
+      class: [58],
+      faction: [362],
+      rarity: [173],
+      'dmg-type': [170],
+      'summoning-requirement': [204],
+      acf: null,
+    });
+    expect(nested?.name.includes('<')).toBe(false);
+    expect(nested?.name.includes('>')).toBe(false);
+  });
 });
 
 describe('mergeProspectorCatalog', () => {
