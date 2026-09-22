@@ -12,7 +12,9 @@ export function shouldRunWorStep(
   options: WorPipelineStepOptions,
 ): boolean {
   if (options.forceSteps?.includes(step)) return true;
-  if (step === 'fastidiousCatalog' && options.forceImport) return true;
+  if ((step === 'fastidiousCatalog' || step === 'prospectorCatalog') && options.forceImport) {
+    return true;
+  }
   if (step === 'fandomImages' && options.forceImages) return true;
   return wouldRun;
 }
@@ -23,6 +25,13 @@ export function shouldFetchFastidiousCatalog(options: {
   forceImport?: boolean;
 }): boolean {
   return Boolean(options.forceImport) || options.live || options.sourcesChanged;
+}
+
+export function shouldFetchProspectorCatalog(options: {
+  live: boolean;
+  forceImport?: boolean;
+}): boolean {
+  return options.live || Boolean(options.forceImport);
 }
 
 export function worImagesOnlyMissing(options: WorPipelineStepOptions): boolean {

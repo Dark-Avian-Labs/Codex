@@ -24,6 +24,8 @@ const IMAGE_CONTENT_TYPES: Record<AllowedImageExtension, string> = {
 const ALLOWED_IMAGE_HOSTS = new Set([
   'fastidious.gg',
   'www.fastidious.gg',
+  'prospector.gg',
+  'www.prospector.gg',
   'static.wikia.nocookie.net',
   'vignette.wikia.nocookie.net',
   'images.wikia.com',

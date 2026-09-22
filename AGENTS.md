@@ -40,11 +40,11 @@ Modular Weapons prefer Armory's `codex_modular_weapons` table. DE `codex_secret`
 
 ## Watcher of Realms
 
-Heroes have a primary `faction` plus optional `faction_secondary` (Fastidious dual-faction). Filters match either. Override patches run **before** portrait download so wiki-only (override-add) heroes still get images. Catalog upsert, deactivation, version bump, and account sync run in one transaction after downloads. Keep `shared/worPipelineSteps.ts` in sync with `server/import/wor/worPipelineSteps.ts`.
+Heroes have a primary `faction` plus optional `faction_secondary` (Fastidious dual-faction). Filters match either. Fastidious is the base catalog. The `prospectorCatalog` step appends heroes and artifacts whose slugs are still missing from that catalog, including newer exclusives from `https://prospector.gg/hero/` and `https://prospector.gg/artifacts/`. Fastidious rows stay as Fastidious wrote them. Override patches run **before** portrait download so wiki-only (override-add) heroes still get images. Prospector portrait URLs are the image fallback when wiki and Fastidious have no file. After wiki hero stats, Prospector also fills missing Lv.60 A0 combat attributes from the same snapshot. Catalog upsert, deactivation, version bump, and account sync run in one transaction after downloads. Keep `shared/worPipelineSteps.ts` in sync with `server/import/wor/worPipelineSteps.ts`.
 
 Class, faction, and rank-star icons are bundled from `packages/games/wor/assets/` (`classes/`, `factions/`, `ranks/`). The import pipeline downloads hero/artifact/demon portraits only.
 
-Wiki Lv.60 A0 combat stats (`base_hp`, `base_atk`, `base_def`, `base_atk_interval`, rage channels) are filled by the `fandomHeroStats` pipeline step from Fandom infobox wikitext. Outfitter imports those columns. A Fastidious re-import must not wipe them.
+Wiki Lv.60 A0 combat stats (`base_hp`, `base_atk`, `base_def`, `base_atk_interval`, rage channels) are filled by the `fandomHeroStats` pipeline step from Fandom infobox wikitext. After that, Prospector fills any active hero that still has a null `base_hp` or `base_atk` from its cached ACF attributes. Outfitter imports those columns. A Fastidious re-import must not wipe them.
 
 If the WoR catalog is empty at boot, the startup pipeline runs; failures log and do **not** crash the process. Admin import returns **202** and uses a lease plus in-process single-flight.
 

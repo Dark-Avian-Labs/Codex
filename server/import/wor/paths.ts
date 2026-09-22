@@ -15,6 +15,7 @@ export const WOR_IMPORT_FIXTURE_CACHE_DIR = path.join(
 export const WOR_OVERRIDES_PATH = path.join(PROJECT_ROOT, 'scripts', 'data', 'wor-overrides.json');
 
 export const FASTIDIOUS_BASE_URL = 'https://fastidious.gg';
+export const PROSPECTOR_API_BASE = 'https://prospector.gg/wp-json/wp/v2';
 export const WOR_FANDOM_API_URL = 'https://watcher-of-realms.fandom.com/api.php';
 
 export function ensureWorImportDirs(): void {
