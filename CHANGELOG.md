@@ -311,3 +311,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.73.2** `ci(deps)` [#409](https://github.com/Dark-Avian-Labs/Codex/pull/409): bump the github-actions group with 2 updates
 - **v1.73.3** `chore` [#410](https://github.com/Dark-Avian-Labs/Codex/pull/410): dependabot/npm_and_yarn/production dependencies 88b791c52b
 - **v1.73.4** `ci(deps)` [#412](https://github.com/Dark-Avian-Labs/Codex/pull/412): bump useblacksmith/checkout in the github-actions group
+- **v1.74.0** `chore` [#413](https://github.com/Dark-Avian-Labs/Codex/pull/413): feat/wor prospector catalog
