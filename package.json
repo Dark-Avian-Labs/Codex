@@ -83,7 +83,7 @@
     "oxfmt": "catalog:",
     "oxlint": "catalog:",
     "semantic-release": "^25.0.9",
-    "supertest": "^7.2.2",
+    "supertest": "^7.3.0",
     "tailwindcss": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
