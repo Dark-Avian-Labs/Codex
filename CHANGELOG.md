@@ -317,3 +317,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.76.1** `chore` [#417](https://github.com/Dark-Avian-Labs/Codex/pull/417): fix/dal app nav proxy
 - **v1.76.2** `chore` [#418](https://github.com/Dark-Avian-Labs/Codex/pull/418): fix/wor prospector jezabelle alias
 - **v1.76.3** `chore(deps)` [#419](https://github.com/Dark-Avian-Labs/Codex/pull/419): bump the production-dependencies group with 3 updates
+- **v1.76.4** `chore(deps)` [#423](https://github.com/Dark-Avian-Labs/Codex/pull/423): bump @dotenvx/dotenvx to 2.30.0 and fix ESM import
