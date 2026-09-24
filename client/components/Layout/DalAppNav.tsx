@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { appIdsMatch, loadDalAppNav, type DalAppNavEntry } from '../../lib/dalAppNav';
 import { MaterialSymbol } from '../ui/MaterialSymbol';
+import { DalAppNavRail } from './DalAppNavRail';
 
 const COLLAPSE_DELAY_MS = 300;
 
@@ -120,12 +121,12 @@ export function DalAppNav({ currentAppId }: { currentAppId: string }) {
         aria-label={open ? 'Close Dark Avian Labs apps' : 'Open Dark Avian Labs apps'}
         onClick={onHandleClick}
       >
-        <MaterialSymbol name="apps" />
+        <DalAppNavRail />
       </button>
 
       <nav
         id="dal-app-nav-panel"
-        className="dal-app-nav__panel glass-surface"
+        className="dal-app-nav__panel"
         aria-label="Dark Avian Labs apps"
         hidden={!open}
       >
