@@ -9,7 +9,9 @@ import {
   requireAbsoluteSqlitePath,
   resolveEnvFilePath,
 } from '@codex/core';
-import { config as loadEnv } from '@dotenvx/dotenvx';
+import dotenvx from '@dotenvx/dotenvx';
+
+const { config: loadEnv } = dotenvx;
 
 const projectRoot = process.cwd();
 const envKeysPath = path.join(projectRoot, '.env.keys');
