@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
-import { buildOutsideInRailTriangles } from './dalAppNavRail';
+import { buildOutsideInRailTriangles, RAIL_SIDE, RAIL_STEP } from './dalAppNavRail';
 
 const SQRT3 = Math.sqrt(3);
 
@@ -8,9 +8,9 @@ export function DalAppNavRail() {
   const railRef = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState(0);
 
-  const side = 10;
+  const side = RAIL_SIDE;
   const innerWidth = (SQRT3 / 2) * side;
-  const step = side + 6;
+  const step = RAIL_STEP;
   const strokeWidth = 1.25;
   const pad = strokeWidth / 2 + 0.35;
   const svgWidth = innerWidth + pad * 2;

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { appIdsMatch, loadDalAppNav, type DalAppNavEntry } from '../../lib/dalAppNav';
 import { MaterialSymbol } from '../ui/MaterialSymbol';
+import { CLOSED_RAIL_MIN_HEIGHT } from './dalAppNavRail';
 import { DalAppNavRail } from './DalAppNavRail';
 
 const COLLAPSE_DELAY_MS = 300;
@@ -116,6 +117,7 @@ export function DalAppNav({ currentAppId }: { currentAppId: string }) {
       <button
         type="button"
         className="dal-app-nav__handle"
+        style={{ minHeight: CLOSED_RAIL_MIN_HEIGHT }}
         aria-expanded={open}
         aria-controls="dal-app-nav-panel"
         aria-label={open ? 'Close Dark Avian Labs apps' : 'Open Dark Avian Labs apps'}

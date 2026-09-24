@@ -7,6 +7,23 @@ export type RailTriangle = {
 
 const OUTLINE_CHANCE = 0.28;
 
+export const RAIL_SIDE = 10;
+export const RAIL_STEP = RAIL_SIDE + 6;
+
+/** Height of a closed handle that contains exactly `count` triangles. */
+export function closedRailHeight(count = 5, side = RAIL_SIDE, step = RAIL_STEP): number {
+  const half = side / 2;
+  let height = 0;
+  for (let i = 0; i < count; i += 1) {
+    const n = Math.floor(i / 2);
+    const cy = i % 2 === 0 ? half + n * step : half + step / 2 + n * step;
+    height = cy + half;
+  }
+  return height;
+}
+
+export const CLOSED_RAIL_MIN_HEIGHT = closedRailHeight();
+
 function hashUnit(index: number, salt: number): number {
   const n = Math.imul((index + 1) ^ salt, 2654435761) >>> 0;
   return (n % 10000) / 10000;
