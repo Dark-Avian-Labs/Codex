@@ -1106,13 +1106,13 @@ html:not(.dark) .invert-on-light {
 
   .dal-app-nav__rail-svg {
     display: block;
-    filter: drop-shadow(0 0 1.5px color-mix(in oklab, var(--color-accent) 70%, transparent));
+    color: var(--hex-side-fill);
     animation: dal-nav-rail-shimmer 4.5s ease-in-out infinite;
   }
 
   .dal-app-nav--open .dal-app-nav__rail-svg,
   .dal-app-nav__handle:hover .dal-app-nav__rail-svg {
-    filter: drop-shadow(0 0 2px color-mix(in oklab, var(--color-accent) 85%, transparent));
+    color: color-mix(in oklab, var(--color-foreground) 42%, transparent);
   }
 
   .dal-app-nav__panel {
@@ -1173,7 +1173,6 @@ html:not(.dark) .invert-on-light {
       animation: none;
     }
   }
-
 
   .header-link-form {
     margin: 0;

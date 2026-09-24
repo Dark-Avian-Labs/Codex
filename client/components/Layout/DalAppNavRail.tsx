@@ -1,13 +1,10 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { buildOutsideInRailTriangles } from './dalAppNavRail';
 
 const SQRT3 = Math.sqrt(3);
 
 export function DalAppNavRail() {
-  const rawId = useId().replace(/:/g, '');
-  const fillId = `dal-nav-rail-fill-${rawId}`;
-  const strokeId = `dal-nav-rail-stroke-${rawId}`;
   const railRef = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState(0);
 
@@ -45,36 +42,12 @@ export function DalAppNavRail() {
           height={height}
           viewBox={`0 0 ${svgWidth} ${height}`}
         >
-          <defs>
-            <linearGradient
-              id={fillId}
-              gradientUnits="userSpaceOnUse"
-              x1="0"
-              y1="0"
-              x2="0"
-              y2={height}
-            >
-              <stop offset="0%" stopColor="var(--color-accent)" />
-              <stop offset="100%" stopColor="var(--color-foreground)" />
-            </linearGradient>
-            <linearGradient
-              id={strokeId}
-              gradientUnits="userSpaceOnUse"
-              x1="0"
-              y1="0"
-              x2="0"
-              y2={height}
-            >
-              <stop offset="0%" stopColor="var(--color-accent)" />
-              <stop offset="100%" stopColor="var(--color-foreground)" />
-            </linearGradient>
-          </defs>
           {triangles.map((tri, i) => (
             <polygon
               key={i}
               points={tri.points}
-              fill={tri.outline ? 'none' : `url(#${fillId})`}
-              stroke={tri.outline ? `url(#${strokeId})` : 'none'}
+              fill={tri.outline ? 'none' : 'currentColor'}
+              stroke={tri.outline ? 'currentColor' : 'none'}
               strokeWidth={tri.outline ? strokeWidth : 0}
               strokeLinejoin="miter"
             />
