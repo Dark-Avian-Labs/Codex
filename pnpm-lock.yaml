@@ -165,11 +165,11 @@ settings:
 catalogs:
   default:
     '@clerk/express':
-      specifier: ^2.1.69
-      version: 2.1.69
+      specifier: ^2.1.70
+      version: 2.1.70
     '@clerk/react':
-      specifier: ^6.16.1
-      version: 6.16.1
+      specifier: ^6.17.0
+      version: 6.17.0
     '@dotenvx/dotenvx':
       specifier: ^2.30.0
       version: 2.30.0
@@ -288,10 +288,10 @@ importers:
     dependencies:
       '@clerk/express':
         specifier: 'catalog:'
-        version: 2.1.69(express@5.2.1(supports-color@7.2.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+        version: 2.1.70(express@5.2.1(supports-color@7.2.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@clerk/react':
         specifier: 'catalog:'
-        version: 6.16.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+        version: 6.17.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@codex/core':
         specifier: workspace:*
         version: link:packages/core
@@ -451,7 +451,7 @@ importers:
     dependencies:
       '@clerk/express':
         specifier: 'catalog:'
-        version: 2.1.69(express@5.2.1(supports-color@7.2.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+        version: 2.1.70(express@5.2.1(supports-color@7.2.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@dotenvx/dotenvx':
         specifier: 'catalog:'
         version: 2.30.0
@@ -601,25 +601,25 @@ packages:
     resolution: {integrity: sha512-6zABk/ECA/QYSCQ1NGiVwwbQerUCZ+TQbp64Q3AgmfNvurHH0j8TtXa1qbShXA6qqkpAj4V5W8pP6mLe1mcMqA==}
     engines: {node: '>=18'}
 
-  '@clerk/backend@3.18.1':
-    resolution: {integrity: sha512-JjaibgZ9OuYE/tcJUgU7w3c83KdCooHNkt9OBjKznbWUuTXI0lcZQQWyy4ZDw3kB1uszeDfs1WGbsOvVkZA/aQ==}
+  '@clerk/backend@3.19.0':
+    resolution: {integrity: sha512-pnT31jTQDOaPjAf5q79lUPsiCcyVfs5iakzHxaD9801ruaUgo6Uc0FxO3L/Htyl45YTlWShbEAcWjf+ZqteZww==}
     engines: {node: '>=20.9.0'}
 
-  '@clerk/express@2.1.69':
-    resolution: {integrity: sha512-hB0MN5vAwXo4/HCtf8hg4wJ2up0FCV/zfnkEiSJFQKXmvVzNwPhArnYhP3mpQBRZic7MO7YafcwVqPRlpGdhFQ==}
+  '@clerk/express@2.1.70':
+    resolution: {integrity: sha512-y61uX+KaXIRzRbWinxUzkkB4kq6blmEg+uCSPsLFIStwEj92Ri1cK0f6RYqPp8PZWsjhtzIfaKmQYPMCp2KB4Q==}
     engines: {node: '>=20.9.0'}
     peerDependencies:
       express: ^4.17.0 || ^5.0.0
 
-  '@clerk/react@6.16.1':
-    resolution: {integrity: sha512-fYNiouRyVaEAKz8PZwWx7Y/jLnX0OxSplELfc+8VezgU36Xjx79Qu8xnr0XLhF/zwAuj+Avguvz60JbeIiiJ0Q==}
+  '@clerk/react@6.17.0':
+    resolution: {integrity: sha512-0luuv9yXXfEuXnG15zE9CRLC4DQNe+BvsochIu06uIyEVNW2BZJfux9JI5BCaUCCfCKd4TgWA2Mh5T1ST5z5Yw==}
     engines: {node: '>=20.9.0'}
     peerDependencies:
       react: ^18.0.0 || ~19.0.3 || ~19.1.4 || ~19.2.3 || ~19.3.0-0
       react-dom: ^18.0.0 || ~19.0.3 || ~19.1.4 || ~19.2.3 || ~19.3.0-0
 
-  '@clerk/shared@4.33.0':
-    resolution: {integrity: sha512-7urfRaaXPHeIWJuEIqy70NvMoi2EmschcEQt36MtbEAswttvgYc9KzwkE5fm5RqSvfq1R057uz/FR9SaOmqoLA==}
+  '@clerk/shared@4.34.0':
+    resolution: {integrity: sha512-zzpCsm25gJFFg0G5MKcEEaFHRbKCaywlsorbuD70RiC2ySVOaIYoy6tn6cLoBNpV2nXusk4sR9EQpMQYZr6+uA==}
     engines: {node: '>=20.9.0'}
     peerDependencies:
       react: ^18.0.0 || ~19.0.3 || ~19.1.4 || ~19.2.3 || ~19.3.0-0
@@ -3529,33 +3529,33 @@ snapshots:
 
   '@bcoe/v8-coverage@1.0.2': {}
 
-  '@clerk/backend@3.18.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
+  '@clerk/backend@3.19.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
     dependencies:
-      '@clerk/shared': 4.33.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@clerk/shared': 4.34.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       standardwebhooks: 1.1.1
       tslib: 2.8.1
     transitivePeerDependencies:
       - react
       - react-dom
 
-  '@clerk/express@2.1.69(express@5.2.1(supports-color@7.2.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
+  '@clerk/express@2.1.70(express@5.2.1(supports-color@7.2.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
     dependencies:
-      '@clerk/backend': 3.18.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@clerk/shared': 4.33.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@clerk/backend': 3.19.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@clerk/shared': 4.34.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       express: 5.2.1(supports-color@7.2.0)
       tslib: 2.8.1
     transitivePeerDependencies:
       - react
       - react-dom
 
-  '@clerk/react@6.16.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
+  '@clerk/react@6.17.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
     dependencies:
-      '@clerk/shared': 4.33.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@clerk/shared': 4.34.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       react: 19.3.0
       react-dom: 19.3.0(react@19.3.0)
       tslib: 2.8.1
 
-  '@clerk/shared@4.33.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
+  '@clerk/shared@4.34.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
     dependencies:
       '@tanstack/query-core': 5.103.1
       dequal: 2.0.3
