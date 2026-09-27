@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
-import { buildOutsideInRailTriangles, RAIL_SIDE, RAIL_STEP } from './dalAppNavRail';
+import { buildOutsideInRailTriangles, RAIL_SIDE, RAIL_STEP } from './dalAppNavRailGeometry';
 
 const SQRT3 = Math.sqrt(3);
 

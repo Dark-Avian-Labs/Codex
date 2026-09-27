@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildOutsideInRailTriangles, closedRailHeight, RAIL_SIDE, RAIL_STEP } from './dalAppNavRail.js';
+import { buildOutsideInRailTriangles, closedRailHeight, RAIL_SIDE, RAIL_STEP } from './dalAppNavRailGeometry.js';
 
 describe('buildOutsideInRailTriangles', () => {
   it('starts on the outer edge pointing in, then alternates', () => {

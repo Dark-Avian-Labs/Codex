@@ -1,7 +1,6 @@
 export type RailTriangle = {
   points: string;
   outline: boolean;
-  /** Tip points into the page (`>`). The return chevron points back out (`<`). */
   pointsIn: boolean;
 };
 
@@ -10,7 +9,6 @@ const OUTLINE_CHANCE = 0.28;
 export const RAIL_SIDE = 10;
 export const RAIL_STEP = RAIL_SIDE + 6;
 
-/** Height of a closed handle that contains exactly `count` triangles. */
 export function closedRailHeight(count = 5, side = RAIL_SIDE, step = RAIL_STEP): number {
   const half = side / 2;
   let height = 0;
@@ -29,7 +27,6 @@ function hashUnit(index: number, salt: number): number {
   return (n % 10000) / 10000;
 }
 
-/** Column of chevrons. The top triangle always starts on the outer edge and points in. */
 export function buildOutsideInRailTriangles(
   height: number,
   x0: number,
