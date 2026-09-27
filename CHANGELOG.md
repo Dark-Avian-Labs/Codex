@@ -320,3 +320,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.76.4** `chore(deps)` [#423](https://github.com/Dark-Avian-Labs/Codex/pull/423): bump @dotenvx/dotenvx to 2.30.0 and fix ESM import
 - **v1.76.5** `chore(deps)` [#424](https://github.com/Dark-Avian-Labs/Codex/pull/424): bump the production-dependencies group across 1 directory with 2 updates
 - **v1.77.0** `chore` [#426](https://github.com/Dark-Avian-Labs/Codex/pull/426): feat/wor grey blades
+- **v1.78.0** `chore` [#427](https://github.com/Dark-Avian-Labs/Codex/pull/427): feat/wor fill blank hero fields
