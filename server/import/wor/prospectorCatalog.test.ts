@@ -21,6 +21,7 @@ function snapshot(partial: Partial<ProspectorSnapshot> = {}): ProspectorSnapshot
       ],
       faction: [
         { id: 362, slug: 'cursed-cult', name: 'Cursed Cult' },
+        { id: 364, slug: 'nightmare-council', name: 'Nightmare Council' },
         { id: 38, slug: 'chaos-dominion', name: 'Chaos Dominion' },
         { id: 40, slug: 'star-piercers', name: 'Star Piercers' },
       ],
@@ -165,7 +166,25 @@ describe('slim Prospector posts', () => {
         },
       },
     });
-    expect(hero).toMatchObject({ factionIds: [], summonId: null, mediaId: 5153 });
+    expect(hero).toMatchObject({ factionIds: [], summonId: null, mediaId: 5153, isLord: false });
+
+    const lordBySkill = slimHeroFromWp({
+      id: 11000,
+      slug: 'veyrathia',
+      title: { rendered: 'Veyrathia' },
+      acf: {
+        identity_group_1: { is_this_hero_a_lord: false },
+        hero_skill: [
+          {
+            hero_skill_identity: {
+              hero_skill_name: 'Nightmare Power II',
+              hero_skill_type: [120],
+            },
+          },
+        ],
+      },
+    });
+    expect(lordBySkill).toMatchObject({ isLord: true });
 
     const artifact = slimArtifactFromWp({
       id: 13,
@@ -363,7 +382,76 @@ describe('mergeProspectorCatalog', () => {
       heroes: { 'aurelius-gale': 'https://prospector.gg/wp-content/uploads/aurelius-gale.webp' },
       artifacts: { 'ironbloom-of-mercy': 'https://prospector.gg/wp-content/uploads/ironbloom.webp' },
     });
-    expect(merged.bundle.heroes[0]).toMatchObject({ slug: 'idyl', faction: 'watchguard' });
+    expect(merged.bundle.heroes[0]).toMatchObject({
+      slug: 'idyl',
+      faction: 'watchguard',
+      damage_type: 'Magic',
+    });
+    expect(merged.filledHeroes).toEqual(['idyl']);
+  });
+
+  it('fills a blank Fastidious faction from Prospector and leaves a set faction alone', () => {
+    const bundle = baseBundle();
+    bundle.heroes.push({
+      slug: 'veyrathia',
+      name: 'Veyrathia',
+      class: 'fighter',
+      faction: 'unaffiliated',
+      rarity: 'epic',
+      damage_type: null,
+      display_order: 2,
+      active: 1,
+    });
+    const merged = mergeProspectorCatalog(
+      bundle,
+      snapshot({
+        heroes: [
+          {
+            id: 7,
+            slug: 'veyrathia',
+            name: 'Veyrathia',
+            classId: 61,
+            factionIds: [364],
+            rarityId: 175,
+            damageId: 171,
+            summonId: 203,
+            isLord: true,
+            mediaId: null,
+            stats: null,
+          },
+          {
+            id: 1,
+            slug: 'idyl',
+            name: 'Idyl',
+            classId: 61,
+            factionIds: [364],
+            rarityId: 173,
+            damageId: 171,
+            summonId: 204,
+            isLord: true,
+            mediaId: null,
+            stats: null,
+          },
+        ],
+      }),
+    );
+
+    expect(merged.addedHeroes).toEqual([]);
+    expect(merged.filledHeroes).toEqual(['veyrathia', 'idyl']);
+    expect(merged.bundle.heroes.find((hero) => hero.slug === 'veyrathia')).toMatchObject({
+      faction: 'nightmare_council',
+      faction_secondary: null,
+      damage_type: 'Physical',
+      class: 'fighter',
+      rarity: 'epic',
+      is_lord: 1,
+    });
+    const idyl = merged.bundle.heroes.find((hero) => hero.slug === 'idyl');
+    expect(idyl).toMatchObject({
+      faction: 'watchguard',
+      damage_type: 'Physical',
+    });
+    expect(idyl?.is_lord ?? 0).toBe(0);
   });
 
   it('skips a hero whose class is not in the Codex list', () => {
