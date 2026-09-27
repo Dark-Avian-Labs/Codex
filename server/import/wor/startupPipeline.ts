@@ -380,7 +380,7 @@ async function runWorStartupPipelineBody(
       emit(
         onLog,
         'info',
-        `[${stepTag('prospectorCatalog')}] Added ${merged.addedHeroes.length} heroes and ${merged.addedArtifacts.length} artifacts.`,
+        `[${stepTag('prospectorCatalog')}] Added ${merged.addedHeroes.length} heroes and ${merged.addedArtifacts.length} artifacts. Filled missing faction, damage, or lord on ${merged.filledHeroes.length} existing heroes.`,
       );
       for (const message of merged.skipped) {
         emit(onLog, 'info', `[${stepTag('prospectorCatalog')}] ${message}`);

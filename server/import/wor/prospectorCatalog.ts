@@ -123,6 +123,7 @@ export type ProspectorMergeResult = {
   portraits: ProspectorPortraitRefs;
   addedHeroes: string[];
   addedArtifacts: string[];
+  filledHeroes: string[];
   skipped: string[];
 };
 
@@ -254,6 +255,19 @@ function firstId(value: unknown): number | null {
   return ids[0] ?? null;
 }
 
+/** Prospector skill-type term "Lord Skill". The identity checkbox is sometimes left false. */
+const LORD_SKILL_TYPE_ID = 120;
+
+function heroHasLordSkill(acf: Record<string, unknown> | null): boolean {
+  if (!acf || !Array.isArray(acf.hero_skill)) return false;
+  for (const skill of acf.hero_skill) {
+    if (!isRecord(skill)) continue;
+    const identity = isRecord(skill.hero_skill_identity) ? skill.hero_skill_identity : null;
+    if (identity && numberList(identity.hero_skill_type).includes(LORD_SKILL_TYPE_ID)) return true;
+  }
+  return false;
+}
+
 export function slimHeroFromWp(post: unknown): ProspectorHeroRecord | null {
   if (!isRecord(post)) return null;
   const id = positiveId(post.id);
@@ -273,7 +287,7 @@ export function slimHeroFromWp(post: unknown): ProspectorHeroRecord | null {
     damageId: positiveId(identity?.hero_dmg_type) ?? firstId(post['dmg-type']),
     summonId:
       positiveId(identity?.hero_summoning_requirement) ?? firstId(post['summoning-requirement']),
-    isLord: identity?.is_this_hero_a_lord === true,
+    isLord: identity?.is_this_hero_a_lord === true || heroHasLordSkill(acf),
     mediaId: positiveId(acf?.portrait_image) ?? positiveId(post.featured_media),
     stats: statsFromProspectorAcf(acf),
   };
@@ -437,6 +451,53 @@ function alreadyPresent(keys: Set<string>, slug: string, name: string): boolean 
   return alias !== undefined && keys.has(alias);
 }
 
+function matchingHeroIndex(heroes: CatalogHeroRow[], slug: string, name: string): number {
+  const alias = PROSPECTOR_SLUG_ALIASES[slug];
+  const nameKey = slugifyName(name);
+  return heroes.findIndex((row) => {
+    const rowName = slugifyName(row.name);
+    return (
+      row.slug === slug ||
+      row.slug === nameKey ||
+      row.slug === alias ||
+      rowName === slug ||
+      rowName === nameKey ||
+      (alias !== undefined && rowName === alias)
+    );
+  });
+}
+
+function fillMissingHeroFields(
+  row: CatalogHeroRow,
+  hero: ProspectorHeroRecord,
+  factions: TermIndex,
+  damages: TermIndex,
+): boolean {
+  let filled = false;
+  if (row.faction === 'unaffiliated') {
+    const factionKeys = mapFactions(hero.factionIds, factions);
+    const primary = factionKeys?.[0];
+    if (factionKeys && primary) {
+      row.faction = primary;
+      row.faction_secondary = factionKeys[1] ?? null;
+      filled = true;
+    }
+    if (hero.isLord && row.is_lord !== 1) {
+      row.is_lord = 1;
+      filled = true;
+    }
+  }
+  if (!row.damage_type) {
+    const damageTerm = hero.damageId === null ? undefined : damages.get(hero.damageId);
+    const damage = damageTerm ? DAMAGE_SLUGS[damageTerm.slug] : undefined;
+    if (damage) {
+      row.damage_type = damage;
+      filled = true;
+    }
+  }
+  return filled;
+}
+
 function mapFactions(ids: number[], factions: TermIndex): FactionKey[] | null {
   const keys: FactionKey[] = [];
   for (const id of ids) {
@@ -469,13 +530,21 @@ export function mergeProspectorCatalog(
   const skipped: string[] = [];
   const addedHeroes: string[] = [];
   const addedArtifacts: string[] = [];
+  const filledHeroes: string[] = [];
   const portraits: ProspectorPortraitRefs = { heroes: {}, artifacts: {} };
 
   const heroKeys = identityKeys(bundle.heroes);
   let heroOrder = nextDisplayOrder(bundle.heroes);
   const heroes = [...bundle.heroes];
   for (const hero of snapshot.heroes) {
-    if (alreadyPresent(heroKeys, hero.slug, hero.name)) continue;
+    if (alreadyPresent(heroKeys, hero.slug, hero.name)) {
+      const index = matchingHeroIndex(heroes, hero.slug, hero.name);
+      const row = index >= 0 ? heroes[index] : undefined;
+      if (row && fillMissingHeroFields(row, hero, factions, damages)) {
+        filledHeroes.push(row.slug);
+      }
+      continue;
+    }
     const classTerm = hero.classId === null ? undefined : classes.get(hero.classId);
     if (!classTerm || !isValidHeroClassKey(classTerm.slug)) {
       skipped.push(`Skipped hero ${hero.slug}: unknown class.`);
@@ -572,6 +641,7 @@ export function mergeProspectorCatalog(
     portraits,
     addedHeroes,
     addedArtifacts,
+    filledHeroes,
     skipped,
   };
 }
