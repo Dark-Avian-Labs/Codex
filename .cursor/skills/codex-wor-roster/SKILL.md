@@ -81,7 +81,7 @@ Do not hammer the API. There is a rate limit (~1200 requests / 15 minutes). Cach
 
 Class keys: `fighter`, `mage`, `marksman`, `defender`, `healer`, `tactician`.
 
-Faction keys: `watchguard`, `north_throne`, `nightmare_council`, `cursed_cult`, `infernal_blast`, `star_piercers`, `esoteria_order`, `chaos_dominion`, `supreme_arbiters`, `unnamable`, `unaffiliated`.
+Faction keys: `watchguard`, `north_throne`, `nightmare_council`, `cursed_cult`, `infernal_blast`, `star_piercers`, `esoteria_order`, `chaos_dominion`, `supreme_arbiters`, `unnamable`, `grey_blades`, `unaffiliated`.
 
 ## Errors
 

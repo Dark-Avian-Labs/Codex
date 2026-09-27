@@ -30,6 +30,7 @@ const FACTION_SLUGS: Record<string, FactionKey> = {
   'chaos-dominion': 'chaos_dominion',
   'supreme-arbiters': 'supreme_arbiters',
   'the-unnamable': 'unnamable',
+  'grey-blades': 'grey_blades',
 };
 
 const HERO_RARITY_SLUGS = new Set<string>(HERO_RARITIES);
