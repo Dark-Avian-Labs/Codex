@@ -21,6 +21,7 @@ describe('wor normalize', () => {
 
   it('maps faction and class labels', () => {
     expect(normalizeFactionName('North Throne')).toBe('north_throne');
+    expect(normalizeFactionName('Grey Blades')).toBe('grey_blades');
     expect(normalizeHeroClass('tactician')).toBe('tactician');
   });
 

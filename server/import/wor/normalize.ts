@@ -22,6 +22,7 @@ const FACTION_NAME_TO_KEY: Record<string, FactionKey> = {
   'Chaos Dominion': 'chaos_dominion',
   'Supreme Arbiters': 'supreme_arbiters',
   Unnamable: 'unnamable',
+  'Grey Blades': 'grey_blades',
 };
 
 const RARITY_NAME_TO_KEY: Record<string, string> = {
