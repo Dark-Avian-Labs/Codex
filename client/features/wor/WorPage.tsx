@@ -9,6 +9,7 @@ import {
   FILTER_STAR_RATINGS,
   HERO_AWAKENING_MAX,
   HERO_CLASSES,
+  heroHasAwakening,
 } from '@codex/game-wor/constants';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
@@ -236,7 +237,9 @@ export function WorPage() {
     const owned = rows.filter((row) => row.owned === 1).length;
     const maxed = rows.filter((row) => {
       if (row.owned !== 1) return false;
-      if (tab === 'heroes') return row.gauge_level === HERO_AWAKENING_MAX;
+      if (tab === 'heroes') {
+        return !heroHasAwakening(row.star_rating) || row.gauge_level === HERO_AWAKENING_MAX;
+      }
       if (tab === 'artifacts') return row.gauge_level === ARTIFACT_PROMOTION_MAX;
       return row.gauge_level === (row as WorDemon).max_level;
     }).length;
@@ -752,7 +755,7 @@ export function WorPage() {
                         )
                       }
                       onCycleGauge={() => {
-                        if (hero.owned !== 1) return;
+                        if (hero.owned !== 1 || !heroHasAwakening(hero.star_rating)) return;
                         const next =
                           hero.gauge_level >= HERO_AWAKENING_MAX ? 0 : hero.gauge_level + 1;
                         void patchGauge('heroes', hero.id, next, 'hero_id').catch(

@@ -7,6 +7,7 @@ import {
   GAUGE_COLORS,
   HERO_AWAKENING_LABELS,
   HERO_CLASSES,
+  heroHasAwakening,
   DEMON_LEVEL_MIN,
 } from '@codex/game-wor/constants';
 import type { FactionKey, HeroClassKey } from '@codex/game-wor/constants';
@@ -389,7 +390,8 @@ export const WorRow = memo(function WorRow({
   onToggleOwned,
   onCycleGauge,
 }: WorRowProps) {
-  const gaugeDisabled = owned !== 1;
+  const awakeningLocked = tab === 'heroes' && !heroHasAwakening(starRating);
+  const gaugeDisabled = owned !== 1 || awakeningLocked;
   return (
     <tr className={owned === 1 ? 'wor-completed-row' : undefined}>
       <td className="wor-portrait-cell">
@@ -420,12 +422,27 @@ export const WorRow = memo(function WorRow({
           <button
             type="button"
             className="gauge-btn"
-            style={{ color: GAUGE_COLORS[gaugeLevel] ?? GAUGE_COLORS[0] }}
+            style={{
+              color: awakeningLocked
+                ? GAUGE_COLORS[0]
+                : (GAUGE_COLORS[gaugeLevel] ?? GAUGE_COLORS[0]),
+              opacity: awakeningLocked ? 0.45 : undefined,
+              cursor: awakeningLocked ? 'default' : undefined,
+            }}
             disabled={gaugeDisabled}
             onClick={onCycleGauge}
-            aria-label={`Cycle progression for ${name}`}
+            aria-label={
+              awakeningLocked
+                ? `Awakening unavailable for ${name}`
+                : `Cycle progression for ${name}`
+            }
+            title={awakeningLocked ? '3-star heroes cannot be awakened' : undefined}
           >
-            {tab === 'artifacts' ? renderGauge(gaugeLevel, gaugeMax) : gaugeLabel(tab, gaugeLevel)}
+            {awakeningLocked
+              ? '\u2014'
+              : tab === 'artifacts'
+                ? renderGauge(gaugeLevel, gaugeMax)
+                : gaugeLabel(tab, gaugeLevel)}
           </button>
         </div>
       </td>

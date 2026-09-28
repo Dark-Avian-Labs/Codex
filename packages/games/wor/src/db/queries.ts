@@ -6,6 +6,7 @@ import {
   FACTIONS,
   FILTER_STAR_RATINGS,
   HERO_AWAKENING_MAX,
+  HERO_AWAKENING_MIN_STARS,
   HERO_CLASSES,
 } from '../config.js';
 
@@ -331,13 +332,17 @@ export function getHeroStats(
     SELECT
       COUNT(*) as total,
       SUM(CASE WHEN owned = 1 THEN 1 ELSE 0 END) as owned,
-      SUM(CASE WHEN owned = 1 AND gauge_level = ? THEN 1 ELSE 0 END) as maxed
+      SUM(CASE WHEN owned = 1 AND (ah.star_rating < ? OR gauge_level = ?) THEN 1 ELSE 0 END) as maxed
     FROM account_heroes ah
     INNER JOIN catalog_heroes ch ON ch.slug = ah.catalog_hero_slug AND ch.active = 1
     WHERE ah.account_id = ?
   `,
     )
-    .get(HERO_AWAKENING_MAX, accountId) as { total: number; owned: number; maxed: number };
+    .get(HERO_AWAKENING_MIN_STARS, HERO_AWAKENING_MAX, accountId) as {
+    total: number;
+    owned: number;
+    maxed: number;
+  };
   return {
     total: Number(row.total),
     owned: Number(row.owned ?? 0),
@@ -504,9 +509,9 @@ export function updateHeroGauge(
   if (!isValidHeroGauge(gaugeLevel)) return false;
   const r = db
     .prepare(
-      'UPDATE account_heroes SET gauge_level = ?, owned = 1 WHERE id = ? AND account_id = ? AND owned = 1',
+      'UPDATE account_heroes SET gauge_level = ?, owned = 1 WHERE id = ? AND account_id = ? AND owned = 1 AND star_rating >= ?',
     )
-    .run(gaugeLevel, heroId, accountId);
+    .run(gaugeLevel, heroId, accountId, HERO_AWAKENING_MIN_STARS);
   return r.changes > 0;
 }
 

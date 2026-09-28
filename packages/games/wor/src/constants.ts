@@ -68,8 +68,14 @@ export function rarityToStarRating(rarity: string): number {
 }
 
 export const HERO_AWAKENING_MAX = 5;
+export const HERO_AWAKENING_MIN_STARS = 4;
 export const ARTIFACT_PROMOTION_MAX = 5;
 export const DEMON_LEVEL_MIN = 1;
+
+export function heroHasAwakening(starRating: number | null | undefined): boolean {
+  if (starRating == null) return true;
+  return starRating >= HERO_AWAKENING_MIN_STARS;
+}
 
 export const ARTIFACT_GAUGE_FILLED = '▰';
 export const ARTIFACT_GAUGE_EMPTY = '▱';
