@@ -63,17 +63,6 @@ import { waitForWarframeSyncIdle } from './services/warframeSyncState.js';
 import { bindClerkUserSessionMiddleware } from './session/bindClerkUserSession.js';
 import { refreshWorDbAvailability } from './worDbState.js';
 
-const STATUS_TEXT: Record<number, string> = {
-  400: 'Bad Request',
-  401: 'Unauthorized',
-  403: 'Forbidden',
-  404: 'Not Found',
-  405: 'Method Not Allowed',
-  409: 'Conflict',
-  422: 'Unprocessable Entity',
-  429: 'Too Many Requests',
-};
-
 ensureDataDirs();
 ensureSessionSchema();
 const sessionDb = getSessionDb();
@@ -520,38 +509,40 @@ app.get('/auth/legal', publicPageLimiter, (_req, res) => {
   res.redirect(LEGAL_PAGE_URL);
 });
 
-app.use((err: unknown, _req: Request, res: Response, _next: express.NextFunction) => {
+app.use((err: unknown, req: Request, res: Response, _next: express.NextFunction) => {
   const error = err as Partial<Error> & {
     status?: number;
     statusCode?: number;
     code?: string;
+    expose?: unknown;
   };
-  const isCsrfError = error.code === 'EBADCSRFTOKEN';
-  if (isCsrfError) {
+  if (error.code === 'EBADCSRFTOKEN') {
     res.setHeader('X-CSRF-Error', '1');
+    res.status(403).json({ error: 'Invalid CSRF token', code: 'CSRF_INVALID' });
+    return;
   }
-  log('error', 'Unhandled request error', {
-    requestId: getRequestId(res),
-    err: error.stack ?? error.message,
-  });
-  const status =
+  const statusFromError =
     typeof error.status === 'number'
       ? error.status
       : typeof error.statusCode === 'number'
         ? error.statusCode
-        : error.name === 'ForbiddenError'
-          ? 403
-          : 500;
-  const isClientError = status >= 400 && status < 500;
-  const fallbackStatusText = STATUS_TEXT[status] || 'Request error';
-  const message = isClientError
-    ? (typeof error.message === 'string' && error.message.trim()) ||
-      (typeof error.name === 'string' && error.name.trim()) ||
-      fallbackStatusText
-    : 'Internal server error';
-  res
-    .status(status)
-    .json(isCsrfError ? { error: message, code: 'CSRF_INVALID' } : { error: message });
+        : undefined;
+  const status =
+    statusFromError && statusFromError >= 400 && statusFromError < 600 ? statusFromError : 500;
+  log('error', 'Unhandled request error', {
+    requestId: getRequestId(res),
+    method: req.method,
+    path: req.originalUrl,
+    status,
+    err: error.stack ?? error.message,
+  });
+  const expose = error.expose === true && err instanceof Error && status < 500;
+  const message = expose
+    ? err.message
+    : status === 500
+      ? 'Internal server error'
+      : 'Request failed';
+  res.status(status).json({ error: message });
 });
 
 sentinelAgent?.start();

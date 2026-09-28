@@ -102,7 +102,7 @@ export function Modal({ open, onClose, children, className, ariaLabelledBy }: Mo
         previousActiveElement.focus();
       }
     };
-  }, [open]);
+  }, [open, mounted]);
 
   useEffect(() => {
     if (!open || typeof document === 'undefined' || !document.body) {
