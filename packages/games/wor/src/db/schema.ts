@@ -380,16 +380,14 @@ export function createCatalogSchema(db: Database.Database): void {
 
 const { getDb, closeDb } = createDbSingleton(WOR_DB_PATH, {
   onOpen: (db: Database.Database) => {
-    assertWorCoreTablesExist(db);
-    ensureWorSchemaMigrations(db);
-    ensureSingleActiveAccountIndex(db);
+    // CREATE IF NOT EXISTS so a fresh deploy does not need `pnpm run db:init`.
+    createSchema(db);
   },
 });
 
 const { getDb: getCatalogDb, closeDb: closeCatalogDb } = createDbSingleton(WOR_CATALOG_DB_PATH, {
   onOpen: (db: Database.Database) => {
-    assertWorCatalogTablesExist(db);
-    ensureWorCatalogSchemaMigrations(db);
+    createCatalogSchema(db);
   },
 });
 

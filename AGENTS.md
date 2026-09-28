@@ -20,7 +20,7 @@ Workspace packages must be built before tests, `db:init`, or a server compile. `
 pnpm --filter @codex/core --filter @codex/game-warframe --filter @codex/game-epic7 --filter @codex/game-wor run --if-present build
 ```
 
-`pnpm run db:init` applies Warframe, Epic Seven, and WoR schemas from built package `dist`. Server `onOpen` assumes tables already exist (WoR `onOpen` is validate + additive migrations only). Encrypted `.env.production` garbles `VITE_BASE_PATH` during `vite build`; rebuild the client with `npx vite build --mode devbuild`.
+`pnpm run db:init` applies Warframe, Epic Seven, and WoR schemas from built package `dist` (CI / offline prep). Server `onOpen` also creates missing tables (Warframe, Epic Seven, and WoR collection + catalog), so a fresh deploy does not need `db:init` before start. Encrypted `.env.production` garbles `VITE_BASE_PATH` during `vite build`; rebuild the client with `npx vite build --mode devbuild`.
 
 | File             | Env                                                | Notes                                                                                                              |
 | ---------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
