@@ -1,6 +1,5 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { useLayoutSlots } from '../../components/Layout/useLayoutSlots';
 import { apiFetch } from '../../utils/api';
 
 type ImportSnapshot = {
@@ -29,8 +28,6 @@ export function WorImportAdminTool() {
   const [forceImport, setForceImport] = useState(false);
   const [forceImages, setForceImages] = useState(false);
   const logContainerRef = useRef<HTMLDivElement | null>(null);
-  const { setCollectionFill } = useLayoutSlots();
-  const expandLog = Boolean(snapshot?.running || (snapshot?.lines.length ?? 0) > 0);
 
   const applySnapshot = useCallback((next: ImportSnapshot) => {
     setSnapshot(next);
@@ -97,11 +94,6 @@ export function WorImportAdminTool() {
     return () => window.clearInterval(poll);
   }, [loadStatus, snapshot?.running]);
 
-  useLayoutEffect(() => {
-    setCollectionFill(expandLog);
-    return () => setCollectionFill(false);
-  }, [expandLog, setCollectionFill]);
-
   useEffect(() => {
     const container = logContainerRef.current;
     if (!container) return;
@@ -135,10 +127,8 @@ export function WorImportAdminTool() {
   const lines = snapshot?.lines ?? [];
 
   return (
-    <div
-      className={`glass-surface flex min-h-0 flex-col gap-3 p-5 ${expandLog ? 'flex-1 overflow-hidden' : ''}`}
-    >
-      <div className="flex shrink-0 flex-wrap items-start justify-between gap-3">
+    <div className="glass-surface flex flex-col gap-3 p-5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold">Catalog import</h2>
           <p className="text-muted mt-1 text-sm">
@@ -155,7 +145,7 @@ export function WorImportAdminTool() {
           {snapshot?.running ? 'Importing…' : starting ? 'Starting…' : 'Run import'}
         </button>
       </div>
-      <div className="flex shrink-0 flex-wrap gap-4 text-sm">
+      <div className="flex flex-wrap gap-4 text-sm">
         <label className="flex items-center gap-2">
           <input
             type="checkbox"
@@ -174,12 +164,12 @@ export function WorImportAdminTool() {
         </label>
       </div>
       {error ? (
-        <p className="text-danger shrink-0 text-sm" role="alert">
+        <p className="text-danger text-sm" role="alert">
           {error}
         </p>
       ) : null}
       {snapshot?.summary ? (
-        <div className="shrink-0 space-y-1 text-sm">
+        <div className="space-y-1 text-sm">
           <p>
             Catalog: {snapshot.summary.heroes} heroes, {snapshot.summary.artifacts} artifacts,{' '}
             {snapshot.summary.demons} demons.
@@ -197,17 +187,13 @@ export function WorImportAdminTool() {
         </div>
       ) : null}
       {snapshot?.error ? (
-        <p className="text-danger shrink-0 text-sm" role="alert">
+        <p className="text-danger text-sm" role="alert">
           {snapshot.error}
         </p>
       ) : null}
       <div
         ref={logContainerRef}
-        className={
-          expandLog
-            ? 'min-h-48 flex-1 overflow-y-auto rounded-lg border border-[var(--color-glass-border)] bg-black/20 p-3 font-mono text-xs leading-relaxed'
-            : 'max-h-48 overflow-y-auto rounded-lg border border-[var(--color-glass-border)] bg-black/20 p-3 font-mono text-xs leading-relaxed'
-        }
+        className="max-h-[min(50vh,28rem)] overflow-y-auto rounded-lg border border-[var(--color-glass-border)] bg-black/20 p-3 font-mono text-xs leading-relaxed"
       >
         {lines.length === 0 ? (
           <p className="text-muted">Import log will appear here.</p>
