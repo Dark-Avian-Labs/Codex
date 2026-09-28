@@ -326,3 +326,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.80.0** `chore` [#430](https://github.com/Dark-Avian-Labs/Codex/pull/430): feat/codex owns warframe wor catalogs
 - **v1.80.1** `chore` [#431](https://github.com/Dark-Avian-Labs/Codex/pull/431): fix/wor catalog schema on open
 - **v1.80.2** `chore` [#432](https://github.com/Dark-Avian-Labs/Codex/pull/432): fix/warframe import admin lease
+- **v1.80.3** `chore` [#433](https://github.com/Dark-Avian-Labs/Codex/pull/433): fix/warframe admin import scroll
