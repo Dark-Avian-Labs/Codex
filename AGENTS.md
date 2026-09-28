@@ -1,82 +1,31 @@
 # Codex
 
-## Org standards
+Shell, auth, env, and validate are in AppBase `AGENTS.md`. Port 3001. Playwright 3101.
 
-Shared Dark Avian Labs engineering conventions (README shape, CI/PR runners, validate, release tracks) live in AppBase [`docs/org-standards/`](../AppBase/docs/org-standards/). The design system (theme axes, glass contracts, UI primitives, Clerk appearance) lives in AppBase [`AGENTS.md`](../AppBase/AGENTS.md). There is no shared UI package: when you change layout, glass, buttons, modals, or dropdowns here, apply the same change in Armory.
+Collection tracker for Warframe, Epic Seven, and Watcher of Realms. Each game is its own package under `packages/`. Do not force one table UI across games.
 
-## Overview
+## Shell
 
-Codex is a table-based collection tracker for **Warframe**, **Epic Seven**, and **Watcher of Realms** (`wor`). Each game is its own workspace package under `packages/`. Do not force one UI pattern across games: Warframe is worksheets/cells; Epic Seven and WoR are account + catalog lists. There is no shared collection-table abstraction.
+Leave these in place on a mirror pass.
 
-Warframe catalog is imported into `WARFRAME_CATALOG_DB_PATH` (`pnpm run warframe:import`), then names are copied into the Warframe collection DB. Epic Seven and WoR have no live game API: Epic Seven uses curated `base_*` tables; WoR imports from Fastidious and Fandom into `WOR_CATALOG_DB_PATH`, then copies catalog tables into `WOR_DB_PATH`.
+- The page scrolls inside `main`. The shell is `h-dvh max-h-dvh overflow-hidden`.
+- The header has an `app-subheader` slot.
+- The open game sets the document title and favicon.
 
-Default listen port is **3001**. See `README.md` for scripts and env.
+## Data
 
-## Intentional shell differences
+Build the workspace packages before tests, `db:init`, or a server compile. `pnpm run build` does this. `pnpm run validate` does not.
 
-Codex keeps these on purpose. A mirror pass should leave them in place.
+Do not point the session path and a catalog path at the same file, and do not reuse BudgetPlanner SQLite files. The session path is absolute. Catalog defaults are `data/warframe-catalog.db` and `data/wor-catalog.db`. Armory reads the Warframe catalog. Outfitter reads the WoR catalog.
 
-- The page scrolls inside `<main>`. The shell is `h-dvh max-h-dvh overflow-hidden` so collection tables keep their own scroll instead of moving the header.
-- The header exposes a subheader slot (`app-subheader`) for the active game's toolbar.
-- Each game swaps the document title and favicon while that workspace is open.
+`/readyz` also checks the game DBs and that both catalog files are readable.
 
-The user menu uses the shared `user-menu` classes, same as the other apps.
+Encrypted `.env.production` garbles `VITE_BASE_PATH` during `vite build`. Rebuild the client with `npx vite build --mode devbuild`.
 
-## Build and databases
+Warframe sync yields between users. Force-release of the sync lease is refused while an in-process sync is still running. Sync preview is `POST /api/warframe/admin/sync-preview`.
 
-Workspace packages must be built before tests, `db:init`, or a server compile. `pnpm run build` does this; `pnpm run validate` does not. Include `@codex/game-wor` with core/warframe/epic7:
+Write advanced progress with the advanced-progress route into `row_advanced_progress`. Auto Orokin and auto Arcane force `true` for exalted and warframe auto-arcane, overwriting a stored `false`. Non-subsumable Excalibur Umbra Helminth may only be `Unavailable`.
 
-```bash
-pnpm --filter @codex/core --filter @codex/game-warframe --filter @codex/game-epic7 --filter @codex/game-wor run --if-present build
-```
+WoR import writes the catalog DB, then copies `catalog_*` into `WOR_DB_PATH`. The app joins on the collection file. If the catalog is empty and the collection still has `catalog_heroes`, boot seeds the catalog once. An empty catalog at boot runs the startup pipeline. Failures log and the process stays up. Admin import returns 202.
 
-`pnpm run db:init` applies Warframe, Epic Seven, and WoR schemas from built package `dist` (CI / offline prep). Server `onOpen` also creates missing tables (Warframe, Epic Seven, and WoR collection + catalog), so a fresh deploy does not need `db:init` before start. Encrypted `.env.production` garbles `VITE_BASE_PATH` during `vite build`; rebuild the client with `npx vite build --mode devbuild`.
-
-| File             | Env                                                | Notes                                                                                                              |
-| ---------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Session          | `SESSION_DB_PATH`                                  | **Absolute.** Codex-owned. CSRF, Epic7/WoR active account, **and** Warframe sync runs/leases.                      |
-| Warframe catalog | `WARFRAME_CATALOG_DB_PATH`                         | Default `data/warframe-catalog.db`. Written by `warframe:import`; sync reads it read-only (`busy_timeout = 5000`). |
-| WoR catalog      | `WOR_CATALOG_DB_PATH`                              | Default `data/wor-catalog.db`. Written by WoR import (lease/runs live here). Outfitter reads this file.            |
-| Game DBs         | `WARFRAME_DB_PATH`, `EPIC7_DB_PATH`, `WOR_DB_PATH` | May be relative. Catalog names/tables are copied into collection DBs after import.                                 |
-
-Do not point session and catalog paths at the same file, and do not reuse BudgetPlanner SQLite files. Sync yields between users; force-release of the sync lease is refused while an in-process sync is still running. Sync preview is `POST /api/warframe/admin/sync-preview` (CSRF), not GET.
-
-`/healthz` is liveness. `/readyz` checks session + game DBs + readable `WARFRAME_CATALOG_DB_PATH` and `WOR_CATALOG_DB_PATH`.
-
-## Warframe progress
-
-Advanced progress lives in `row_advanced_progress`, not `cell_values` (`PATCH …/advanced-progress`). Auto Orokin / auto Arcane force `true` when resolving display/persist state, overwriting a stored `false` for exalted and warframe auto-arcane cases. Non-subsumable Excalibur Umbra Helminth may only be `Unavailable`.
-
-Modular Weapons prefer the catalog DB `codex_modular_weapons` table. DE `codex_secret` / `exclude_from_codex` flags are stored in the catalog DB; Codex does not filter on them.
-
-## Watcher of Realms
-
-WoR uses two SQLite files: import writes only to `WOR_CATALOG_DB_PATH` (`data/wor-catalog.db` by default; lease + `import_runs` live there). After a successful catalog mutation (including hero stats), Codex copies `catalog_*` / `catalog_meta` into `WOR_DB_PATH` and syncs account rows there. The app JOINs catalog and account tables on `WOR_DB_PATH` only. Outfitter reads the catalog file. If `wor-catalog.db` is empty but `wor.db` still has `catalog_heroes`, boot seeds the catalog DB from the collection once.
-
-Heroes have a primary `faction` plus optional `faction_secondary` (Fastidious dual-faction). Filters match either. Fastidious is the base catalog. The `prospectorCatalog` step appends heroes and artifacts whose slugs are still missing from that catalog, including newer exclusives from `https://prospector.gg/hero/` and `https://prospector.gg/artifacts/`. Fastidious rows stay as Fastidious wrote them. A blank faction (`unaffiliated`) or blank damage type is filled from Prospector when that snapshot has one. A Prospector lord, from the identity checkbox or a Lord Skill, sets `is_lord` only when Fastidious left that hero unaffiliated. A hero Fastidious already gave a faction keeps a non-lord flag. Override patches run **before** portrait download so wiki-only (override-add) heroes still get images. Prospector portrait URLs are the image fallback when wiki and Fastidious have no file. After wiki hero stats, Prospector also fills missing Lv.60 A0 combat attributes from the same snapshot. Catalog upsert, deactivation, version bump, copy into `wor.db`, and account sync run after downloads. Keep `shared/worPipelineSteps.ts` in sync with `server/import/wor/worPipelineSteps.ts`.
-
-Class, faction, and rank-star icons are bundled from `packages/games/wor/assets/` (`classes/`, `factions/`, `ranks/`). The import pipeline downloads hero/artifact/demon portraits only.
-
-Wiki Lv.60 A0 combat stats (`base_hp`, `base_atk`, `base_def`, `base_atk_interval`, rage channels) are filled by the `fandomHeroStats` pipeline step from Fandom infobox wikitext. After that, Prospector fills any active hero that still has a null `base_hp` or `base_atk` from its cached ACF attributes. Outfitter imports those columns. A Fastidious re-import must not wipe them.
-
-If the WoR catalog is empty at boot, the startup pipeline runs; failures log and do **not** crash the process. Admin import returns **202** and uses a lease plus in-process single-flight.
-
-Signed-in agents should read the collection from `GET /api/wor/roster` (Clerk session cookies, owned-only by default) instead of scraping the UI. Contract and fetch steps: `.cursor/skills/codex-wor-roster/SKILL.md`.
-
-## Auth
-
-Clerk keys are required in production (`apps.codex === 'admin'` for admin). Empty keys skip Clerk and treat every request as signed out (`isClerkConfigured()`; Vitest and Playwright rely on this). Placeholder keys (`pk_test_placeholder` / `sk_test_placeholder`) and bare `pk_test_` / `sk_test_` prefixes are fatal at boot. Leave both keys empty instead of faking values. CI env template: `.github/ci.env.development`. CSRF tokens rotate when the Clerk user id on the express session changes (`server/session/bindClerkUserSession.ts`).
-
-Cursor agents sign in with Clerk Agent Tasks. Do not type a password. Decrypt `.env.development` and read `E2E_CLERK_USER_EMAIL` or `E2E_CLERK_USER_ID`. POST `https://api.clerk.com/v1/agents/tasks` using `CLERK_SECRET_KEY`. Send `agent_name`, `task_description`, `permissions` `*`, `redirect_url` `http://localhost:5173/`, and `on_behalf_of` with `user_id` or `identifier`. Open the URL Clerk returns. The same development user works for AppBase, Codex, Armory, BudgetPlanner, and Outfitter. Local cookies are host-only, so each app origin needs its own task. Do not invent local fake keys.
-
-## Toolchain
-
-Node **26+**, pnpm **12.x**, exact `packageManager`. Encrypted env files need `DOTENV_PRIVATE_KEY_*` or `.env.keys`. `pnpm run dev:client` decrypts `.env.development` with dotenvx (`--strict`) before Vite. `pnpm run validate` runs runtime preflight first (`scripts/runtime-preflight.mjs`). SQLite tests use `tests/helpers/sqliteTestHarness.ts`.
-
-On Windows, Cursor agent shells may prepend bundled Node 22. After changing Node versions, run `pnpm rebuild better-sqlite3`.
-
-## Tests
-
-`pnpm run validate` is the quality gate: preflight, oxfmt, oxlint, typecheck, Vitest. In CI that Vitest step is instrumented (`pnpm run test:coverage`); locally `pnpm test` stays uninstrumented. Use `pnpm run test:watch` while iterating.
-
-Playwright (`pnpm run test:e2e`) is **not** inside validate. It boots the compiled server (`dist/server/index.js`) on port 3101 with throwaway sqlite files after `scripts/db-init.mjs` (via `scripts/e2e-server.mjs`). Smokes hit probes, CSRF, API 404, and GET / (SPA 200). Run `pnpm run build` first so workspace packages exist, and `pnpm run test:e2e:install` once per machine. The runner and browser downloads are Apache-2.0 / free; no cloud grid. Empty Clerk keys skip Clerk; do not invent local fake keys.
+Signed-in roster reads use `GET /api/wor/roster`. Steps are in `.cursor/skills/codex-wor-roster/SKILL.md`.

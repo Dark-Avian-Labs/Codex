@@ -227,7 +227,7 @@ export function WorPage() {
     try {
       localStorage.setItem(HIDE_COMPLETED_STORAGE_KEY, nextValue ? '1' : '0');
     } catch {
-      // ignore storage failures
+      // ignore
     }
   }, []);
 

@@ -73,7 +73,7 @@ export async function readResponseWithByteLimit(
       try {
         await response.body?.cancel();
       } catch {
-        // ignore cancel failures
+        // ignore
       }
       throw new Error(`Response Content-Length ${len} exceeds limit of ${maxBytes} bytes`);
     }
@@ -120,7 +120,7 @@ export async function fetchBounded(
     try {
       await response.body?.cancel();
     } catch {
-      // ignore cancel failures
+      // ignore
     }
     return { response, body: Buffer.alloc(0) };
   }

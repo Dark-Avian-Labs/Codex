@@ -3,11 +3,6 @@ import type { Request, Response } from 'express';
 export const DAL_APP_NAV_UPSTREAM_URL = 'https://darkavianlabs.com/dal-app-nav.json';
 const UPSTREAM_TIMEOUT_MS = 5_000;
 
-/**
- * Same-origin proxy for the shared DAL app catalog.
- * Browsers cannot fetch darkavianlabs.com cross-origin without CORS;
- * the app server fetches upstream and returns JSON.
- */
 export async function handleDalAppNavProxy(_req: Request, res: Response): Promise<void> {
   const upstreamUrl = process.env.DAL_APP_NAV_UPSTREAM_URL?.trim() || DAL_APP_NAV_UPSTREAM_URL;
 

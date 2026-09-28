@@ -87,11 +87,9 @@ void refreshWorDbAvailability().then(async () => {
 void (async () => {
   if (NODE_ENV === 'test') return;
   try {
-    // Drop leases left by a previous process so admin UI is not stuck on Importing…
     recoverWarframeImportLeaseOnStartup();
     if (warframeCatalogNeedsImport()) {
       log('info', 'Warframe catalog empty — running import bootstrap');
-      // Route through the admin job so the Warframe admin page shows live log + running state.
       const result = startWarframeAdminImportJob('system:startup');
       if (!result.started) {
         log('warn', 'Warframe startup import could not start', {

@@ -986,7 +986,6 @@ async function runStartupPipelineInner(
   return summary;
 }
 
-/** True when the Warframe catalog DB is empty or not yet schema'd. */
 export function catalogNeedsImport(): boolean {
   try {
     const db = getCatalogDb();

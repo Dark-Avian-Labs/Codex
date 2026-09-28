@@ -130,7 +130,6 @@ function stepTag(step: WorPipelineStepKey): string {
   return WOR_PIPELINE_STEP_LABELS[step];
 }
 
-/** Upsert/deactivate catalog rows on the catalog DB only (no account writes). */
 export function applyWorCatalogUpserts(
   catalogDb: Database.Database,
   bundle: CatalogBundle | null,
@@ -165,7 +164,6 @@ export function applyWorCatalogUpserts(
     .immediate();
 }
 
-/** Sync account rows from the collection DB's catalog_* copy (never writes catalog). */
 export function syncWorAccountsFromCatalog(
   appDb: Database.Database,
   onLog?: WorStartupPipelineOptions['onLog'],
@@ -207,10 +205,6 @@ export function syncWorAccountsFromCatalog(
     .immediate();
 }
 
-/**
- * Catalog upserts → copy into collection DB → account sync.
- * Tests may pass the same handle for both DBs.
- */
 export function applyWorCatalogMutation(
   catalogDb: Database.Database,
   appDb: Database.Database,

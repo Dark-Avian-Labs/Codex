@@ -53,5 +53,7 @@
       root.classList.remove('ui-' + uiStyles[i]);
     }
     root.classList.add('ui-' + ui);
-  } catch {}
+  } catch {
+    // ignore
+  }
 })();

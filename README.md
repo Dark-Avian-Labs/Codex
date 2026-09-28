@@ -20,11 +20,6 @@ Warframe and Watcher of Realms catalogs are imported here first (`warframe-catal
 
 Live: [codex.darkavianlabs.com](https://codex.darkavianlabs.com)
 
-## Gotchas
-
-- Session and catalog paths must be absolute when set, and they must be different files.
-- Run `pnpm run warframe:import` / WoR import before worksheet sync or sibling apps have anything to copy.
-
 ## License
 
 MIT

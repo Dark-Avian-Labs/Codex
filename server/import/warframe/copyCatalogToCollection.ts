@@ -5,11 +5,6 @@ import Database from 'better-sqlite3';
 import { WARFRAME_CATALOG_DB_PATH } from '../../config.js';
 import { loadWorksheetSource, syncCatalogMasterFromSource } from '../../services/warframeSync.js';
 
-/**
- * Copy worksheet names from warframe-catalog.db into warframe.db catalog_rows.
- * Does not open WARFRAME_DB_PATH itself — uses the game package singleton.
- * Catalog DB is opened read-only here; the import pipeline owns writes to it.
- */
 export function copyCatalogToCollection(): {
   worksheets: number;
   totalNames: number;

@@ -165,7 +165,6 @@ export function resetAdminImportLock(): AdminImportResetResult {
       snapshot: getAdminImportSnapshot(),
     };
   }
-  // No local job: always drop the lease (including non-stale orphans from a prior process).
   recoverImportLeaseOnStartup();
   state.running = false;
   if (state.runId > 0 && !state.finishedAt) {

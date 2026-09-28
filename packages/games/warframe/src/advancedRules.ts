@@ -50,7 +50,7 @@ export function arcaneMaxRankFromLevelStats(levelStatsJson: string | null | unde
       }
     }
   } catch {
-    // ignore invalid JSON
+    // ignore
   }
   return DEFAULT_ARCANE_MAX_RANK;
 }

@@ -183,7 +183,7 @@ export async function apiJson<T>(url: string, init?: RequestInit): Promise<T> {
         fields = data.fields.filter((field): field is string => typeof field === 'string');
       }
     } catch {
-      // The body was not JSON. Keep the shared fallback.
+      // ignore
     }
     throw new ApiError(message, res.status, fields);
   }

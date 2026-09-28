@@ -20,7 +20,7 @@ export function rememberLastGamePath(pathname: string): void {
   try {
     window.localStorage.setItem(LAST_GAME_PATH_STORAGE_KEY, gamePath);
   } catch {
-    // Ignore storage failures (private mode, quota, etc.).
+    // ignore
   }
 }
 
@@ -31,7 +31,7 @@ export function getAuthFallbackRedirect(): string {
     const normalized = stored ? normalizeGamePath(stored) : null;
     if (normalized) return normalized;
   } catch {
-    // Ignore storage failures (private mode, quota, etc.).
+    // ignore
   }
   return APP_PATHS.warframe;
 }

@@ -58,13 +58,10 @@ const SUMMON_FLAGS: Record<string, 'regular' | 'ancient' | 'limited'> = {
   'special-limited': 'limited',
 };
 
-// Prospector slug → existing catalog slug when spelling/slug differs.
-// Same entity, so don't append a second row (Fastidious misspellings or Prospector typos).
 export const PROSPECTOR_SLUG_ALIASES: Record<string, string> = {
   'blaze-of-talkiel': 'blade-of-talkiel',
   'heart-of-the-mountain': 'heart-of-the-mouintain',
   'aureate-pledge': 'aurate-pledge',
-  // Official / Fastidious: Jezebelle. Prospector page slug/title: Jezabelle.
   jezabelle: 'jezebelle',
 };
 
@@ -255,7 +252,6 @@ function firstId(value: unknown): number | null {
   return ids[0] ?? null;
 }
 
-/** Prospector skill-type term "Lord Skill". The identity checkbox is sometimes left false. */
 const LORD_SKILL_TYPE_ID = 120;
 
 function heroHasLordSkill(acf: Record<string, unknown> | null): boolean {
