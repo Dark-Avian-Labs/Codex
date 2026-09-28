@@ -22,9 +22,9 @@ export function ConfirmModal({
       open={open}
       onClose={onCancel}
       className="glass-modal-surface max-w-md p-5 shadow-2xl"
-      ariaLabelledBy="confirm-delete-title"
+      ariaLabelledBy="confirm-dialog-title"
     >
-      <h2 id="confirm-delete-title">{title}</h2>
+      <h2 id="confirm-dialog-title">{title}</h2>
       <p className="text-muted text-sm">{message}</p>
       <div className="modal-actions">
         <button type="button" className="btn btn-cancel" onClick={onCancel}>

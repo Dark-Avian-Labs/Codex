@@ -94,7 +94,7 @@ function writeCache(document: DalAppNavDocument): void {
     const payload: CachePayload = { fetchedAt: Date.now(), document };
     sessionStorage.setItem(CACHE_KEY, JSON.stringify(payload));
   } catch {
-    // ignore quota / private mode
+    // ignore
   }
 }
 
@@ -106,17 +106,13 @@ export function getDalAppNavUrl(): string {
   return fromEnv.length > 0 ? fromEnv : DEFAULT_DAL_APP_NAV_URL;
 }
 
-/**
- * Load the shared app catalog. Fail closed: null when fetch fails and no cache.
- * Stale cache may still be returned when a refresh fails.
- */
 export async function loadDalAppNav(): Promise<DalAppNavDocument | null> {
   const cached = readCache();
   const cacheFresh = cached !== null && Date.now() - cached.fetchedAt < CACHE_TTL_MS;
 
   if (cacheFresh) {
     void refreshDalAppNav().catch(() => {
-      // background refresh; keep serving cache
+      // ignore
     });
     return cached.document;
   }

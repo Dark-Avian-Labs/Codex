@@ -37,10 +37,6 @@ function copyCatalogTables(
   return getCatalogCounts(dest);
 }
 
-/**
- * Replace catalog_* (+ catalog_meta) in the collection DB from the catalog DB.
- * Never touches account_* / owned / gauge_level.
- */
 export function copyWorCatalogToCollection(
   catalogDb: Database.Database,
   appDb: Database.Database,
@@ -50,10 +46,6 @@ export function copyWorCatalogToCollection(
   return counts;
 }
 
-/**
- * One-time migration: if wor-catalog.db has no heroes but wor.db still does,
- * copy catalog tables into the catalog DB. Leaves collection tables in place.
- */
 export function seedWorCatalogFromCollectionIfEmpty(
   catalogDb: Database.Database,
   appDb: Database.Database,

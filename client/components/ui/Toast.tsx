@@ -15,8 +15,8 @@ export function Toast({
       className="toast-pill"
       data-tone={tone}
       data-interactive={onDismiss ? '' : undefined}
-      role="status"
-      aria-live="polite"
+      role={tone === 'error' ? 'alert' : 'status'}
+      aria-live={tone === 'error' ? 'assertive' : 'polite'}
     >
       <span>{message}</span>
       {onDismiss ? (

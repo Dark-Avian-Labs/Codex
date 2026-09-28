@@ -765,7 +765,9 @@ function loadArmoryUsernameMap(armoryDb: Database.Database): Map<string, string>
     for (const row of rows) {
       map.set(row.clerk_user_id, row.username);
     }
-  } catch {}
+  } catch {
+    // ignore
+  }
   return map;
 }
 

@@ -57,10 +57,13 @@
   --color-muted: oklch(82% 0.015 286);
 
   --color-accent: oklch(56% 0.24 278);
+  --color-accent-weak: color-mix(in oklab, var(--color-accent) 10%, transparent);
+  --color-accent-weak-2: color-mix(in oklab, var(--color-accent) 20%, transparent);
 
   --color-success: oklch(72% 0.19 145);
   --color-warning: oklch(78% 0.12 75);
-  --color-danger: oklch(63% 0.2 25);
+  --color-danger: oklch(59% 0.19 25);
+  --color-info: oklch(55% 0.14 264);
   --color-unavailable: oklch(51% 0.02 260);
 
   --color-surface-500: oklch(18% 0.02 286);
@@ -157,8 +160,8 @@ html:not(.dark) {
   --color-glass-active: oklch(100% 0 0 / 0.75);
   --color-glass-divider: oklch(10% 0.01 280 / 0.12);
   --color-surface-modal: oklch(100% 0 0 / 0.56);
-  --color-surface-thead: oklch(94% 0.01 264 / 0.9);
-  --color-bg-start: oklch(90% 0.02 264);
+  --color-surface-thead: oklch(94% 0.01 264 / 0.88);
+  --color-bg-start: oklch(91% 0.02 264);
   --color-bg-end: oklch(98.4% 0.004 264);
   --color-bg-glow: oklch(68% 0.03 252 / 0.28);
   --shadow-panel: 0 8px 28px oklch(21% 0.04 266 / 0.16);

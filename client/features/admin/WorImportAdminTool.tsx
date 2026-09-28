@@ -64,7 +64,7 @@ export function WorImportAdminTool() {
         const next = parseSnapshot(JSON.parse((event as MessageEvent).data));
         if (next) applySnapshot(next);
       } catch {
-        // ignore malformed events
+        // ignore
       }
     });
     stream.onerror = () => {
@@ -87,7 +87,7 @@ export function WorImportAdminTool() {
 
     const poll = window.setInterval(() => {
       void loadStatus().catch(() => {
-        // ignore transient poll errors
+        // ignore
       });
     }, 2000);
 

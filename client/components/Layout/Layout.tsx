@@ -3,6 +3,7 @@ import {
   useEffect,
   useLayoutEffect,
   useMemo,
+  Suspense,
   type ReactNode,
   useRef,
   useState,
@@ -26,6 +27,8 @@ import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../features/auth/AuthContext';
 import { rememberLastGamePath } from '../../features/auth/authRedirect';
 import { buildClerkProfileAppearance } from '../../lib/clerkAppearance';
+import { ChunkErrorBoundary } from '../ui/ChunkErrorBoundary';
+import { LazySuspenseFallback } from '../ui/LazySuspenseFallback';
 import { MaterialSymbol } from '../ui/MaterialSymbol';
 import { Menu } from '../ui/Menu';
 import { UiStyleSelector } from '../ui/UiStyleSelector';
@@ -43,10 +46,10 @@ export type LayoutOutletContext = {
 export function Layout() {
   const { mode, toggleMode } = useTheme();
   const location = useLocation();
-  const { auth } = useAuth();
+  const { auth, refresh } = useAuth();
   const clerk = useClerk();
-  const isLoggedIn = auth.status === 'ok' && auth.userId !== null;
-  const isAdmin = auth.status === 'ok' && auth.isCodexAdmin;
+  const isLoggedIn = auth.status === 'authenticated' && auth.userId !== null;
+  const isAdmin = auth.status === 'authenticated' && auth.isAdmin;
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -291,7 +294,7 @@ export function Layout() {
                 <MaterialSymbol name="person" filled />
               </button>
               {menuOpen ? (
-                <Menu baseClass="user-menu">
+                <Menu>
                   <div
                     id={userMenuId}
                     role="menu"
@@ -352,7 +355,7 @@ export function Layout() {
                           tabIndex={-1}
                           onClick={() => {
                             setMenuOpen(false);
-                            void clerk.signOut({ redirectUrl: '/' });
+                            void clerk.signOut({ redirectUrl: APP_PATHS.home });
                           }}
                         >
                           Logout
@@ -378,7 +381,7 @@ export function Layout() {
         id="main-content"
         className={
           collectionFill
-            ? 'collection-fill relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden px-6 pb-2'
+            ? 'collection-fill relative z-10 -mb-12 flex min-h-0 flex-1 flex-col overflow-hidden px-6 pb-14'
             : 'relative z-10 min-h-0 flex-1 overflow-y-auto px-6 pb-6'
         }
       >
@@ -389,13 +392,31 @@ export function Layout() {
               : 'mx-auto w-full max-w-[2000px]'
           }
         >
-          <Outlet
-            context={{ setHeaderCenter, setHeaderActions, subheaderTarget, setCollectionFill }}
-          />
+          {auth.status === 'error' ? (
+            <div className="glass-panel mb-4 p-4" role="alert">
+              <p className="text-sm">Could not verify your session.</p>
+              <button
+                type="button"
+                className="btn btn-secondary mt-3"
+                onClick={() => void refresh()}
+              >
+                Retry
+              </button>
+            </div>
+          ) : null}
+          <ChunkErrorBoundary>
+            <Suspense fallback={<LazySuspenseFallback />}>
+              <Outlet
+                context={{ setHeaderCenter, setHeaderActions, subheaderTarget, setCollectionFill }}
+              />
+            </Suspense>
+          </ChunkErrorBoundary>
         </div>
       </main>
 
-      <footer className="relative z-10 flex h-[50px] shrink-0 items-center justify-center px-6">
+      <footer
+        className={`relative flex h-[50px] shrink-0 items-center justify-center bg-transparent px-6 ${collectionFill ? 'z-20' : 'z-10'}`}
+      >
         <div className="mx-auto w-full max-w-[2000px] text-center">
           <a
             href={LEGAL_PAGE_URL}

@@ -114,7 +114,6 @@ export const WARFRAME_IMAGES_DIR = resolveImagesDirUnderData(
   'WARFRAME_IMAGES_DIR',
   'warframe-images',
 );
-/** Alias for Armory-imported Warframe catalog code. */
 export const IMAGES_DIR = WARFRAME_IMAGES_DIR;
 
 export const EXPORTS_DIR = path.join(DATA_DIR, 'warframe-exports');
@@ -268,7 +267,7 @@ export const COOKIE_DOMAIN = resolvedCookieDomain;
 export const LEGAL_PAGE_URL =
   process.env.VITE_LEGAL_PAGE_URL?.trim() ||
   process.env.LEGAL_PAGE_URL?.trim() ||
-  'https://darkavianlabs.com/legal/';
+  'https://darkavianlabs.com/legal';
 
 export const SESSION_COOKIE_NAME =
   process.env.SESSION_COOKIE_NAME?.trim() || 'darkavianlabs.codex.sid';

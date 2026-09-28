@@ -1,5 +1,5 @@
 import { getClerkAuthState, getCodexAppId, requireAuthApi } from '@codex/core';
-import { Router } from 'express';
+import { Router, type Request, type Response } from 'express';
 
 import { COOKIE_DOMAIN, SECURE_COOKIES, SESSION_COOKIE_NAME } from '../config.js';
 import {
@@ -14,14 +14,16 @@ export const authRouter = Router();
 const FALLBACK_CODEX_GAMES = ['warframe', 'epic7', 'wor'] as const;
 const CODEX_GAMES = REGISTRY_CODEX_GAMES.length > 0 ? REGISTRY_CODEX_GAMES : FALLBACK_CODEX_GAMES;
 
-authRouter.get('/csrf', (req, res) => {
-  const generate = (req as typeof req & { csrfToken?: (overwrite?: boolean) => string }).csrfToken;
-  const token = generate ? generate() : (req.session.csrfToken ?? '');
+export function issueCsrfToken(req: Request, res: Response): void {
+  const request = req as Request & { csrfToken?: (overwrite?: boolean) => string };
+  const token = request.csrfToken ? request.csrfToken() : (req.session.csrfToken ?? '');
   res.setHeader('Cache-Control', 'no-store');
   res.json({
     csrfToken: token,
   });
-});
+}
+
+authRouter.get('/csrf', issueCsrfToken);
 
 authRouter.get('/me', requireAuthApi, async (req, res) => {
   const state = getClerkAuthState(req);
@@ -29,6 +31,7 @@ authRouter.get('/me', requireAuthApi, async (req, res) => {
     res.status(401).json({
       authenticated: false,
       userId: null,
+      isAdmin: false,
       isCodexAdmin: false,
       apps: [],
     });
@@ -45,6 +48,7 @@ authRouter.get('/me', requireAuthApi, async (req, res) => {
   res.json({
     authenticated: true,
     userId: state.userId,
+    isAdmin: state.isCodexAdmin,
     isCodexAdmin: state.isCodexAdmin,
     app: getCodexAppId(),
     apps,

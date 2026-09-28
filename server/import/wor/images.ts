@@ -169,7 +169,7 @@ export async function readResponseBodyCapped(
     try {
       await reader.cancel();
     } catch {
-      // ignore cancel failures
+      // ignore
     }
     throw error;
   }

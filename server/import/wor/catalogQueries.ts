@@ -259,7 +259,6 @@ function deactivateMissingSlugs(
   return changes;
 }
 
-/** Fold account ownership from a misspelled Prospector slug onto the canonical catalog slug. */
 export function rematerializeProspectorAliasOwnership(
   db: Database.Database,
   aliases: Readonly<Record<string, string>>,

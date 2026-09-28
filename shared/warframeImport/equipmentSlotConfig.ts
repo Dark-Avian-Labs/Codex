@@ -142,5 +142,5 @@ export function artifactSlotsStorageLength(
 
 export const MAX_ARTIFACT_SLOTS_STORAGE_LENGTH = Math.max(
   ...Object.values(EQUIPMENT_SLOT_CONFIGS).map((config) => artifactSlotsStorageLength(config)),
-  artifactSlotsStorageLength(EQUIPMENT_SLOT_CONFIGS.warframe, { hasSecondAura: true }), // 11
+  artifactSlotsStorageLength(EQUIPMENT_SLOT_CONFIGS.warframe, { hasSecondAura: true }),
 );

@@ -24,7 +24,7 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 const DEFAULT_AUTH_STATE: AuthState = {
   status: 'loading',
   userId: null,
-  isCodexAdmin: false,
+  isAdmin: false,
   apps: [],
 };
 
@@ -62,36 +62,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     };
     if (!isSignedIn) {
-      applyAuth({ status: 'unauthenticated', userId: null, isCodexAdmin: false, apps: [] });
+      applyAuth({ status: 'unauthenticated', userId: null, isAdmin: false, apps: [] });
       return;
     }
     try {
       const response = await apiFetch('/api/auth/me');
       if (!response.ok) {
-        applyAuth({ status: 'unauthenticated', userId: null, isCodexAdmin: false, apps: [] });
+        applyAuth({ status: 'unauthenticated', userId: null, isAdmin: false, apps: [] });
         return;
       }
       const body = (await response.json()) as {
         authenticated?: boolean;
         userId?: string;
-        isCodexAdmin?: boolean;
+        isAdmin?: boolean;
         apps?: AppSummary[];
       };
       if (!body.authenticated || !body.userId) {
-        applyAuth({ status: 'unauthenticated', userId: null, isCodexAdmin: false, apps: [] });
+        applyAuth({ status: 'unauthenticated', userId: null, isAdmin: false, apps: [] });
         return;
       }
       applyAuth({
-        status: 'ok',
+        status: 'authenticated',
         userId: body.userId,
-        isCodexAdmin: body.isCodexAdmin === true,
+        isAdmin: body.isAdmin === true,
         apps: Array.isArray(body.apps) ? body.apps : [],
       });
     } catch (error) {
       applyAuth({
         status: 'error',
         userId: null,
-        isCodexAdmin: false,
+        isAdmin: false,
         apps: [],
         error: toAuthErrorDetail(error),
       });

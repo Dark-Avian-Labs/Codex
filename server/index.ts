@@ -1,78 +1,34 @@
 import './config.js';
 
-import path from 'path';
-
-import {
-  clerkMiddleware,
-  closeSessionDb,
-  createAppHelmet,
-  getClerkAuthState,
-  getSessionDb,
-  log,
-} from '@codex/core';
+import { closeSessionDb, getSessionDb, log } from '@codex/core';
 import { closeEpic7Db, getEpic7Db } from '@codex/game-epic7';
 import { closeWarframeDb, getWarframeDb } from '@codex/game-warframe';
 import { closeWorCatalogDb, closeWorDb, getWorCatalogDb, getWorDb } from '@codex/game-wor';
-import compression from 'compression';
-import cookieParser from 'cookie-parser';
-import { csrfSync } from 'csrf-sync';
-import express, { type Request, type Response } from 'express';
-import { rateLimit } from 'express-rate-limit';
-import session from 'express-session';
 
+import { createApp } from './app.js';
 import {
   APP_ID,
   APP_NAME,
-  APP_PUBLIC_BASE_URL,
-  APP_VERSION,
-  COOKIE_DOMAIN,
   ensureDataDirs,
   HOST,
-  LEGAL_PAGE_URL,
   NODE_ENV,
   PORT,
-  PROJECT_ROOT,
-  SECURE_COOKIES,
-  SESSION_COOKIE_NAME,
-  SESSION_SECRET,
   SHUTDOWN_TIMEOUT_MS,
-  TRUST_PROXY,
-  WOR_IMAGES_DIR,
 } from './config.js';
 import { ensureSessionSchema } from './db/sessionSchema.js';
-import { SqliteSessionStore } from './db/sqliteSessionStore.js';
 import { refreshEpic7DbAvailability } from './epic7DbState.js';
-import { handleDalAppNavProxy } from './http/dalAppNavProxy.js';
-import { getRequestId, requestIdMiddleware } from './http/requestId.js';
-import { timingSafeEqualString } from './http/timingSafeEqual.js';
 import { startAdminImportJob as startWarframeAdminImportJob } from './import/warframe/adminImportJob.js';
 import { recoverImportLeaseOnStartup as recoverWarframeImportLeaseOnStartup } from './import/warframe/importRuns.js';
 import { catalogNeedsImport as warframeCatalogNeedsImport } from './import/warframe/startupPipeline.js';
-import { contentTypeForImagePath, isAllowedImageExtension } from './import/wor/images.js';
 import {
   catalogNeedsImport,
   copyWorCatalogIntoCollectionIfNeeded,
   ensureWorCatalogSeededFromCollection,
   runWorStartupPipeline,
 } from './import/wor/startupPipeline.js';
-import { healthzHandler, readyzHandler } from './probes.js';
-import { apiRouter } from './routes/api.js';
-import { authRouter } from './routes/auth.js';
 import { createAppSentinelAgent } from './sentinelAgent.js';
 import { waitForWarframeSyncIdle } from './services/warframeSyncState.js';
-import { bindClerkUserSessionMiddleware } from './session/bindClerkUserSession.js';
 import { refreshWorDbAvailability } from './worDbState.js';
-
-const STATUS_TEXT: Record<number, string> = {
-  400: 'Bad Request',
-  401: 'Unauthorized',
-  403: 'Forbidden',
-  404: 'Not Found',
-  405: 'Method Not Allowed',
-  409: 'Conflict',
-  422: 'Unprocessable Entity',
-  429: 'Too Many Requests',
-};
 
 ensureDataDirs();
 ensureSessionSchema();
@@ -131,11 +87,9 @@ void refreshWorDbAvailability().then(async () => {
 void (async () => {
   if (NODE_ENV === 'test') return;
   try {
-    // Drop leases left by a previous process so admin UI is not stuck on Importing…
     recoverWarframeImportLeaseOnStartup();
     if (warframeCatalogNeedsImport()) {
       log('info', 'Warframe catalog empty — running import bootstrap');
-      // Route through the admin job so the Warframe admin page shows live log + running state.
       const result = startWarframeAdminImportJob('system:startup');
       if (!result.started) {
         log('warn', 'Warframe startup import could not start', {
@@ -150,408 +104,14 @@ void (async () => {
   }
 })();
 
-const app = express();
-if (TRUST_PROXY) app.set('trust proxy', 1);
-if (NODE_ENV === 'production' && SECURE_COOKIES && !TRUST_PROXY) {
-  throw new Error(
-    'TRUST_PROXY must be enabled in production with secure cookies so Express trusts X-Forwarded-* headers behind your TLS terminator. Set TRUST_PROXY=1 (or enable trust proxy in config) when deploying behind a reverse proxy.',
-  );
-}
-
 const sentinelAgent = createAppSentinelAgent({
   appId: APP_ID,
   displayName: APP_NAME,
   nodeEnv: NODE_ENV,
 });
-if (sentinelAgent) {
-  app.use(sentinelAgent.middleware);
-}
-
-app.use(createAppHelmet());
-app.use(requestIdMiddleware);
-app.use(compression());
-app.use(express.json({ limit: '1mb' }));
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
-
-const RATE_LIMIT_SKIP_PATHS = new Set([
-  '/healthz',
-  '/readyz',
-  '/api/version',
-  '/favicon.ico',
-  '/favicon.png',
-  '/login',
-  '/legal',
-  '/logout',
-  '/admin',
-  '/warframe/admin',
-  '/epic7/admin',
-  '/wor/admin',
-  '/warframe',
-  '/epic7',
-  '/wor',
-  '/',
-  '/auth/login',
-  '/auth/profile',
-  '/auth/legal',
-]);
-const RATE_LIMIT_SKIP_PATTERNS = [/^\/assets\/.+\.(?:css|js|png|jpe?g|gif|webp|svg|ico|woff2?)$/i];
-
-const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
-const BASELINE_RATE_LIMIT_MAX = 1200;
-const STATIC_ASSET_RATE_LIMIT_MAX = 5000;
-
-function createRateLimiter(
-  max: number,
-  options?: { skip?: (req: Request) => boolean },
-): ReturnType<typeof rateLimit> {
-  return rateLimit({
-    windowMs: RATE_LIMIT_WINDOW_MS,
-    max,
-    standardHeaders: true,
-    legacyHeaders: false,
-    ...(options?.skip ? { skip: options.skip } : {}),
-  });
-}
-
-const probeLimiter = createRateLimiter(BASELINE_RATE_LIMIT_MAX);
-app.get('/healthz', healthzHandler);
-app.get('/readyz', probeLimiter, readyzHandler);
-
-app.use(clerkMiddleware());
-
-const baselineLimiter = createRateLimiter(BASELINE_RATE_LIMIT_MAX, {
-  skip: (req) =>
-    RATE_LIMIT_SKIP_PATHS.has(req.path) ||
-    RATE_LIMIT_SKIP_PATTERNS.some((pattern) => pattern.test(req.path)),
-});
-app.use(baselineLimiter);
-
-const sessionStore = new SqliteSessionStore({
-  db: sessionDb,
-  cleanupIntervalMs: 15 * 60 * 1000,
-});
-
-const cookieOptions: express.CookieOptions = {
-  maxAge: 7 * 24 * 60 * 60 * 1000,
-  httpOnly: true,
-  secure: SECURE_COOKIES,
-  sameSite: 'lax',
-  domain: COOKIE_DOMAIN,
-};
-
-app.use(
-  session({
-    name: SESSION_COOKIE_NAME,
-    store: sessionStore,
-    secret: SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    cookie: cookieOptions,
-  }),
-);
-
-const { generateToken, getTokenFromRequest, getTokenFromState, invalidCsrfTokenError } = csrfSync({
-  getTokenFromRequest: (req: Request) => {
-    if (req.body?._csrf) return req.body._csrf as string;
-    const header = req.headers['x-csrf-token'] || req.headers['x-xsrf-token'];
-    return (Array.isArray(header) ? header[0] : header) ?? null;
-  },
-  getTokenFromState: (req) => {
-    const sessionData = req.session;
-    if (!sessionData) return null;
-    return sessionData.csrfToken ?? null;
-  },
-  storeTokenInState: (req, token) => {
-    if (req.session) {
-      req.session.csrfToken = token as string;
-    }
-  },
-});
-
-const CSRF_IGNORED_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
-app.use((req, res, next) => {
-  (req as Request & { csrfToken?: (overwrite?: boolean) => string }).csrfToken = (overwrite) =>
-    generateToken(req, overwrite);
-  if (CSRF_IGNORED_METHODS.has(req.method.toUpperCase())) {
-    next();
-    return;
-  }
-  const received = getTokenFromRequest(req);
-  const stored = getTokenFromState(req);
-  if (
-    typeof received === 'string' &&
-    typeof stored === 'string' &&
-    timingSafeEqualString(received, stored)
-  ) {
-    next();
-    return;
-  }
-  next(invalidCsrfTokenError);
-});
-
-const IS_DEV_ENV = NODE_ENV !== 'production';
-const defaultDevOrigins = IS_DEV_ENV
-  ? [
-      'http://localhost',
-      'http://127.0.0.1',
-      'http://localhost:3000',
-      'http://127.0.0.1:3000',
-      'http://localhost:4173',
-      'http://127.0.0.1:4173',
-      'http://localhost:5173',
-      'http://127.0.0.1:5173',
-      'http://localhost:8080',
-      'http://127.0.0.1:8080',
-    ]
-  : [];
-const configuredOrigins = [process.env.ALLOWED_APP_ORIGINS]
-  .filter((value): value is string => typeof value === 'string' && value.length > 0)
-  .join(',');
-const originCandidates = configuredOrigins
-  .split(',')
-  .map((value) => value.trim())
-  .filter(Boolean);
-const excludedOrigins: string[] = [];
-const ALLOWED_APP_ORIGINS = [...new Set([...originCandidates, ...defaultDevOrigins])].filter(
-  (value) => {
-    const isHttps = value.startsWith('https://');
-    const isDevHttp = IS_DEV_ENV && value.startsWith('http://');
-    const allowed = isHttps || isDevHttp;
-    if (!allowed) excludedOrigins.push(value);
-    return allowed;
-  },
-);
-if (excludedOrigins.length > 0) {
-  console.warn('[CORS] Excluded app origins from ALLOWED_APP_ORIGINS:', excludedOrigins);
-}
-
-const CSRF_PROTECTED_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
-app.use((req: Request, res: Response, next) => {
-  if (!CSRF_PROTECTED_METHODS.has(req.method.toUpperCase())) {
-    next();
-    return;
-  }
-
-  const secFetchSiteHeader = req.headers['sec-fetch-site'];
-  const secFetchSite = Array.isArray(secFetchSiteHeader)
-    ? secFetchSiteHeader[0]
-    : secFetchSiteHeader;
-  if (typeof secFetchSite === 'string' && secFetchSite.toLowerCase() === 'cross-site') {
-    res.status(403).json({ error: 'Cross-site request blocked', code: 'CSRF_ORIGIN_INVALID' });
-    return;
-  }
-
-  const originHeader = req.headers.origin;
-  const origin = Array.isArray(originHeader) ? originHeader[0] : originHeader;
-  if (typeof origin === 'string' && origin.length > 0) {
-    const allowedOrigins = new Set<string>([APP_PUBLIC_BASE_URL, ...ALLOWED_APP_ORIGINS]);
-    if (!allowedOrigins.has(origin)) {
-      res.status(403).json({ error: 'Origin not allowed', code: 'CSRF_ORIGIN_INVALID' });
-      return;
-    }
-  }
-
-  next();
-});
-
-app.use((req: Request, res: Response, next) => {
-  const origin = req.headers.origin;
-  if (typeof origin === 'string' && ALLOWED_APP_ORIGINS.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-    res.setHeader('Vary', 'Origin');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-CSRF-Token, X-XSRF-Token');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PATCH,PUT,DELETE,OPTIONS');
-  }
-  if (req.method === 'OPTIONS') {
-    res.status(204).end();
-    return;
-  }
-  next();
-});
-
-app.use('/api', (_req, res, next) => {
-  res.setHeader('Cache-Control', 'no-store');
-  next();
-});
-
-app.use(
-  '/api',
-  bindClerkUserSessionMiddleware(
-    (req) => getClerkAuthState(req).userId,
-    (req) => {
-      (req as Request & { csrfToken?: (overwrite?: boolean) => string }).csrfToken?.(true);
-    },
-  ),
-);
-
-app.use('/api/auth', authRouter);
-
-app.get('/api/version', (_req, res) => {
-  res.json({ version: APP_VERSION });
-});
-
-app.get('/api/dal-app-nav', (req, res) => {
-  void handleDalAppNavProxy(req, res);
-});
-
-app.use('/api', apiRouter);
-app.use('/api', (_req, res) => {
-  res.status(404).json({ error: 'Not found' });
-});
-
-const publicPageLimiter = createRateLimiter(BASELINE_RATE_LIMIT_MAX);
-const staticAssetLimiter = createRateLimiter(STATIC_ASSET_RATE_LIMIT_MAX);
-
-const clientDir = path.join(PROJECT_ROOT, 'dist', 'client');
-const clientIndexPath = path.join(clientDir, 'index.html');
-
-app.use(
-  '/wor-images',
-  staticAssetLimiter,
-  (req, res, next) => {
-    const ext = path.extname(req.path).toLowerCase();
-    if (!isAllowedImageExtension(ext)) {
-      res.status(404).end();
-      return;
-    }
-    next();
-  },
-  express.static(WOR_IMAGES_DIR, {
-    maxAge: '7d',
-    setHeaders(res, filePath) {
-      const contentType = contentTypeForImagePath(filePath);
-      if (contentType) {
-        res.setHeader('Content-Type', contentType);
-      } else {
-        res.setHeader('Content-Type', 'application/octet-stream');
-        res.setHeader('Content-Disposition', 'attachment');
-      }
-      if (filePath.toLowerCase().endsWith('.svg')) {
-        res.setHeader('Content-Security-Policy', "sandbox; script-src 'none'");
-      }
-      res.setHeader('X-Content-Type-Options', 'nosniff');
-    },
-  }),
-);
-app.use(
-  '/assets',
-  staticAssetLimiter,
-  express.static(path.join(clientDir, 'assets'), {
-    maxAge: '1y',
-    immutable: true,
-  }),
-);
-app.use(
-  publicPageLimiter,
-  express.static(clientDir, {
-    index: false,
-    maxAge: '1h',
-    setHeaders(res, filePath) {
-      if (filePath.endsWith('.html')) {
-        res.setHeader('Cache-Control', 'no-cache');
-      }
-    },
-  }),
-);
-
-function sendSpaIndex(res: Response): void {
-  res.setHeader('Cache-Control', 'no-cache');
-  res.sendFile(clientIndexPath);
-}
-
-const faviconPng = path.join(PROJECT_ROOT, 'favicon.png');
-app.get('/favicon.png', publicPageLimiter, (_req, res) => {
-  res.sendFile(faviconPng);
-});
-app.get('/favicon.ico', publicPageLimiter, (_req, res) => {
-  res.sendFile(faviconPng);
-});
-
-app.get('/login', publicPageLimiter, (_req, res) => {
-  res.redirect('/sign-in');
-});
-app.get('/legal', publicPageLimiter, (_req, res) => {
-  res.redirect(LEGAL_PAGE_URL);
-});
-
-app.get('/admin', publicPageLimiter, (_req, res) => {
-  sendSpaIndex(res);
-});
-app.get('/warframe/admin', publicPageLimiter, (_req, res) => {
-  sendSpaIndex(res);
-});
-app.get('/epic7/admin', publicPageLimiter, (_req, res) => {
-  sendSpaIndex(res);
-});
-app.get('/wor/admin', publicPageLimiter, (_req, res) => {
-  sendSpaIndex(res);
-});
-app.get('/sign-in', publicPageLimiter, (_req, res) => {
-  sendSpaIndex(res);
-});
-app.get(/^\/sign-in\/.*$/, publicPageLimiter, (_req, res) => {
-  sendSpaIndex(res);
-});
-app.get('/sign-up', publicPageLimiter, (_req, res) => {
-  sendSpaIndex(res);
-});
-app.get(/^\/sign-up\/.*$/, publicPageLimiter, (_req, res) => {
-  sendSpaIndex(res);
-});
-app.get('/warframe', publicPageLimiter, (_req, res) => {
-  sendSpaIndex(res);
-});
-app.get('/epic7', publicPageLimiter, (_req, res) => {
-  sendSpaIndex(res);
-});
-app.get('/wor', publicPageLimiter, (_req, res) => {
-  sendSpaIndex(res);
-});
-app.get('/', publicPageLimiter, (_req, res) => {
-  sendSpaIndex(res);
-});
-
-app.get('/auth/login', publicPageLimiter, (_req, res) => {
-  res.redirect('/sign-in');
-});
-app.get('/auth/legal', publicPageLimiter, (_req, res) => {
-  res.redirect(LEGAL_PAGE_URL);
-});
-
-app.use((err: unknown, _req: Request, res: Response, _next: express.NextFunction) => {
-  const error = err as Partial<Error> & {
-    status?: number;
-    statusCode?: number;
-    code?: string;
-  };
-  const isCsrfError = error.code === 'EBADCSRFTOKEN';
-  if (isCsrfError) {
-    res.setHeader('X-CSRF-Error', '1');
-  }
-  log('error', 'Unhandled request error', {
-    requestId: getRequestId(res),
-    err: error.stack ?? error.message,
-  });
-  const status =
-    typeof error.status === 'number'
-      ? error.status
-      : typeof error.statusCode === 'number'
-        ? error.statusCode
-        : error.name === 'ForbiddenError'
-          ? 403
-          : 500;
-  const isClientError = status >= 400 && status < 500;
-  const fallbackStatusText = STATUS_TEXT[status] || 'Request error';
-  const message = isClientError
-    ? (typeof error.message === 'string' && error.message.trim()) ||
-      (typeof error.name === 'string' && error.name.trim()) ||
-      fallbackStatusText
-    : 'Internal server error';
-  res
-    .status(status)
-    .json(isCsrfError ? { error: message, code: 'CSRF_INVALID' } : { error: message });
+const { app, sessionStore } = createApp({
+  sessionDb,
+  metricsMiddleware: sentinelAgent?.middleware,
 });
 
 sentinelAgent?.start();

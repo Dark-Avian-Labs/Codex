@@ -3,7 +3,7 @@ import { WorImportAdminTool } from './WorImportAdminTool';
 
 export function WorAdminPage() {
   const { auth } = useAuth();
-  const isAdmin = auth.status === 'ok' && auth.isCodexAdmin;
+  const isAdmin = auth.status === 'authenticated' && auth.isAdmin;
 
   if (!isAdmin) {
     return (

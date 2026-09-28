@@ -166,7 +166,6 @@ export function ensureWorAccountTables(db: Database.Database): void {
   ensureWorAccountMigrations(db);
 }
 
-/** Import lease/runs live on the catalog DB only (Outfitter reads catalog tables from that file). */
 export function ensureWorImportTables(db: Database.Database): void {
   db.exec(`
     CREATE TABLE IF NOT EXISTS import_runs (
@@ -380,7 +379,6 @@ export function createCatalogSchema(db: Database.Database): void {
 
 const { getDb, closeDb } = createDbSingleton(WOR_DB_PATH, {
   onOpen: (db: Database.Database) => {
-    // CREATE IF NOT EXISTS so a fresh deploy does not need `pnpm run db:init`.
     createSchema(db);
   },
 });
