@@ -68,7 +68,7 @@ Do not hammer the API. There is a rate limit (~1200 requests / 15 minutes). Cach
 
 ### Field meanings
 
-- **Hero `awakening`**: 0–5 (A0–A5). Max is `gauge_max.heroes`.
+- **Hero `awakening`**: 0–5 (A0–A5) on 4- and 5-star heroes. Max is `gauge_max.heroes`. 3-star heroes have no awakening. An owned 3-star counts toward `stats.heroes.maxed`.
 - **Artifact `promotion`**: 0–5. Max is `gauge_max.artifacts`.
 - **Demon `level`**: owned demons are 1–`max_level` (usually 5); 0 means unowned. `rarity: "captain"` is a red-star / captain demon.
 - **Hero `is_lord`**: red-star / lord hero.
