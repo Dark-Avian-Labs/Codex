@@ -1,3 +1,4 @@
+import { APP_PATHS } from '@/app/paths';
 import { ClerkAuthShell } from '@/components/ClerkAuthShell';
 import { useTheme } from '@/context/ThemeContext';
 import { buildClerkAppearance } from '@/lib/clerkAppearance';
@@ -14,7 +15,7 @@ export function SignUpPage() {
   const redirectUrl = getAuthRedirectUrl(searchParams);
 
   if (!publishableKey) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={APP_PATHS.home} replace />;
   }
 
   return (
@@ -24,7 +25,7 @@ export function SignUpPage() {
     >
       <SignUp
         routing="hash"
-        signInUrl="/sign-in"
+        signInUrl={APP_PATHS.signIn}
         fallbackRedirectUrl={redirectUrl}
         appearance={buildClerkAppearance(mode)}
       />

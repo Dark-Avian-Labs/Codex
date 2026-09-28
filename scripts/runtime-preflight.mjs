@@ -41,15 +41,10 @@ try {
   const Database = mod.default ?? mod;
   const db = new Database(':memory:');
   db.close();
-  process.env.CODEX_SQLITE_NATIVE_AVAILABLE = '1';
-  delete process.env.CODEX_SQLITE_SKIP_REASON;
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
   const hint = message.includes('NODE_MODULE_VERSION') ? ' Run: pnpm rebuild better-sqlite3' : '';
-  process.env.CODEX_SQLITE_NATIVE_AVAILABLE = '0';
-  process.env.CODEX_SQLITE_SKIP_REASON = `${message}${hint}`;
-  console.warn(`[preflight] SQLite native module unavailable:${hint}\n  ${message}`);
-  console.warn('[preflight] SQLite-backed tests will be skipped.');
+  fail(`SQLite native module unavailable:${hint}\n  ${message}`);
 }
 
 console.log(`[preflight] OK — Node ${process.version}`);

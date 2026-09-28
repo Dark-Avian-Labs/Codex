@@ -3,6 +3,7 @@ import {
   useEffect,
   useLayoutEffect,
   useMemo,
+  Suspense,
   type ReactNode,
   useRef,
   useState,
@@ -26,6 +27,8 @@ import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../features/auth/AuthContext';
 import { rememberLastGamePath } from '../../features/auth/authRedirect';
 import { buildClerkProfileAppearance } from '../../lib/clerkAppearance';
+import { ChunkErrorBoundary } from '../ui/ChunkErrorBoundary';
+import { LazySuspenseFallback } from '../ui/LazySuspenseFallback';
 import { MaterialSymbol } from '../ui/MaterialSymbol';
 import { Menu } from '../ui/Menu';
 import { UiStyleSelector } from '../ui/UiStyleSelector';
@@ -291,7 +294,7 @@ export function Layout() {
                 <MaterialSymbol name="person" filled />
               </button>
               {menuOpen ? (
-                <Menu baseClass="user-menu">
+                <Menu>
                   <div
                     id={userMenuId}
                     role="menu"
@@ -352,7 +355,7 @@ export function Layout() {
                           tabIndex={-1}
                           onClick={() => {
                             setMenuOpen(false);
-                            void clerk.signOut({ redirectUrl: '/' });
+                            void clerk.signOut({ redirectUrl: APP_PATHS.home });
                           }}
                         >
                           Logout
@@ -401,9 +404,13 @@ export function Layout() {
               </button>
             </div>
           ) : null}
-          <Outlet
-            context={{ setHeaderCenter, setHeaderActions, subheaderTarget, setCollectionFill }}
-          />
+          <ChunkErrorBoundary>
+            <Suspense fallback={<LazySuspenseFallback />}>
+              <Outlet
+                context={{ setHeaderCenter, setHeaderActions, subheaderTarget, setCollectionFill }}
+              />
+            </Suspense>
+          </ChunkErrorBoundary>
         </div>
       </main>
 

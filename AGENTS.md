@@ -12,6 +12,16 @@ Warframe catalog is imported into `WARFRAME_CATALOG_DB_PATH` (`pnpm run warframe
 
 Default listen port is **3001**. See `README.md` for scripts and env.
 
+## Intentional shell differences
+
+Codex keeps these on purpose. A mirror pass should leave them in place.
+
+- The page scrolls inside `<main>`. The shell is `h-dvh max-h-dvh overflow-hidden` so collection tables keep their own scroll instead of moving the header.
+- The header exposes a subheader slot (`app-subheader`) for the active game's toolbar.
+- Each game swaps the document title and favicon while that workspace is open.
+
+The user menu uses the shared `user-menu` classes, same as the other apps.
+
 ## Build and databases
 
 Workspace packages must be built before tests, `db:init`, or a server compile. `pnpm run build` does this; `pnpm run validate` does not. Include `@codex/game-wor` with core/warframe/epic7:

@@ -3,9 +3,9 @@ import '../packages/core/src/input.css';
 
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter } from 'react-router';
+import { RouterProvider } from 'react-router';
 
-import { App } from './App';
+import { router } from './app/routes';
 import { ThemeProvider } from './context/ThemeContext';
 
 const rootEl = document.getElementById('root');
@@ -15,10 +15,8 @@ if (!rootEl) {
 
 createRoot(rootEl).render(
   <StrictMode>
-    <BrowserRouter>
-      <ThemeProvider>
-        <App />
-      </ThemeProvider>
-    </BrowserRouter>
+    <ThemeProvider>
+      <RouterProvider router={router} />
+    </ThemeProvider>
   </StrictMode>,
 );
