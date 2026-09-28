@@ -7,7 +7,7 @@ export function WorAdminPage() {
 
   if (!isAdmin) {
     return (
-      <section className="glass-shell rounded-2xl p-6">
+      <section className="rounded-2xl border border-[var(--color-glass-border)] bg-[var(--color-glass)] p-6">
         <h1 className="mb-2 text-2xl font-semibold">Watcher of Realms Admin</h1>
         <p className="text-muted text-sm">Admin access is required.</p>
       </section>
@@ -15,11 +15,9 @@ export function WorAdminPage() {
   }
 
   return (
-    <section className="glass-shell flex h-full min-h-0 flex-col gap-5 overflow-hidden rounded-2xl p-6">
-      <div className="shrink-0">
-        <h1 className="text-2xl font-semibold">Watcher of Realms Admin</h1>
-        <p className="text-muted mt-1 text-sm">Import catalog data and manage WoR overrides.</p>
-      </div>
+    <section className="space-y-4">
+      <h1 className="text-2xl font-semibold">Watcher of Realms Admin</h1>
+      <p className="text-muted text-sm">Import catalog data and manage WoR overrides.</p>
       <WorImportAdminTool />
     </section>
   );
