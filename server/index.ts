@@ -45,10 +45,9 @@ import { refreshEpic7DbAvailability } from './epic7DbState.js';
 import { handleDalAppNavProxy } from './http/dalAppNavProxy.js';
 import { getRequestId, requestIdMiddleware } from './http/requestId.js';
 import { timingSafeEqualString } from './http/timingSafeEqual.js';
-import {
-  catalogNeedsImport as warframeCatalogNeedsImport,
-  runStartupPipeline as runWarframeStartupPipeline,
-} from './import/warframe/startupPipeline.js';
+import { startAdminImportJob as startWarframeAdminImportJob } from './import/warframe/adminImportJob.js';
+import { recoverImportLeaseOnStartup as recoverWarframeImportLeaseOnStartup } from './import/warframe/importRuns.js';
+import { catalogNeedsImport as warframeCatalogNeedsImport } from './import/warframe/startupPipeline.js';
 import { contentTypeForImagePath, isAllowedImageExtension } from './import/wor/images.js';
 import {
   catalogNeedsImport,
@@ -132,9 +131,17 @@ void refreshWorDbAvailability().then(async () => {
 void (async () => {
   if (NODE_ENV === 'test') return;
   try {
+    // Drop leases left by a previous process so admin UI is not stuck on Importing…
+    recoverWarframeImportLeaseOnStartup();
     if (warframeCatalogNeedsImport()) {
       log('info', 'Warframe catalog empty — running import bootstrap');
-      await runWarframeStartupPipeline();
+      // Route through the admin job so the Warframe admin page shows live log + running state.
+      const result = startWarframeAdminImportJob('system:startup');
+      if (!result.started) {
+        log('warn', 'Warframe startup import could not start', {
+          reason: result.reason ?? 'unknown',
+        });
+      }
     }
   } catch (error) {
     log('error', 'Warframe startup catalog bootstrap failed', {

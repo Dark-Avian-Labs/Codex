@@ -5,7 +5,6 @@ import { bustCatalogResponseCache } from './cacheStubs.js';
 import { bustModListCache } from './cacheStubs.js';
 import {
   createImportRun,
-  forceReleaseImportLease,
   getActiveImportRunId,
   getImportRunRow,
   getLatestImportRunRow,
@@ -14,6 +13,7 @@ import {
   noteImportLeaseHeartbeat,
   parseImportRunSteps,
   persistImportRunSteps,
+  recoverImportLeaseOnStartup,
   releaseImportLease,
   touchLiveImportLease,
   tryAcquireImportLease,
@@ -165,13 +165,8 @@ export function resetAdminImportLock(): AdminImportResetResult {
       snapshot: getAdminImportSnapshot(),
     };
   }
-  if (!forceReleaseImportLease()) {
-    return {
-      cleared: false,
-      reason: 'Import lease is held by another process; wait for it to finish or expire.',
-      snapshot: getAdminImportSnapshot(),
-    };
-  }
+  // No local job: always drop the lease (including non-stale orphans from a prior process).
+  recoverImportLeaseOnStartup();
   state.running = false;
   if (state.runId > 0 && !state.finishedAt) {
     state.finishedAt = nowIso();
