@@ -2,6 +2,7 @@ import Database from 'better-sqlite3';
 import { afterEach, beforeEach, expect, it } from 'vitest';
 
 import { createSchema as createWorSchema } from '../packages/games/wor/src/db/schema.js';
+import { ensureWorImportTables } from '../packages/games/wor/src/db/schema.js';
 import {
   requireWorImportLease,
   tryAcquireWorImportLease,
@@ -20,6 +21,7 @@ describeWithSqlite('WoR import lease writes', () => {
     tmpDir = paths.tmpDir;
     db = new Database(paths.dbPath);
     createWorSchema(db);
+    ensureWorImportTables(db);
   });
 
   afterEach(() => {
@@ -33,7 +35,7 @@ describeWithSqlite('WoR import lease writes', () => {
     const watch = { lost: false };
 
     requireWorImportLease(db, token!, watch);
-    applyWorCatalogMutation(db, {
+    applyWorCatalogMutation(db, db, {
       heroes: [{ slug: 'lian', name: 'Lian', class: 'marksman', faction: 'watchguard', rarity: 'legendary' }],
       artifacts: [],
       demons: [],
@@ -42,7 +44,7 @@ describeWithSqlite('WoR import lease writes', () => {
     db.prepare('UPDATE import_lease SET lock_token = ? WHERE id = 1').run('stolen');
     expect(() => {
       requireWorImportLease(db, token!, watch);
-      applyWorCatalogMutation(db, {
+      applyWorCatalogMutation(db, db, {
         heroes: [{ slug: 'hex', name: 'Hex', class: 'fighter', faction: 'chaos_dominion', rarity: 'legendary' }],
         artifacts: [],
         demons: [],

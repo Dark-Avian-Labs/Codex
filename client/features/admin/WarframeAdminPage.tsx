@@ -16,6 +16,7 @@ import { useTableScrollStyle } from '../../hooks/useTableScrollStyle';
 import { apiFetch } from '../../utils/api';
 import { useAuth } from '../auth/AuthContext';
 import { TAB_ORDER as WORKSHEET_ORDER, WORKSHEET_LABELS } from '../warframe/warframeConstants.js';
+import { WarframeImportAdminTool } from './WarframeImportAdminTool';
 import { WarframeSyncAdminTool } from './WarframeSyncAdminTool';
 
 const NAME_PREVIEW_LIMIT = 10;
@@ -58,7 +59,7 @@ function SyncFromArmoryReportModal({
     >
       {!result ? (
         <>
-          <h2 id="warframe-sync-report-title">Armory sync</h2>
+          <h2 id="warframe-sync-report-title">Catalog sync</h2>
           <p className="text-muted text-sm">No report data.</p>
           <div className="modal-actions">
             <button type="button" className="btn btn-cancel" onClick={onClose}>
@@ -96,10 +97,10 @@ function SyncFromArmoryReportBody({
 
   return (
     <>
-      <h2 id="warframe-sync-report-title">Armory sync complete</h2>
+      <h2 id="warframe-sync-report-title">Catalog sync complete</h2>
       <p className="text-muted mt-2 text-sm leading-relaxed">
-        Worksheet rows were reconciled against Armory&apos;s database (same item names your tracker
-        uses). Totals below are across all Codex users who own these worksheets.
+        Worksheet rows were reconciled against the Warframe catalog database (same item names your
+        tracker uses). Totals below are across all Codex users who own these worksheets.
       </p>
 
       <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
@@ -111,7 +112,7 @@ function SyncFromArmoryReportBody({
         <dd className="font-mono font-medium tabular-nums">{summary.markedUnavailable}</dd>
         <dt className="text-muted">Mismatched (still on sheet)</dt>
         <dd className="font-mono font-medium tabular-nums">{summary.mismatched}</dd>
-        <dt className="text-muted">Warframe Market links (from Armory)</dt>
+        <dt className="text-muted">Warframe Market links (from catalog)</dt>
         <dd className="text-sm leading-snug">
           {!marketLinkSync.ran ? (
             <span className="text-muted">Not run</span>
@@ -174,14 +175,14 @@ function SyncFromArmoryReportBody({
 
       {totalMovement === 0 && cleanupRemoved === 0 && cleanupReview === 0 && marketHadNoActivity ? (
         <p className="text-muted mt-4 text-sm">
-          No changes were necessary — Codex already matched Armory for every user.
+          No changes were necessary — Codex already matched the catalog for every user.
         </p>
       ) : totalMovement === 0 &&
         cleanupRemoved === 0 &&
         cleanupReview === 0 &&
         marketHadSuccessfulRefresh ? (
         <p className="text-muted mt-4 text-sm">
-          No worksheet row changes — Warframe Market links were still refreshed from Armory (
+          No worksheet row changes — Warframe Market links were still refreshed from the catalog (
           {marketLinkSync.rowsWithLink} with URLs, {marketLinkSync.rowsProcessed} rows updated).
         </p>
       ) : (
@@ -232,7 +233,7 @@ function SyncFromArmoryReportBody({
                         {ws.mismatched.length > 0 ? (
                           <li>
                             <span className="text-[var(--color-foreground)]">
-                              Not in Armory list ({ws.mismatched.length} rows)
+                              Not in catalog list ({ws.mismatched.length} rows)
                             </span>{' '}
                             - still on this worksheet; highlighted in the table until you remove or
                             fix them.
@@ -494,8 +495,9 @@ export function WarframeAdminPage() {
       />
       <h1 className="text-2xl font-semibold">Warframe Admin</h1>
       <p className="text-muted text-sm">
-        Preview worksheet sync impact below. Run the import from the sync tool panel.
+        Import the catalog first, then preview and sync worksheet rows for each user.
       </p>
+      <WarframeImportAdminTool />
       <WarframeSyncAdminTool
         onSyncComplete={async (result) => {
           setSummary(result.summary ?? null);
@@ -521,8 +523,8 @@ export function WarframeAdminPage() {
             <span>Cleanup Review Needed: {cleanup.requiresConfirmation}</span>
           ) : null}
           <span className="text-muted">
-            Market links: Armory URLs are written only when you run full &quot;Sync From
-            Armory&quot; (not this preview).
+            Market links: catalog URLs are written only when you run full &quot;Sync From
+            Catalog&quot; (not this preview).
           </span>
         </div>
       ) : null}

@@ -12,7 +12,7 @@ import {
 } from '@codex/core';
 import { closeEpic7Db, getEpic7Db } from '@codex/game-epic7';
 import { closeWarframeDb, getWarframeDb } from '@codex/game-warframe';
-import { closeWorDb, getWorDb } from '@codex/game-wor';
+import { closeWorCatalogDb, closeWorDb, getWorCatalogDb, getWorDb } from '@codex/game-wor';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import { csrfSync } from 'csrf-sync';
@@ -45,8 +45,17 @@ import { refreshEpic7DbAvailability } from './epic7DbState.js';
 import { handleDalAppNavProxy } from './http/dalAppNavProxy.js';
 import { getRequestId, requestIdMiddleware } from './http/requestId.js';
 import { timingSafeEqualString } from './http/timingSafeEqual.js';
+import {
+  catalogNeedsImport as warframeCatalogNeedsImport,
+  runStartupPipeline as runWarframeStartupPipeline,
+} from './import/warframe/startupPipeline.js';
 import { contentTypeForImagePath, isAllowedImageExtension } from './import/wor/images.js';
-import { catalogNeedsImport, runWorStartupPipeline } from './import/wor/startupPipeline.js';
+import {
+  catalogNeedsImport,
+  copyWorCatalogIntoCollectionIfNeeded,
+  ensureWorCatalogSeededFromCollection,
+  runWorStartupPipeline,
+} from './import/wor/startupPipeline.js';
 import { healthzHandler, readyzHandler } from './probes.js';
 import { apiRouter } from './routes/api.js';
 import { authRouter } from './routes/auth.js';
@@ -107,8 +116,10 @@ ensureGameSchemasReady();
 void refreshEpic7DbAvailability();
 void refreshWorDbAvailability().then(async () => {
   try {
-    const db = getWorDb();
-    if (catalogNeedsImport(db)) {
+    ensureWorCatalogSeededFromCollection();
+    copyWorCatalogIntoCollectionIfNeeded();
+    const catalogDb = getWorCatalogDb();
+    if (catalogNeedsImport(catalogDb)) {
       log('info', 'WoR catalog empty — running fixture bootstrap import');
       await runWorStartupPipeline();
     }
@@ -118,6 +129,19 @@ void refreshWorDbAvailability().then(async () => {
     });
   }
 });
+void (async () => {
+  if (NODE_ENV === 'test') return;
+  try {
+    if (warframeCatalogNeedsImport()) {
+      log('info', 'Warframe catalog empty — running import bootstrap');
+      await runWarframeStartupPipeline();
+    }
+  } catch (error) {
+    log('error', 'Warframe startup catalog bootstrap failed', {
+      err: error instanceof Error ? error.message : String(error),
+    });
+  }
+})();
 
 const app = express();
 if (TRUST_PROXY) app.set('trust proxy', 1);
@@ -544,6 +568,7 @@ function shutdown(baseExitCode = 0, signal?: string): void {
       closeWarframeDb();
       closeEpic7Db();
       closeWorDb();
+      closeWorCatalogDb();
     } catch (err) {
       log('error', 'Failed to close DB connections during shutdown', {
         err: err instanceof Error ? err.message : String(err),

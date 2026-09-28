@@ -8,7 +8,7 @@ Shared Dark Avian Labs engineering conventions (README shape, CI/PR runners, val
 
 Codex is a table-based collection tracker for **Warframe**, **Epic Seven**, and **Watcher of Realms** (`wor`). Each game is its own workspace package under `packages/`. Do not force one UI pattern across games: Warframe is worksheets/cells; Epic Seven and WoR are account + catalog lists. There is no shared collection-table abstraction.
 
-Warframe catalog rows sync from Armory's SQLite. Epic Seven and WoR have no live game API: Epic Seven uses curated `base_*` tables; WoR imports from Fastidious and Fandom.
+Warframe catalog is imported into `WARFRAME_CATALOG_DB_PATH` (`pnpm run warframe:import`), then names are copied into the Warframe collection DB. Epic Seven and WoR have no live game API: Epic Seven uses curated `base_*` tables; WoR imports from Fastidious and Fandom into `WOR_CATALOG_DB_PATH`, then copies catalog tables into `WOR_DB_PATH`.
 
 Default listen port is **3001**. See `README.md` for scripts and env.
 
@@ -22,25 +22,28 @@ pnpm --filter @codex/core --filter @codex/game-warframe --filter @codex/game-epi
 
 `pnpm run db:init` applies Warframe, Epic Seven, and WoR schemas from built package `dist`. Server `onOpen` assumes tables already exist (WoR `onOpen` is validate + additive migrations only). Encrypted `.env.production` garbles `VITE_BASE_PATH` during `vite build`; rebuild the client with `npx vite build --mode devbuild`.
 
-| File           | Env                                                | Notes                                                                                                                                                    |
-| -------------- | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Session        | `SESSION_DB_PATH`                                  | **Absolute.** Codex-owned. CSRF, Epic7/WoR active account, **and** Warframe sync runs/leases. Not Armory's session file.                                 |
-| Armory catalog | `ARMORY_DB_PATH`                                   | **Absolute, read-only.** Opened with `busy_timeout = 5000` because Armory may write the same WAL. `ensureDataDirs()` does not create this file's parent. |
-| Game DBs       | `WARFRAME_DB_PATH`, `EPIC7_DB_PATH`, `WOR_DB_PATH` | May be relative. Codex copies Armory catalog into the Warframe DB; it does not live-join Armory forever.                                                 |
+| File             | Env                                                | Notes                                                                                                              |
+| ---------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Session          | `SESSION_DB_PATH`                                  | **Absolute.** Codex-owned. CSRF, Epic7/WoR active account, **and** Warframe sync runs/leases.                      |
+| Warframe catalog | `WARFRAME_CATALOG_DB_PATH`                         | Default `data/warframe-catalog.db`. Written by `warframe:import`; sync reads it read-only (`busy_timeout = 5000`). |
+| WoR catalog      | `WOR_CATALOG_DB_PATH`                              | Default `data/wor-catalog.db`. Written by WoR import (lease/runs live here). Outfitter reads this file.            |
+| Game DBs         | `WARFRAME_DB_PATH`, `EPIC7_DB_PATH`, `WOR_DB_PATH` | May be relative. Catalog names/tables are copied into collection DBs after import.                                 |
 
-Do not point session and Armory paths at the same file, and do not reuse BudgetPlanner SQLite files. Sync yields between users; force-release of the sync lease is refused while an in-process sync is still running. Sync preview is `POST /api/warframe/admin/sync-preview` (CSRF), not GET.
+Do not point session and catalog paths at the same file, and do not reuse BudgetPlanner SQLite files. Sync yields between users; force-release of the sync lease is refused while an in-process sync is still running. Sync preview is `POST /api/warframe/admin/sync-preview` (CSRF), not GET.
 
-`/healthz` is liveness. `/readyz` checks session + game DBs + a readable `ARMORY_DB_PATH`.
+`/healthz` is liveness. `/readyz` checks session + game DBs + readable `WARFRAME_CATALOG_DB_PATH` and `WOR_CATALOG_DB_PATH`.
 
 ## Warframe progress
 
 Advanced progress lives in `row_advanced_progress`, not `cell_values` (`PATCH …/advanced-progress`). Auto Orokin / auto Arcane force `true` when resolving display/persist state, overwriting a stored `false` for exalted and warframe auto-arcane cases. Non-subsumable Excalibur Umbra Helminth may only be `Unavailable`.
 
-Modular Weapons prefer Armory's `codex_modular_weapons` table. DE `codex_secret` / `exclude_from_codex` flags are stored in Armory; Codex does not filter on them.
+Modular Weapons prefer the catalog DB `codex_modular_weapons` table. DE `codex_secret` / `exclude_from_codex` flags are stored in the catalog DB; Codex does not filter on them.
 
 ## Watcher of Realms
 
-Heroes have a primary `faction` plus optional `faction_secondary` (Fastidious dual-faction). Filters match either. Fastidious is the base catalog. The `prospectorCatalog` step appends heroes and artifacts whose slugs are still missing from that catalog, including newer exclusives from `https://prospector.gg/hero/` and `https://prospector.gg/artifacts/`. Fastidious rows stay as Fastidious wrote them. A blank faction (`unaffiliated`) or blank damage type is filled from Prospector when that snapshot has one. A Prospector lord, from the identity checkbox or a Lord Skill, sets `is_lord` only when Fastidious left that hero unaffiliated. A hero Fastidious already gave a faction keeps a non-lord flag. Override patches run **before** portrait download so wiki-only (override-add) heroes still get images. Prospector portrait URLs are the image fallback when wiki and Fastidious have no file. After wiki hero stats, Prospector also fills missing Lv.60 A0 combat attributes from the same snapshot. Catalog upsert, deactivation, version bump, and account sync run in one transaction after downloads. Keep `shared/worPipelineSteps.ts` in sync with `server/import/wor/worPipelineSteps.ts`.
+WoR uses two SQLite files: import writes only to `WOR_CATALOG_DB_PATH` (`data/wor-catalog.db` by default; lease + `import_runs` live there). After a successful catalog mutation (including hero stats), Codex copies `catalog_*` / `catalog_meta` into `WOR_DB_PATH` and syncs account rows there. The app JOINs catalog and account tables on `WOR_DB_PATH` only. Outfitter reads the catalog file. If `wor-catalog.db` is empty but `wor.db` still has `catalog_heroes`, boot seeds the catalog DB from the collection once.
+
+Heroes have a primary `faction` plus optional `faction_secondary` (Fastidious dual-faction). Filters match either. Fastidious is the base catalog. The `prospectorCatalog` step appends heroes and artifacts whose slugs are still missing from that catalog, including newer exclusives from `https://prospector.gg/hero/` and `https://prospector.gg/artifacts/`. Fastidious rows stay as Fastidious wrote them. A blank faction (`unaffiliated`) or blank damage type is filled from Prospector when that snapshot has one. A Prospector lord, from the identity checkbox or a Lord Skill, sets `is_lord` only when Fastidious left that hero unaffiliated. A hero Fastidious already gave a faction keeps a non-lord flag. Override patches run **before** portrait download so wiki-only (override-add) heroes still get images. Prospector portrait URLs are the image fallback when wiki and Fastidious have no file. After wiki hero stats, Prospector also fills missing Lv.60 A0 combat attributes from the same snapshot. Catalog upsert, deactivation, version bump, copy into `wor.db`, and account sync run after downloads. Keep `shared/worPipelineSteps.ts` in sync with `server/import/wor/worPipelineSteps.ts`.
 
 Class, faction, and rank-star icons are bundled from `packages/games/wor/assets/` (`classes/`, `factions/`, `ranks/`). The import pipeline downloads hero/artifact/demon portraits only.
 

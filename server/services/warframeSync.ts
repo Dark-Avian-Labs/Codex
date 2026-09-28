@@ -13,7 +13,7 @@ import {
 } from '@codex/game-warframe';
 import Database from 'better-sqlite3';
 
-import { ARMORY_DB_PATH } from '../config.js';
+import { WARFRAME_CATALOG_DB_PATH } from '../config.js';
 import { renewOrThrowWarframeSyncLease } from './warframeSyncJobs.js';
 
 const WORKSHEET_NAMES = [
@@ -412,7 +412,7 @@ type WorksheetSourceBundle = {
   arcaneMaxLevelByCanonicalKey: Map<string, number>;
 };
 
-function loadWorksheetSource(armoryDb: Database.Database): WorksheetSourceBundle {
+export function loadWorksheetSource(armoryDb: Database.Database): WorksheetSourceBundle {
   const warframes = new Set(
     loadNames(armoryDb, "SELECT name FROM warframes WHERE product_category = 'Suits'"),
   );
@@ -783,7 +783,7 @@ function catalogRowsHasMaxLevelColumn(codexDb: Database.Database): boolean {
   return cols.some((c) => c.name === 'max_level');
 }
 
-function syncCatalogMasterFromSource(
+export function syncCatalogMasterFromSource(
   codexDb: Database.Database,
   sourceByWorksheet: Record<WorksheetName, Set<string>>,
   arcaneMaxLevelByCanonicalKey: Map<string, number>,
@@ -1092,7 +1092,7 @@ export async function runWarframeSync(
   }
   const mode = options.execute ? 'execute' : 'preview';
   const syncStartedAt = Date.now();
-  const armoryDb = new Database(ARMORY_DB_PATH, {
+  const armoryDb = new Database(WARFRAME_CATALOG_DB_PATH, {
     readonly: true,
     fileMustExist: true,
   });

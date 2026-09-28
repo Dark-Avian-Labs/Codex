@@ -590,4 +590,15 @@ export function catalogHasEntries(db: Database.Database): boolean {
   return Number(row.total) > 0;
 }
 
+export function getCatalogVersion(db: Database.Database): number {
+  try {
+    const row = db.prepare('SELECT catalog_version FROM catalog_meta WHERE id = 1').get() as
+      | { catalog_version: number }
+      | undefined;
+    return Number(row?.catalog_version ?? 0);
+  } catch {
+    return 0;
+  }
+}
+
 export { heroClasses, factions, HERO_AWAKENING_MAX, ARTIFACT_PROMOTION_MAX };

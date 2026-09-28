@@ -14,8 +14,8 @@ describe('requireAbsoluteSqlitePath', () => {
   });
 
   it('rejects relative paths', () => {
-    expect(() => requireAbsoluteSqlitePath('ARMORY_DB_PATH', './data/armory.db')).toThrow(
-      'ARMORY_DB_PATH must be absolute; relative paths are not supported.',
+    expect(() => requireAbsoluteSqlitePath('WARFRAME_CATALOG_DB_PATH', './data/warframe-catalog.db')).toThrow(
+      'WARFRAME_CATALOG_DB_PATH must be absolute; relative paths are not supported.',
     );
   });
 });

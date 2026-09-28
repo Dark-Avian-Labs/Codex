@@ -36,6 +36,7 @@ import {
   SyncAlreadyRunningError,
 } from '../services/warframeSyncState.js';
 import { openWarframeDbOrFail, runWithWarframeDb } from './routeHelpers.js';
+import { warframeAdminImportRouter } from './warframeAdminImportApi.js';
 
 export const warframeApiRouter = Router();
 
@@ -528,3 +529,5 @@ warframeApiRouter.post('/admin/sync-source', requireCodexAdmin, (req, res) => {
     })();
   })();
 });
+
+warframeApiRouter.use('/admin', warframeAdminImportRouter);

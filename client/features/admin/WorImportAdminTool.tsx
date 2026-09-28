@@ -186,7 +186,7 @@ export function WorImportAdminTool() {
           </p>
           {snapshot.summary.missingPortraits && snapshot.summary.missingPortraits.length > 0 ? (
             <p className="text-muted">
-              Missing portraits: {snapshot.summary.missingPortraits.length} (see log).
+              Missing portraits: {snapshot.summary.missingPortraits.length} (listed in log below).
             </p>
           ) : null}
           {snapshot.summary.missingStarAssets && snapshot.summary.missingStarAssets.length > 0 ? (

@@ -1,0 +1,302 @@
+[
+  {
+    "uniqueName": "/Lotus/Powersuits/Pacifist/Pacifist",
+    "name": "Baruuk",
+    "bonuses": {
+      "health": 100,
+      "shield": 100,
+      "armor": 0,
+      "energy": 100
+    }
+  },
+  {
+    "uniqueName": "/Lotus/Powersuits/Pacifist/BaruukPrime",
+    "name": "Baruuk Prime",
+    "bonuses": {
+      "health": 100,
+      "shield": 100,
+      "armor": 0,
+      "energy": 100
+    }
+  },
+  {
+    "uniqueName": "/Lotus/Powersuits/Dragon/ChromaPrime",
+    "name": "Chroma Prime",
+    "bonuses": {
+      "health": 100,
+      "shield": 100,
+      "armor": 0,
+      "energy": 100
+    }
+  },
+  {
+    "uniqueName": "/Lotus/Powersuits/Pagemaster/Pagemaster",
+    "name": "Dante",
+    "bonuses": {
+      "health": 90,
+      "shield": 90,
+      "armor": 0,
+      "energy": 70
+    }
+  },
+  {
+    "uniqueName": "/Lotus/Powersuits/Garuda/Garuda",
+    "name": "Garuda",
+    "bonuses": {
+      "health": 100,
+      "shield": 100,
+      "armor": 0,
+      "energy": 100
+    }
+  },
+  {
+    "uniqueName": "/Lotus/Powersuits/Garuda/GarudaPrime",
+    "name": "Garuda Prime",
+    "bonuses": {
+      "health": 100,
+      "shield": 100,
+      "armor": 0,
+      "energy": 100
+    }
+  },
+  {
+    "uniqueName": "/Lotus/Powersuits/Devourer/Devourer",
+    "name": "Grendel",
+    "bonuses": {
+      "health": 200,
+      "shield": 0,
+      "armor": 0,
+      "energy": 50
+    }
+  },
+  {
+    "uniqueName": "/Lotus/Powersuits/Devourer/GrendelPrime",
+    "name": "Grendel Prime",
+    "bonuses": {
+      "health": 200,
+      "shield": 0,
+      "armor": 0,
+      "energy": 50
+    }
+  },
+  {
+    "uniqueName": "/Lotus/Powersuits/IronFrame/IronFrame",
+    "name": "Hildryn",
+    "bonuses": {
+      "health": 100,
+      "shield": 500,
+      "armor": 0,
+      "energy": 0
+    }
+  },
+  {
+    "uniqueName": "/Lotus/Powersuits/IronFrame/IronFramePrime",
+    "name": "Hildryn Prime",
+    "bonuses": {
+      "health": 100,
+      "shield": 500,
+      "armor": 0,
+      "energy": 0
+    }
+  },
+  {
+    "uniqueName": "/Lotus/Powersuits/Sandman/Sandman",
+    "name": "Inaros",
+    "bonuses": {
+      "health": 200,
+      "shield": 0,
+      "armor": 0,
+      "energy": 50
+    }
+  },
+  {
+    "uniqueName": "/Lotus/Powersuits/Sandman/InarosPrime",
+    "name": "Inaros Prime",
+    "bonuses": {
+      "health": 200,
+      "shield": 0,
+      "armor": 0,
+      "energy": 50
+    }
+  },
+  {
+    "uniqueName": "/Lotus/Powersuits/Koumei/Koumei",
+    "name": "Koumei",
+    "bonuses": {
+      "health": 100,
+      "shield": 100,
+      "armor": 0,
+      "energy": 100
+    }
+  },
+  {
+    "uniqueName": "/Lotus/Powersuits/PaxDuviricus/PaxDuviricus",
+    "name": "Kullervo",
+    "bonuses": {
+      "health": 200,
+      "shield": 0,
+      "armor": 100,
+      "energy": 50
+    }
+  },
+  {
+    "uniqueName": "/Lotus/Powersuits/Alchemist/Alchemist",
+    "name": "Lavos",
+    "bonuses": {
+      "health": 200,
+      "shield": 100,
+      "armor": 100,
+      "energy": 0
+    }
+  },
+  {
+    "uniqueName": "/Lotus/Powersuits/Alchemist/LavosPrime",
+    "name": "Lavos Prime",
+    "bonuses": {
+      "health": 200,
+      "shield": 100,
+      "armor": 100,
+      "energy": 0
+    }
+  },
+  {
+    "uniqueName": "/Lotus/Powersuits/Nezha/Nezha",
+    "name": "Nezha",
+    "bonuses": {
+      "health": 100,
+      "shield": 50,
+      "armor": 0,
+      "energy": 50
+    }
+  },
+  {
+    "uniqueName": "/Lotus/Powersuits/Nezha/NezhaPrime",
+    "name": "Nezha Prime",
+    "bonuses": {
+      "health": 100,
+      "shield": 50,
+      "armor": 0,
+      "energy": 50
+    }
+  },
+  {
+    "uniqueName": "/Lotus/Powersuits/Infestation/Infestation",
+    "name": "Nidus",
+    "bonuses": {
+      "health": 100,
+      "shield": 0,
+      "armor": 100,
+      "energy": 50
+    }
+  },
+  {
+    "uniqueName": "/Lotus/Powersuits/Infestation/InfestationPrime",
+    "name": "Nidus Prime",
+    "bonuses": {
+      "health": 100,
+      "shield": 0,
+      "armor": 100,
+      "energy": 50
+    }
+  },
+  {
+    "uniqueName": "/Lotus/Powersuits/Saryn/SarynPrime",
+    "name": "Saryn Prime",
+    "bonuses": {
+      "health": 100,
+      "shield": 100,
+      "armor": 0,
+      "energy": 100
+    }
+  },
+  {
+    "uniqueName": "/Lotus/Powersuits/Berserker/Berserker",
+    "name": "Valkyr",
+    "bonuses": {
+      "health": 100,
+      "shield": 50,
+      "armor": 0,
+      "energy": 50
+    }
+  },
+  {
+    "uniqueName": "/Lotus/Powersuits/Berserker/ValkyrPrime",
+    "name": "Valkyr Prime",
+    "bonuses": {
+      "health": 100,
+      "shield": 50,
+      "armor": 0,
+      "energy": 50
+    }
+  },
+  {
+    "uniqueName": "/Lotus/Powersuits/Volt/VoltPrime",
+    "name": "Volt Prime",
+    "bonuses": {
+      "health": 100,
+      "shield": 100,
+      "armor": 0,
+      "energy": 100
+    }
+  },
+  {
+    "uniqueName": "/Lotus/Powersuits/Wisp/Wisp",
+    "name": "Wisp",
+    "bonuses": {
+      "health": 100,
+      "shield": 100,
+      "armor": 0,
+      "energy": 100
+    }
+  },
+  {
+    "uniqueName": "/Lotus/Powersuits/Wisp/WispPrime",
+    "name": "Wisp Prime",
+    "bonuses": {
+      "health": 100,
+      "shield": 100,
+      "armor": 0,
+      "energy": 100
+    }
+  },
+  {
+    "uniqueName": "/Lotus/Powersuits/BrokenFrame/BrokenFrame",
+    "name": "Xaku",
+    "bonuses": {
+      "health": 90,
+      "shield": 90,
+      "armor": 0,
+      "energy": 70
+    }
+  },
+  {
+    "uniqueName": "/Lotus/Powersuits/BrokenFrame/XakuPrime",
+    "name": "Xaku Prime",
+    "bonuses": {
+      "health": 90,
+      "shield": 90,
+      "armor": 0,
+      "energy": 70
+    }
+  },
+  {
+    "uniqueName": "/Lotus/Powersuits/Yareli/Yareli",
+    "name": "Yareli",
+    "bonuses": {
+      "health": 100,
+      "shield": 100,
+      "armor": 0,
+      "energy": 100
+    }
+  },
+  {
+    "uniqueName": "/Lotus/Powersuits/Yareli/YareliPrime",
+    "name": "Yareli Prime",
+    "bonuses": {
+      "health": 100,
+      "shield": 100,
+      "armor": 0,
+      "energy": 100
+    }
+  }
+]

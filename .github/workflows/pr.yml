@@ -99,10 +99,13 @@ jobs:
               echo ""
               echo "# CI-only absolute DB paths (core rejects relative SESSION_DB_PATH)"
               echo "SESSION_DB_PATH=${DB_ROOT}/session.test.db"
-              echo "ARMORY_DB_PATH=${DB_ROOT}/armory.test.db"
+              echo "WARFRAME_CATALOG_DB_PATH=${DB_ROOT}/warframe-catalog.test.db"
               echo "WARFRAME_DB_PATH=${DB_ROOT}/warframe.test.db"
               echo "EPIC7_DB_PATH=${DB_ROOT}/epic7.test.db"
               echo "WOR_DB_PATH=${DB_ROOT}/wor.test.db"
+              echo "WOR_CATALOG_DB_PATH=${DB_ROOT}/wor-catalog.test.db"
+              : > "${DB_ROOT}/warframe-catalog.test.db"
+              : > "${DB_ROOT}/wor-catalog.test.db"
             } >> .env.development
             echo "::notice title=CI env::No DOTENV_PRIVATE_KEY_DEVELOPMENT (Dependabot/forks). Using .github/ci.env.development plus RUNNER_TEMP DB paths. Optional: add this secret under Settings → Secrets and variables → Actions → Dependabot to use the committed encrypted .env.development instead."
           fi

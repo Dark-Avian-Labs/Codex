@@ -120,6 +120,21 @@ async function downloadWikiFile(
   return result.status === 'failed' ? null : worImageWebPath(result.relativePath);
 }
 
+type PortraitFailureDetail = {
+  slug: string;
+  kind: 'hero' | 'artifact' | 'demon';
+  reason: string;
+};
+
+function notePortraitFailure(
+  summary: WorImageDownloadSummary,
+  detail: PortraitFailureDetail,
+  onFailure?: (detail: PortraitFailureDetail) => void,
+): void {
+  summary.failedPortraitDetails.push(detail);
+  onFailure?.(detail);
+}
+
 async function downloadPortraitForEntity(options: {
   kind: 'hero' | 'artifact' | 'demon';
   slug: string;
@@ -129,6 +144,7 @@ async function downloadPortraitForEntity(options: {
   imageRefs: FastidiousImageRef;
   forceDownload: boolean;
   summary: WorImageDownloadSummary;
+  onFailure?: (detail: PortraitFailureDetail) => void;
 }): Promise<string | null> {
   const basePath = `${options.kind}s/${options.slug}`;
   const portraitFile = await resolvePortraitFileName(options.name);
@@ -141,11 +157,6 @@ async function downloadPortraitForEntity(options: {
       options.summary,
     );
     if (webPath) return webPath;
-    options.summary.failedPortraitDetails.push({
-      slug: options.slug,
-      kind: options.kind,
-      reason: `wiki file unresolved: ${portraitFile}`,
-    });
   }
 
   const candidates: { url: string; reason: string }[] = [];
@@ -156,14 +167,20 @@ async function downloadPortraitForEntity(options: {
         options.imageRefs.storageVersion,
         options.fastidiousFile,
       ),
-      reason: 'fastidious download failed',
+      reason: `fastidious download failed (${options.fastidiousFile})`,
     });
   }
   if (options.directUrl) {
-    candidates.push({ url: options.directUrl, reason: 'prospector download failed' });
+    candidates.push({
+      url: options.directUrl,
+      reason: `prospector download failed (${options.directUrl})`,
+    });
   }
 
-  let lastReason = 'no wiki, fastidious, or prospector image source';
+  let lastReason =
+    portraitFile == null
+      ? 'no wiki portrait file; no fastidious or prospector image source'
+      : `wiki file unresolved or download failed: File:${portraitFile}`;
   for (const candidate of candidates) {
     const result = await downloadImageToWorDir({
       url: candidate.url,
@@ -173,18 +190,22 @@ async function downloadPortraitForEntity(options: {
     if (result.status === 'downloaded') options.summary.portraitsDownloaded += 1;
     else if (result.status === 'skipped') options.summary.portraitsSkipped += 1;
     else {
-      lastReason = result.error ?? candidate.reason;
+      lastReason = `${candidate.reason}: ${result.error ?? 'download failed'} [${candidate.url}]`;
       continue;
     }
     return worImageWebPath(result.relativePath);
   }
 
   options.summary.portraitsFailed += 1;
-  options.summary.failedPortraitDetails.push({
-    slug: options.slug,
-    kind: options.kind,
-    reason: lastReason,
-  });
+  notePortraitFailure(
+    options.summary,
+    {
+      slug: options.slug,
+      kind: options.kind,
+      reason: lastReason,
+    },
+    options.onFailure,
+  );
   return null;
 }
 
@@ -265,6 +286,7 @@ export async function downloadCatalogPortraits(options: {
     artifacts?: Record<string, string | null | undefined>;
   };
   onLog?: (message: string) => void;
+  onPortraitFailure?: (detail: PortraitFailureDetail) => void;
 }): Promise<{ bundle: CatalogBundle; summary: WorImageDownloadSummary }> {
   const summary: WorImageDownloadSummary = {
     portraitsDownloaded: 0,
@@ -314,6 +336,7 @@ export async function downloadCatalogPortraits(options: {
         imageRefs: options.imageRefs,
         forceDownload,
         summary,
+        onFailure: options.onPortraitFailure,
       }),
       existing,
     );
@@ -358,6 +381,7 @@ export async function downloadCatalogPortraits(options: {
         imageRefs: options.imageRefs,
         forceDownload,
         summary,
+        onFailure: options.onPortraitFailure,
       }),
       existing,
     );
@@ -401,6 +425,7 @@ export async function downloadCatalogPortraits(options: {
         imageRefs: options.imageRefs,
         forceDownload,
         summary,
+        onFailure: options.onPortraitFailure,
       }),
       existing,
     );

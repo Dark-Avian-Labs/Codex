@@ -1,6 +1,6 @@
 import { requireCodexAdmin } from '@codex/core';
 import { validateBody } from '@codex/core/validation';
-import { getWorDb, worAdminImportRunSchema } from '@codex/game-wor';
+import { getWorCatalogDb, worAdminImportRunSchema } from '@codex/game-wor';
 import { Router, type Response } from 'express';
 
 import {
@@ -120,7 +120,7 @@ worAdminApiRouter.get('/catalog/status', requireCodexAdmin, (_req, res) => {
     err(res, 'WoR database unavailable', 503);
     return;
   }
-  const db = getWorDb();
+  const db = getWorCatalogDb();
   json(res, {
     needs_import: catalogNeedsImport(db),
     has_catalog: !catalogNeedsImport(db),

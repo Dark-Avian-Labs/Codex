@@ -2,7 +2,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import { log } from '@codex/core';
-import { ensureWorCoreTables, getWorDb, worQueries } from '@codex/game-wor';
+import {
+  ensureWorCatalogDbTables,
+  ensureWorCoreTables,
+  getWorCatalogDb,
+  getWorDb,
+  worQueries,
+} from '@codex/game-wor';
 import type Database from 'better-sqlite3';
 
 import { WOR_IMAGES_DIR, PROJECT_ROOT } from '../../config.js';
@@ -16,6 +22,10 @@ import {
   upsertCatalogHeroes,
   type CatalogBundle,
 } from './catalogQueries.js';
+import {
+  copyWorCatalogToCollection,
+  seedWorCatalogFromCollectionIfEmpty,
+} from './copyCatalogToCollection.js';
 import { importFandomHeroStats } from './fandomHeroStats.js';
 import { downloadCatalogPortraits, type WorImageDownloadSummary } from './fandomImages.js';
 import { fetchFastidiousCatalog, type FastidiousImageRef } from './fastidiousCatalog.js';
@@ -120,30 +130,27 @@ function stepTag(step: WorPipelineStepKey): string {
   return WOR_PIPELINE_STEP_LABELS[step];
 }
 
-export function applyWorCatalogMutation(
-  db: Database.Database,
+/** Upsert/deactivate catalog rows on the catalog DB only (no account writes). */
+export function applyWorCatalogUpserts(
+  catalogDb: Database.Database,
   bundle: CatalogBundle | null,
   onLog?: WorStartupPipelineOptions['onLog'],
 ): void {
-  db.transaction(() => {
-    if (bundle) {
-      const heroCount = upsertCatalogHeroes(db, bundle.heroes);
+  if (!bundle) {
+    emit(onLog, 'info', 'Skipping catalog upsert — no catalog bundle loaded.');
+    return;
+  }
+
+  catalogDb
+    .transaction(() => {
+      const heroCount = upsertCatalogHeroes(catalogDb, bundle.heroes);
       emit(onLog, 'info', `Upserted ${heroCount} catalog heroes.`);
-      const artifactCount = upsertCatalogArtifacts(db, bundle.artifacts);
+      const artifactCount = upsertCatalogArtifacts(catalogDb, bundle.artifacts);
       emit(onLog, 'info', `Upserted ${artifactCount} catalog artifacts.`);
-      const demonCount = upsertCatalogDemons(db, bundle.demons);
+      const demonCount = upsertCatalogDemons(catalogDb, bundle.demons);
       emit(onLog, 'info', `Upserted ${demonCount} catalog demons.`);
 
-      const rematerialized = rematerializeProspectorAliasOwnership(db, PROSPECTOR_SLUG_ALIASES);
-      if (rematerialized > 0) {
-        emit(
-          onLog,
-          'info',
-          `Rematerialized ownership for ${rematerialized} account hero row(s) from Prospector slug aliases.`,
-        );
-      }
-
-      const deactivated = deactivateStaleCatalogEntries(db, bundle);
+      const deactivated = deactivateStaleCatalogEntries(catalogDb, bundle);
       const deactivatedTotal = deactivated.heroes + deactivated.artifacts + deactivated.demons;
       if (deactivatedTotal > 0) {
         emit(
@@ -153,24 +160,66 @@ export function applyWorCatalogMutation(
         );
       }
 
-      bumpCatalogVersion(db);
-    } else {
-      emit(onLog, 'info', 'Skipping catalog upsert — no catalog bundle loaded.');
-    }
+      bumpCatalogVersion(catalogDb);
+    })
+    .immediate();
+}
 
-    const pruned = worQueries.pruneInactiveCatalogAccountRows(db);
-    const prunedTotal = pruned.heroes + pruned.artifacts + pruned.demons;
-    if (prunedTotal > 0) {
-      emit(onLog, 'info', `Removed ${prunedTotal} account row(s) tied to unknown catalog entries.`);
-    }
-    worQueries.syncNewCatalogEntriesToAllAccounts(db);
-    const synced = worQueries.syncAccountCatalogMetadata(db);
-    emit(
-      onLog,
-      'info',
-      `[${stepTag('sync_accounts')}] Synced catalog metadata for ${synced.heroes} heroes, ${synced.artifacts} artifacts, ${synced.demons} demons across accounts.`,
-    );
-  }).immediate();
+/** Sync account rows from the collection DB's catalog_* copy (never writes catalog). */
+export function syncWorAccountsFromCatalog(
+  appDb: Database.Database,
+  onLog?: WorStartupPipelineOptions['onLog'],
+  options?: { rematerializeAliases?: boolean },
+): void {
+  appDb
+    .transaction(() => {
+      if (options?.rematerializeAliases !== false) {
+        const rematerialized = rematerializeProspectorAliasOwnership(
+          appDb,
+          PROSPECTOR_SLUG_ALIASES,
+        );
+        if (rematerialized > 0) {
+          emit(
+            onLog,
+            'info',
+            `Rematerialized ownership for ${rematerialized} account hero row(s) from Prospector slug aliases.`,
+          );
+        }
+      }
+
+      const pruned = worQueries.pruneInactiveCatalogAccountRows(appDb);
+      const prunedTotal = pruned.heroes + pruned.artifacts + pruned.demons;
+      if (prunedTotal > 0) {
+        emit(
+          onLog,
+          'info',
+          `Removed ${prunedTotal} account row(s) tied to unknown catalog entries.`,
+        );
+      }
+      worQueries.syncNewCatalogEntriesToAllAccounts(appDb);
+      const synced = worQueries.syncAccountCatalogMetadata(appDb);
+      emit(
+        onLog,
+        'info',
+        `[${stepTag('sync_accounts')}] Synced catalog metadata for ${synced.heroes} heroes, ${synced.artifacts} artifacts, ${synced.demons} demons across accounts.`,
+      );
+    })
+    .immediate();
+}
+
+/**
+ * Catalog upserts → copy into collection DB → account sync.
+ * Tests may pass the same handle for both DBs.
+ */
+export function applyWorCatalogMutation(
+  catalogDb: Database.Database,
+  appDb: Database.Database,
+  bundle: CatalogBundle | null,
+  onLog?: WorStartupPipelineOptions['onLog'],
+): void {
+  applyWorCatalogUpserts(catalogDb, bundle, onLog);
+  copyWorCatalogToCollection(catalogDb, appDb);
+  syncWorAccountsFromCatalog(appDb, onLog, { rematerializeAliases: Boolean(bundle) });
 }
 
 function readFixtureBundle(fixturePath: string): CatalogBundle {
@@ -223,16 +272,19 @@ export async function runWorStartupPipeline(
   options: WorStartupPipelineOptions = {},
 ): Promise<WorImportSummary> {
   const onLog = options.onLog;
-  const db = getWorDb() as Database.Database;
+  const catalogDb = getWorCatalogDb() as Database.Database;
+  const appDb = getWorDb() as Database.Database;
   ensureWorImportDirs();
   fs.mkdirSync(WOR_IMAGES_DIR, { recursive: true });
+
+  seedWorCatalogFromCollectionIfEmpty(catalogDb, appDb);
 
   const ownsLease = !options.importLockToken;
   let lockToken: string;
   if (options.importLockToken) {
     lockToken = options.importLockToken;
   } else {
-    const acquired = tryAcquireWorImportLease(db, null);
+    const acquired = tryAcquireWorImportLease(catalogDb, null);
     if (!acquired) {
       throw new Error('WoR import lease held by another process.');
     }
@@ -242,23 +294,24 @@ export async function runWorStartupPipeline(
   const leaseWatch: WorImportLeaseWatch = { lost: false };
   const heartbeat = setInterval(
     () => {
-      noteWorImportLeaseHeartbeat(db, lockToken, leaseWatch);
+      noteWorImportLeaseHeartbeat(catalogDb, lockToken, leaseWatch);
     },
     5 * 60 * 1000,
   );
   heartbeat.unref();
   try {
-    return await runWorStartupPipelineBody(db, options, onLog, lockToken, leaseWatch);
+    return await runWorStartupPipelineBody(catalogDb, appDb, options, onLog, lockToken, leaseWatch);
   } finally {
     clearInterval(heartbeat);
     if (ownsLease) {
-      releaseWorImportLease(db, lockToken);
+      releaseWorImportLease(catalogDb, lockToken);
     }
   }
 }
 
 async function runWorStartupPipelineBody(
-  db: Database.Database,
+  catalogDb: Database.Database,
+  appDb: Database.Database,
   options: WorStartupPipelineOptions,
   onLog: WorStartupPipelineOptions['onLog'],
   lockToken: string,
@@ -276,11 +329,12 @@ async function runWorStartupPipelineBody(
   const currentHashes = computeCurrentSourceHashes(cacheDir);
   let pendingSourceHashes: ReturnType<typeof computeCurrentSourceHashes> | null = null;
 
-  requireWorImportLease(db, lockToken, leaseWatch);
+  requireWorImportLease(catalogDb, lockToken, leaseWatch);
 
   if (shouldRunWorStep('schema', true, options)) {
-    emit(onLog, 'info', `[${stepTag('schema')}] Ensuring WoR catalog tables…`);
-    ensureWorCoreTables(db);
+    emit(onLog, 'info', `[${stepTag('schema')}] Ensuring WoR catalog + collection tables…`);
+    ensureWorCatalogDbTables(catalogDb);
+    ensureWorCoreTables(appDb);
   }
 
   const catalogWouldRun =
@@ -420,10 +474,16 @@ async function runWorStartupPipelineBody(
       bundle,
       imageRefs,
       directPortraitUrls: prospectorPortraits ?? undefined,
-      existingPortraitPaths: loadExistingPortraitPaths(db),
+      existingPortraitPaths: loadExistingPortraitPaths(catalogDb),
       onlyMissing: worImagesOnlyMissing(options),
       forceDownload: options.forceImages,
       onLog: (message) => emit(onLog, 'info', `[${stepTag('fandomImages')}] ${message}`),
+      onPortraitFailure: (detail) =>
+        emit(
+          onLog,
+          'error',
+          `[${stepTag('fandomImages')}] Missing portrait ${detail.kind}:${detail.slug} — ${detail.reason}`,
+        ),
     });
     bundle = portraitResult.bundle;
     imageSummary = portraitResult.summary;
@@ -447,8 +507,8 @@ async function runWorStartupPipelineBody(
     }
   }
 
-  requireWorImportLease(db, lockToken, leaseWatch);
-  applyWorCatalogMutation(db, bundle, onLog);
+  requireWorImportLease(catalogDb, lockToken, leaseWatch);
+  applyWorCatalogUpserts(catalogDb, bundle, onLog);
 
   const heroStatsCacheDir = path.join(resolveWorImportCacheDir(), 'hero-stats');
   const heroStatsWouldRun =
@@ -458,7 +518,7 @@ async function runWorStartupPipelineBody(
   if (shouldRunWorStep('fandomHeroStats', heroStatsWouldRun, options)) {
     emit(onLog, 'info', `[${stepTag('fandomHeroStats')}] Importing Lv.60 A0 attributes from wiki…`);
     const statsSummary = await importFandomHeroStats({
-      db,
+      db: catalogDb,
       force: Boolean(options.forceSteps?.includes('fandomHeroStats')),
       live: Boolean(process.env.WIKI_USER_AGENT?.trim()),
       onLog: (message) => emit(onLog, 'info', `[${stepTag('fandomHeroStats')}] ${message}`),
@@ -482,7 +542,7 @@ async function runWorStartupPipelineBody(
         })
       : null);
   if (snapshotForStats) {
-    const fill = fillMissingHeroStatsFromProspector(db, snapshotForStats, (message) =>
+    const fill = fillMissingHeroStatsFromProspector(catalogDb, snapshotForStats, (message) =>
       emit(onLog, 'info', `[${stepTag('prospectorCatalog')}] ${message}`),
     );
     emit(
@@ -493,12 +553,16 @@ async function runWorStartupPipelineBody(
   }
 
   if (pendingSourceHashes) {
-    requireWorImportLease(db, lockToken, leaseWatch);
+    requireWorImportLease(catalogDb, lockToken, leaseWatch);
     writeProcessedSourceHashes(pendingSourceHashes);
-    updateSourceHashesInDb(db, pendingSourceHashes);
+    updateSourceHashesInDb(catalogDb, pendingSourceHashes);
   }
 
-  const counts = getCatalogCounts(db);
+  requireWorImportLease(catalogDb, lockToken, leaseWatch);
+  copyWorCatalogToCollection(catalogDb, appDb);
+  syncWorAccountsFromCatalog(appDb, onLog, { rematerializeAliases: Boolean(bundle) });
+
+  const counts = getCatalogCounts(catalogDb);
   emit(
     onLog,
     'info',
@@ -513,11 +577,9 @@ async function runWorStartupPipelineBody(
   }
 
   if (imageSummary?.missingPortraits.length) {
-    emit(
-      onLog,
-      'info',
-      `${imageSummary.missingPortraits.length} entities still lack portraits (see import summary).`,
-    );
+    for (const missing of imageSummary.missingPortraits) {
+      emit(onLog, 'info', `[${stepTag('fandomImages')}] Still missing portrait: ${missing}`);
+    }
   }
 
   return {
@@ -531,4 +593,25 @@ async function runWorStartupPipelineBody(
 
 export function catalogNeedsImport(db: Database.Database): boolean {
   return !worQueries.catalogHasEntries(db);
+}
+
+export function ensureWorCatalogSeededFromCollection(): boolean {
+  return seedWorCatalogFromCollectionIfEmpty(
+    getWorCatalogDb() as Database.Database,
+    getWorDb() as Database.Database,
+  );
+}
+
+export function copyWorCatalogIntoCollectionIfNeeded(): boolean {
+  const catalogDb = getWorCatalogDb() as Database.Database;
+  const appDb = getWorDb() as Database.Database;
+  if (!worQueries.catalogHasEntries(catalogDb)) return false;
+  const catalogVersion = worQueries.getCatalogVersion(catalogDb);
+  const collectionVersion = worQueries.getCatalogVersion(appDb);
+  if (worQueries.catalogHasEntries(appDb) && collectionVersion >= catalogVersion) {
+    return false;
+  }
+  copyWorCatalogToCollection(catalogDb, appDb);
+  syncWorAccountsFromCatalog(appDb);
+  return true;
 }

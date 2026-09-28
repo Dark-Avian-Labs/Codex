@@ -30,7 +30,8 @@
     "lint": "oxlint .",
     "lint:fix": "oxlint --fix .",
     "format": "oxfmt --write .",
-    "check-format": "oxfmt --check ."
+    "check-format": "oxfmt --check .",
+    "warframe:import": "node dist/server/import/warframe/runManualImport.js"
   },
   "dependencies": {
     "@clerk/express": "catalog:",
@@ -46,11 +47,14 @@
     "@fontsource-variable/geist-mono": "catalog:",
     "@fontsource-variable/inter": "catalog:",
     "@fontsource-variable/material-symbols-rounded": "catalog:",
+    "@napi-rs/lzma": "^1.5.1",
     "better-sqlite3": "catalog:",
+    "cheerio": "^1.2.0",
     "clsx": "catalog:",
     "compression": "catalog:",
     "cookie-parser": "catalog:",
     "csrf-sync": "catalog:",
+    "cuimp": "^2.1.1",
     "express": "catalog:",
     "express-rate-limit": "catalog:",
     "express-session": "catalog:",
@@ -58,7 +62,9 @@
     "react": "catalog:",
     "react-dom": "catalog:",
     "react-router": "catalog:",
-    "tailwind-merge": "catalog:"
+    "tailwind-merge": "catalog:",
+    "undici": "^8.11.2",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
@@ -79,6 +85,7 @@
     "@types/supertest": "^7.2.1",
     "@vitejs/plugin-react": "catalog:",
     "@vitest/coverage-v8": "5.0.2",
+    "domhandler": "^6.0.1",
     "globals": "catalog:",
     "oxfmt": "catalog:",
     "oxlint": "catalog:",

@@ -30,15 +30,22 @@ export type {
   HeroClassKey,
   HeroRarityKey,
 } from './constants.js';
-export { WOR_DB_PATH, WOR_IMAGES_DIR } from './config.js';
+export { WOR_CATALOG_DB_PATH, WOR_DB_PATH, WOR_IMAGES_DIR } from './config.js';
 export {
   closeDb as closeWorDb,
+  closeCatalogDb as closeWorCatalogDb,
   getDb as getWorDb,
+  getCatalogDb as getWorCatalogDb,
+  assertWorCatalogTablesExist,
   assertWorCoreTablesExist,
-  ensureWorCoreTables,
-  ensureWorSchemaMigrations,
-  resetWorSchema,
+  createCatalogSchema as createWorCatalogSchema,
   createSchema,
+  ensureWorCatalogDbTables,
+  ensureWorCoreTables,
+  ensureWorCatalogSchemaMigrations,
+  ensureWorSchemaMigrations,
+  resetWorCatalogSchema,
+  resetWorSchema,
 } from './db/schema.js';
 export * as worQueries from './db/queries.js';
 export {

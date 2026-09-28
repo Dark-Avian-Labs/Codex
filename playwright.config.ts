@@ -7,8 +7,8 @@ import { defineConfig, devices } from '@playwright/test';
 const e2eRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codex-e2e-'));
 const port = process.env.CODEX_E2E_PORT?.trim() || '3101';
 const baseURL = `http://127.0.0.1:${port}`;
-const armoryDbPath = path.join(e2eRoot, 'armory.db');
-fs.writeFileSync(armoryDbPath, '');
+const catalogDbPath = path.join(e2eRoot, 'warframe-catalog.db');
+fs.writeFileSync(catalogDbPath, '');
 
 export default defineConfig({
   testDir: './e2e',
@@ -32,10 +32,11 @@ export default defineConfig({
       PORT: port,
       SESSION_SECRET: 'codex-dev-only-session-secret-32ch',
       SESSION_DB_PATH: path.join(e2eRoot, 'session.db'),
-      ARMORY_DB_PATH: armoryDbPath,
+      WARFRAME_CATALOG_DB_PATH: catalogDbPath,
       WARFRAME_DB_PATH: path.join(e2eRoot, 'warframe.db'),
       EPIC7_DB_PATH: path.join(e2eRoot, 'epic7.db'),
       WOR_DB_PATH: path.join(e2eRoot, 'wor.db'),
+      WOR_CATALOG_DB_PATH: path.join(e2eRoot, 'wor-catalog.db'),
       APP_PUBLIC_BASE_URL: baseURL,
       BASE_DOMAIN: 'example.com',
       CLERK_PUBLISHABLE_KEY: '',
