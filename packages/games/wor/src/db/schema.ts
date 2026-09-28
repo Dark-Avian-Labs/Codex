@@ -1,7 +1,7 @@
 import { createDbSingleton } from '@codex/core';
 import type Database from 'better-sqlite3';
 
-import { WOR_DB_PATH } from '../config.js';
+import { WOR_CATALOG_DB_PATH, WOR_DB_PATH } from '../config.js';
 import { DEMON_LEVEL_MIN } from '../constants.js';
 
 export function ensureWorCatalogTables(db: Database.Database): void {
@@ -158,6 +158,17 @@ export function ensureWorAccountTables(db: Database.Database): void {
       FOREIGN KEY (account_id) REFERENCES game_accounts(id) ON DELETE CASCADE
     );
 
+    CREATE INDEX IF NOT EXISTS idx_game_accounts_clerk_user ON game_accounts(clerk_user_id);
+    CREATE INDEX IF NOT EXISTS idx_account_heroes_account ON account_heroes(account_id);
+    CREATE INDEX IF NOT EXISTS idx_account_artifacts_account ON account_artifacts(account_id);
+    CREATE INDEX IF NOT EXISTS idx_account_demons_account ON account_demons(account_id);
+  `);
+  ensureWorAccountMigrations(db);
+}
+
+/** Import lease/runs live on the catalog DB only (Outfitter reads catalog tables from that file). */
+export function ensureWorImportTables(db: Database.Database): void {
+  db.exec(`
     CREATE TABLE IF NOT EXISTS import_runs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       status TEXT NOT NULL,
@@ -176,14 +187,13 @@ export function ensureWorAccountTables(db: Database.Database): void {
     );
 
     INSERT OR IGNORE INTO import_lease (id) VALUES (1);
-
-    CREATE INDEX IF NOT EXISTS idx_game_accounts_clerk_user ON game_accounts(clerk_user_id);
-    CREATE INDEX IF NOT EXISTS idx_account_heroes_account ON account_heroes(account_id);
-    CREATE INDEX IF NOT EXISTS idx_account_artifacts_account ON account_artifacts(account_id);
-    CREATE INDEX IF NOT EXISTS idx_account_demons_account ON account_demons(account_id);
   `);
-  ensureWorAccountMigrations(db);
   ensureWorImportLeaseMigrations(db);
+}
+
+export function ensureWorCatalogDbTables(db: Database.Database): void {
+  ensureWorCatalogTables(db);
+  ensureWorImportTables(db);
 }
 
 function ensureWorAccountMigrations(db: Database.Database): void {
@@ -230,26 +240,45 @@ const REQUIRED_WOR_TABLES = [
   'account_heroes',
   'account_artifacts',
   'account_demons',
+] as const;
+
+const REQUIRED_WOR_CATALOG_TABLES = [
+  'catalog_heroes',
+  'catalog_artifacts',
+  'catalog_demons',
+  'catalog_meta',
   'import_runs',
   'import_lease',
 ] as const;
 
-export function assertWorCoreTablesExist(db: Database.Database): void {
-  for (const table of REQUIRED_WOR_TABLES) {
+function assertTablesExist(db: Database.Database, tables: readonly string[], label: string): void {
+  for (const table of tables) {
     const row = db
       .prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?")
       .get(table);
     if (!row) {
       throw new Error(
-        `WoR database is missing required table "${table}". Run \`pnpm run db:init\` before starting the server.`,
+        `WoR ${label} database is missing required table "${table}". Run \`pnpm run db:init\` before starting the server.`,
       );
     }
   }
 }
 
+export function assertWorCoreTablesExist(db: Database.Database): void {
+  assertTablesExist(db, REQUIRED_WOR_TABLES, 'collection');
+}
+
+export function assertWorCatalogTablesExist(db: Database.Database): void {
+  assertTablesExist(db, REQUIRED_WOR_CATALOG_TABLES, 'catalog');
+}
+
 export function ensureWorSchemaMigrations(db: Database.Database): void {
   ensureWorCatalogMigrations(db);
   ensureWorAccountMigrations(db);
+}
+
+export function ensureWorCatalogSchemaMigrations(db: Database.Database): void {
+  ensureWorCatalogMigrations(db);
   ensureWorImportLeaseMigrations(db);
 }
 
@@ -315,8 +344,6 @@ export function resetWorSchema(db: Database.Database, confirmReset: boolean): vo
     DROP TABLE IF EXISTS account_artifacts;
     DROP TABLE IF EXISTS account_heroes;
     DROP TABLE IF EXISTS game_accounts;
-    DROP TABLE IF EXISTS import_runs;
-    DROP TABLE IF EXISTS import_lease;
     DROP TABLE IF EXISTS catalog_meta;
     DROP TABLE IF EXISTS catalog_demons;
     DROP TABLE IF EXISTS catalog_artifacts;
@@ -326,10 +353,29 @@ export function resetWorSchema(db: Database.Database, confirmReset: boolean): vo
   ensureSingleActiveAccountIndex(db);
 }
 
+export function resetWorCatalogSchema(db: Database.Database, confirmReset: boolean): void {
+  if (!confirmReset) return;
+  db.pragma('foreign_keys = ON');
+  db.exec(`
+    DROP TABLE IF EXISTS import_runs;
+    DROP TABLE IF EXISTS import_lease;
+    DROP TABLE IF EXISTS catalog_meta;
+    DROP TABLE IF EXISTS catalog_demons;
+    DROP TABLE IF EXISTS catalog_artifacts;
+    DROP TABLE IF EXISTS catalog_heroes;
+  `);
+  ensureWorCatalogDbTables(db);
+}
+
 export function createSchema(db: Database.Database): void {
   db.pragma('foreign_keys = ON');
   ensureWorCoreTables(db);
   ensureSingleActiveAccountIndex(db);
+}
+
+export function createCatalogSchema(db: Database.Database): void {
+  db.pragma('foreign_keys = ON');
+  ensureWorCatalogDbTables(db);
 }
 
 const { getDb, closeDb } = createDbSingleton(WOR_DB_PATH, {
@@ -339,4 +385,12 @@ const { getDb, closeDb } = createDbSingleton(WOR_DB_PATH, {
     ensureSingleActiveAccountIndex(db);
   },
 });
-export { getDb, closeDb };
+
+const { getDb: getCatalogDb, closeDb: closeCatalogDb } = createDbSingleton(WOR_CATALOG_DB_PATH, {
+  onOpen: (db: Database.Database) => {
+    assertWorCatalogTablesExist(db);
+    ensureWorCatalogSchemaMigrations(db);
+  },
+});
+
+export { getDb, closeDb, getCatalogDb, closeCatalogDb };

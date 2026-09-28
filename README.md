@@ -16,14 +16,14 @@
 
 Codex is the collection notebook for the games we actually play. Warframe, Epic Seven, and Watcher of Realms each get their own tables instead of one generic form, so a Warframe worksheet does not have to pretend it is a hero list.
 
-Warframe items sync from Armory. Watcher of Realms heroes and portraits are what Outfitter copies when it needs a catalog. Own the roster here, then send the rest of the stack looking at the same names.
+Warframe and Watcher of Realms catalogs are imported here first (`warframe-catalog.db`, `wor-catalog.db`). Armory and Outfitter copy from those files. Own the roster here, then send the rest of the stack looking at the same names.
 
 Live: [codex.darkavianlabs.com](https://codex.darkavianlabs.com)
 
 ## Gotchas
 
-- Session and Armory catalog paths must be absolute, and they must be different files.
-- Import Armory's catalog before Warframe sync has anything to copy.
+- Session and catalog paths must be absolute when set, and they must be different files.
+- Run `pnpm run warframe:import` / WoR import before worksheet sync or sibling apps have anything to copy.
 
 ## License
 

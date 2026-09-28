@@ -52,14 +52,14 @@ describeWithSqlite('WoR catalog mutation transaction', () => {
       ],
       demons: [{ slug: 'wrath', name: 'Wrath', rarity: 'legendary', max_level: 5 }],
     };
-    applyWorCatalogMutation(db, firstBundle);
+    applyWorCatalogMutation(db, db, firstBundle);
 
     const accountId = worQueries.createGameAccount(db, 'user_a', 'Main', true);
     db.prepare(
       'UPDATE account_heroes SET owned = 1, gauge_level = 3 WHERE account_id = ? AND catalog_hero_slug = ?',
     ).run(accountId, 'lian');
 
-    applyWorCatalogMutation(db, {
+    applyWorCatalogMutation(db, db, {
       heroes: [
         {
           slug: 'lian',

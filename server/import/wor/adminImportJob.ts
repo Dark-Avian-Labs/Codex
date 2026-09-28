@@ -1,4 +1,4 @@
-import { getWorDb } from '@codex/game-wor';
+import { getWorCatalogDb } from '@codex/game-wor';
 import type Database from 'better-sqlite3';
 
 import {
@@ -76,7 +76,7 @@ export function subscribeWorAdminImport(listener: SnapshotListener): () => void 
 export function isWorImportRunning(): boolean {
   if (state.running) return true;
   try {
-    return isWorImportLeaseHeld(getWorDb() as Database.Database);
+    return isWorImportLeaseHeld(getWorCatalogDb() as Database.Database);
   } catch {
     return false;
   }
@@ -117,7 +117,7 @@ export function startWorAdminImport(options?: {
     };
   }
 
-  const db = getWorDb() as Database.Database;
+  const db = getWorCatalogDb() as Database.Database;
   if (isWorImportLeaseHeld(db)) {
     return {
       started: false,

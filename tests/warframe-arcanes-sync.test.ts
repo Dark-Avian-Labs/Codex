@@ -108,7 +108,7 @@ function seedArmoryArcanes(armoryPath: string): void {
 }
 
 describeWithSqlite('warframe arcanes sync', () => {
-  const armoryPath = process.env.ARMORY_DB_PATH!;
+  const armoryPath = process.env.WARFRAME_CATALOG_DB_PATH!;
   let codexTmp: ReturnType<typeof createTempDbDir>;
   let codexDb: Database.Database;
   let closeCodex: () => void;

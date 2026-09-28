@@ -1,5 +1,8 @@
 import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 
+import Database from 'better-sqlite3';
 import express from 'express';
 import session from 'express-session';
 import request from 'supertest';
@@ -15,16 +18,19 @@ const dbMocks = vi.hoisted(() => ({
   warframeOk: true,
   epic7Ok: true,
   worOk: true,
-  armoryOk: true,
-  armoryDbPath: '',
+  catalogDbPath: '',
+  worCatalogDbPath: '',
 }));
 
 vi.mock('../server/config.js', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../server/config.js')>();
   return {
     ...actual,
-    get ARMORY_DB_PATH() {
-      return dbMocks.armoryDbPath;
+    get WARFRAME_CATALOG_DB_PATH() {
+      return dbMocks.catalogDbPath;
+    },
+    get WOR_CATALOG_DB_PATH() {
+      return dbMocks.worCatalogDbPath;
     },
   };
 });
@@ -89,8 +95,6 @@ vi.mock('../server/worDbState.js', () => ({
   ensureWorDbAvailable: () => dbMocks.worOk,
 }));
 
-const armoryAccessMock = vi.hoisted(() => vi.fn(async () => {}));
-
 function createProbeApp() {
   const app = express();
   app.use(testRateLimiter);
@@ -115,22 +119,28 @@ function createProbeApp() {
   return app;
 }
 
+function writeEmptySqlite(filePath: string): void {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  const db = new Database(filePath);
+  db.close();
+}
+
 describe('auth and probe routes', () => {
+  const tmpRoot = path.join(os.tmpdir(), `codex-auth-routes-${process.pid}`);
+
   beforeEach(() => {
     dbMocks.sessionOk = true;
     dbMocks.warframeOk = true;
     dbMocks.epic7Ok = true;
     dbMocks.worOk = true;
-    dbMocks.armoryOk = true;
-    dbMocks.armoryDbPath = '';
-    armoryAccessMock.mockReset();
-    armoryAccessMock.mockImplementation(async () => {
-      if (!dbMocks.armoryOk) throw new Error('armory db unavailable');
-    });
-    vi.spyOn(fs.promises, 'access').mockImplementation(armoryAccessMock);
+    dbMocks.catalogDbPath = '';
+    dbMocks.worCatalogDbPath = '';
+    fs.rmSync(tmpRoot, { recursive: true, force: true });
+    fs.mkdirSync(tmpRoot, { recursive: true });
   });
 
   afterEach(() => {
+    fs.rmSync(tmpRoot, { recursive: true, force: true });
     vi.restoreAllMocks();
   });
 
@@ -166,9 +176,8 @@ describe('auth and probe routes', () => {
       });
   });
 
-  it('GET /readyz returns 503 when Armory DB is configured but unreadable', async () => {
-    dbMocks.armoryDbPath = '/tmp/armory.db';
-    dbMocks.armoryOk = false;
+  it('GET /readyz returns 503 when Warframe catalog DB is configured but unreadable', async () => {
+    dbMocks.catalogDbPath = path.join(tmpRoot, 'missing-warframe-catalog.db');
     const app = createProbeApp();
     await request(app)
       .get('/readyz')
@@ -176,7 +185,19 @@ describe('auth and probe routes', () => {
       .expect((res) => {
         expect(res.body.status).toBe('not_ready');
       });
-    expect(armoryAccessMock).toHaveBeenCalled();
+  });
+
+  it('GET /readyz returns 503 when Warframe catalog DB lacks required tables', async () => {
+    const catalogPath = path.join(tmpRoot, 'empty-warframe-catalog.db');
+    writeEmptySqlite(catalogPath);
+    dbMocks.catalogDbPath = catalogPath;
+    const app = createProbeApp();
+    await request(app)
+      .get('/readyz')
+      .expect(503)
+      .expect((res) => {
+        expect(res.body.status).toBe('not_ready');
+      });
   });
 
   it('GET /api/auth/csrf returns session token', async () => {

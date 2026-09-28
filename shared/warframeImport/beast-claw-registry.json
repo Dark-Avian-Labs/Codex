@@ -1,0 +1,87 @@
+[
+  {
+    "companionName": "Adarza Kavat",
+    "clawsName": "Adarza Claws",
+    "uniqueName": "/Lotus/Types/Friendly/Pets/BeastWeapons/AdarzaPetWeapon"
+  },
+  {
+    "companionName": "Chesa Kubrow",
+    "clawsName": "Chesa Claws",
+    "uniqueName": "/Lotus/Types/Friendly/Pets/BeastWeapons/ChesaPetWeapon"
+  },
+  {
+    "companionName": "Crescent Vulpaphyla",
+    "clawsName": "Crescent Claws",
+    "uniqueName": "/Lotus/Types/Friendly/Pets/BeastWeapons/CrescentVulpaphylaPetWeapon"
+  },
+  {
+    "companionName": "Helminth Charger",
+    "clawsName": "Helminth Claws",
+    "uniqueName": "/Lotus/Types/Friendly/Pets/BeastWeapons/HelminthPetWeapon"
+  },
+  {
+    "companionName": "Huras Kubrow",
+    "clawsName": "Huras Claws",
+    "uniqueName": "/Lotus/Types/Friendly/Pets/BeastWeapons/HurasPetWeapon"
+  },
+  {
+    "companionName": "Medjay Predasite",
+    "clawsName": "Medjay Claws",
+    "uniqueName": "/Lotus/Types/Friendly/Pets/BeastWeapons/MedjayPredasitePetWeapon"
+  },
+  {
+    "companionName": "Panzer Vulpaphyla",
+    "clawsName": "Panzer Claws",
+    "uniqueName": "/Lotus/Types/Friendly/Pets/BeastWeapons/PanzerVulpaphylaPetWeapon"
+  },
+  {
+    "companionName": "Pharaoh Predasite",
+    "clawsName": "Pharaoh Claws",
+    "uniqueName": "/Lotus/Types/Friendly/Pets/BeastWeapons/PharaohPredasitePetWeapon"
+  },
+  {
+    "companionName": "Raksa Kubrow",
+    "clawsName": "Raksa Claws",
+    "uniqueName": "/Lotus/Types/Friendly/Pets/BeastWeapons/RaksaPetWeapon"
+  },
+  {
+    "companionName": "Sahasa Kubrow",
+    "clawsName": "Sahasa Claws",
+    "uniqueName": "/Lotus/Types/Friendly/Pets/BeastWeapons/SahasaPetWeapon"
+  },
+  {
+    "companionName": "Sly Vulpaphyla",
+    "clawsName": "Sly Claws",
+    "uniqueName": "/Lotus/Types/Friendly/Pets/BeastWeapons/SlyVulpaphylaPetWeapon"
+  },
+  {
+    "companionName": "Smeeta Kavat",
+    "clawsName": "Smeeta Claws",
+    "uniqueName": "/Lotus/Types/Friendly/Pets/BeastWeapons/SmeetaPetWeapon"
+  },
+  {
+    "companionName": "Sunika Kubrow",
+    "clawsName": "Sunika Claws",
+    "uniqueName": "/Lotus/Types/Friendly/Pets/BeastWeapons/SunikaPetWeapon"
+  },
+  {
+    "companionName": "Vasca Kavat",
+    "clawsName": "Vasca Claws",
+    "uniqueName": "/Lotus/Types/Friendly/Pets/BeastWeapons/VascaPetWeapon"
+  },
+  {
+    "companionName": "Venari",
+    "clawsName": "Venari Claws",
+    "uniqueName": "/Lotus/Types/Friendly/Pets/BeastWeapons/VenariPetWeapon"
+  },
+  {
+    "companionName": "Venari Prime",
+    "clawsName": "Venari Prime Claws",
+    "uniqueName": "/Lotus/Types/Friendly/Pets/BeastWeapons/VenariPrimePetWeapon"
+  },
+  {
+    "companionName": "Vizier Predasite",
+    "clawsName": "Vizier Claws",
+    "uniqueName": "/Lotus/Types/Friendly/Pets/BeastWeapons/VizierPredasitePetWeapon"
+  }
+]

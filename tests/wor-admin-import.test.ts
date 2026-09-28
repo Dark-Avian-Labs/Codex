@@ -2,6 +2,7 @@ import Database from 'better-sqlite3';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 
 import { createSchema as createWorSchema } from '../packages/games/wor/src/db/schema.js';
+import { ensureWorImportTables } from '../packages/games/wor/src/db/schema.js';
 import { describeWithSqlite } from './helpers/describeWithSqlite.js';
 import { createTempDbDir, removeTempDbDir } from './helpers/sqliteTestHarness.js';
 
@@ -36,6 +37,10 @@ vi.mock('@codex/game-wor', async (importOriginal) => {
       if (!dbState.db) throw new Error('Test DB not initialized');
       return dbState.db;
     },
+    getWorCatalogDb: () => {
+      if (!dbState.db) throw new Error('Test DB not initialized');
+      return dbState.db;
+    },
   };
 });
 
@@ -58,6 +63,7 @@ describeWithSqlite('WoR admin import job', () => {
     tmpDir = paths.tmpDir;
     dbState.db = new Database(paths.dbPath);
     createWorSchema(dbState.db);
+    ensureWorImportTables(dbState.db);
     __resetWorAdminImportForTests();
     pipelineControl.run.mockClear();
   });

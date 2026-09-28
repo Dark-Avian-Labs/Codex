@@ -80,7 +80,7 @@ function seedArmoryModularCatalog(armoryPath: string): void {
 }
 
 describeWithSqlite('warframe modular weapons sync', () => {
-  const armoryPath = process.env.ARMORY_DB_PATH!;
+  const armoryPath = process.env.WARFRAME_CATALOG_DB_PATH!;
   let codexTmp: ReturnType<typeof createTempDbDir>;
   let codexDb: Database.Database;
   let closeCodex: () => void;

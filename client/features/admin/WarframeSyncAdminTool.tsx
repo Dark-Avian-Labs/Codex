@@ -86,10 +86,10 @@ export function WarframeSyncAdminTool({ onSyncComplete }: WarframeSyncAdminToolP
     <div className="glass-surface space-y-3 p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold">Sync from Armory</h2>
+          <h2 className="text-lg font-semibold">Sync worksheets from catalog</h2>
           <p className="text-muted mt-1 text-sm">
-            Reconcile Warframe worksheet rows and market links against Armory&apos;s catalog
-            database.
+            Reconcile Warframe worksheet rows and market links against warframe-catalog.db (after a
+            catalog import).
           </p>
         </div>
         <button
