@@ -4,10 +4,13 @@ packages:
   - packages/games/epic7
   - packages/games/wor
 
+overrides:
+  tar: '>=7.5.22'
+
 allowBuilds:
   '@clerk/shared': true
   better-sqlite3: true
-  
+
 update:
   githubActions: true
 
