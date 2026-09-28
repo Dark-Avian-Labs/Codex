@@ -322,3 +322,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.77.0** `chore` [#426](https://github.com/Dark-Avian-Labs/Codex/pull/426): feat/wor grey blades
 - **v1.78.0** `chore` [#427](https://github.com/Dark-Avian-Labs/Codex/pull/427): feat/wor fill blank hero fields
 - **v1.78.1** `chore` [#428](https://github.com/Dark-Avian-Labs/Codex/pull/428): fix/app nav rail windows
+- **v1.79.0** `chore` [#429](https://github.com/Dark-Avian-Labs/Codex/pull/429): feat/wor 3 star awakening
