@@ -1,3 +1,15 @@
+export class ApiError extends Error {
+  readonly status: number;
+  readonly fields: string[];
+
+  constructor(message: string, status: number, fields: string[] = []) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.fields = fields;
+  }
+}
+
 export type ClerkTokenGetter = (options?: { skipCache?: boolean }) => Promise<string | null>;
 
 let cachedToken: string | null = null;
@@ -32,7 +44,7 @@ async function getCsrfToken(): Promise<string | null> {
   const generationAtStart = csrfTokenGeneration;
   inFlightPromise = (async () => {
     try {
-      const res = await fetch('/api/auth/csrf', { credentials: 'include', cache: 'no-store' });
+      const res = await fetch('/api/csrf', { credentials: 'include', cache: 'no-store' });
       if (!res.ok) {
         return null;
       }
@@ -102,11 +114,18 @@ function withClerkAuthorization(headers: Headers, token: string | null): Headers
   return headers;
 }
 
+function withJsonContentType(headers: Headers, init?: RequestInit): Headers {
+  if (!headers.has('Content-Type') && init?.body && typeof init.body === 'string') {
+    headers.set('Content-Type', 'application/json');
+  }
+  return headers;
+}
+
 export async function apiFetch(url: string, init?: RequestInit): Promise<Response> {
   const method = (init?.method ?? 'GET').toUpperCase();
   const needsCsrf = method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS';
 
-  const headers = new Headers(init?.headers);
+  const headers = withJsonContentType(new Headers(init?.headers), init);
   if (needsCsrf) {
     const csrfToken = await getCsrfToken();
     if (csrfToken === null) {
@@ -144,7 +163,30 @@ export async function apiFetch(url: string, init?: RequestInit): Promise<Respons
     throw new DOMException('Request aborted before CSRF retry', 'AbortError');
   }
 
-  const retryHeaders = withClerkAuthorization(new Headers(init?.headers), clerkToken);
+  const retryHeaders = withJsonContentType(
+    withClerkAuthorization(new Headers(init?.headers), clerkToken),
+    init,
+  );
   retryHeaders.set('X-CSRF-Token', freshCsrfToken);
   return send(url, init, retryHeaders);
+}
+
+export async function apiJson<T>(url: string, init?: RequestInit): Promise<T> {
+  const res = await apiFetch(url, init);
+  if (!res.ok) {
+    let message = 'Request failed';
+    let fields: string[] = [];
+    try {
+      const data = (await res.json()) as { error?: unknown; fields?: unknown };
+      if (typeof data.error === 'string' && data.error) message = data.error;
+      if (Array.isArray(data.fields)) {
+        fields = data.fields.filter((field): field is string => typeof field === 'string');
+      }
+    } catch {
+      // The body was not JSON. Keep the shared fallback.
+    }
+    throw new ApiError(message, res.status, fields);
+  }
+  if (res.status === 204) return undefined as T;
+  return (await res.json()) as T;
 }

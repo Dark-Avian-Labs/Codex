@@ -7,19 +7,21 @@ export interface AppSummary {
 
 export type AuthErrorDetail = Error | string | { message: string; code?: string };
 
+export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated' | 'error';
+
 export type AuthState =
-  | { status: 'loading'; userId: null; isCodexAdmin: false; apps: AppSummary[] }
-  | { status: 'unauthenticated'; userId: null; isCodexAdmin: false; apps: AppSummary[] }
+  | { status: 'loading'; userId: null; isAdmin: false; apps: AppSummary[] }
+  | { status: 'unauthenticated'; userId: null; isAdmin: false; apps: AppSummary[] }
   | {
-      status: 'ok';
+      status: 'authenticated';
       userId: string;
-      isCodexAdmin: boolean;
+      isAdmin: boolean;
       apps: AppSummary[];
     }
   | {
       status: 'error';
       userId: null;
-      isCodexAdmin: false;
+      isAdmin: false;
       apps: AppSummary[];
       error: AuthErrorDetail;
     };

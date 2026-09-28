@@ -10,7 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { APP_NAME } from '../server/config.js';
 import { healthzHandler, readyzHandler } from '../server/probes.js';
-import { authRouter } from '../server/routes/auth.js';
+import { authRouter, issueCsrfToken } from '../server/routes/auth.js';
 import { testRateLimiter, testSessionOptions } from './helpers/testExpress.js';
 
 const dbMocks = vi.hoisted(() => ({
@@ -116,6 +116,7 @@ function createProbeApp() {
   app.get('/healthz', healthzHandler);
   app.get('/readyz', readyzHandler);
   app.use('/api/auth', authRouter);
+  app.get('/api/csrf', issueCsrfToken);
   return app;
 }
 
@@ -200,10 +201,10 @@ describe('auth and probe routes', () => {
       });
   });
 
-  it('GET /api/auth/csrf returns session token', async () => {
+  it('GET /api/csrf returns session token', async () => {
     const app = createProbeApp();
     await request(app)
-      .get('/api/auth/csrf')
+      .get('/api/csrf')
       .expect(200)
       .expect((res) => {
         expect(res.body.csrfToken).toBe('test-csrf-token');

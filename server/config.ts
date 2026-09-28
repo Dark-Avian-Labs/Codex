@@ -268,7 +268,7 @@ export const COOKIE_DOMAIN = resolvedCookieDomain;
 export const LEGAL_PAGE_URL =
   process.env.VITE_LEGAL_PAGE_URL?.trim() ||
   process.env.LEGAL_PAGE_URL?.trim() ||
-  'https://darkavianlabs.com/legal/';
+  'https://darkavianlabs.com/legal';
 
 export const SESSION_COOKIE_NAME =
   process.env.SESSION_COOKIE_NAME?.trim() || 'darkavianlabs.codex.sid';

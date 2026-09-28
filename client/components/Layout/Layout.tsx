@@ -45,8 +45,8 @@ export function Layout() {
   const location = useLocation();
   const { auth, refresh } = useAuth();
   const clerk = useClerk();
-  const isLoggedIn = auth.status === 'ok' && auth.userId !== null;
-  const isAdmin = auth.status === 'ok' && auth.isCodexAdmin;
+  const isLoggedIn = auth.status === 'authenticated' && auth.userId !== null;
+  const isAdmin = auth.status === 'authenticated' && auth.isAdmin;
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);

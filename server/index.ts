@@ -57,7 +57,7 @@ import {
 } from './import/wor/startupPipeline.js';
 import { healthzHandler, readyzHandler } from './probes.js';
 import { apiRouter } from './routes/api.js';
-import { authRouter } from './routes/auth.js';
+import { authRouter, issueCsrfToken } from './routes/auth.js';
 import { createAppSentinelAgent } from './sentinelAgent.js';
 import { waitForWarframeSyncIdle } from './services/warframeSyncState.js';
 import { bindClerkUserSessionMiddleware } from './session/bindClerkUserSession.js';
@@ -376,6 +376,7 @@ app.use(
 );
 
 app.use('/api/auth', authRouter);
+app.get('/api/csrf', issueCsrfToken);
 
 app.get('/api/version', (_req, res) => {
   res.json({ version: APP_VERSION });

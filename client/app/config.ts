@@ -40,13 +40,13 @@ export const LEGAL_ENTITY_NAME = readTrimmedEnv(
 
 const resolvedLegalPageUrl = readTrimmedEnv(
   import.meta.env.VITE_LEGAL_PAGE_URL as string | undefined,
-  'https://darkavianlabs.com/legal/',
+  'https://darkavianlabs.com/legal',
 );
 
 export const LEGAL_PAGE_URL =
   isSafeRelativePath(resolvedLegalPageUrl) || isSafeAbsoluteLegalUrl(resolvedLegalPageUrl)
     ? resolvedLegalPageUrl
-    : '/auth/legal';
+    : 'https://darkavianlabs.com/legal';
 
 export const SEARCH_PLACEHOLDER = readTrimmedEnv(
   import.meta.env.VITE_SEARCH_PLACEHOLDER as string | undefined,
