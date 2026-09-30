@@ -1,12 +1,5 @@
 name: Codex PR Checks
 
-permissions:
-  contents: read
-  pull-requests: read
-
-env:
-  NODE_VERSION: 26
-
 on:
   pull_request:
 
@@ -15,74 +8,19 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  repair-dependabot-lockfile:
-    if: >
-      github.event.pull_request.user.login == 'dependabot[bot]' &&
-      github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: blacksmith-2vcpu-ubuntu-2404
-    timeout-minutes: 10
-    permissions:
-      contents: write
-    outputs:
-      pushed: ${{ steps.commit.outputs.pushed }}
-
-    steps:
-      - name: Checkout PR branch
-        uses: useblacksmith/checkout@25227e61ff9dafe400e22fa487b673eac4e4409a # v1.8.1
-        with:
-          ref: ${{ github.head_ref }}
-
-      - name: Setup pnpm and Node.js
-        uses: pnpm/setup@fbda4c85fc2e1e08721cd8763afea8f48d60f024 # v3.0.0
-        with:
-          runtime: node@${{ env.NODE_VERSION }}
-          cache: true
-          install: false
-
-      - name: Restore catalog specifiers in lockfile
-        id: commit
-        shell: bash
-        run: |
-          set -euo pipefail
-          pnpm install --lockfile-only --no-frozen-lockfile
-
-          if git diff --quiet -- pnpm-lock.yaml; then
-            echo "pushed=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- pnpm-lock.yaml
-          git commit -m "chore(deps): restore catalog specifiers in pnpm-lock.yaml"
-          git push origin "HEAD:${{ github.head_ref }}"
-          echo "pushed=true" >> "$GITHUB_OUTPUT"
-
   validate:
-    needs: [repair-dependabot-lockfile]
-    if: >
-      always() &&
-      !cancelled() &&
-      (
-        needs.repair-dependabot-lockfile.result == 'skipped' ||
-        (
-          needs.repair-dependabot-lockfile.result == 'success' &&
-          needs.repair-dependabot-lockfile.outputs.pushed != 'true'
-        )
-      )
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: build-node26
     timeout-minutes: 20
 
     steps:
       - name: Checkout code
-        uses: useblacksmith/checkout@25227e61ff9dafe400e22fa487b673eac4e4409a # v1.8.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Setup pnpm and Node.js
-        uses: pnpm/setup@fbda4c85fc2e1e08721cd8763afea8f48d60f024 # v3.0.0
-        with:
-          runtime: node@${{ env.NODE_VERSION }}
-          cache: true
-          require-lockfile: true
+      - name: Enable pnpm
+        run: npm install -g pnpm@12.6.0
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Prepare test environment
         env:
@@ -144,7 +82,20 @@ jobs:
 
       - name: Install Playwright Chromium
         if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: pnpm exec playwright install --with-deps chromium
+        env:
+          PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT: 300000
+          NODE_OPTIONS: --require /tmp/force-ipv4.cjs
+        run: |
+          cat > /tmp/force-ipv4.cjs << 'EOF'
+          const dns = require('dns');
+          const lookup = dns.promises.lookup.bind(dns.promises);
+          dns.promises.lookup = (hostname, options) => {
+            const opts = options && typeof options === 'object' ? { ...options, family: 4 } : { family: 4 };
+            return lookup(hostname, opts);
+          };
+          EOF
+          node -e "require('dns').promises.lookup('cdn.playwright.dev',{all:true}).then(a=>console.log(a))"
+          pnpm exec playwright install --with-deps chromium
 
       - name: Install Playwright OS dependencies
         if: steps.playwright-cache.outputs.cache-hit == 'true'
