@@ -75,6 +75,7 @@ export function createApp(options: CreateAppOptions = {}): AppBundle {
     '/api/version',
     '/favicon.ico',
     '/favicon.png',
+    '/favicon.svg',
     '/login',
     '/legal',
     '/logout',

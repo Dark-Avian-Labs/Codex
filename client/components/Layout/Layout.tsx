@@ -178,8 +178,8 @@ export function Layout() {
 
   useEffect(() => {
     const path = location.pathname;
-    let faviconHref = '/favicon.png';
-    let faviconType = 'image/png';
+    let faviconHref = '/favicon.svg';
+    let faviconType = 'image/svg+xml';
     if (path.startsWith(APP_PATHS.warframe)) {
       document.title = 'Codex - Warframe';
       faviconHref = warframeFavicon;
