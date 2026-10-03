@@ -66,6 +66,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@clerk/testing": "^2.2.42",
     "@playwright/test": "^1.63.0",
     "@semantic-release/commit-analyzer": "^13.0.1",
     "@semantic-release/exec": "^7.1.0",

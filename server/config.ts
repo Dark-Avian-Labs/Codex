@@ -264,6 +264,18 @@ if (configuredCookieDomain) {
 
 export const COOKIE_DOMAIN = resolvedCookieDomain;
 
+export function sessionCookieDomain(): string | undefined {
+  let host = '';
+  try {
+    host = new URL(APP_PUBLIC_BASE_URL).hostname.toLowerCase();
+  } catch {
+    return undefined;
+  }
+  const bare = COOKIE_DOMAIN.replace(/^\./, '');
+  if (host === bare || host.endsWith(`.${bare}`)) return COOKIE_DOMAIN;
+  return undefined;
+}
+
 export const LEGAL_PAGE_URL =
   process.env.VITE_LEGAL_PAGE_URL?.trim() ||
   process.env.LEGAL_PAGE_URL?.trim() ||
