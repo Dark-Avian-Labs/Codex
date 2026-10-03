@@ -18,6 +18,7 @@ coverage/
 
 # Playwright
 /playwright-report/
+/e2e/.clerk/
 /test-results/
 /blob-report/
 /playwright/.cache/

@@ -1,6 +1,6 @@
 # Codex
 
-Shell, auth, env, and validate are in AppBase `AGENTS.md`. Port 3001. Playwright 3101.
+Shell, auth, env, and validate are in AppBase `AGENTS.md`. Port 3001. Playwright 3101. Signed-in Playwright 4101.
 
 Collection tracker for Warframe, Epic Seven, and Watcher of Realms. Each game is its own package under `packages/`. Do not force one table UI across games.
 

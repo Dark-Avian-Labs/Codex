@@ -1,3 +1,4 @@
+import fs from 'fs';
 import path from 'path';
 
 import {
@@ -17,7 +18,7 @@ import session from 'express-session';
 import {
   APP_PUBLIC_BASE_URL,
   APP_VERSION,
-  COOKIE_DOMAIN,
+  sessionCookieDomain,
   LEGAL_PAGE_URL,
   NODE_ENV,
   PROJECT_ROOT,
@@ -135,8 +136,9 @@ export function createApp(options: CreateAppOptions = {}): AppBundle {
     httpOnly: true,
     secure: SECURE_COOKIES,
     sameSite: 'lax',
-    domain: COOKIE_DOMAIN,
   };
+  const cookieDomain = sessionCookieDomain();
+  if (cookieDomain) cookieOptions.domain = cookieDomain;
 
   app.use(
     session({
@@ -305,7 +307,10 @@ export function createApp(options: CreateAppOptions = {}): AppBundle {
   const publicPageLimiter = createRateLimiter(BASELINE_RATE_LIMIT_MAX);
   const staticAssetLimiter = createRateLimiter(STATIC_ASSET_RATE_LIMIT_MAX);
 
-  const clientDir = path.join(PROJECT_ROOT, 'dist', 'client');
+  const clientDir =
+    NODE_ENV !== 'production' && process.env.E2E_CLIENT_DIR?.trim()
+      ? path.resolve(process.env.E2E_CLIENT_DIR.trim())
+      : path.join(PROJECT_ROOT, 'dist', 'client');
   const clientIndexPath = path.join(clientDir, 'index.html');
 
   app.use(
@@ -336,33 +341,39 @@ export function createApp(options: CreateAppOptions = {}): AppBundle {
       },
     }),
   );
-  app.use(
-    '/assets',
-    staticAssetLimiter,
-    express.static(path.join(clientDir, 'assets'), {
-      maxAge: '1y',
-      immutable: true,
-    }),
-  );
-  app.use(
-    publicPageLimiter,
-    express.static(clientDir, {
-      index: false,
-      maxAge: '1h',
-      setHeaders(res, filePath) {
-        if (filePath.endsWith('.html')) {
-          res.setHeader('Cache-Control', 'no-cache');
-        }
-      },
-    }),
-  );
+  if (NODE_ENV !== 'development') {
+    app.use(
+      '/assets',
+      staticAssetLimiter,
+      express.static(path.join(clientDir, 'assets'), {
+        maxAge: '1y',
+        immutable: true,
+      }),
+    );
+    app.use(
+      publicPageLimiter,
+      express.static(clientDir, {
+        index: false,
+        maxAge: '1h',
+        setHeaders(res, filePath) {
+          if (filePath.endsWith('.html')) {
+            res.setHeader('Cache-Control', 'no-cache');
+          }
+        },
+      }),
+    );
+  }
 
   function sendSpaIndex(res: Response): void {
+    if (!fs.existsSync(clientIndexPath)) {
+      res.status(503).json({ error: 'Client build missing. Run `pnpm run build` first.' });
+      return;
+    }
     res.setHeader('Cache-Control', 'no-cache');
     res.sendFile(clientIndexPath);
   }
 
-  const faviconPng = path.join(PROJECT_ROOT, 'favicon.png');
+  const faviconPng = path.join(PROJECT_ROOT, 'public', 'favicon.png');
   app.get('/favicon.png', publicPageLimiter, (_req, res) => {
     res.sendFile(faviconPng);
   });
@@ -377,42 +388,44 @@ export function createApp(options: CreateAppOptions = {}): AppBundle {
     res.redirect(LEGAL_PAGE_URL);
   });
 
-  app.get('/admin', publicPageLimiter, (_req, res) => {
-    sendSpaIndex(res);
-  });
-  app.get('/warframe/admin', publicPageLimiter, (_req, res) => {
-    sendSpaIndex(res);
-  });
-  app.get('/epic7/admin', publicPageLimiter, (_req, res) => {
-    sendSpaIndex(res);
-  });
-  app.get('/wor/admin', publicPageLimiter, (_req, res) => {
-    sendSpaIndex(res);
-  });
-  app.get('/sign-in', publicPageLimiter, (_req, res) => {
-    sendSpaIndex(res);
-  });
-  app.get(/^\/sign-in\/.*$/, publicPageLimiter, (_req, res) => {
-    sendSpaIndex(res);
-  });
-  app.get('/sign-up', publicPageLimiter, (_req, res) => {
-    sendSpaIndex(res);
-  });
-  app.get(/^\/sign-up\/.*$/, publicPageLimiter, (_req, res) => {
-    sendSpaIndex(res);
-  });
-  app.get('/warframe', publicPageLimiter, (_req, res) => {
-    sendSpaIndex(res);
-  });
-  app.get('/epic7', publicPageLimiter, (_req, res) => {
-    sendSpaIndex(res);
-  });
-  app.get('/wor', publicPageLimiter, (_req, res) => {
-    sendSpaIndex(res);
-  });
-  app.get('/', publicPageLimiter, (_req, res) => {
-    sendSpaIndex(res);
-  });
+  if (NODE_ENV !== 'development') {
+    app.get('/admin', publicPageLimiter, (_req, res) => {
+      sendSpaIndex(res);
+    });
+    app.get('/warframe/admin', publicPageLimiter, (_req, res) => {
+      sendSpaIndex(res);
+    });
+    app.get('/epic7/admin', publicPageLimiter, (_req, res) => {
+      sendSpaIndex(res);
+    });
+    app.get('/wor/admin', publicPageLimiter, (_req, res) => {
+      sendSpaIndex(res);
+    });
+    app.get('/sign-in', publicPageLimiter, (_req, res) => {
+      sendSpaIndex(res);
+    });
+    app.get(/^\/sign-in\/.*$/, publicPageLimiter, (_req, res) => {
+      sendSpaIndex(res);
+    });
+    app.get('/sign-up', publicPageLimiter, (_req, res) => {
+      sendSpaIndex(res);
+    });
+    app.get(/^\/sign-up\/.*$/, publicPageLimiter, (_req, res) => {
+      sendSpaIndex(res);
+    });
+    app.get('/warframe', publicPageLimiter, (_req, res) => {
+      sendSpaIndex(res);
+    });
+    app.get('/epic7', publicPageLimiter, (_req, res) => {
+      sendSpaIndex(res);
+    });
+    app.get('/wor', publicPageLimiter, (_req, res) => {
+      sendSpaIndex(res);
+    });
+    app.get('/', publicPageLimiter, (_req, res) => {
+      sendSpaIndex(res);
+    });
+  }
 
   app.get('/auth/login', publicPageLimiter, (_req, res) => {
     res.redirect('/sign-in');

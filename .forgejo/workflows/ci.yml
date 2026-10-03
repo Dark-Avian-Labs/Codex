@@ -19,7 +19,6 @@ on:
       - 'tests/**'
       - 'e2e/**'
       - 'playwright.config.ts'
-      - 'favicon.png'
       - 'public/**'
       - 'background.txt'
       - '.env.production'
@@ -242,6 +241,10 @@ jobs:
 
       - name: Run end-to-end tests
         run: pnpm run test:e2e
+        env:
+          DOTENV_PRIVATE_KEY_DEVELOPMENT: ${{ secrets.DOTENV_PRIVATE_KEY_DEVELOPMENT }}
+          E2E_CLERK_USER_EMAIL: ${{ secrets.E2E_CLERK_USER_EMAIL }}
+          E2E_CLERK_USER_PASSWORD: ${{ secrets.E2E_CLERK_USER_PASSWORD }}
 
       - name: Setup SSH
         env:
@@ -298,8 +301,9 @@ jobs:
           cp package.json pnpm-lock.yaml pnpm-workspace.yaml /tmp/deploy/
           rsync -a --exclude='node_modules' --exclude='src' packages/ /tmp/deploy/packages/
           if [ -f .env.production ]; then cp .env.production /tmp/deploy/; fi
-          if [ -f favicon.png ]; then cp favicon.png /tmp/deploy/; fi
-          if [ -f feathers.png ]; then cp feathers.png /tmp/deploy/; fi
+          mkdir -p /tmp/deploy/public
+          cp public/favicon.svg /tmp/deploy/public/favicon.svg
+          cp public/favicon.png /tmp/deploy/public/favicon.png
           if [ -f background.txt ]; then cp background.txt /tmp/deploy/; fi
           mkdir -p /tmp/deploy/scripts/data
           cp scripts/data/wor-catalog-fixture.json scripts/data/wor-overrides.json /tmp/deploy/scripts/data/
