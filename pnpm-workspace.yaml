@@ -16,9 +16,9 @@ update:
   githubActions: true
 
 catalog:
-  "@clerk/react": ^6.17.5
-  "@clerk/express": ^2.1.75
-  "@dotenvx/dotenvx": ^2.32.4
+  "@clerk/react": ^6.17.6
+  "@clerk/express": ^2.1.76
+  "@dotenvx/dotenvx": ^2.33.0
   "@fontsource-variable/geist": ^5.3.0
   "@fontsource-variable/geist-mono": ^5.3.0
   "@fontsource-variable/cascadia-mono": ^5.3.0
@@ -31,7 +31,7 @@ catalog:
   "@types/node": ^26.6.4
   "@types/react": ^19.3.0
   "@types/react-dom": ^19.3.0
-  "@vitejs/plugin-react": ^6.1.1
+  "@vitejs/plugin-react": ^6.1.2
   better-sqlite3: ^13.0.3
   clsx: ^2.1.1
   compression: ^1.8.2
@@ -43,8 +43,8 @@ catalog:
   express-session: ^1.19.0
   globals: ^17.13.0
   helmet: ^8.3.0
-  oxfmt: ^0.71.0
-  oxlint: ^1.86.0
+  oxfmt: ^0.72.0
+  oxlint: ^1.87.0
   react: ^19.3.0
   react-dom: ^19.3.0
   react-router: ^8.4.0
