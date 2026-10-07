@@ -331,3 +331,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.80.5** `chore(deps)` [#435](https://github.com/Dark-Avian-Labs/Codex/pull/435): bump the production-dependencies group with 2 updates
 - **v1.80.6** `chore`: Merge pull request 'ci: run checks on Forgejo' (#437) from ci/forgejo-workflows into main
 - **v1.81.0** `chore`: Merge pull request 'Replace the header feather and the soft wordmark glow' (#441) from feat/header-mark into main
+- **v1.81.1** `chore`: Merge pull request 'chore(deps): update dependencies to latest' (#446) from chore/deps-latest into main
