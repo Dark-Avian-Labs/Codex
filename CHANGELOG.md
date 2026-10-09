@@ -336,3 +336,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.81.3** `chore`: Merge pull request 'ci: rebuild dependency pull requests from an @actions rebase comment' (#449) from ci/actions-rebase into main
 - **v1.81.4** `chore`: Merge pull request 'ci: rebase dependency pull requests as Sayori' (#450) from ci/sayori-rebase into main
 - **v1.81.5** `chore`: Merge pull request 'chore(deps): update production dependencies' (#447) from deps/production into main
+- **v1.81.6** `chore`: Merge pull request 'Update pnpm to 12.10.1 and Vite to 8.3.4' (#451) from chore/deps-pnpm-12.10.1 into main
