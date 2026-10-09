@@ -333,3 +333,4 @@ Each release maps to exactly one merged PR. CI appends these lines when semantic
 - **v1.81.0** `chore`: Merge pull request 'Replace the header feather and the soft wordmark glow' (#441) from feat/header-mark into main
 - **v1.81.1** `chore`: Merge pull request 'chore(deps): update dependencies to latest' (#446) from chore/deps-latest into main
 - **v1.81.2** `chore`: Merge pull request 'chore(deps): update development dependencies' (#448) from deps/development into main
+- **v1.81.3** `chore`: Merge pull request 'ci: rebuild dependency pull requests from an @actions rebase comment' (#449) from ci/actions-rebase into main
